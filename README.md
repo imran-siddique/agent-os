@@ -4,7 +4,16 @@ A proof-of-concept implementation of a self-evolving AI agent that improves its 
 
 ## Overview
 
-This agent implements a self-improvement loop:
+This agent implements two modes of operation:
+
+### Decoupled Mode (Recommended)
+Separates execution from learning for low-latency operation:
+
+1. **Doer (Synchronous)**: Executes tasks with read-only access to wisdom database, emits telemetry
+2. **Observer (Asynchronous)**: Offline learning process that analyzes telemetry and updates wisdom
+
+### Legacy Mode (Synchronous)
+Traditional self-improvement loop for backward compatibility:
 
 1. **Memory**: System instructions stored in JSON
 2. **Task**: Agent receives a query
@@ -15,11 +24,13 @@ This agent implements a self-improvement loop:
 
 ## Features
 
-- **JSON-based Memory**: System instructions stored in `system_instructions.json`
+- **Decoupled Execution/Learning**: Low-latency execution with offline learning
+- **Telemetry System**: Event stream for capturing execution traces
+- **Wisdom Database**: Persistent knowledge stored in `system_instructions.json`
 - **Tool System**: Simple tools for calculations, time, and string operations
 - **Reflection System**: Automatic evaluation of agent responses
 - **Evolution System**: Automatic improvement of system instructions
-- **Retry Logic**: Up to 3 attempts with evolving instructions
+- **Backward Compatible**: Legacy synchronous mode still available
 
 ## Installation
 
@@ -36,21 +47,45 @@ cp .env.example .env
 
 ## Usage
 
-### Simple Example
+### Decoupled Architecture (Recommended)
+
+Run the decoupled example:
+```bash
+python example_decoupled.py
+```
+
+This demonstrates:
+1. DoerAgent executing tasks (fast, synchronous)
+2. ObserverAgent learning offline (asynchronous)
+
+Manual usage:
+
+```python
+from agent import DoerAgent
+from observer import ObserverAgent
+
+# Phase 1: Execute tasks (fast, no learning)
+doer = DoerAgent()
+result = doer.run("What is 10 + 20?")
+
+# Phase 2: Learn offline (separate process)
+observer = ObserverAgent()
+observer.process_events()  # Batch process telemetry
+```
+
+### Legacy Synchronous Mode
 
 Run the basic example:
 ```bash
 python example.py
 ```
 
-### Full Demo
-
-Run the full demo with multiple queries:
+Run the full demo:
 ```bash
 python agent.py
 ```
 
-### Custom Usage
+Custom usage:
 
 ```python
 from agent import SelfEvolvingAgent
@@ -72,23 +107,64 @@ print(f"Response: {results['final_response']}")
 
 ## Architecture
 
-### Components
+### Decoupled Mode Components
 
-1. **MemorySystem**: Manages system instructions in JSON
-   - `load_instructions()`: Load from file
-   - `save_instructions()`: Persist to file
-   - `update_instructions()`: Evolve instructions with critique history
+1. **DoerAgent**: Synchronous execution agent
+   - Executes tasks using wisdom database (read-only)
+   - Emits telemetry events to event stream
+   - No reflection or learning during execution
+   - Low latency operation
 
-2. **AgentTools**: Simple tools the agent can use
+2. **ObserverAgent**: Asynchronous learning agent
+   - Consumes telemetry events offline
+   - Analyzes execution traces
+   - Performs reflection and evaluation
+   - Evolves wisdom database
+   - Can use more powerful models
+
+3. **EventStream**: Telemetry system
+   - Append-only event log (JSONL format)
+   - Stores execution traces
+   - Supports batch processing
+   - Checkpoint-based progress tracking
+
+4. **MemorySystem/Wisdom Database**: Persistent knowledge
+   - Stores system instructions in JSON
+   - Version tracking
+   - Improvement history
+
+5. **AgentTools**: Simple tools the agent can use
    - `calculate()`: Mathematical expressions
    - `get_current_time()`: Current date/time
    - `string_length()`: String length calculation
 
-3. **SelfEvolvingAgent**: Main agent with evolution loop
+### Legacy Mode Components
+
+1. **SelfEvolvingAgent**: Main agent with evolution loop
    - `act()`: Execute query with current instructions
    - `reflect()`: Evaluate response quality
    - `evolve()`: Improve instructions based on critique
    - `run()`: Main loop orchestrating all steps
+
+## Key Benefits of Decoupled Architecture
+
+1. **Low Runtime Latency**: Doer doesn't wait for learning
+2. **Persistent Learning**: Observer builds wisdom over time
+3. **Scalability**: Observer can process events in batch
+4. **Model Flexibility**: Use different/more powerful models for learning
+5. **Async Processing**: Learning happens offline, separate from execution
+6. **Resource Efficiency**: Learning process can be scheduled independently
+
+## Testing
+
+Run all tests:
+```bash
+# Test legacy components
+python test_agent.py
+
+# Test decoupled architecture
+python test_decoupled.py
+```
 
 ### Configuration
 

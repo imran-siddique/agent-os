@@ -44,3 +44,8 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Telemetry and checkpoints
+telemetry_events.jsonl
+observer_checkpoint.json
+

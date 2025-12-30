@@ -6,19 +6,30 @@ This module implements a self-evolving agent that:
 2. Evaluates its own performance using an LLM reflection system
 3. Evolves its system instructions based on critique when performance is below threshold
 4. Retries with improved instructions
+
+Additionally supports a decoupled mode:
+- DoerAgent: Synchronous execution with telemetry emission (no learning)
+- SelfEvolvingAgent: Legacy synchronous learning mode (for backward compatibility)
 """
 
 import json
 import os
 import ast
 import operator
-from typing import Dict, List, Any, Tuple
+from typing import Dict, List, Any, Tuple, Optional
 from datetime import datetime
 from openai import OpenAI
 from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
+
+# Import telemetry if available (optional dependency)
+try:
+    from telemetry import EventStream, TelemetryEvent
+    TELEMETRY_AVAILABLE = True
+except ImportError:
+    TELEMETRY_AVAILABLE = False
 
 
 class MemorySystem:
@@ -124,8 +135,130 @@ class AgentTools:
 """
 
 
+class DoerAgent:
+    """
+    The "Doer" - Synchronous execution agent.
+    
+    Executes tasks with read-only access to the Wisdom Database.
+    Emits telemetry to an event stream for offline learning.
+    Does NOT perform reflection or evolution during execution.
+    """
+    
+    def __init__(self,
+                 wisdom_file: str = "system_instructions.json",
+                 stream_file: str = "telemetry_events.jsonl",
+                 enable_telemetry: bool = True):
+        self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        self.wisdom = MemorySystem(wisdom_file)  # Read-only access
+        self.tools = AgentTools()
+        self.enable_telemetry = enable_telemetry and TELEMETRY_AVAILABLE
+        
+        if self.enable_telemetry:
+            self.event_stream = EventStream(stream_file)
+        
+        # Model configuration
+        self.agent_model = os.getenv("AGENT_MODEL", "gpt-4o-mini")
+    
+    def execute_tool(self, tool_name: str, *args) -> str:
+        """Execute a tool by name."""
+        if hasattr(self.tools, tool_name):
+            return getattr(self.tools, tool_name)(*args)
+        return f"Error: Tool '{tool_name}' not found"
+    
+    def act(self, query: str) -> str:
+        """
+        Agent attempts to solve the query using current wisdom.
+        """
+        system_prompt = self.wisdom.get_system_prompt()
+        
+        # Add tool information to the system prompt
+        full_system_prompt = f"{system_prompt}\n\n{self.tools.get_available_tools()}"
+        full_system_prompt += "\nIf you need to use a tool, explain which tool you would use and why."
+        
+        messages = [
+            {"role": "system", "content": full_system_prompt},
+            {"role": "user", "content": query}
+        ]
+        
+        try:
+            response = self.client.chat.completions.create(
+                model=self.agent_model,
+                messages=messages,
+                temperature=0.7
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            return f"Error executing agent: {str(e)}"
+    
+    def _emit_telemetry(self, event_type: str, query: str, 
+                       agent_response: Optional[str] = None,
+                       success: Optional[bool] = None,
+                       user_feedback: Optional[str] = None) -> None:
+        """Emit telemetry event to the stream."""
+        if not self.enable_telemetry:
+            return
+        
+        event = TelemetryEvent(
+            event_type=event_type,
+            timestamp=datetime.now().isoformat(),
+            query=query,
+            agent_response=agent_response,
+            success=success,
+            user_feedback=user_feedback,
+            instructions_version=self.wisdom.instructions['version']
+        )
+        self.event_stream.emit(event)
+    
+    def run(self, query: str, verbose: bool = True, 
+            user_feedback: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Execute query and emit telemetry.
+        No reflection or evolution - just execution.
+        """
+        if verbose:
+            print("="*60)
+            print("DOER AGENT: Executing Task")
+            print("="*60)
+            print(f"Query: {query}")
+            print(f"Wisdom Version: {self.wisdom.instructions['version']}")
+        
+        # Emit task start event
+        self._emit_telemetry("task_start", query)
+        
+        # ACT: Execute the query
+        if verbose:
+            print("\n[EXECUTING] Processing query...")
+        
+        agent_response = self.act(query)
+        
+        if verbose:
+            print(f"Response: {agent_response}")
+        
+        # Emit task completion event
+        self._emit_telemetry(
+            "task_complete",
+            query,
+            agent_response=agent_response,
+            success=True,
+            user_feedback=user_feedback
+        )
+        
+        if verbose:
+            print("\n[TELEMETRY] Event emitted to stream")
+        
+        return {
+            "query": query,
+            "response": agent_response,
+            "instructions_version": self.wisdom.instructions['version'],
+            "telemetry_emitted": self.enable_telemetry
+        }
+
+
 class SelfEvolvingAgent:
-    """Main self-evolving agent with reflection and evolution capabilities."""
+    """
+    Legacy self-evolving agent with synchronous reflection and evolution.
+    Kept for backward compatibility.
+    """
     
     def __init__(self, 
                  memory_file: str = "system_instructions.json",

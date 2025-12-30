@@ -2,6 +2,17 @@
 
 ## System Overview
 
+The Self-Evolving Agent now supports two operational modes:
+
+1. **Decoupled Mode (Recommended)**: Separates execution from learning - see [ARCHITECTURE_DECOUPLED.md](ARCHITECTURE_DECOUPLED.md)
+2. **Legacy Mode (Documented Below)**: Traditional synchronous self-improvement loop
+
+For the new decoupled architecture with DoerAgent and ObserverAgent, please refer to **[ARCHITECTURE_DECOUPLED.md](ARCHITECTURE_DECOUPLED.md)**.
+
+---
+
+## Legacy Architecture
+
 The Self-Evolving Agent implements a continuous improvement loop where the agent learns from its mistakes and improves its behavior over time.
 
 ## Component Architecture
