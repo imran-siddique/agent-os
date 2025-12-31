@@ -266,6 +266,36 @@ class DoerAgent:
         )
         self.event_stream.emit(event)
     
+    def _emit_signal(self, signal_type: str, query: str, agent_response: Optional[str],
+                    success: bool, user_id: Optional[str], 
+                    signal_context: Dict[str, Any], verbose: bool) -> None:
+        """
+        Helper method to emit a signal event to the stream.
+        Reduces code duplication across signal emission methods.
+        """
+        if not self.enable_telemetry:
+            return
+        
+        metadata = dict(signal_context)
+        if user_id:
+            metadata["user_id"] = user_id
+        
+        event = TelemetryEvent(
+            event_type=f"signal_{signal_type}",
+            timestamp=datetime.now().isoformat(),
+            query=query,
+            agent_response=agent_response,
+            success=success,
+            instructions_version=self.wisdom.instructions['version'],
+            metadata=metadata,
+            signal_type=signal_type,
+            signal_context=signal_context
+        )
+        self.event_stream.emit(event)
+        
+        if verbose:
+            print("[TELEMETRY] Signal emitted to stream")
+    
     def run(self, query: str, verbose: bool = True, 
             user_feedback: Optional[str] = None,
             user_id: Optional[str] = None) -> Dict[str, Any]:
@@ -321,6 +351,115 @@ class DoerAgent:
             "telemetry_emitted": self.enable_telemetry,
             "prioritization_enabled": self.enable_prioritization
         }
+    
+    def emit_undo_signal(self, query: str, agent_response: str, 
+                        user_id: Optional[str] = None,
+                        undo_action: Optional[str] = None,
+                        verbose: bool = True) -> None:
+        """
+        Emit an "Undo" signal - Critical Failure.
+        
+        This is called when a user reverses an agent action (e.g., Ctrl+Z, revert code).
+        This is the loudest "Thumbs Down" possible.
+        
+        Args:
+            query: Original query
+            agent_response: Agent's response that was undone
+            user_id: Optional user identifier
+            undo_action: Description of what was undone
+            verbose: Print signal details
+        """
+        if verbose:
+            print("\n" + "="*60)
+            print("🚨 UNDO SIGNAL DETECTED - Critical Failure")
+            print("="*60)
+            print(f"User reversed agent action: {undo_action or 'Not specified'}")
+        
+        self._emit_signal(
+            signal_type="undo",
+            query=query,
+            agent_response=agent_response,
+            success=False,
+            user_id=user_id,
+            signal_context={"undo_action": undo_action},
+            verbose=verbose
+        )
+    
+    def emit_abandonment_signal(self, query: str, agent_response: Optional[str] = None,
+                                user_id: Optional[str] = None,
+                                interaction_count: int = 0,
+                                last_interaction_time: Optional[str] = None,
+                                verbose: bool = True) -> None:
+        """
+        Emit an "Abandonment" signal - Loss.
+        
+        This is called when a user starts a workflow but stops responding halfway
+        without reaching a resolution. This means we lost them.
+        
+        Args:
+            query: Original query
+            agent_response: Last agent response before abandonment
+            user_id: Optional user identifier
+            interaction_count: Number of interactions before abandonment
+            last_interaction_time: Timestamp of last interaction
+            verbose: Print signal details
+        """
+        if verbose:
+            print("\n" + "="*60)
+            print("⚠️ ABANDONMENT SIGNAL DETECTED - Loss")
+            print("="*60)
+            print(f"User abandoned workflow after {interaction_count} interactions")
+        
+        self._emit_signal(
+            signal_type="abandonment",
+            query=query,
+            agent_response=agent_response,
+            success=False,
+            user_id=user_id,
+            signal_context={
+                "interaction_count": interaction_count,
+                "last_interaction_time": last_interaction_time
+            },
+            verbose=verbose
+        )
+    
+    def emit_acceptance_signal(self, query: str, agent_response: str,
+                              user_id: Optional[str] = None,
+                              next_task: Optional[str] = None,
+                              time_to_next_task: Optional[float] = None,
+                              verbose: bool = True) -> None:
+        """
+        Emit an "Acceptance" signal - Success.
+        
+        This is called when a user takes the output and moves to the next task
+        without follow-up questions. This means we won.
+        
+        Args:
+            query: Original query
+            agent_response: Agent's response that was accepted
+            user_id: Optional user identifier
+            next_task: Description of the next task user moved to
+            time_to_next_task: Time in seconds from response to next task
+            verbose: Print signal details
+        """
+        if verbose:
+            print("\n" + "="*60)
+            print("✅ ACCEPTANCE SIGNAL DETECTED - Success")
+            print("="*60)
+            print(f"User accepted output and moved to: {next_task or 'next task'}")
+        
+        self._emit_signal(
+            signal_type="acceptance",
+            query=query,
+            agent_response=agent_response,
+            success=True,
+            user_id=user_id,
+            signal_context={
+                "next_task": next_task,
+                "time_to_next_task": time_to_next_task
+            },
+            verbose=verbose
+        )
 
 
 class SelfEvolvingAgent:

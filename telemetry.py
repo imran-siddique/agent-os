@@ -16,7 +16,7 @@ from dataclasses import dataclass, asdict
 class TelemetryEvent:
     """Represents a single execution event."""
     
-    event_type: str  # "task_start", "task_complete", "user_feedback"
+    event_type: str  # "task_start", "task_complete", "user_feedback", "signal_undo", "signal_abandonment", "signal_acceptance"
     timestamp: str
     query: str
     agent_response: Optional[str] = None
@@ -24,6 +24,8 @@ class TelemetryEvent:
     user_feedback: Optional[str] = None
     instructions_version: Optional[int] = None
     metadata: Optional[Dict[str, Any]] = None
+    signal_type: Optional[str] = None  # "undo", "abandonment", "acceptance"
+    signal_context: Optional[Dict[str, Any]] = None  # Additional context for the signal
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert event to dictionary."""
@@ -89,3 +91,18 @@ class EventStream:
         if events:
             return events[-1].timestamp
         return None
+    
+    def get_signal_events(self, signal_type: Optional[str] = None) -> List[TelemetryEvent]:
+        """
+        Get all signal events, optionally filtered by signal type.
+        
+        Args:
+            signal_type: Optional filter for signal type ("undo", "abandonment", "acceptance")
+        """
+        all_events = self.read_all()
+        signal_events = [e for e in all_events if e.event_type.startswith("signal_")]
+        
+        if signal_type:
+            signal_events = [e for e in signal_events if e.signal_type == signal_type]
+        
+        return signal_events

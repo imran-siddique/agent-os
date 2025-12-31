@@ -196,6 +196,88 @@ Return ONLY the new system instructions as plain text (no JSON, no formatting):
         
         return analysis
     
+    def analyze_signal(self, event: TelemetryEvent, verbose: bool = False) -> Optional[Dict[str, Any]]:
+        """
+        Analyze a silent signal event and determine learning strategy.
+        
+        Silent signals are implicit feedback that requires immediate attention:
+        - Undo: Critical failure, highest priority learning
+        - Abandonment: Loss of engagement, high priority learning
+        - Acceptance: Success signal, positive reinforcement
+        
+        Returns analysis results or None if no learning needed.
+        """
+        if not event.event_type.startswith("signal_"):
+            return None
+        
+        if verbose:
+            print(f"\n[OBSERVER] Analyzing {event.signal_type} signal from {event.timestamp}")
+            print(f"Query: {event.query}")
+        
+        # Determine learning priority based on signal type
+        if event.signal_type == "undo":
+            # Critical failure - user reversed the action
+            signal_context = event.signal_context or {}
+            critique = (
+                f"CRITICAL FAILURE: User immediately reversed the agent's action. "
+                f"This indicates the response was fundamentally wrong or harmful. "
+                f"Query: {event.query}. "
+                f"Response: {event.agent_response}. "
+                f"Undo action: {signal_context.get('undo_action', 'Not specified')}. "
+                f"The agent MUST learn to avoid similar responses in the future."
+            )
+            score = 0.0  # Lowest possible score
+            needs_learning = True
+            priority = "critical"
+            
+        elif event.signal_type == "abandonment":
+            # Loss of engagement - user gave up
+            signal_context = event.signal_context or {}
+            critique = (
+                f"USER ABANDONMENT: User started the workflow but stopped responding. "
+                f"This indicates the agent failed to engage effectively. "
+                f"Query: {event.query}. "
+                f"Last response: {event.agent_response or 'None'}. "
+                f"Interactions: {signal_context.get('interaction_count', 0)}. "
+                f"The agent should provide more engaging or helpful responses."
+            )
+            score = 0.3  # Low score
+            needs_learning = True
+            priority = "high"
+            
+        elif event.signal_type == "acceptance":
+            # Success - user accepted and moved on
+            signal_context = event.signal_context or {}
+            critique = (
+                f"SUCCESS: User accepted the output and moved to the next task. "
+                f"This response pattern should be reinforced. "
+                f"Query: {event.query}. "
+                f"Response: {event.agent_response}. "
+                f"Next task: {signal_context.get('next_task', 'Not specified')}. "
+                f"The agent is performing well in this scenario."
+            )
+            score = 1.0  # Perfect score
+            needs_learning = False  # Acceptance signals don't require correction, but can be used for reinforcement
+            priority = "positive"
+        else:
+            return None
+        
+        if verbose:
+            print(f"Signal Priority: {priority.upper()}")
+            print(f"Score: {score:.2f}")
+            print(f"Critique: {critique}")
+        
+        analysis = {
+            "event": event,
+            "score": score,
+            "critique": critique,
+            "needs_learning": needs_learning,
+            "priority": priority,
+            "signal_type": event.signal_type
+        }
+        
+        return analysis
+    
     def learn_from_analysis(self, analysis: Dict[str, Any], verbose: bool = False) -> bool:
         """
         Update the wisdom database based on analysis.
@@ -252,6 +334,7 @@ Return ONLY the new system instructions as plain text (no JSON, no formatting):
             print("="*60)
             if self.enable_prioritization:
                 print("[PRIORITIZATION] Enabled - learning safety corrections")
+            print("[SILENT SIGNALS] Enabled - detecting implicit feedback")
         
         # Get unprocessed events
         last_timestamp = self.checkpoint.get("last_processed_timestamp")
@@ -271,11 +354,39 @@ Return ONLY the new system instructions as plain text (no JSON, no formatting):
         results = {
             "events_processed": 0,
             "lessons_learned": 0,
-            "analyses": []
+            "analyses": [],
+            "signal_stats": {
+                "undo_signals": 0,
+                "abandonment_signals": 0,
+                "acceptance_signals": 0
+            }
         }
         
         # Process each event
         for event in events:
+            # Handle silent signal events
+            if event.event_type.startswith("signal_"):
+                signal_analysis = self.analyze_signal(event, verbose=verbose)
+                
+                if signal_analysis:
+                    results["analyses"].append(signal_analysis)
+                    
+                    # Track signal statistics
+                    if event.signal_type == "undo":
+                        results["signal_stats"]["undo_signals"] += 1
+                    elif event.signal_type == "abandonment":
+                        results["signal_stats"]["abandonment_signals"] += 1
+                    elif event.signal_type == "acceptance":
+                        results["signal_stats"]["acceptance_signals"] += 1
+                    
+                    # Learn from signal (critical and high priority signals)
+                    if self.learn_from_analysis(signal_analysis, verbose=verbose):
+                        results["lessons_learned"] += 1
+                        self.checkpoint["lessons_learned"] += 1
+                
+                results["events_processed"] += 1
+                continue
+            
             # Learn user preferences from feedback
             if self.enable_prioritization and event.user_feedback:
                 user_id = self._extract_user_id(event)
@@ -312,6 +423,10 @@ Return ONLY the new system instructions as plain text (no JSON, no formatting):
             print(f"Events Processed: {results['events_processed']}")
             print(f"Lessons Learned: {results['lessons_learned']}")
             print(f"Wisdom Version: {self.wisdom.instructions['version']}")
+            print(f"\nSilent Signal Statistics:")
+            print(f"  🚨 Undo Signals (Critical): {results['signal_stats']['undo_signals']}")
+            print(f"  ⚠️ Abandonment Signals (Loss): {results['signal_stats']['abandonment_signals']}")
+            print(f"  ✅ Acceptance Signals (Success): {results['signal_stats']['acceptance_signals']}")
             if self.enable_prioritization:
                 stats = self.prioritization.get_stats()
                 print(f"\nPrioritization Framework Stats:")

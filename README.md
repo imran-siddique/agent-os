@@ -24,6 +24,13 @@ Traditional self-improvement loop for backward compatibility:
 
 ## Features
 
+- **Silent Signals**: Implicit feedback mechanism that captures user friction
+  - **Undo Signal** (Critical Failure): User reverses agent action (Ctrl+Z, revert) 
+  - **Abandonment Signal** (Loss): User stops responding mid-workflow
+  - **Acceptance Signal** (Success): User moves to next task without follow-up
+  - Eliminates blind spot of relying solely on explicit feedback
+  - Learns from what users DO, not just what they SAY
+  - See [SILENT_SIGNALS.md](SILENT_SIGNALS.md) for detailed documentation
 - **Decoupled Execution/Learning**: Low-latency execution with offline learning
 - **Upgrade Purge Strategy**: Active lifecycle management for wisdom database
   - Automatically removes lessons when upgrading models
@@ -79,6 +86,50 @@ result = doer.run("What is 10 + 20?")
 # Phase 2: Learn offline (separate process)
 observer = ObserverAgent()
 observer.process_events()  # Batch process telemetry
+```
+
+### Silent Signals
+
+Run the silent signals demo:
+```bash
+python example_silent_signals.py
+```
+
+This demonstrates the three types of implicit feedback signals:
+1. **Undo Signal**: User reverses agent action (critical failure)
+2. **Abandonment Signal**: User stops responding mid-workflow (loss)
+3. **Acceptance Signal**: User moves to next task without follow-up (success)
+
+Manual usage:
+
+```python
+from agent import DoerAgent
+
+doer = DoerAgent()
+
+# Emit an undo signal when user reverses action
+doer.emit_undo_signal(
+    query="Write code to delete files",
+    agent_response="rm -rf /*",
+    undo_action="Ctrl+Z in editor",
+    user_id="user123"
+)
+
+# Emit an abandonment signal when user stops responding
+doer.emit_abandonment_signal(
+    query="Help me debug",
+    agent_response="Check your code",
+    interaction_count=3,
+    user_id="user456"
+)
+
+# Emit an acceptance signal when user moves on
+doer.emit_acceptance_signal(
+    query="Calculate 10 + 20",
+    agent_response="Result is 30",
+    next_task="Calculate 20 + 30",
+    user_id="user789"
+)
 ```
 
 ### Legacy Synchronous Mode
@@ -242,6 +293,9 @@ python test_prioritization.py
 
 # Test upgrade purge strategy
 python test_model_upgrade.py
+
+# Test silent signals feature
+python test_silent_signals.py
 ```
 
 ### Configuration
