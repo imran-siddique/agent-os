@@ -114,7 +114,11 @@ cp .env.example .env
 
 Run the orchestration demonstration:
 ```bash
+# Basic demo with mock workers
 python example_orchestration.py
+
+# Advanced demo with AI agents (requires API key)
+python example_orchestration_ai.py
 ```
 
 This demonstrates:
