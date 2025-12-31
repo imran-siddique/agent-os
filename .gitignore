@@ -49,6 +49,10 @@ Thumbs.db
 telemetry_events.jsonl
 observer_checkpoint.json
 
+# Wisdom Curator files
+curator_review_queue.json
+design_proposals.json
+
 # Prioritization databases
 safety_corrections.json
 user_preferences.json

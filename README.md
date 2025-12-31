@@ -24,6 +24,13 @@ Traditional self-improvement loop for backward compatibility:
 
 ## Features
 
+- **Wisdom Curator**: Human-in-the-loop review for high-level strategic verification
+  - **Design Check**: Verify implementation matches architectural proposals (not syntax!)
+  - **Strategic Sample**: Review random samples (50 out of 10,000) for quality/vibe
+  - **Policy Review**: Human approval prevents harmful wisdom updates (e.g., "ignore all errors")
+  - Shifts human role from Editor (fixing grammar) to Curator (approving knowledge)
+  - Automatic policy violation detection for safety, security, privacy, and quality
+  - See [WISDOM_CURATOR.md](WISDOM_CURATOR.md) for detailed documentation
 - **Automated Circuit Breaker**: Real-time rollout management with deterministic metrics
   - **The Probe**: Gradual rollout (1% → 5% → 20% → 100%)
   - **The Watchdog**: Real-time monitoring of Task Completion Rate and Latency
@@ -60,6 +67,7 @@ Traditional self-improvement loop for backward compatibility:
 - **Reflection System**: Automatic evaluation of agent responses
 - **Evolution System**: Automatic improvement of system instructions
 - **Backward Compatible**: Legacy synchronous mode still available
+
 
 ## Installation
 
@@ -185,6 +193,69 @@ doer.emit_acceptance_signal(
     next_task="Calculate 20 + 30",
     user_id="user789"
 )
+```
+
+### Wisdom Curator
+
+Run the wisdom curator demo:
+```bash
+python example_wisdom_curator.py
+```
+
+This demonstrates:
+1. Design Check: Architecture alignment verification
+2. Strategic Sample: Random sampling for quality checks
+3. Policy Review: Human approval for wisdom updates
+
+Manual usage:
+
+```python
+from wisdom_curator import WisdomCurator, DesignProposal, ReviewType
+
+# Initialize curator
+curator = WisdomCurator(
+    sample_rate=0.005  # 0.5% sampling rate (50 out of 10,000)
+)
+
+# 1. Design Check: Register and verify architectural proposals
+proposal = DesignProposal(
+    proposal_id="auth_v1",
+    title="User Authentication System",
+    description="Implement JWT-based auth",
+    key_requirements=["Use JWT tokens", "Add rate limiting"]
+)
+curator.register_design_proposal(proposal)
+
+review = curator.verify_design_alignment(
+    proposal_id="auth_v1",
+    implementation_description="Implemented JWT with bcrypt..."
+)
+
+# 2. Strategic Sample: Automatically sample interactions
+if curator.should_sample_interaction():
+    curator.create_strategic_sample(
+        query="User query",
+        agent_response="Agent response"
+    )
+
+# 3. Policy Review: Check wisdom updates for policy violations
+if curator.requires_policy_review(proposed_wisdom, critique):
+    # BLOCKED - requires human approval
+    policy_review = curator.create_policy_review(
+        proposed_wisdom=proposed_wisdom,
+        current_wisdom=current_wisdom,
+        critique=critique
+    )
+
+# Review Management
+pending = curator.get_pending_reviews(ReviewType.POLICY_REVIEW)
+curator.approve_review(review_id, "Safe to apply")
+curator.reject_review(review_id, "Harmful pattern")
+
+# Integration with Observer (automatic)
+from observer import ObserverAgent
+observer = ObserverAgent(enable_wisdom_curator=True)
+observer.process_events()  # Policy review happens automatically
 ```
 
 ### Legacy Synchronous Mode
@@ -393,6 +464,9 @@ python test_agent.py
 
 # Test decoupled architecture
 python test_decoupled.py
+
+# Test wisdom curator
+python test_wisdom_curator.py
 
 # Test prioritization framework
 python test_prioritization.py
