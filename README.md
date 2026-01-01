@@ -24,6 +24,16 @@ Traditional self-improvement loop for backward compatibility:
 
 ## Features
 
+- **Polymorphic Output (Adaptive Rendering)**: The "Just-in-Time UI" where agents determine response modality based on context
+  - **Output Modality Detection**: Automatically chooses the right format (text, widget, chart, table, etc.)
+  - **Scenario A (Data)**: Backend telemetry → Dashboard widget (not chat)
+  - **Scenario B (Code)**: IDE typing → Ghost text (not popup)
+  - **Generative UI Engine**: SDK that renders React/Flutter components from JSON
+  - **Text Fallback**: Backward compatible with plain text systems
+  - **Context-Aware**: IDE gets ghost text, monitoring gets widgets, chat gets text
+  - Key insight: "If input can be anything, output must be anything"
+  - Startup opportunity: "Generative UI Engine SDK" - stop hard-coding screens, render them dynamically
+  - See [POLYMORPHIC_OUTPUT.md](POLYMORPHIC_OUTPUT.md) for detailed documentation
 - **Universal Signal Bus (Omni-Channel Ingestion)**: The "Input Agnostic" architecture for AI
   - **Signal Normalizer**: Entry point is NOT a UI - it's a signal normalizer
   - **File Change Events**: Passive input from VS Code/IDE file watchers
@@ -137,6 +147,159 @@ cp .env.example .env
 ```
 
 ## Usage
+
+### Polymorphic Output (Adaptive Rendering)
+
+Run the polymorphic output demonstration:
+```bash
+python example_polymorphic_output.py
+```
+
+This demonstrates:
+1. **Scenario A (Data)**: Backend telemetry → Dashboard widget (not chat message)
+2. **Scenario B (Code)**: IDE typing → Ghost text (not popup)
+3. **Scenario C (Analysis)**: SQL results → Interactive table (not text dump)
+4. **Scenario D (Monitoring)**: Time series → Line chart (not list)
+5. **Scenario E (Alerts)**: Critical error → Toast notification (not log entry)
+6. **Automatic Modality Detection**: System chooses appropriate output format
+7. **React Code Generation**: Generate JSX from agent responses
+8. **Startup Opportunity**: Building the Generative UI Engine SDK
+
+Manual usage:
+
+```python
+from polymorphic_output import (
+    PolymorphicOutputEngine,
+    InputContext,
+    create_ghost_text_response,
+    create_dashboard_widget_response,
+    create_chart_response,
+    create_table_response
+)
+from generative_ui_engine import GenerativeUIEngine
+
+# Initialize engines
+output_engine = PolymorphicOutputEngine()
+ui_engine = GenerativeUIEngine()
+
+# Scenario 1: Telemetry stream → Dashboard widget
+telemetry_data = {
+    "metric_name": "API Latency",
+    "metric_value": "2000ms",
+    "trend": "up",
+    "alert_level": "critical"
+}
+
+poly_response = output_engine.generate_response(
+    data=telemetry_data,
+    input_context=InputContext.MONITORING,
+    input_signal_type="log_stream",
+    urgency=0.9
+)
+
+# Generate UI component
+ui_component = ui_engine.render(poly_response)
+print(f"Modality: {poly_response.modality}")  # → dashboard_widget
+print(f"Component: {ui_component.component_type}")  # → DashboardWidget
+
+# Scenario 2: IDE context → Ghost text
+code_suggestion = "def calculate_total(items: List[float]) -> float:\n    return sum(items)"
+
+ghost_response = create_ghost_text_response(
+    suggestion=code_suggestion,
+    cursor_position={"line": 42, "column": 16}
+)
+
+ui_component = ui_engine.render(ghost_response)
+# Deploy to IDE: ide.show_ghost_text(ui_component)
+
+# Scenario 3: SQL results → Interactive table
+sql_results = [
+    {"id": 1, "name": "Alice", "email": "alice@example.com"},
+    {"id": 2, "name": "Bob", "email": "bob@example.com"}
+]
+
+table_response = create_table_response(
+    rows=sql_results,
+    title="Users",
+    sortable=True,
+    filterable=True
+)
+
+ui_component = ui_engine.render(table_response)
+# Deploy to app: app.display_table(ui_component)
+
+# Scenario 4: Time series → Chart
+data_points = [
+    {"timestamp": "00:00", "value": 100},
+    {"timestamp": "01:00", "value": 120},
+    {"timestamp": "02:00", "value": 150}
+]
+
+chart_response = create_chart_response(
+    chart_type="line",
+    data_points=data_points,
+    title="Request Rate",
+    x_axis_label="Time",
+    y_axis_label="Requests/min"
+)
+
+ui_component = ui_engine.render(chart_response)
+# Deploy to dashboard: dashboard.add_chart(ui_component)
+```
+
+Integration with existing agent:
+
+```python
+from agent import DoerAgent
+from polymorphic_output import PolymorphicOutputEngine, InputContext
+from generative_ui_engine import GenerativeUIEngine
+
+# Wrap existing agent
+class PolymorphicDoerAgent(DoerAgent):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.poly_engine = PolymorphicOutputEngine()
+        self.ui_engine = GenerativeUIEngine()
+    
+    def run_polymorphic(self, query, input_context, **kwargs):
+        # Run standard agent
+        result = self.run(query, **kwargs)
+        
+        # Generate polymorphic response
+        poly_response = self.poly_engine.generate_response(
+            data=result['response'],
+            input_context=input_context
+        )
+        
+        # Generate UI component
+        ui_component = self.ui_engine.render(poly_response)
+        
+        return {
+            **result,
+            'polymorphic_response': poly_response,
+            'ui_component': ui_component
+        }
+
+# Use the agent
+agent = PolymorphicDoerAgent()
+
+# IDE context → Ghost text
+result = agent.run_polymorphic(
+    query="Complete: def calculate_",
+    input_context=InputContext.IDE
+)
+print(result['polymorphic_response'].modality)  # → ghost_text
+
+# Monitoring context → Dashboard widget
+result = agent.run_polymorphic(
+    query="Show current latency",
+    input_context=InputContext.MONITORING
+)
+print(result['polymorphic_response'].modality)  # → dashboard_widget
+```
+
+**The Key Insight**: "If input can be anything, output must be anything. The Agent generates the Data, but the Interface Layer generates the View. This is Just-in-Time UI."
 
 ### Universal Signal Bus (Omni-Channel Ingestion)
 
@@ -1025,6 +1188,9 @@ See [CIRCUIT_BREAKER.md](CIRCUIT_BREAKER.md) for detailed documentation.
 
 Run all tests:
 ```bash
+# Test polymorphic output (adaptive rendering)
+python test_polymorphic_output.py
+
 # Test universal signal bus (omni-channel ingestion)
 python test_universal_signal_bus.py
 
