@@ -23,6 +23,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 import json
+import time
 
 
 class PricingModel(Enum):
@@ -52,6 +53,16 @@ class AgentPricing:
     def calculate_cost(self, tokens: int = 0, seconds: float = 0.0) -> float:
         """
         Calculate cost based on usage.
+        
+        Note: This implementation allows for hybrid pricing models where
+        base_price is always charged and additional costs are added based
+        on the model type. For pure per-token or per-second pricing,
+        set base_price to 0.0.
+        
+        Examples:
+        - Pure per-execution: base_price=0.01, model=PER_EXECUTION
+        - Pure per-token: base_price=0.0, per_token_price=0.002, model=PER_TOKEN
+        - Hybrid: base_price=0.01, per_token_price=0.001, model=PER_TOKEN
         
         Args:
             tokens: Number of tokens processed
@@ -103,12 +114,17 @@ class AgentListing:
         """
         Calculate a score for this agent for a given task.
         
-        Considers:
-        - Capability match
-        - Pricing
-        - Speed (latency)
-        - Reliability (success rate)
-        - User constraints (max budget, max latency)
+        Scoring is based on:
+        - Success rate: 30% weight (reliability)
+        - Speed (latency): 30% weight (performance)
+        - Pricing: 40% weight (cost)
+        
+        User constraints act as hard filters:
+        - max_budget: Eliminates agents exceeding budget
+        - max_latency_ms: Eliminates agents too slow
+        
+        Note: Capability matching is done during agent discovery/bidding,
+        not in scoring. Only agents with relevant capabilities receive bids.
         
         Returns:
             Score between 0 and 1 (higher is better)
@@ -424,7 +440,6 @@ class AgentBroker:
             }
         
         # Execute the task
-        import time
         start_time = time.time()
         
         try:
@@ -437,8 +452,11 @@ class AgentBroker:
         actual_latency_ms = (time.time() - start_time) * 1000
         
         # Calculate actual cost
+        # Note: Token counting is a placeholder (set to 0)
+        # In production, this would use a token counter library
+        # to calculate actual tokens from request/response
         actual_cost = agent.pricing.calculate_cost(
-            tokens=0,  # Would be calculated based on actual usage
+            tokens=0,  # TODO: Calculate actual token usage
             seconds=actual_latency_ms / 1000.0
         )
         
