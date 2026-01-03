@@ -100,10 +100,21 @@ class HTMLProcessor(BaseProcessor):
         for element in soup(['script', 'style', 'nav', 'footer']):
             element.decompose()
         
-        # Extract sections based on headers
+        # Extract sections based on headers with hierarchy tracking
         sections = []
+        current_h1 = None  # Track current chapter (H1)
+        current_h2 = None  # Track current parent section (H2)
+        
         for header in soup.find_all(['h1', 'h2', 'h3', 'h4']):
             section_title = header.get_text().strip()
+            header_level = header.name  # 'h1', 'h2', etc.
+            
+            # Update hierarchy tracking BEFORE processing content
+            if header_level == 'h1':
+                current_h1 = section_title
+                current_h2 = None
+            elif header_level == 'h2':
+                current_h2 = section_title
             
             # Get content until next header or end
             content_parts = []
@@ -114,11 +125,26 @@ class HTMLProcessor(BaseProcessor):
             
             section_content = '\n'.join(content_parts).strip()
             if section_content:
+                # Assign hierarchy based on current tracking
+                chapter = None
+                parent_section = None
+                
+                if header_level == 'h1':
+                    # H1 sections don't have chapter/parent
+                    pass
+                elif header_level == 'h2':
+                    chapter = current_h1
+                elif header_level in ['h3', 'h4']:
+                    chapter = current_h1
+                    parent_section = current_h2
+                
                 sections.append(Section(
                     title=section_title,
                     content=section_content,
                     start_pos=0,
-                    end_pos=len(section_content)
+                    end_pos=len(section_content),
+                    chapter=chapter,
+                    parent_section=parent_section
                 ))
         
         # Get all text

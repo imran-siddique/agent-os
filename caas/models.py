@@ -44,6 +44,8 @@ class Section(BaseModel):
     importance_score: float = 0.0
     start_pos: int = 0
     end_pos: int = 0
+    parent_section: Optional[str] = None  # Parent section title for hierarchical context
+    chapter: Optional[str] = None  # Chapter or major section name
 
 
 class Document(BaseModel):
