@@ -3,7 +3,7 @@ Auto-detection module for identifying document types and structures.
 """
 
 import re
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Any
 
 from caas.models import Document, DocumentType, Section
 
@@ -109,7 +109,7 @@ class DocumentTypeDetector:
         
         return DocumentType.UNKNOWN
     
-    def detect_structure(self, document: Document) -> Dict[str, any]:
+    def detect_structure(self, document: Document) -> Dict[str, Any]:
         """
         Detect the structural characteristics of a document.
         
@@ -155,7 +155,7 @@ class DocumentTypeDetector:
 class StructureAnalyzer:
     """Analyzes document structure for optimization."""
     
-    def analyze(self, document: Document) -> Dict[str, any]:
+    def analyze(self, document: Document) -> Dict[str, Any]:
         """
         Analyze document structure and return insights.
         

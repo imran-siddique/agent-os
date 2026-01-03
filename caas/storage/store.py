@@ -3,7 +3,7 @@ Storage module for managing documents and context.
 """
 
 import json
-from typing import Dict, Optional, List
+from typing import Dict, Optional, List, Tuple, Any
 from pathlib import Path
 
 from caas.models import Document, DocumentType
@@ -165,7 +165,7 @@ class ContextExtractor:
         document_id: str,
         query: str = "",
         max_tokens: int = 2000
-    ) -> tuple[str, Dict[str, any]]:
+    ) -> Tuple[str, Dict[str, Any]]:
         """
         Extract context from a document.
         

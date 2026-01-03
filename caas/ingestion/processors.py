@@ -4,7 +4,7 @@ Data ingestion module for processing different file formats.
 
 import re
 from abc import ABC, abstractmethod
-from typing import Dict, Any
+from typing import Dict, Any, List
 from io import BytesIO
 
 from caas.models import Document, ContentFormat, DocumentType, Section
@@ -18,7 +18,7 @@ class BaseProcessor(ABC):
         """Process raw content into a Document."""
         pass
     
-    def _extract_sections(self, text: str) -> list[Section]:
+    def _extract_sections(self, text: str) -> List[Section]:
         """Extract sections from text based on common patterns."""
         sections = []
         
@@ -181,7 +181,7 @@ class CodeProcessor(BaseProcessor):
             return 'c++'
         return 'unknown'
     
-    def _extract_code_sections(self, text: str, language: str) -> list[Section]:
+    def _extract_code_sections(self, text: str, language: str) -> List[Section]:
         """Extract code sections (functions, classes, etc.)."""
         sections = []
         

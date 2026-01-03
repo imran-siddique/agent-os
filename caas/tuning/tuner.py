@@ -3,7 +3,7 @@ Auto-tuning module for optimizing context weights.
 """
 
 import re
-from typing import Dict, List
+from typing import Dict, List, Any
 from collections import Counter
 
 from caas.models import Document, DocumentType, Section
@@ -166,7 +166,7 @@ class WeightTuner:
         
         return min(1.0, score)
     
-    def _analyze_content_factors(self, section: Section) -> Dict[str, any]:
+    def _analyze_content_factors(self, section: Section) -> Dict[str, Any]:
         """Analyze content to identify important factors."""
         content = section.content.lower()
         
@@ -211,7 +211,7 @@ class CorpusAnalyzer:
         """Add a document to the corpus."""
         self.documents.append(document)
     
-    def analyze_corpus(self) -> Dict[str, any]:
+    def analyze_corpus(self) -> Dict[str, Any]:
         """
         Analyze the entire corpus to identify patterns.
         
