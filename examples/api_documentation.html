@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>REST API Documentation - User Management</title>
+</head>
+<body>
+    <h1>User Management API</h1>
+    
+    <h2>Overview</h2>
+    <p>This API provides endpoints for managing user accounts, authentication, and user data.</p>
+    
+    <h2>Authentication</h2>
+    <p>All API requests require authentication using a bearer token in the Authorization header.</p>
+    <pre>Authorization: Bearer YOUR_API_TOKEN</pre>
+    
+    <h2>Endpoints</h2>
+    
+    <h3>GET /api/users</h3>
+    <p>Retrieve a list of all users.</p>
+    <h4>Parameters</h4>
+    <ul>
+        <li><strong>page</strong> (optional): Page number, default 1</li>
+        <li><strong>limit</strong> (optional): Results per page, default 20</li>
+    </ul>
+    <h4>Response</h4>
+    <pre>
+{
+    "users": [
+        {
+            "id": "123",
+            "name": "John Doe",
+            "email": "john@example.com"
+        }
+    ],
+    "total": 100,
+    "page": 1
+}
+    </pre>
+    
+    <h3>POST /api/users</h3>
+    <p>Create a new user account.</p>
+    <h4>Request Body</h4>
+    <pre>
+{
+    "name": "Jane Smith",
+    "email": "jane@example.com",
+    "password": "secure_password"
+}
+    </pre>
+    <h4>Response</h4>
+    <pre>
+{
+    "id": "124",
+    "name": "Jane Smith",
+    "email": "jane@example.com",
+    "created_at": "2024-01-01T00:00:00Z"
+}
+    </pre>
+    
+    <h3>GET /api/users/:id</h3>
+    <p>Retrieve a specific user by ID.</p>
+    
+    <h3>PUT /api/users/:id</h3>
+    <p>Update user information.</p>
+    
+    <h3>DELETE /api/users/:id</h3>
+    <p>Delete a user account.</p>
+    
+    <h2>Error Codes</h2>
+    <ul>
+        <li><strong>400</strong>: Bad Request - Invalid parameters</li>
+        <li><strong>401</strong>: Unauthorized - Invalid or missing token</li>
+        <li><strong>404</strong>: Not Found - User not found</li>
+        <li><strong>500</strong>: Internal Server Error</li>
+    </ul>
+    
+    <h2>Rate Limiting</h2>
+    <p>API requests are limited to 1000 requests per hour per API key.</p>
+    
+    <h2>Examples</h2>
+    <h3>Creating a User</h3>
+    <pre>
+curl -X POST https://api.example.com/api/users \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"John Doe","email":"john@example.com","password":"secret"}'
+    </pre>
+    
+    <h3>Fetching Users</h3>
+    <pre>
+curl https://api.example.com/api/users?page=1&limit=10 \
+  -H "Authorization: Bearer YOUR_TOKEN"
+    </pre>
+</body>
+</html>
