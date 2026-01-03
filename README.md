@@ -9,14 +9,17 @@ A managed pipeline for intelligent context extraction and serving. The service a
 ⚖️ **Auto-Tuning**: Automatic weight optimization based on content analysis  
 🎯 **Smart Context**: API for serving perfectly weighted context  
 📊 **Corpus Analysis**: Learn from your document corpus to improve over time  
+🏗️ **Structure-Aware Indexing**: Three-tier hierarchical approach (High/Medium/Low value) that solves the "Flat Chunk Fallacy"  
 
 ## The Problem
 
-Traditional context extraction systems require manual configuration:
+Traditional context extraction systems require manual configuration and suffer from the "Flat Chunk Fallacy":
+- **Flat Chunk Approach**: Treating all content equally (e.g., splitting every 500 words and embedding)
 - Manual weight adjustments for different sections
 - Static rules that don't adapt to content
 - No learning from document patterns
 - Poor optimization for different document types
+- **The Reality**: A class definition has different value than a TODO comment, but flat approaches treat them the same
 
 ## The Solution
 
@@ -181,7 +184,45 @@ GET /search?q=termination
 
 The system automatically optimizes context weights through multiple strategies:
 
-### 1. Document Type Detection
+### 1. Structure-Aware Indexing (Solving the "Flat Chunk Fallacy")
+
+The system implements **hierarchical structure-aware indexing** that assigns content to three tiers based on importance:
+
+#### **Tier 1 - High Value Content (2.0x base weight)**
+- Titles and Headers (H1, H2)
+- Class Definitions and Interfaces
+- API Contracts and Endpoint Definitions
+- Main abstracts and conclusions
+- Critical sections (Definitions, Authentication, Authorization)
+
+#### **Tier 2 - Medium Value Content (1.0x base weight)**
+- Body text and paragraphs
+- Function logic and implementations
+- Method descriptions
+- Standard documentation sections
+
+#### **Tier 3 - Low Value Content (0.5x base weight)**
+- Comments and inline documentation
+- Footnotes and disclaimers
+- TODO/FIXME markers
+- Acknowledgments and copyright notices
+
+**Why This Matters:**
+Traditional "flat chunk" approaches treat all content equally, assuming a random paragraph on page 50 has the same value as critical API definitions. Our structure-aware approach ensures that when you search for information, a `public class Authentication` definition will rank higher than a `// TODO: fix this later` comment, even if they have similar semantic similarity to your query.
+
+**Example:**
+```python
+# Both sections mention "authentication" with similar frequency
+# But they get vastly different weights:
+
+Section: "Authentication API Contract"     # Tier 1
+Weight: 5.0x  (boosted as High Value)
+
+Section: "// TODO: improve authentication" # Tier 3  
+Weight: 0.5x  (demoted as Low Value)
+```
+
+### 2. Document Type Detection
 
 The service analyzes content to detect document types:
 - **Legal Contracts**: Looks for "whereas", "party", "hereby", "indemnify"
@@ -189,7 +230,7 @@ The service analyzes content to detect document types:
 - **Research Papers**: Detects "abstract", "methodology", "results"
 - **Source Code**: Recognizes programming patterns
 
-### 2. Base Weight Assignment
+### 3. Base Weight Assignment
 
 Each document type has optimized base weights:
 
@@ -205,7 +246,7 @@ Technical Documentation:
   - Parameters: 1.6x
 ```
 
-### 3. Content-Based Adjustments
+### 4. Content-Based Adjustments
 
 Weights are further adjusted based on:
 - **Code Examples**: +20% weight
@@ -214,7 +255,7 @@ Weights are further adjusted based on:
 - **Length**: +10% for substantial sections (>500 chars)
 - **Position**: +15% for first section, +10% for last
 
-### 4. Query Boosting
+### 5. Query Boosting
 
 When a query is provided, sections matching the query get +50% weight boost.
 
@@ -242,18 +283,20 @@ The system analyzes patterns across all documents to:
 │      │              │              │                │
 │      ▼              ▼              ▼                │
 │  Processors    Type Detector  Weight Tuner         │
-│  - PDF         - Pattern Match - Type Rules        │
-│  - HTML        - Structure    - Content Analysis   │
+│  - PDF         - Pattern Match - Tier Classifier   │
+│  - HTML        - Structure    - Structure Parser   │
 │  - Code        - Analysis     - Query Boost        │
 └─────────────────────────────────────────────────────┘
                  │
 ┌────────────────┴────────────────────────────────────┐
 │              Storage & Extraction                    │
-│                                                      │
+│          (Structure-Aware Retrieval)                 │
 │  ┌──────────────┐        ┌──────────────┐          │
 │  │ Document     │        │   Context    │          │
 │  │ Store        │◀───────│  Extractor   │          │
 │  └──────────────┘        └──────────────┘          │
+│                                                      │
+│  Prioritizes: Tier 1 > Tier 2 > Tier 3             │
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -326,11 +369,12 @@ TYPE_SPECIFIC_WEIGHTS = {
 context-as-a-service/
 ├── caas/
 │   ├── __init__.py
-│   ├── models.py           # Data models
+│   ├── models.py           # Data models (includes ContentTier)
 │   ├── cli.py              # CLI tool
 │   ├── ingestion/          # Document processors
 │   │   ├── __init__.py
-│   │   └── processors.py
+│   │   ├── processors.py
+│   │   └── structure_parser.py  # Tier-based structure parser
 │   ├── detection/          # Type & structure detection
 │   │   ├── __init__.py
 │   │   └── detector.py
@@ -344,6 +388,8 @@ context-as-a-service/
 │       ├── __init__.py
 │       └── server.py
 ├── examples/               # Example documents
+├── test_functionality.py   # Basic functionality tests
+├── test_structure_aware_indexing.py  # Structure-aware indexing tests
 ├── requirements.txt
 ├── setup.py
 └── README.md
@@ -352,7 +398,13 @@ context-as-a-service/
 ### Running Tests
 
 ```bash
-# Install dev dependencies
+# Run basic functionality tests
+python test_functionality.py
+
+# Run structure-aware indexing tests
+python test_structure_aware_indexing.py
+
+# Install dev dependencies (if needed)
 pip install pytest pytest-asyncio httpx
 
 # Run tests (when available)
