@@ -14,6 +14,7 @@ A managed pipeline for intelligent context extraction and serving. The service a
 ⏰ **Time-Based Decay**: Prioritizes recent content over old using "The Half-Life of Truth" principle  
 🔥 **Context Triad (Hot, Warm, Cold)**: Intimacy-based three-tier context system that treats context by relevance, not just speed  
 💡 **Pragmatic Truth**: Provides REAL answers, not just OFFICIAL ones - with transparent source citations and conflict detection  
+⚡ **Heuristic Router**: Lightning-fast query routing using deterministic heuristics (Speed > Smarts) - 0ms routing decisions  
 
 ## The Problem
 
@@ -213,6 +214,55 @@ Get insights about your entire document corpus:
 
 ```bash
 GET /search?q=termination
+```
+
+### Route Query (Heuristic Router)
+
+```bash
+POST /route
+```
+
+Route a query to the appropriate model tier using deterministic heuristics:
+
+```bash
+curl -X POST "http://localhost:8000/route" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "Summarize this document"}'
+```
+
+**Response:**
+```json
+{
+  "model_tier": "smart",
+  "reason": "Complex task keywords detected: summarize",
+  "confidence": 0.85,
+  "query_length": 23,
+  "matched_keywords": ["summarize"],
+  "suggested_model": "gpt-4o",
+  "estimated_cost": "high"
+}
+```
+
+For greetings, a canned response is also included:
+
+```bash
+curl -X POST "http://localhost:8000/route" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "Hi"}'
+```
+
+**Response:**
+```json
+{
+  "model_tier": "canned",
+  "reason": "Greeting detected - using canned response for zero cost",
+  "confidence": 0.95,
+  "query_length": 2,
+  "matched_keywords": ["hi"],
+  "suggested_model": "canned_response",
+  "estimated_cost": "zero",
+  "canned_response": "Hello! How can I assist you today?"
+}
 ```
 
 ## How Auto-Tuning Works
@@ -556,7 +606,104 @@ Traditional RAG systems treat all sources equally, leading to misleading respons
 
 **See [PRAGMATIC_TRUTH.md](PRAGMATIC_TRUTH.md) for detailed documentation.**
 
-### 6. Document Type Detection
+### 6. Heuristic Router (Speed > Smarts)
+
+The system implements **deterministic heuristic routing** for instant query classification without LLM overhead.
+
+#### **The Naive Approach:**
+```
+"Let's use a small LLM (like GPT-3.5) to classify the user's intent, 
+and then route it to the right model."
+```
+
+#### **The Engineering Reality:**
+This is "Model-on-Model" overhead. Even a small LLM takes 500ms+ to think. You are adding latency just to decide where to send the traffic. We need to be **Fast, even if we are occasionally Wrong**.
+
+#### **My Philosophy:**
+Use **Deterministic Heuristics, not AI Classifiers**. We can solve 80% of routing with simple logic that takes 0ms:
+
+**Rule 1**: Is the query length < 50 characters? → Send to **Fast Model** (GPT-4o-mini)  
+**Rule 2**: Does it contain keywords like "Summary", "Analyze", "Compare"? → Send to **Smart Model** (GPT-4o)  
+**Rule 3**: Is it a greeting ("Hi", "Thanks")? → Send to **Canned Response** (Zero Cost)
+
+The goal isn't 100% routing accuracy. The goal is **instant response time** for the trivial stuff, preserving the "Big Brain" budget for the hard stuff.
+
+#### **Model Tiers:**
+
+**🎯 CANNED (Zero Cost, 0ms latency)**
+- Pre-defined responses for greetings
+- Examples: "Hi", "Thanks", "Bye", "Ok"
+- Cost: $0.00 per request
+- Response: Instant (no API call)
+
+**⚡ FAST (Low Cost, ~200ms latency)**
+- Fast model like GPT-4o-mini
+- For: Short queries, simple questions
+- Cost: ~$0.0001 per request (100x cheaper than GPT-4o)
+- Examples: "What is Python?", "How to install?"
+
+**🧠 SMART (High Cost, ~500ms+ latency)**
+- Smart model like GPT-4o
+- For: Complex tasks, long queries
+- Cost: ~$0.01 per request
+- Examples: "Summarize this document", "Analyze the performance"
+
+#### **Usage Example:**
+
+```python
+from caas.routing import HeuristicRouter
+
+router = HeuristicRouter()
+
+# Short query → FAST
+decision = router.route("What is Python?")
+print(decision.model_tier)  # ModelTier.FAST
+print(decision.suggested_model)  # "gpt-4o-mini"
+print(decision.estimated_cost)  # "low"
+
+# Smart keyword → SMART
+decision = router.route("Summarize this document")
+print(decision.model_tier)  # ModelTier.SMART
+print(decision.suggested_model)  # "gpt-4o"
+print(decision.estimated_cost)  # "high"
+
+# Greeting → CANNED
+decision = router.route("Hi")
+print(decision.model_tier)  # ModelTier.CANNED
+response = router.get_canned_response("Hi")
+print(response)  # "Hello! How can I assist you today?"
+```
+
+#### **API Endpoint:**
+
+```bash
+curl -X POST "http://localhost:8000/route" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "Summarize this document"}'
+```
+
+**Response:**
+```json
+{
+  "model_tier": "smart",
+  "reason": "Complex task keywords detected: summarize",
+  "confidence": 0.85,
+  "query_length": 23,
+  "matched_keywords": ["summarize"],
+  "suggested_model": "gpt-4o",
+  "estimated_cost": "high"
+}
+```
+
+#### **Why This Matters:**
+Traditional systems use AI classifiers for routing, adding 500ms+ latency before the actual AI call. Our heuristic router makes routing decisions in **< 1ms**, preserving the "Big Brain" budget for the actual AI work. For greetings, we skip the AI entirely and return canned responses for zero cost.
+
+**Cost Savings Example:**
+- 1000 daily greetings with AI classifier: $10/day
+- 1000 daily greetings with heuristic router: $0/day
+- **Annual savings**: $3,650
+
+### 7. Document Type Detection
 
 The service analyzes content to detect document types:
 - **Legal Contracts**: Looks for "whereas", "party", "hereby", "indemnify"
@@ -564,7 +711,15 @@ The service analyzes content to detect document types:
 - **Research Papers**: Detects "abstract", "methodology", "results"
 - **Source Code**: Recognizes programming patterns
 
-### 7. Base Weight Assignment
+### 7. Document Type Detection
+
+The service analyzes content to detect document types:
+- **Legal Contracts**: Looks for "whereas", "party", "hereby", "indemnify"
+- **Technical Docs**: Identifies "API", "configuration", "parameters"
+- **Research Papers**: Detects "abstract", "methodology", "results"
+- **Source Code**: Recognizes programming patterns
+
+### 8. Base Weight Assignment
 
 Each document type has optimized base weights:
 
@@ -580,7 +735,7 @@ Technical Documentation:
   - Parameters: 1.6x
 ```
 
-### 8. Content-Based Adjustments
+### 9. Content-Based Adjustments
 
 Weights are further adjusted based on:
 - **Code Examples**: +20% weight
@@ -589,11 +744,11 @@ Weights are further adjusted based on:
 - **Length**: +10% for substantial sections (>500 chars)
 - **Position**: +15% for first section, +10% for last
 
-### 9. Query Boosting
+### 10. Query Boosting
 
 When a query is provided, sections matching the query get +50% weight boost.
 
-### 10. Corpus Learning
+### 11. Corpus Learning
 
 The system analyzes patterns across all documents to:
 - Identify common section structures
@@ -810,6 +965,9 @@ python test_context_triad.py
 
 # Run pragmatic truth tests
 python test_pragmatic_truth.py
+
+# Run heuristic router tests
+python test_heuristic_router.py
 
 # Run time decay demonstration
 python demo_time_decay.py
