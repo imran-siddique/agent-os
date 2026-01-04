@@ -703,6 +703,8 @@ Traditional systems use AI classifiers for routing, adding 500ms+ latency before
 - 1000 daily greetings with heuristic router: $0/day
 - **Annual savings**: $3,650
 
+**See [HEURISTIC_ROUTER.md](HEURISTIC_ROUTER.md) for detailed documentation.**
+
 ### 7. Document Type Detection
 
 The service analyzes content to detect document types:
