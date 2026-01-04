@@ -2,12 +2,15 @@
 Storage module for managing documents and context.
 """
 
+import copy
 import json
 from typing import Dict, Optional, List, Tuple, Any
 from pathlib import Path
+from datetime import datetime
 
 from caas.models import Document, DocumentType, ContentTier
 from caas.enrichment import MetadataEnricher
+from caas.decay import calculate_decay_factor
 
 
 class DocumentStore:
@@ -98,25 +101,94 @@ class DocumentStore:
             return True
         return False
     
-    def search(self, query: str) -> List[Document]:
+    def search(
+        self, 
+        query: str, 
+        enable_time_decay: bool = True,
+        decay_rate: float = 1.0
+    ) -> List[Document]:
         """
-        Search documents by content or metadata.
+        Search documents by content or metadata with optional time-based decay ranking.
+        
+        When time decay is enabled:
+        - Recent documents are ranked higher than old documents
+        - Formula: relevance_score = match_score * decay_factor
+        - A document from Yesterday with 80% match beats Last Year with 95% match
         
         Args:
             query: The search query
+            enable_time_decay: Whether to apply time-based decay to ranking (default: True)
+            decay_rate: Rate of decay (default: 1.0)
             
         Returns:
-            List of matching documents
+            List of matching documents, sorted by time-weighted relevance
         """
         query_lower = query.lower()
+        query_words = query_lower.split()
         results = []
         
         for doc in self.documents.values():
+            # Calculate base match score
+            match_score = 0.0
+            
             # Search in content, title, and section titles
-            if (query_lower in doc.content.lower() or
-                query_lower in doc.title.lower() or
-                any(query_lower in s.title.lower() for s in doc.sections)):
+            # Check for full phrase match (best)
+            if query_lower in doc.title.lower():
+                match_score += 1.0  # Title match is most relevant
+            
+            if query_lower in doc.content.lower():
+                # Count occurrences for better relevance
+                occurrences = doc.content.lower().count(query_lower)
+                match_score += min(occurrences * 0.1, 0.5)  # Cap at 0.5
+            
+            # Check for individual word matches
+            title_lower = doc.title.lower()
+            content_lower = doc.content.lower()
+            for word in query_words:
+                if len(word) > 2:  # Skip very short words
+                    if word in title_lower:
+                        match_score += 0.3
+                    if word in content_lower:
+                        occurrences = content_lower.count(word)
+                        match_score += min(occurrences * 0.05, 0.2)
+            
+            # Check section titles and content
+            for section in doc.sections:
+                section_title_lower = section.title.lower()
+                section_content_lower = section.content.lower()
+                
+                if query_lower in section_title_lower:
+                    match_score += 0.4
+                
+                for word in query_words:
+                    if len(word) > 2:
+                        if word in section_title_lower:
+                            match_score += 0.2
+                        if word in section_content_lower:
+                            occurrences = section_content_lower.count(word)
+                            match_score += min(occurrences * 0.02, 0.1)
+            
+            # Only include documents with matches
+            if match_score > 0:
+                # Apply time decay if enabled
+                decay_factor = 1.0  # Default to no decay
+                if enable_time_decay:
+                    decay_factor = calculate_decay_factor(
+                        doc.ingestion_timestamp,
+                        reference_time=None,
+                        decay_rate=decay_rate
+                    )
+                    final_score = match_score * decay_factor
+                else:
+                    final_score = match_score
+                
+                # Store score for sorting
+                doc.metadata['_search_score'] = final_score
+                doc.metadata['_decay_factor'] = decay_factor
                 results.append(doc)
+        
+        # Sort by final score (highest first)
+        results.sort(key=lambda d: d.metadata.get('_search_score', 0), reverse=True)
         
         return results
     
@@ -150,19 +222,29 @@ class DocumentStore:
 
 
 class ContextExtractor:
-    """Extracts relevant context from documents based on weights."""
+    """Extracts relevant context from documents based on weights and time-based decay."""
     
-    def __init__(self, store: DocumentStore, enrich_metadata: bool = True):
+    def __init__(
+        self, 
+        store: DocumentStore, 
+        enrich_metadata: bool = True,
+        enable_time_decay: bool = True,
+        decay_rate: float = 1.0
+    ):
         """
         Initialize context extractor.
         
         Args:
             store: The document store to use
             enrich_metadata: Whether to enrich chunks with metadata (default: True)
+            enable_time_decay: Whether to apply time-based decay to relevance (default: True)
+            decay_rate: Rate of time decay (default: 1.0). Higher = faster decay.
         """
         self.store = store
         self.enrich_metadata = enrich_metadata
         self.enricher = MetadataEnricher() if enrich_metadata else None
+        self.enable_time_decay = enable_time_decay
+        self.decay_rate = decay_rate
     
     def _format_section(self, section: 'Section', document: Document) -> str:
         """
@@ -195,10 +277,17 @@ class ContextExtractor:
         max_tokens: int = 2000
     ) -> Tuple[str, Dict[str, Any]]:
         """
-        Extract context from a document with structure-aware boosting.
+        Extract context from a document with structure-aware boosting and time-based decay.
         
-        Prioritizes Tier 1 (High Value) content over Tier 2 and Tier 3,
-        even when semantic similarity is the same.
+        Prioritizes:
+        1. Tier 1 (High Value) content over Tier 2 and Tier 3
+        2. Recent documents over old documents (when time decay is enabled)
+        
+        Formula: Final Score = Base Weight * Decay Factor
+        Where Decay Factor = 1 / (1 + days_elapsed)
+        
+        Result: A document from Yesterday with 80% match beats a document 
+                from Last Year with 95% match.
         
         Args:
             document_id: The document ID
@@ -212,10 +301,28 @@ class ContextExtractor:
         if not document:
             return "", {"error": "Document not found"}
         
+        # Calculate decay factor for the document if time decay is enabled
+        decay_factor = 1.0
+        if self.enable_time_decay:
+            decay_factor = calculate_decay_factor(
+                document.ingestion_timestamp,
+                reference_time=None,  # Use current time
+                decay_rate=self.decay_rate
+            )
+        
+        # Create a list of sections with adjusted weights (don't mutate original)
+        # This is the key: old documents get their weights reduced
+        adjusted_sections = []
+        for section in document.sections:
+            # Create a shallow copy of the section and adjust weight
+            adjusted_section = copy.copy(section)
+            adjusted_section.weight = section.weight * decay_factor
+            adjusted_sections.append(adjusted_section)
+        
         # Sort sections by weight (highest first)
-        # Tier-based weights are already incorporated in section.weight
+        # Now sections from recent documents will rank higher
         sorted_sections = sorted(
-            document.sections,
+            adjusted_sections,
             key=lambda s: s.weight,
             reverse=True
         )
@@ -268,6 +375,9 @@ class ContextExtractor:
             "total_sections": len(document.sections),
             "sections_included": len(sections_used),
             "metadata_enriched": self.enrich_metadata,
+            "time_decay_enabled": self.enable_time_decay,
+            "decay_factor": decay_factor,
+            "ingestion_timestamp": document.ingestion_timestamp,
         }
         
         return context, metadata

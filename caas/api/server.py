@@ -35,7 +35,7 @@ detector = DocumentTypeDetector()
 structure_analyzer = StructureAnalyzer()
 weight_tuner = WeightTuner()
 corpus_analyzer = CorpusAnalyzer()
-context_extractor = ContextExtractor(document_store)
+# Note: context_extractor is created per-request with user-specified decay settings
 
 
 @app.get("/")
@@ -205,22 +205,34 @@ async def get_context(document_id: str, request: ContextRequest):
     
     This endpoint returns the most relevant context based on:
     - Auto-tuned section weights
+    - Time-based decay (prioritizes recent content)
     - Optional query for focused extraction
     - Token limits
     
+    Time Decay Formula: Score = Base_Weight * (1 / (1 + days_elapsed * decay_rate))
+    Result: Recent documents rank higher than old documents, even with lower similarity.
+    
     Args:
         document_id: The document ID
-        request: Context request parameters
+        request: Context request parameters (includes enable_time_decay, decay_rate)
     
     Returns:
-        Optimized context
+        Optimized context with time-weighted relevance
     """
     document = document_store.get(document_id)
     if not document:
         raise HTTPException(status_code=404, detail="Document not found")
     
+    # Create context extractor with requested decay settings
+    extractor = ContextExtractor(
+        document_store,
+        enrich_metadata=request.include_metadata,
+        enable_time_decay=request.enable_time_decay,
+        decay_rate=request.decay_rate
+    )
+    
     # Extract context
-    context, metadata = context_extractor.extract_context(
+    context, metadata = extractor.extract_context(
         document_id,
         request.query,
         request.max_tokens
@@ -305,20 +317,37 @@ async def delete_document(document_id: str):
 
 
 @app.get("/search")
-async def search_documents(q: str):
+async def search_documents(
+    q: str,
+    enable_time_decay: bool = True,
+    decay_rate: float = 1.0
+):
     """
-    Search documents by content or metadata.
+    Search documents by content or metadata with time-based decay ranking.
+    
+    When time decay is enabled (default):
+    - Recent documents are ranked higher than old documents
+    - Formula: relevance_score = match_score * decay_factor
+    - Example: Yesterday's 80% match beats Last Year's 95% match
     
     Args:
         q: The search query
+        enable_time_decay: Apply time-based decay to ranking (default: True)
+        decay_rate: Rate of decay, higher = faster decay (default: 1.0)
     
     Returns:
-        Matching documents
+        Matching documents sorted by time-weighted relevance
     """
-    results = document_store.search(q)
+    results = document_store.search(
+        q,
+        enable_time_decay=enable_time_decay,
+        decay_rate=decay_rate
+    )
     
     return {
         "query": q,
+        "enable_time_decay": enable_time_decay,
+        "decay_rate": decay_rate,
         "total_results": len(results),
         "documents": [
             {
@@ -326,6 +355,9 @@ async def search_documents(q: str):
                 "title": doc.title,
                 "type": doc.detected_type,
                 "format": doc.format,
+                "search_score": doc.metadata.get('_search_score', 0),
+                "decay_factor": doc.metadata.get('_decay_factor', 1.0),
+                "ingestion_timestamp": doc.ingestion_timestamp,
             }
             for doc in results
         ]

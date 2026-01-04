@@ -11,10 +11,11 @@ A managed pipeline for intelligent context extraction and serving. The service a
 📊 **Corpus Analysis**: Learn from your document corpus to improve over time  
 🏗️ **Structure-Aware Indexing**: Three-tier hierarchical approach (High/Medium/Low value) that solves the "Flat Chunk Fallacy"  
 🧬 **Metadata Injection**: Enriches chunks with contextual metadata to eliminate "context amnesia"  
+⏰ **Time-Based Decay**: Prioritizes recent content over old using "The Half-Life of Truth" principle  
 
 ## The Problem
 
-Traditional context extraction systems require manual configuration and suffer from TWO major fallacies:
+Traditional context extraction systems require manual configuration and suffer from THREE major fallacies:
 
 ### 1. The "Flat Chunk Fallacy" (Structure Problem)
 - **Flat Chunk Approach**: Treating all content equally (e.g., splitting every 500 words and embedding)
@@ -29,6 +30,13 @@ Traditional context extraction systems require manual configuration and suffer f
 - Example: "It increased by 5%." - What increased? Nobody knows.
 - **The Reality**: A chunk without metadata is meaningless. Without knowing it's from "Q3 Earnings > Revenue > North America", the AI can't understand what increased.
 
+### 3. The "Time-Blind Retrieval" Problem (Temporal Problem)
+- **The Naive Approach**: "Relevance = Vector Similarity"
+- **The Reality**: In software, truth is a moving target
+- Example: "How to reset the server" in 2021 ≠ 2025
+- If AI retrieves the 2021 answer because wording matches better, it fails
+- **The Problem**: Traditional systems don't consider when information was created
+
 ## The Solution
 
 Context-as-a-Service provides a fully automated pipeline:
@@ -36,7 +44,8 @@ Context-as-a-Service provides a fully automated pipeline:
 1. **Ingest** raw data (PDF, Code, HTML)
 2. **Auto-Detect** the structure (e.g., "This looks like a Legal Contract")
 3. **Auto-Tune** the weights (e.g., "Boost the 'Definitions' section by 2x")
-4. **Serve** the perfect context via API
+4. **Apply Time Decay** (e.g., "Recent content ranks higher than old content")
+5. **Serve** the perfect context via API
 
 **No manual tuning required** - the service analyzes your corpus and tunes itself.
 
@@ -279,7 +288,83 @@ Now the vector **carries the weight of its context**. When the AI retrieves it, 
 - ✅ **Improved Search**: Metadata becomes part of searchable content
 - ✅ **Hierarchical Understanding**: Maintains document structure in vectors
 
-### 3. Document Type Detection
+### 3. Time-Based Decay (Solving "Time-Blind Retrieval")
+
+The system implements **"The Half-Life of Truth"** - mathematical gravity that pulls old data down.
+
+#### **The Problem:**
+```
+Naive Approach: "Relevance = Vector Similarity"
+
+The Reality: In software, the truth is a moving target.
+- "How to reset the server" in 2021 ≠ 2025
+- If AI retrieves 2021 answer (better word match), it fails
+```
+
+#### **The Solution:**
+```
+Formula: Score = Similarity × (1 / (1 + days_elapsed))
+
+Result: A document from Yesterday with 80% match 
+        beats a document from Last Year with 95% match.
+```
+
+**We believe in the Decay Function:**
+- We don't "cut off" old data (history is useful for debugging)
+- We apply mathematical "Gravity" that pulls old data down
+- We prioritize "What happened latest" over "What matched best"
+- In a living system: **Recency IS Relevance**
+
+**Example:**
+
+```python
+# Recent document (Yesterday)
+Base Similarity:  80%
+Decay Factor:     0.500  (1 / (1 + 1 day))
+Final Score:      0.400  (0.80 × 0.500)
+
+# Old document (Last Year)
+Base Similarity:  95%
+Decay Factor:     0.003  (1 / (1 + 365 days))
+Final Score:      0.003  (0.95 × 0.003)
+
+Winner: Recent document (0.400 > 0.003) ✅
+```
+
+**Decay Curve:**
+- **Day 0 (Today)**: Factor = 1.0 (no decay)
+- **Day 1 (Yesterday)**: Factor = 0.5 (50% weight)
+- **Day 7 (Week ago)**: Factor = 0.125 (12.5% weight)
+- **Day 30 (Month ago)**: Factor = 0.032 (3.2% weight)
+- **Day 365 (Year ago)**: Factor = 0.003 (0.3% weight)
+
+**Benefits:**
+- ✅ **Temporal Relevance**: Recent content automatically ranks higher
+- ✅ **No History Loss**: Old documents remain searchable, just deprioritized
+- ✅ **Living Documentation**: System adapts as documentation evolves
+- ✅ **Configurable**: Decay rate can be adjusted (faster/slower decay)
+
+**Configuration:**
+```python
+# Enable/disable time decay in search
+results = store.search(
+    "server reset",
+    enable_time_decay=True,  # Default: True
+    decay_rate=1.0           # Default: 1.0 (higher = faster decay)
+)
+
+# Configure for context extraction
+extractor = ContextExtractor(
+    store,
+    enable_time_decay=True,  # Default: True
+    decay_rate=1.0           # Default: 1.0
+)
+```
+
+**Why This Matters:**
+Traditional RAG systems treat a 3-year-old document the same as yesterday's update. Our time decay ensures that when you ask "How do I deploy?", you get the current process, not the legacy one that happened to have better keyword matches.
+
+### 4. Document Type Detection
 
 The service analyzes content to detect document types:
 - **Legal Contracts**: Looks for "whereas", "party", "hereby", "indemnify"
@@ -287,7 +372,7 @@ The service analyzes content to detect document types:
 - **Research Papers**: Detects "abstract", "methodology", "results"
 - **Source Code**: Recognizes programming patterns
 
-### 4. Base Weight Assignment
+### 5. Base Weight Assignment
 
 Each document type has optimized base weights:
 
@@ -303,7 +388,7 @@ Technical Documentation:
   - Parameters: 1.6x
 ```
 
-### 5. Content-Based Adjustments
+### 6. Content-Based Adjustments
 
 Weights are further adjusted based on:
 - **Code Examples**: +20% weight
@@ -312,11 +397,11 @@ Weights are further adjusted based on:
 - **Length**: +10% for substantial sections (>500 chars)
 - **Position**: +15% for first section, +10% for last
 
-### 6. Query Boosting
+### 7. Query Boosting
 
 When a query is provided, sections matching the query get +50% weight boost.
 
-### 7. Corpus Learning
+### 8. Corpus Learning
 
 The system analyzes patterns across all documents to:
 - Identify common section structures
@@ -425,6 +510,35 @@ store = DocumentStore()
 extractor = ContextExtractor(store, enrich_metadata=False)
 ```
 
+### Time-Based Decay
+
+Time-based decay is **enabled by default** and can be configured:
+
+```python
+from caas.storage import ContextExtractor, DocumentStore
+
+store = DocumentStore()
+
+# Configure decay for context extraction
+extractor = ContextExtractor(
+    store, 
+    enable_time_decay=True,  # Enable/disable (default: True)
+    decay_rate=1.0           # Adjust decay speed (default: 1.0)
+)
+
+# Configure decay for search
+results = store.search(
+    "your query",
+    enable_time_decay=True,  # Enable/disable (default: True)
+    decay_rate=1.0           # Adjust decay speed (default: 1.0)
+)
+```
+
+**Decay Rate Guide:**
+- `decay_rate=0.1`: Slow decay (yesterday = 0.91x, week = 0.59x)
+- `decay_rate=1.0`: Standard decay (yesterday = 0.5x, week = 0.125x) ← **Default**
+- `decay_rate=2.0`: Fast decay (yesterday = 0.33x, week = 0.067x)
+
 ### Custom Tuning Rules
 
 For custom tuning rules, modify `caas/tuning/tuner.py`:
@@ -449,6 +563,7 @@ context-as-a-service/
 │   ├── __init__.py
 │   ├── models.py           # Data models (includes ContentTier, Section with hierarchy)
 │   ├── enrichment.py       # Metadata enrichment for contextual injection
+│   ├── decay.py            # Time-based decay calculations
 │   ├── cli.py              # CLI tool
 │   ├── ingestion/          # Document processors
 │   │   ├── __init__.py
@@ -462,7 +577,7 @@ context-as-a-service/
 │   │   └── tuner.py
 │   ├── storage/            # Document storage
 │   │   ├── __init__.py
-│   │   └── store.py        # Context extraction with metadata enrichment
+│   │   └── store.py        # Context extraction with time decay
 │   └── api/                # REST API
 │       ├── __init__.py
 │       └── server.py
@@ -470,6 +585,8 @@ context-as-a-service/
 ├── test_functionality.py   # Basic functionality tests
 ├── test_structure_aware_indexing.py  # Structure-aware indexing tests
 ├── test_metadata_injection.py  # Metadata injection/enrichment tests
+├── test_time_decay.py      # Time-based decay tests
+├── demo_time_decay.py      # Time decay demonstration
 ├── requirements.txt
 ├── setup.py
 └── README.md
@@ -486,6 +603,12 @@ python test_structure_aware_indexing.py
 
 # Run metadata injection tests
 python test_metadata_injection.py
+
+# Run time-based decay tests
+python test_time_decay.py
+
+# Run time decay demonstration
+python demo_time_decay.py
 
 # Install dev dependencies (if needed)
 pip install pytest pytest-asyncio httpx

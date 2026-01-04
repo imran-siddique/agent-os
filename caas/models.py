@@ -67,6 +67,16 @@ class ContextRequest(BaseModel):
     query: str
     max_tokens: int = Field(default=2000, gt=0, le=10000)
     include_metadata: bool = True
+    enable_time_decay: bool = Field(
+        default=True, 
+        description="Apply time-based decay to prioritize recent content (default: True)"
+    )
+    decay_rate: float = Field(
+        default=1.0, 
+        ge=0.01, 
+        le=10.0,
+        description="Rate of time decay. Higher = faster decay (default: 1.0)"
+    )
 
 
 class ContextResponse(BaseModel):
