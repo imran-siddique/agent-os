@@ -15,10 +15,11 @@ A managed pipeline for intelligent context extraction and serving. The service a
 🔥 **Context Triad (Hot, Warm, Cold)**: Intimacy-based three-tier context system that treats context by relevance, not just speed  
 💡 **Pragmatic Truth**: Provides REAL answers, not just OFFICIAL ones - with transparent source citations and conflict detection  
 ⚡ **Heuristic Router**: Lightning-fast query routing using deterministic heuristics (Speed > Smarts) - 0ms routing decisions  
+✂️ **Sliding Window Conversation Management**: FIFO approach that keeps recent turns intact instead of lossy summarization (Chopping > Summarizing)
 
 ## The Problem
 
-Traditional context extraction systems require manual configuration and suffer from FIVE major fallacies:
+Traditional context extraction systems require manual configuration and suffer from SIX major fallacies:
 
 ### 1. The "Flat Chunk Fallacy" (Structure Problem)
 - **Flat Chunk Approach**: Treating all content equally (e.g., splitting every 500 words and embedding)
@@ -54,6 +55,18 @@ Traditional context extraction systems require manual configuration and suffer f
 - Traditional AI only shows official answer (misleading)
 - **The Problem**: No distinction between official theory and practical reality
 
+### 6. The "Brutal Squeeze" (Context Management Problem)
+- **The Naive Approach**: "Let's ask an AI to summarize the conversation history to save space"
+- **The Engineering Reality**: Summarization is a trap
+  - It costs money to generate the summary
+  - It loses nuance: "I tried X and it failed" becomes "User attempted troubleshooting" (specific error code is lost)
+- **My Philosophy**: Chopping (FIFO) is better
+  - We prefer a brutal "Sliding Window": Keep the last 10 turns perfectly intact, delete turn 11
+  - Why? Users rarely refer back to what they said 20 minutes ago, but they constantly refer to the exact code snippet they pasted 30 seconds ago
+  - Summary = Lossy Compression
+  - Chopping = Lossless Compression (of the recent past)
+- **The Problem**: In a frugal architecture, we value **Recent Precision over Vague History**
+
 ## The Solution
 
 Context-as-a-Service provides a fully automated pipeline:
@@ -64,7 +77,8 @@ Context-as-a-Service provides a fully automated pipeline:
 4. **Apply Time Decay** (e.g., "Recent content ranks higher than old content")
 5. **Track Sources** (e.g., "This is from Slack vs official docs")
 6. **Detect Conflicts** (e.g., "Official says X, team says Y")
-7. **Serve** the perfect context via API with transparent citations
+7. **Manage Conversations** (e.g., "Keep last 10 turns intact, delete older turns via FIFO")
+8. **Serve** the perfect context via API with transparent citations
 
 **No manual tuning required** - the service analyzes your corpus and tunes itself.
 
@@ -705,7 +719,145 @@ Traditional systems use AI classifiers for routing, adding 500ms+ latency before
 
 **See [HEURISTIC_ROUTER.md](HEURISTIC_ROUTER.md) for detailed documentation.**
 
-### 7. Document Type Detection
+### 7. Sliding Window Conversation Management (Solving "The Brutal Squeeze")
+
+The system implements **FIFO (First In First Out) sliding window** for conversation history instead of lossy summarization.
+
+#### **The Naive Approach:**
+```
+"The context is too long. Let's ask an AI to summarize the conversation history to save space."
+```
+
+#### **The Engineering Reality:**
+Summarization is a trap:
+- It **costs money** to generate the summary
+- It **loses nuance**: "I tried X and it failed with error code 500" becomes "User attempted troubleshooting" (ERROR CODE LOST!)
+- It creates **vague history** instead of precise details
+
+#### **My Philosophy: Chopping > Summarizing**
+
+We prefer a brutal **"Sliding Window"** approach:
+- Keep the last 10 turns **perfectly intact**
+- Delete turn 11 (FIFO - First In First Out)
+- **No summarization** = **No AI cost** = **No information loss**
+
+#### **Why This Works:**
+
+Users rarely refer back to what they said 20 minutes ago. But they **constantly** refer to the exact code snippet they pasted 30 seconds ago.
+
+**Summary = Lossy Compression**  
+**Chopping = Lossless Compression** (of the recent past)
+
+In a frugal architecture, we value **Recent Precision over Vague History**.
+
+#### **Example:**
+
+```python
+# Turn 1 (20 minutes ago)
+User: "I tried X and it failed with error code 500"
+AI: "Let me help you debug that..."
+
+# With Summarization (Lossy):
+"User attempted troubleshooting"  # ❌ Error code lost!
+
+# With Sliding Window (Lossless):
+After 10 new turns, this turn is deleted entirely.
+But turns 2-11 are PERFECTLY intact with all details.
+```
+
+#### **Cost Comparison:**
+
+**Summarization Approach:**
+- Summarize every 10 turns
+- Cost per summary: $0.01 (GPT-4o call)
+- 1000 conversations × 2 summaries = $20
+- Information loss: ⚠️ HIGH
+
+**Sliding Window Approach:**
+- Keep last 10 turns intact
+- Delete older turns (FIFO)
+- Cost: $0.00 (no AI calls)
+- Information loss: ✅ ZERO (what's kept is perfect)
+
+**Annual Savings:** $240
+
+#### **Usage Example:**
+
+```python
+from caas.conversation import ConversationManager
+
+# Create manager with sliding window
+manager = ConversationManager(max_turns=10)
+
+# Add conversation turns
+turn_id = manager.add_turn(
+    user_message="How do I fix error 500?",
+    ai_response="Check your database connection..."
+)
+
+# Get conversation history (last 10 turns, perfectly intact)
+history = manager.get_conversation_history()
+
+# Get statistics
+stats = manager.get_statistics()
+print(f"Current turns: {stats['current_turns']}")
+print(f"Total ever: {stats['total_turns_ever']}")
+print(f"Deleted: {stats['deleted_turns']}")
+```
+
+#### **API Endpoints:**
+
+```bash
+# Add a conversation turn
+curl -X POST "http://localhost:8000/conversation/turn" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_message": "How do I fix error 500?",
+    "ai_response": "Check your database connection..."
+  }'
+
+# Get conversation history
+curl "http://localhost:8000/conversation"
+
+# Get conversation statistics
+curl "http://localhost:8000/conversation/stats"
+
+# Get recent N turns
+curl "http://localhost:8000/conversation/recent?n=5"
+
+# Clear conversation
+curl -X DELETE "http://localhost:8000/conversation"
+```
+
+**Response Example:**
+```json
+{
+  "status": "success",
+  "turn_id": "abc-123",
+  "statistics": {
+    "current_turns": 10,
+    "max_turns": 10,
+    "total_turns_ever": 15,
+    "deleted_turns": 5
+  }
+}
+```
+
+#### **Why This Matters:**
+
+Traditional systems use AI to summarize conversation history, which:
+1. Costs money ($0.01 per summary)
+2. Loses critical details (error codes, exact wording)
+3. Creates vague summaries that aren't useful
+
+Our sliding window approach:
+1. Costs $0 (no AI calls)
+2. Keeps recent turns PERFECTLY intact
+3. Provides exact details users actually need
+
+**Philosophy:** In a frugal architecture, **Recent Precision > Vague History**.
+
+### 8. Document Type Detection
 
 The service analyzes content to detect document types:
 - **Legal Contracts**: Looks for "whereas", "party", "hereby", "indemnify"
@@ -713,15 +865,7 @@ The service analyzes content to detect document types:
 - **Research Papers**: Detects "abstract", "methodology", "results"
 - **Source Code**: Recognizes programming patterns
 
-### 7. Document Type Detection
-
-The service analyzes content to detect document types:
-- **Legal Contracts**: Looks for "whereas", "party", "hereby", "indemnify"
-- **Technical Docs**: Identifies "API", "configuration", "parameters"
-- **Research Papers**: Detects "abstract", "methodology", "results"
-- **Source Code**: Recognizes programming patterns
-
-### 8. Base Weight Assignment
+### 9. Base Weight Assignment
 
 Each document type has optimized base weights:
 

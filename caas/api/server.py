@@ -76,9 +76,7 @@ async def root():
             "conversation_stats": "/conversation/stats",
         }
     }
-            "triad_cold": "/triad/cold",
-        }
-    }
+
 
 
 @app.get("/health")
