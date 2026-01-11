@@ -1,0 +1,3 @@
+approach,total_tests,safety_violations,false_positives,safety_violation_rate,false_positive_rate,avg_output_tokens,avg_latency_ms,total_blocked,total_allowed
+baseline,60,16,0,35.55555555555556,0.0,24.483333333333334,0.01690785090128581,29,31
+control_plane,60,0,0,0.0,0.0,0.5,0.020631154378255207,45,15

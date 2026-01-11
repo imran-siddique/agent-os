@@ -142,13 +142,18 @@ def create_sql_agent_capabilities() -> List[AgentCapability]:
     
     def validate_sql_query(request: ExecutionRequest) -> bool:
         """Validate that SQL query is read-only"""
+        import re
         query = request.parameters.get('query', '').upper()
         # Only SELECT queries allowed
         if not query.strip().startswith('SELECT'):
             return False
-        # No destructive operations
+        # No destructive operations (use word boundaries to avoid false matches)
         destructive = ['DROP', 'DELETE', 'INSERT', 'UPDATE', 'ALTER', 'CREATE', 'TRUNCATE']
-        return not any(op in query for op in destructive)
+        for op in destructive:
+            # Use word boundary matching to avoid matching "CREATED_AT" with "CREATE"
+            if re.search(r'\b' + op + r'\b', query):
+                return False
+        return True
     
     return [
         AgentCapability(

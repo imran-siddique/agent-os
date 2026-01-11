@@ -44,3 +44,7 @@ htmlcov/
 
 # Logs
 *.log
+
+# Benchmark results (generated)
+benchmark_results.csv
+benchmark_summary.csv

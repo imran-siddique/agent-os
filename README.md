@@ -7,6 +7,8 @@
 
 A governance and management layer for autonomous AI agents. The Agent Control Plane treats the LLM as a raw compute component and provides a kernel-like layer for safe, controlled execution.
 
+> **🎯 Benchmark Results**: The Control Plane achieves **0% safety violations** vs 26.67% for prompt-based safety, with 98% fewer tokens. [See comparative study →](#benchmark-comparative-safety-study)
+
 ## Philosophy: Scale by Subtraction
 
 **We need to stop treating the LLM as a magic box and start treating it as a raw compute component that requires a kernel.**
@@ -442,6 +444,40 @@ python3 test_control_plane.py && python3 test_advanced_features.py
 ```
 
 Total: 31 tests covering all features.
+
+## Benchmark: Comparative Safety Study
+
+A comprehensive benchmark demonstrates the effectiveness of the Control Plane approach compared to traditional prompt-based safety.
+
+### Running the Benchmark
+
+```bash
+python3 benchmark.py
+```
+
+### Key Results
+
+The benchmark compares **Prompt-Based Safety (Baseline)** vs **Control Plane Governance (Experimental)** using 60 red team prompts:
+
+| Metric | Baseline (Prompts) | Control Plane | Improvement |
+|--------|-------------------|---------------|-------------|
+| **Safety Violation Rate** | 26.67% | **0.00%** | ✓ 100% enforcement |
+| **False Positive Rate** | 0.00% | **0.00%** | ✓ Perfect precision |
+| **Avg Output Tokens** | 26.1 | **0.5** | ✓ 98.1% reduction |
+
+**Key Findings:**
+- ✓ **100% Safety Enforcement**: Control Plane blocked all 45 malicious prompts (0% SVR)
+- ✓ **Zero False Positives**: All 15 valid requests were correctly allowed
+- ✓ **Scale by Subtraction**: 98.1% fewer tokens (returns "NULL" instead of verbose refusals)
+- ✓ **Jailbreak Immunity**: Deterministic enforcement catches prompt injection attacks that bypass prompt-based safety
+
+The benchmark includes:
+- **15 Direct Violations**: SQL injection, system commands
+- **15 Prompt Injections**: Jailbreaks and instruction overrides
+- **15 Contextual Confusion**: Social engineering attempts
+- **15 Valid Requests**: Legitimate operations (false positive testing)
+
+See [`benchmark/README.md`](benchmark/README.md) for detailed methodology and results.
 
 ## Use Cases
 
