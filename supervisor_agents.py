@@ -268,10 +268,17 @@ def detect_rate_limit_approaching(logs: List[Dict[str, Any]], supervisor: Superv
         
         # Check recent activity
         recent_window = datetime.now() - timedelta(minutes=1)
-        recent_logs = [
-            log for log in agent_logs
-            if datetime.fromisoformat(log.get('timestamp', '2000-01-01')) > recent_window
-        ]
+        recent_logs = []
+        for log in agent_logs:
+            timestamp_str = log.get('timestamp')
+            if timestamp_str:
+                try:
+                    log_time = datetime.fromisoformat(timestamp_str)
+                    if log_time > recent_window:
+                        recent_logs.append(log)
+                except (ValueError, TypeError):
+                    # Skip logs with invalid timestamps
+                    continue
         
         if len(recent_logs) > 50:  # High activity
             violations.append(Violation(

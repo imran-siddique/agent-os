@@ -223,7 +223,8 @@ class ShadowModeExecutor:
             impact["side_effects"].append({
                 "type": "data_modification",
                 "table": request.parameters.get('table'),
-                "reversible": False  # Depends on backup/transaction support
+                "reversible": False,  # Conservative assumption; depends on backup/transaction support
+                "note": "Reversibility depends on database configuration and backup policies"
             })
         
         elif request.action_type == ActionType.CODE_EXECUTION:

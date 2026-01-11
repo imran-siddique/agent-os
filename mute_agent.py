@@ -11,6 +11,7 @@ their defined constraints and return NULL/silence for out-of-scope requests.
 
 from typing import Any, Dict, Optional, List, Callable
 from dataclasses import dataclass, field
+from datetime import datetime
 from agent_kernel import ActionType, ExecutionRequest
 
 
@@ -62,10 +63,10 @@ class MuteAgentValidator:
         
         if not matching_capabilities:
             reason = self._format_rejection_reason(
-                request,
+                request.action_type,
                 "Action type not in agent capabilities"
             )
-            self._log_rejection(request, reason)
+            self._log_rejection(request.request_id, request.action_type, reason, request.timestamp)
             return False, reason
         
         # Validate parameters against capability schema
@@ -73,29 +74,57 @@ class MuteAgentValidator:
             if capability.validator:
                 if not capability.validator(request):
                     reason = self._format_rejection_reason(
-                        request,
+                        request.action_type,
                         f"Parameters do not match capability: {capability.name}"
                     )
-                    self._log_rejection(request, reason)
+                    self._log_rejection(request.request_id, request.action_type, reason, request.timestamp)
                     return False, reason
         
         return True, None
     
-    def _format_rejection_reason(self, request: ExecutionRequest, reason: str) -> str:
+    def validate_action(
+        self, 
+        action_type: ActionType, 
+        parameters: Dict[str, Any]
+    ) -> tuple[bool, Optional[str]]:
+        """
+        Lightweight validation without creating an ExecutionRequest.
+        
+        Returns:
+            (is_valid, reason_if_invalid)
+        """
+        # Check if action type is within any capability
+        matching_capabilities = [
+            cap for cap in self.config.capabilities
+            if action_type in cap.action_types
+        ]
+        
+        if not matching_capabilities:
+            reason = self._format_rejection_reason(
+                action_type,
+                "Action type not in agent capabilities"
+            )
+            return False, reason
+        
+        # Note: Cannot validate with validator since it expects ExecutionRequest
+        # This is a tradeoff for performance - full validation requires ExecutionRequest
+        return True, None
+    
+    def _format_rejection_reason(self, action_type: ActionType, reason: str) -> str:
         """Format rejection reason based on agent configuration"""
         if self.config.enable_explanation:
             return f"Request rejected: {reason}. Available capabilities: {[c.name for c in self.config.capabilities]}"
         else:
             return self.config.null_response_message
     
-    def _log_rejection(self, request: ExecutionRequest, reason: str):
+    def _log_rejection(self, request_id: str, action_type: ActionType, reason: str, timestamp: datetime):
         """Log rejected requests for analysis"""
         self.rejection_log.append({
-            "request_id": request.request_id,
+            "request_id": request_id,
             "agent_id": self.config.agent_id,
-            "action_type": request.action_type.value,
+            "action_type": action_type.value,
             "reason": reason,
-            "timestamp": request.timestamp.isoformat()
+            "timestamp": timestamp.isoformat()
         })
     
     def get_rejection_log(self) -> List[Dict[str, Any]]:

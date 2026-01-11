@@ -323,8 +323,10 @@ class TemporalGraph(ConstraintGraph):
         """Check if current time is within range"""
         now = datetime.now().time()
         if start_time <= end_time:
+            # Normal range (e.g., 9:00 to 17:00)
             return start_time <= now <= end_time
-        else:  # Crosses midnight
+        else:
+            # Crosses midnight (e.g., 23:00 to 01:00)
             return now >= start_time or now <= end_time
     
     @staticmethod
