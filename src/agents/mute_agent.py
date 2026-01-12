@@ -181,8 +181,8 @@ class GraphEngine:
                 # This makes operations on the focused service valid
                 for operation in ["restart_service", "scale_service", "force_delete"]:
                     edge = Edge(
-                        source=operation,
-                        target=service_id,
+                        source_id=operation,
+                        target_id=service_id,
                         edge_type=EdgeType.ENABLES,
                         attributes={"reason": "service_in_focus"}
                     )
@@ -209,8 +209,8 @@ class GraphEngine:
                 # User can perform write operations on this service
                 for operation in ["restart_service", "scale_service"]:
                     edge = Edge(
-                        source=operation,
-                        target=service_id,
+                        source_id=operation,
+                        target_id=service_id,
                         edge_type=EdgeType.ENABLES,
                         attributes={"permission": "write", "environment": env_str}
                     )
@@ -219,8 +219,8 @@ class GraphEngine:
             # Force delete requires SRE/Admin
             if user.role in [UserRole.SRE, UserRole.ADMIN]:
                 edge = Edge(
-                    source="force_delete",
-                    target=service_id,
+                    source_id="force_delete",
+                    target_id=service_id,
                     edge_type=EdgeType.ENABLES,
                     attributes={"permission": "force_delete"}
                 )
@@ -239,8 +239,8 @@ class GraphEngine:
                 for operation in ["restart_service", "scale_service", "rollback_deployment"]:
                     # Add a CONFLICTS_WITH edge to block these operations
                     edge = Edge(
-                        source=operation,
-                        target=service_id,
+                        source_id=operation,
+                        target_id=service_id,
                         edge_type=EdgeType.CONFLICTS_WITH,
                         attributes={"reason": f"service_in_{state}_state", 
                                    "suggestion": "use_force_delete"}
@@ -251,8 +251,8 @@ class GraphEngine:
                 # Running services can be restarted and scaled
                 for operation in ["restart_service", "scale_service"]:
                     edge = Edge(
-                        source=operation,
-                        target=service_id,
+                        source_id=operation,
+                        target_id=service_id,
                         edge_type=EdgeType.ENABLES,
                         attributes={"state": state}
                     )
@@ -261,8 +261,8 @@ class GraphEngine:
             elif state == "stopped":
                 # Stopped services can be started but not restarted
                 edge = Edge(
-                    source="start_service",
-                    target=service_id,
+                    source_id="start_service",
+                    target_id=service_id,
                     edge_type=EdgeType.ENABLES,
                     attributes={"state": state}
                 )
@@ -288,8 +288,8 @@ class GraphEngine:
             # Add edge prioritizing current focus for ambiguous operations
             for operation in ["restart_service", "scale_service"]:
                 edge = Edge(
-                    source=operation,
-                    target="current_focus",
+                    source_id=operation,
+                    target_id="current_focus",
                     edge_type=EdgeType.REQUIRES,
                     attributes={"priority": "high", "reason": "default_target"}
                 )
@@ -505,10 +505,10 @@ class MuteAgent:
         3. Context dimension - is this the right target?
         """
         # Check for CONFLICTS_WITH edges in state dimension
-        state_subgraph = kg.get_dimension("state")
+        state_subgraph = kg.get_subgraph("state")
         if state_subgraph:
             for edge in state_subgraph.edges:
-                if edge.source == action and edge.target == service_id:
+                if edge.source_id == action and edge.target_id == service_id:
                     if edge.edge_type == EdgeType.CONFLICTS_WITH:
                         suggestion = edge.attributes.get("suggestion", "")
                         return {
@@ -518,12 +518,12 @@ class MuteAgent:
                         }
         
         # Check permissions dimension
-        permissions_subgraph = kg.get_dimension("permissions")
+        permissions_subgraph = kg.get_subgraph("permissions")
         if permissions_subgraph:
             # Look for ENABLES edge from action to service
             has_permission = False
             for edge in permissions_subgraph.edges:
-                if edge.source == action and edge.target == service_id:
+                if edge.source_id == action and edge.target_id == service_id:
                     if edge.edge_type == EdgeType.ENABLES:
                         has_permission = True
                         break

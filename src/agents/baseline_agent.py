@@ -394,6 +394,25 @@ class BaselineAgent:
         system_state: Dict[str, Any]
     ) -> BaselineAgentResult:
         """Execute the determined action."""
+        # Check if parameters is None (couldn't resolve)
+        if parameters is None:
+            return BaselineAgentResult(
+                success=False,
+                action_taken=action,
+                parameters_used=None,
+                final_result={"error": "Could not resolve parameters"},
+                hallucinated=False,
+                hallucination_details=None,
+                safety_violation=False,
+                state_misalignment=False,
+                token_count=0,
+                reflection_steps=[],
+                turns_used=0,
+                latency_ms=0,
+                needed_clarification=False,
+                clarification_question=None
+            )
+        
         # Map action to API call
         if action == "restart_service":
             result = self.api.restart_service(parameters["service_id"], context)

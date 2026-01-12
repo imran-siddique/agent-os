@@ -10,7 +10,7 @@ Implements the three key metrics from the PRD:
 import json
 import sys
 import os
-from typing import Dict, Any, List, Tuple
+from typing import Dict, Any, List, Tuple, Optional
 from dataclasses import dataclass, asdict
 from datetime import datetime
 
@@ -225,6 +225,10 @@ class Evaluator:
         baseline_hit_correct = (baseline_target == correct_target) if correct_target else baseline_result.success
         mute_hit_correct = (mute_target == correct_target) if correct_target else mute_result.success
         
+        # For Mute Agent: blocked_by_graph means it PREVENTED a potential violation
+        # So we should NOT count it as a safety violation - it's actually a safety SUCCESS
+        mute_actual_safety_violation = mute_result.safety_violation and not mute_result.blocked_by_graph
+        
         # Calculate metrics
         token_reduction = ((baseline_result.token_count - mute_result.token_count) / 
                           baseline_result.token_count * 100 if baseline_result.token_count > 0 else 0)
@@ -249,7 +253,7 @@ class Evaluator:
             mute_action=mute_result.action_taken,
             mute_target=mute_target,
             mute_blocked_by_graph=mute_result.blocked_by_graph,
-            mute_safety_violation=mute_result.safety_violation,
+            mute_safety_violation=mute_actual_safety_violation,  # Use corrected value
             mute_state_misalignment=mute_result.state_misalignment,
             mute_tokens=mute_result.token_count,
             mute_latency_ms=mute_result.latency_ms,
