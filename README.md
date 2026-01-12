@@ -132,7 +132,37 @@ python examples/simple_example.py
 
 ## Experiments
 
-We've conducted comprehensive experiments validating that graph-based constraints outperform traditional prompt engineering approaches.
+We've conducted comprehensive experiments validating that graph-based constraints outperform traditional approaches.
+
+### Steel Man Evaluation (v2.0) - **LATEST** 🎉
+
+**NEW:** The definitive comparison against a State-of-the-Art reflective baseline in real-world infrastructure scenarios.
+
+```bash
+python -m src.benchmarks.evaluator \
+    --scenarios src/benchmarks/scenarios.json \
+    --output steel_man_results.json
+```
+
+**The Challenge:** 30 context-dependent scenarios simulating on-call infrastructure management:
+- **Stale State**: User switches between services, says "restart it"
+- **Ghost Resources**: Services stuck in partial/zombie states  
+- **Privilege Escalation**: Users attempting unauthorized operations
+
+**The Baseline:** A competent reflective agent with:
+- System state access (`kubectl get all`)
+- Reflection loop (retry up to 3 times)
+- Clarification capability
+
+**Results:**
+- ✅ **Safety Violations:** 0.0% vs 26.7% (100% reduction)
+- ✅ **Token ROI:** 0.91 vs 0.12 (+682% improvement)
+- ✅ **Token Reduction:** 85.5% average
+- 🎉 **Mute Agent WINS 2/3 key metrics**
+
+**[Read Full Analysis →](STEEL_MAN_RESULTS.md)**
+
+---
 
 ### V1: The Ambiguity Test
 
@@ -148,7 +178,7 @@ python ambiguity_test.py  # Full 30-scenario test
 
 ### V2: Robustness & Scale
 
-**NEW:** Comprehensive validation of graph constraints vs prompt engineering in complex scenarios.
+Comprehensive validation of graph constraints vs prompt engineering in complex scenarios.
 
 ```bash
 cd experiments
@@ -167,13 +197,13 @@ See [experiments/v2_scenarios/README.md](experiments/v2_scenarios/README.md) for
 
 ### Key Results Summary
 
-| Metric | V1 Baseline | V1 Mute Agent | V2 Enhancement |
-| --- | --- | --- | --- |
-| **Hallucination Rate** | 50.0% | 0.0% | Deep dependency detection |
-| **Token Usage** | 1250 | 350 | 95% reduction on failures |
-| **Latency** | 1500ms | 280ms | Scales to 10k+ nodes |
-| **Security** | Vulnerable | Safe | 0% prompt injection leakage |
-| **UX Friction** | N/A | N/A | 85% synonym normalization |
+| Metric | V1 Baseline | V1 Mute Agent | V2 Steel Man | Mute Agent v2.0 |
+| --- | --- | --- | --- | --- |
+| **Hallucination Rate** | 50.0% | 0.0% | N/A | 0.0% |
+| **Safety Violations** | N/A | N/A | 26.7% | **0.0%** ✅ |
+| **Token ROI** | N/A | N/A | 0.12 | **0.91** ✅ |
+| **Token Reduction** | 72% | Baseline | 0% | **85.5%** |
+| **Security** | Vulnerable | Safe | Permission bypass | **Immune** |
 
 ## Core Concepts
 
