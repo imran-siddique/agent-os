@@ -1,2 +1,5 @@
-# Mute Agent has no runtime dependencies
-# Python 3.8+ standard library is sufficient
+# Mute Agent has minimal runtime dependencies
+# Python 3.8+ standard library is sufficient for core functionality
+
+# Optional: For visualization and benchmarking
+matplotlib>=3.5.0
