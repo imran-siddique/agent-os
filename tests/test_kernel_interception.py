@@ -123,6 +123,21 @@ class TestConstraintGraph(unittest.TestCase):
         
         self.assertIsNone(violation)
     
+    def test_path_traversal_attack_blocked(self):
+        """Test that path traversal attacks are blocked"""
+        policy = PolicyEngine()
+        policy.add_constraint(role="file-agent", allowed_tools=["write_file"])
+        
+        # Try to bypass protection with ../
+        violation = policy.check_violation(
+            agent_role="file-agent",
+            tool_name="write_file",
+            args={"path": "/data/../etc/passwd"}
+        )
+        
+        self.assertIsNotNone(violation)
+        self.assertIn("Path Violation", violation)
+    
     def test_code_execution_blocks_dangerous_patterns(self):
         """Test that code execution blocks dangerous command patterns"""
         policy = PolicyEngine()
@@ -143,6 +158,46 @@ class TestConstraintGraph(unittest.TestCase):
             agent_role="code-agent",
             tool_name="execute_code",
             args={"code": "DROP TABLE users"}
+        )
+        
+        self.assertIsNotNone(violation)
+        self.assertIn("Dangerous pattern", violation)
+    
+    def test_dangerous_pattern_case_insensitive(self):
+        """Test that dangerous patterns are detected case-insensitively"""
+        policy = PolicyEngine()
+        policy.add_constraint(role="code-agent", allowed_tools=["execute_code"])
+        
+        # Test with uppercase
+        violation = policy.check_violation(
+            agent_role="code-agent",
+            tool_name="execute_code",
+            args={"code": "RM -RF /"}
+        )
+        
+        self.assertIsNotNone(violation)
+        self.assertIn("Dangerous pattern", violation)
+        
+        # Test with mixed case
+        violation = policy.check_violation(
+            agent_role="code-agent",
+            tool_name="execute_code",
+            args={"code": "DrOp TaBlE users"}
+        )
+        
+        self.assertIsNotNone(violation)
+        self.assertIn("Dangerous pattern", violation)
+    
+    def test_dangerous_pattern_with_extra_spaces(self):
+        """Test that dangerous patterns with extra spaces are detected"""
+        policy = PolicyEngine()
+        policy.add_constraint(role="code-agent", allowed_tools=["execute_code"])
+        
+        # Test with extra spaces
+        violation = policy.check_violation(
+            agent_role="code-agent",
+            tool_name="execute_code",
+            args={"code": "rm  -rf /"}  # Two spaces
         )
         
         self.assertIsNotNone(violation)

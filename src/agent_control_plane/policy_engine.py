@@ -10,6 +10,8 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from .agent_kernel import ExecutionRequest, ActionType, PolicyRule
 import uuid
+import os
+import re
 
 
 @dataclass
@@ -65,6 +67,21 @@ class PolicyEngine:
         self.allowed_transitions: set = set()
         self.state_permissions: Dict[str, set] = {}
         
+        # Configurable dangerous patterns for code/command execution
+        # Uses regex patterns for better detection
+        self.dangerous_code_patterns: List[re.Pattern] = [
+            re.compile(r'\brm\s+-rf\b', re.IGNORECASE),
+            re.compile(r'\bdel\s+/f\b', re.IGNORECASE),
+            re.compile(r'\bformat\s+', re.IGNORECASE),
+            re.compile(r'\bdrop\s+table\b', re.IGNORECASE),
+            re.compile(r'\bdrop\s+database\b', re.IGNORECASE),
+            re.compile(r'\btruncate\s+table\b', re.IGNORECASE),
+            re.compile(r'\bdelete\s+from\b', re.IGNORECASE),
+        ]
+        
+        # Configurable system paths to protect
+        self.protected_paths: List[str] = ['/etc/', '/sys/', '/proc/', '/dev/', 'C:\\Windows\\System32']
+        
     def set_quota(self, agent_id: str, quota: ResourceQuota):
         """Set resource quota for an agent"""
         self.quotas[agent_id] = quota
@@ -107,17 +124,31 @@ class PolicyEngine:
         if tool_name not in allowed:
             return f"Role {agent_role} cannot use tool {tool_name}"
 
-        # 2. Argument-Based Check (e.g., "Write" is allowed, but not to "/etc/")
-        if tool_name == "write_file" and args.get("path", "").startswith("/etc"):
-            return "Path Violation: Cannot write to system directories."
+        # 2. Argument-Based Check
         
-        # Additional argument checks for common dangerous patterns
+        # 2a. Path validation with normalization to prevent traversal attacks
+        if tool_name in ["write_file", "read_file", "delete_file"] and "path" in args:
+            path = args.get("path", "")
+            
+            # Normalize path to resolve '..' and symbolic links
+            try:
+                normalized_path = os.path.normpath(os.path.abspath(path))
+            except (ValueError, OSError):
+                return "Path Validation Error: Invalid path format"
+            
+            # Check against protected paths
+            for protected in self.protected_paths:
+                if normalized_path.startswith(os.path.normpath(protected)):
+                    return f"Path Violation: Cannot access protected directory {protected}"
+        
+        # 2b. Code execution validation using regex patterns
         if tool_name in ["execute_code", "run_command"]:
-            code_or_cmd = args.get("code", args.get("command", "")).lower()
-            dangerous_patterns = ["rm -rf", "del /f", "format ", "drop table", "drop database"]
-            for pattern in dangerous_patterns:
-                if pattern in code_or_cmd:
-                    return f"Dangerous pattern detected: {pattern}"
+            code_or_cmd = args.get("code", args.get("command", ""))
+            
+            # Check against dangerous patterns using regex
+            for pattern in self.dangerous_code_patterns:
+                if pattern.search(code_or_cmd):
+                    return f"Dangerous pattern detected: {pattern.pattern}"
             
         return None
     
