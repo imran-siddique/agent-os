@@ -24,8 +24,9 @@ As we move from chatbots to autonomous agents—systems that can execute code, m
 - **Policy Enforcement**: Governance rules and compliance constraints
 - **Resource Management**: Quotas, rate limiting, and resource allocation
 - **Safe Execution**: Sandboxed execution with rollback capability
-- **Audit Logging**: Complete traceability for all agent actions
+- **Audit Logging**: Complete traceability for all agent actions (SQLite-based Flight Recorder)
 - **Risk Assessment**: Automatic risk scoring and management
+- **Drop-In Middleware**: Zero-friction OpenAI SDK adapter for automatic tool call governance
 
 ### Advanced Features
 - **The Mute Agent**: Capability-based execution that returns NULL for out-of-scope requests instead of hallucinating
@@ -33,6 +34,7 @@ As we move from chatbots to autonomous agents—systems that can execute code, m
 - **Constraint Graphs**: Multi-dimensional context (Data, Policy, Temporal) acting as the "physics" of the agent's world
 - **Supervisor Agents**: Recursive governance with agents watching agents, bound by a constitution of code
 - **Reasoning Telemetry**: Complete trace of agent decision-making process
+- **Red Team Dataset**: Comprehensive adversarial prompt testing with 60+ attack vectors
 
 ## Key Concepts
 
@@ -81,14 +83,17 @@ agent-control-plane/
 │   └── agent_control_plane/     # Main package source code
 │       ├── agent_kernel.py      # Core kernel functionality
 │       ├── control_plane.py     # Main control plane interface
+│       ├── adapter.py           # OpenAI SDK adapter (drop-in middleware)
 │       ├── policy_engine.py     # Policy enforcement
 │       ├── execution_engine.py  # Safe execution
 │       ├── constraint_graphs.py # Multi-dimensional context
 │       ├── shadow_mode.py       # Simulation mode
 │       ├── mute_agent.py        # Capability-based execution
-│       └── supervisor_agents.py # Recursive governance
+│       ├── supervisor_agents.py # Recursive governance
+│       └── flight_recorder.py   # Audit logging (SQLite)
 ├── tests/                        # Test suite
 ├── examples/                     # Example scripts
+├── benchmark/                    # Red team safety benchmarks
 ├── docs/                         # Documentation
 └── README.md                     # This file
 ```
@@ -116,6 +121,46 @@ if result["success"]:
     print(f"Result: {result['result']}")
 else:
     print(f"Error: {result['error']}")
+```
+
+### Drop-In Middleware for OpenAI SDK
+
+**NEW: Zero-friction integration!** Wrap your OpenAI client to automatically govern LLM tool calls:
+
+```python
+from openai import OpenAI
+from agent_control_plane import (
+    AgentControlPlane,
+    create_governed_client,
+    ActionType,
+    PermissionLevel
+)
+
+# Standard setup
+control_plane = AgentControlPlane()
+client = OpenAI(api_key="your-key")
+
+# One line to create governed client
+governed = create_governed_client(
+    control_plane=control_plane,
+    agent_id="my-agent",
+    openai_client=client,
+    permissions={
+        ActionType.DATABASE_QUERY: PermissionLevel.READ_ONLY,
+        ActionType.FILE_READ: PermissionLevel.READ_ONLY,
+    }
+)
+
+# Use exactly like normal OpenAI SDK!
+response = governed.chat.completions.create(
+    model="gpt-4",
+    messages=[{"role": "user", "content": "Query database and save results"}],
+    tools=[...]
+)
+# Tool calls are automatically governed - unauthorized actions are blocked!
+```
+
+**📖 See the [OpenAI Adapter Guide](docs/ADAPTER_GUIDE.md) for comprehensive integration instructions.**
 ```
 
 ### Permission Control
