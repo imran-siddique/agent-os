@@ -26,7 +26,7 @@ As we move from chatbots to autonomous agents—systems that can execute code, m
 - **Safe Execution**: Sandboxed execution with rollback capability
 - **Audit Logging**: Complete traceability for all agent actions (SQLite-based Flight Recorder)
 - **Risk Assessment**: Automatic risk scoring and management
-- **Drop-In Middleware**: Zero-friction OpenAI SDK adapter for automatic tool call governance
+- **Multi-Framework Support**: Drop-in middleware for OpenAI SDK, LangChain, MCP, and A2A protocols
 
 ### Advanced Features
 - **The Mute Agent**: Capability-based execution that returns NULL for out-of-scope requests instead of hallucinating
@@ -161,6 +161,104 @@ response = governed.chat.completions.create(
 ```
 
 **📖 See the [OpenAI Adapter Guide](docs/ADAPTER_GUIDE.md) for comprehensive integration instructions.**
+
+### Multi-Framework Support
+
+The Agent Control Plane now supports multiple AI frameworks and protocols with the same governance approach:
+
+#### LangChain Integration
+
+```python
+from langchain.chat_models import ChatOpenAI
+from langchain.agents import initialize_agent, load_tools
+from agent_control_plane import (
+    AgentControlPlane,
+    create_governed_langchain_client,
+    ActionType,
+    PermissionLevel
+)
+
+# Setup
+control_plane = AgentControlPlane()
+llm = ChatOpenAI(temperature=0)
+
+# Create governed LangChain client
+governed_llm = create_governed_langchain_client(
+    control_plane=control_plane,
+    agent_id="my-langchain-agent",
+    langchain_client=llm,
+    permissions={
+        ActionType.FILE_READ: PermissionLevel.READ_ONLY,
+        ActionType.DATABASE_QUERY: PermissionLevel.READ_ONLY,
+    }
+)
+
+# Use in LangChain agents - tool calls are automatically governed!
+tools = load_tools(["python_repl", "requests"])
+agent = initialize_agent(tools, governed_llm, agent="zero-shot-react-description")
+agent.run("Your task here")
+```
+
+#### MCP (Model Context Protocol) Support
+
+```python
+from agent_control_plane import (
+    AgentControlPlane,
+    create_governed_mcp_server,
+    ActionType,
+    PermissionLevel
+)
+
+# Create governed MCP server
+control_plane = AgentControlPlane()
+mcp_server = create_governed_mcp_server(
+    control_plane=control_plane,
+    agent_id="mcp-agent",
+    server_name="file-server",
+    permissions={
+        ActionType.FILE_READ: PermissionLevel.READ_ONLY,
+    },
+    transport="stdio"
+)
+
+# Register tools - all calls are governed
+mcp_server.register_tool("read_file", handle_read_file, "Read a file")
+mcp_server.register_resource("file://", handle_file_resource, "File resources")
+mcp_server.start()
+```
+
+#### A2A (Agent-to-Agent) Protocol Support
+
+```python
+from agent_control_plane import (
+    AgentControlPlane,
+    create_governed_a2a_agent,
+    ActionType,
+    PermissionLevel
+)
+
+# Create governed A2A agent
+control_plane = AgentControlPlane()
+a2a_agent = create_governed_a2a_agent(
+    control_plane=control_plane,
+    agent_id="my-a2a-agent",
+    agent_card={
+        "name": "Data Processor",
+        "description": "Processes and analyzes data",
+        "capabilities": ["data_processing", "analytics"]
+    },
+    permissions={
+        ActionType.DATABASE_QUERY: PermissionLevel.READ_ONLY,
+        ActionType.API_CALL: PermissionLevel.READ_WRITE,
+    }
+)
+
+# Register capabilities
+a2a_agent.register_capability("data_processing", handle_data_processing)
+
+# All inter-agent communications are governed!
+a2a_agent.start()
+```
 ```
 
 ### Permission Control
