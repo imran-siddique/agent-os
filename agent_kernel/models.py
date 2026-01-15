@@ -250,3 +250,100 @@ class AgentState(BaseModel):
     success_rate: float = Field(default=1.0, ge=0.0, le=1.0)
     total_runs: int = Field(default=0)
     failed_runs: int = Field(default=0)
+    model_version: str = Field(default="gpt-4o", description="Current model version")
+
+
+class GiveUpSignal(str, Enum):
+    """Types of give-up signals indicating agent laziness."""
+    NO_DATA_FOUND = "no_data_found"
+    CANNOT_ANSWER = "cannot_answer"
+    NO_RESULTS = "no_results"
+    NOT_AVAILABLE = "not_available"
+    INSUFFICIENT_INFO = "insufficient_info"
+    UNKNOWN = "unknown"
+
+
+class PatchDecayType(str, Enum):
+    """Classification of patch based on decay characteristics."""
+    SYNTAX_CAPABILITY = "syntax_capability"  # Type A: High decay - likely model defects
+    BUSINESS_CONTEXT = "business_context"  # Type B: Zero decay - world truths
+
+
+class OutcomeType(str, Enum):
+    """Types of agent outcomes."""
+    SUCCESS = "success"
+    GIVE_UP = "give_up"  # Negative result - triggers Completeness Auditor
+    FAILURE = "failure"
+    BLOCKED = "blocked"
+
+
+class AgentOutcome(BaseModel):
+    """Result of an agent execution."""
+    
+    agent_id: str
+    outcome_type: OutcomeType
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    user_prompt: str
+    agent_response: str
+    give_up_signal: Optional[GiveUpSignal] = None
+    context: Dict[str, Any] = Field(default_factory=dict)
+    
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "agent_id": "agent-123",
+                "outcome_type": "give_up",
+                "user_prompt": "Find logs for error 500",
+                "agent_response": "No logs found for error 500.",
+                "give_up_signal": "no_data_found"
+            }
+        }
+    )
+
+
+class CompletenessAudit(BaseModel):
+    """Result of completeness auditing by teacher model."""
+    
+    audit_id: str
+    agent_outcome: AgentOutcome
+    teacher_model: str = Field(default="o1-preview", description="High-reasoning teacher model")
+    teacher_response: str
+    teacher_found_data: bool
+    gap_analysis: str = Field(..., description="What the agent missed")
+    competence_patch: str = Field(..., description="Lesson to prevent future laziness")
+    confidence: float = Field(..., ge=0.0, le=1.0)
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "audit_id": "audit-123",
+                "teacher_model": "o1-preview",
+                "teacher_response": "Found logs in archived partition",
+                "teacher_found_data": True,
+                "gap_analysis": "Agent didn't check archived partitions",
+                "competence_patch": "When searching logs, always check archived partitions if recent logs are empty",
+                "confidence": 0.92
+            }
+        }
+    )
+
+
+class ClassifiedPatch(BaseModel):
+    """A patch with classification metadata for lifecycle management."""
+    
+    base_patch: CorrectionPatch
+    decay_type: PatchDecayType
+    created_at_model_version: str = Field(..., description="Model version when patch was created")
+    decay_metadata: Dict[str, Any] = Field(default_factory=dict)
+    should_purge_on_upgrade: bool = Field(default=False)
+    
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "decay_type": "syntax_capability",
+                "created_at_model_version": "gpt-4o",
+                "should_purge_on_upgrade": True
+            }
+        }
+    )

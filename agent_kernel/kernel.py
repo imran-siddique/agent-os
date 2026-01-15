@@ -1,50 +1,81 @@
 """
 Self-Correcting Agent Kernel - Main orchestrator.
+
+Implements the Dual-Loop Architecture:
+- Loop 1 (Runtime): Constraint Engine (Safety)
+- Loop 2 (Offline): Alignment Engine (Quality & Efficiency)
 """
 
 import logging
 from typing import Optional, Dict, Any, List
 
-from .models import AgentFailure, FailureAnalysis, SimulationResult, CorrectionPatch, AgentState
+from .models import (
+    AgentFailure, FailureAnalysis, SimulationResult, CorrectionPatch, AgentState,
+    AgentOutcome, CompletenessAudit, ClassifiedPatch
+)
 from .detector import FailureDetector
 from .analyzer import FailureAnalyzer
 from .simulator import PathSimulator
 from .patcher import AgentPatcher
+from .outcome_analyzer import OutcomeAnalyzer
+from .completeness_auditor import CompletenessAuditor
+from .semantic_purge import SemanticPurge
 
 logger = logging.getLogger(__name__)
 
 
 class SelfCorrectingAgentKernel:
     """
-    Main kernel that orchestrates the self-correcting agent system.
+    Main kernel implementing the Dual-Loop Architecture.
     
-    When an agent fails in production (e.g., blocked by agent-control-plane),
-    this kernel:
-    1. Detects and classifies the failure
-    2. Analyzes the failure to identify root causes
+    LOOP 1 (Runtime): The Constraint Engine filters for Safety
+    LOOP 2 (Offline): The Alignment Engine filters for Quality & Efficiency:
+        - Completeness Auditor: Detects "laziness" (give-up signals)
+        - Semantic Purge: Manages patch lifecycle (scale by subtraction)
+    
+    When an agent fails OR gives up:
+    1. Detects and classifies the outcome
+    2. Analyzes for safety (Loop 1) and competence (Loop 2)
     3. Simulates alternative paths
-    4. Automatically patches the agent
+    4. Patches the agent with classified, lifecycle-managed fixes
     """
     
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         """
-        Initialize the self-correcting agent kernel.
+        Initialize the self-correcting agent kernel with Dual-Loop Architecture.
         
         Args:
             config: Optional configuration dictionary
         """
         self.config = config or {}
         
-        # Initialize components
+        # LOOP 1: Runtime Safety Components
         self.detector = FailureDetector()
         self.analyzer = FailureAnalyzer()
         self.simulator = PathSimulator()
         self.patcher = AgentPatcher()
         
+        # LOOP 2: Offline Alignment Components
+        self.outcome_analyzer = OutcomeAnalyzer()
+        self.completeness_auditor = CompletenessAuditor(
+            teacher_model=self.config.get("teacher_model", "o1-preview")
+        )
+        self.semantic_purge = SemanticPurge()
+        
+        # Model version tracking for semantic purge
+        self.current_model_version = self.config.get("model_version", "gpt-4o")
+        
         # Configure logging
         self._setup_logging()
         
-        logger.info("Self-Correcting Agent Kernel initialized")
+        logger.info("=" * 80)
+        logger.info("Self-Correcting Agent Kernel initialized (Dual-Loop Architecture)")
+        logger.info(f"  Loop 1 (Runtime): Constraint Engine (Safety)")
+        logger.info(f"  Loop 2 (Offline): Alignment Engine (Quality & Efficiency)")
+        logger.info(f"    - Completeness Auditor: {self.completeness_auditor.teacher_model}")
+        logger.info(f"    - Semantic Purge: Active")
+        logger.info(f"  Model Version: {self.current_model_version}")
+        logger.info("=" * 80)
     
     def _setup_logging(self):
         """Setup logging configuration."""
@@ -148,6 +179,13 @@ class SelfCorrectingAgentKernel:
             agent_id, analysis, simulation, diagnosis, shadow_result
         )
         
+        # Classify patch for lifecycle management (Semantic Purge integration)
+        classified_patch = self.semantic_purge.register_patch(
+            patch=patch,
+            current_model_version=self.current_model_version
+        )
+        logger.info(f"      → Patch classified as: {classified_patch.decay_type.value}")
+        
         patch_applied = False
         if auto_patch:
             logger.info("Auto-patching enabled, applying patch...")
@@ -159,6 +197,8 @@ class SelfCorrectingAgentKernel:
         logger.info(f"SELF-CORRECTION COMPLETE")
         logger.info(f"Patch ID: {patch.patch_id}")
         logger.info(f"Patch Type: {patch.patch_type}")
+        logger.info(f"Decay Type: {classified_patch.decay_type.value}")
+        logger.info(f"Purge on Upgrade: {classified_patch.should_purge_on_upgrade}")
         if diagnosis:
             logger.info(f"Cognitive Glitch: {diagnosis.cognitive_glitch.value}")
         logger.info(f"Patch Applied: {patch_applied}")
@@ -173,6 +213,7 @@ class SelfCorrectingAgentKernel:
             "simulation": simulation,
             "shadow_result": shadow_result,
             "patch": patch,
+            "classified_patch": classified_patch,
             "patch_applied": patch_applied,
             "message": "Agent successfully patched" if patch_applied else "Patch created, awaiting manual approval"
         }
@@ -247,3 +288,228 @@ class SelfCorrectingAgentKernel:
             logger.warning("⚠️ Agent fix incomplete, manual intervention may be required")
         
         return result
+    
+    # ============================================================================
+    # DUAL-LOOP ARCHITECTURE: Loop 2 (Alignment Engine) Methods
+    # ============================================================================
+    
+    def handle_outcome(
+        self,
+        agent_id: str,
+        user_prompt: str,
+        agent_response: str,
+        context: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        Handle an agent outcome through the Alignment Engine (Loop 2).
+        
+        This is the entry point for the Completeness Auditor. Instead of waiting
+        for hard failures, we proactively detect when agents "give up" with
+        negative results.
+        
+        Args:
+            agent_id: ID of the agent
+            user_prompt: Original user request
+            agent_response: Agent's response
+            context: Additional context
+            
+        Returns:
+            Dictionary with outcome analysis and any audit results
+        """
+        logger.info(f"🔄 Loop 2 (Alignment Engine): Analyzing outcome for {agent_id}")
+        
+        # Step 1: Analyze the outcome
+        outcome = self.outcome_analyzer.analyze_outcome(
+            agent_id=agent_id,
+            user_prompt=user_prompt,
+            agent_response=agent_response,
+            context=context
+        )
+        
+        result = {
+            "outcome": outcome,
+            "audit": None,
+            "patch": None,
+            "classified_patch": None
+        }
+        
+        # Step 2: Check if this triggers Completeness Audit (Give-Up Signal)
+        if self.outcome_analyzer.should_trigger_audit(outcome):
+            logger.info(f"🔍 Give-Up Signal detected! Triggering Completeness Auditor...")
+            
+            # Step 3: Run Completeness Audit (Differential Auditing)
+            audit = self.completeness_auditor.audit_give_up(outcome)
+            result["audit"] = audit
+            
+            # Step 4: If teacher found data (laziness detected), create competence patch
+            if audit.teacher_found_data:
+                logger.info(f"⚠️  LAZINESS DETECTED: Creating competence patch...")
+                
+                # Create a patch from the competence lesson
+                patch = self._create_competence_patch(agent_id, audit)
+                result["patch"] = patch
+                
+                # Step 5: Classify patch for lifecycle management (Semantic Purge)
+                classified_patch = self.semantic_purge.register_patch(
+                    patch=patch,
+                    current_model_version=self.current_model_version
+                )
+                result["classified_patch"] = classified_patch
+                
+                # Register with auditor
+                self.semantic_purge.register_completeness_audit(
+                    audit=audit,
+                    current_model_version=self.current_model_version
+                )
+                
+                # Apply patch
+                if self.config.get("auto_patch", True):
+                    self.patcher.apply_patch(patch)
+                    logger.info(f"✓ Competence patch applied")
+        else:
+            logger.info(f"✓ No give-up signal detected - agent performing well")
+        
+        return result
+    
+    def _create_competence_patch(
+        self,
+        agent_id: str,
+        audit: CompletenessAudit
+    ) -> CorrectionPatch:
+        """
+        Create a patch from a completeness audit.
+        
+        Competence patches teach the agent to avoid giving up too early.
+        """
+        import uuid
+        from datetime import datetime
+        from .models import FailureAnalysis, SimulationResult, AgentFailure, FailureType, FailureSeverity
+        
+        # Create a synthetic failure for the audit
+        failure = AgentFailure(
+            agent_id=agent_id,
+            failure_type=FailureType.LOGIC_ERROR,
+            severity=FailureSeverity.MEDIUM,
+            error_message=f"Agent gave up: {audit.agent_outcome.agent_response}",
+            context=audit.agent_outcome.context
+        )
+        
+        # Create analysis
+        analysis = FailureAnalysis(
+            failure=failure,
+            root_cause="Agent gave up too early without exhaustive search",
+            contributing_factors=[audit.gap_analysis],
+            suggested_fixes=[audit.competence_patch],
+            confidence_score=audit.confidence,
+            similar_failures=[]
+        )
+        
+        # Create simulation
+        simulation = SimulationResult(
+            simulation_id=f"sim-{uuid.uuid4().hex[:8]}",
+            success=True,
+            alternative_path=[
+                {
+                    "step": 1,
+                    "action": "exhaustive_search",
+                    "description": "Check all data sources before reporting 'not found'"
+                },
+                {
+                    "step": 2,
+                    "action": "apply_competence_lesson",
+                    "description": audit.competence_patch
+                }
+            ],
+            expected_outcome="Agent will search exhaustively before giving up",
+            risk_score=0.1,
+            estimated_success_rate=0.9
+        )
+        
+        # Create patch
+        patch_id = f"competence-patch-{uuid.uuid4().hex[:8]}"
+        
+        patch = CorrectionPatch(
+            patch_id=patch_id,
+            agent_id=agent_id,
+            failure_analysis=analysis,
+            simulation_result=simulation,
+            patch_type="system_prompt",
+            patch_content={
+                "type": "competence_rule",
+                "rule": audit.competence_patch,
+                "from_audit": audit.audit_id,
+                "teacher_model": audit.teacher_model
+            },
+            applied=False
+        )
+        
+        return patch
+    
+    def upgrade_model(self, new_model_version: str) -> Dict[str, Any]:
+        """
+        Upgrade the model version and trigger Semantic Purge.
+        
+        This is the "Purge Event" that removes Type A (Syntax) patches
+        that are likely fixed in the new model version.
+        
+        Args:
+            new_model_version: New model version (e.g., "gpt-5")
+            
+        Returns:
+            Dictionary with purge statistics
+        """
+        logger.info(f"=" * 80)
+        logger.info(f"MODEL UPGRADE: {self.current_model_version} → {new_model_version}")
+        logger.info(f"=" * 80)
+        
+        old_version = self.current_model_version
+        
+        # Trigger semantic purge
+        purge_result = self.semantic_purge.purge_on_upgrade(
+            old_model_version=old_version,
+            new_model_version=new_model_version
+        )
+        
+        # Update model version
+        self.current_model_version = new_model_version
+        
+        # Update all agent states
+        for agent_state in self.patcher.agent_states.values():
+            agent_state.model_version = new_model_version
+        
+        logger.info(f"=" * 80)
+        logger.info(f"MODEL UPGRADE COMPLETE")
+        logger.info(f"  Purged: {purge_result['stats']['purged_count']} Type A patches")
+        logger.info(f"  Retained: {purge_result['stats']['retained_count']} Type B patches")
+        logger.info(f"  Tokens Reclaimed: {purge_result['stats']['tokens_reclaimed']}")
+        logger.info(f"=" * 80)
+        
+        return purge_result
+    
+    def get_alignment_stats(self) -> Dict[str, Any]:
+        """
+        Get statistics about the Alignment Engine (Loop 2).
+        
+        Returns:
+            Dictionary with stats about completeness audits and semantic purge
+        """
+        return {
+            "completeness_auditor": self.completeness_auditor.get_audit_stats(),
+            "semantic_purge": self.semantic_purge.get_purge_stats(),
+            "outcome_analyzer": {
+                "total_outcomes": len(self.outcome_analyzer.outcome_history),
+                "give_up_rate": self.outcome_analyzer.get_give_up_rate()
+            }
+        }
+    
+    def get_classified_patches(self) -> Dict[str, List[ClassifiedPatch]]:
+        """
+        Get patches classified by type.
+        
+        Returns:
+            Dictionary with purgeable and permanent patches
+        """
+        return {
+            "purgeable": self.semantic_purge.get_purgeable_patches(),
+            "permanent": self.semantic_purge.get_permanent_patches()
+        }
