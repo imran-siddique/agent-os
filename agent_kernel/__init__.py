@@ -6,6 +6,11 @@ A Dual-Loop Architecture for Enterprise Agents:
 - Loop 2 (Offline): Alignment Engine (Quality & Efficiency)
   - Completeness Auditor (detects laziness)
   - Semantic Purge (scales by subtraction)
+
+Reference Implementations:
+- auditor.py: Simplified soft failure detection
+- teacher.py: Shadow Teacher diagnosis
+- memory_manager.py: Lesson lifecycle management
 """
 
 __version__ = "0.2.0"
@@ -19,6 +24,11 @@ from .models import (
 from .outcome_analyzer import OutcomeAnalyzer
 from .completeness_auditor import CompletenessAuditor
 from .semantic_purge import SemanticPurge, PatchClassifier
+
+# Reference implementations (simplified examples)
+from .auditor import CompletenessAuditor as SimpleCompletenessAuditor
+from .teacher import diagnose_failure
+from .memory_manager import MemoryManager, LessonType
 
 __all__ = [
     "SelfCorrectingAgentKernel",
@@ -35,4 +45,9 @@ __all__ = [
     "CompletenessAuditor",
     "SemanticPurge",
     "PatchClassifier",
+    # Reference implementations
+    "SimpleCompletenessAuditor",
+    "diagnose_failure",
+    "MemoryManager",
+    "LessonType",
 ]
