@@ -3,6 +3,10 @@ Outcome Analyzer - Filters agent outcomes for competence issues.
 
 This is part of Loop 2 (Alignment Engine) that identifies when agents
 "give up" with negative results instead of delivering value.
+
+Enhanced with:
+- Tool execution telemetry to distinguish valid empty results from laziness
+- Semantic analysis for detecting subtle forms of refusal
 """
 
 import logging
@@ -10,7 +14,14 @@ import re
 from typing import Optional, List
 from datetime import datetime
 
-from .models import AgentOutcome, OutcomeType, GiveUpSignal
+from .models import (
+    AgentOutcome,
+    OutcomeType,
+    GiveUpSignal,
+    ToolExecutionTelemetry,
+    ToolExecutionStatus
+)
+from .semantic_analyzer import SemanticAnalyzer
 
 logger = logging.getLogger(__name__)
 
@@ -21,11 +32,18 @@ class OutcomeAnalyzer:
     
     This filters for competence issues - when agents comply with safety rules
     but fail to deliver value (e.g., "No data found" is safe, but wrong if data exists).
+    
+    Enhanced Features:
+    1. Tool Execution Telemetry - Correlates give-up signals with tool usage
+    2. Semantic Analysis - Goes beyond regex for subtle refusal detection
+    3. False Positive Prevention - Distinguishes valid empty results from laziness
     """
     
-    def __init__(self):
+    def __init__(self, use_semantic_analysis: bool = True):
         self.give_up_patterns = self._load_give_up_patterns()
         self.outcome_history: List[AgentOutcome] = []
+        self.use_semantic_analysis = use_semantic_analysis
+        self.semantic_analyzer = SemanticAnalyzer() if use_semantic_analysis else None
     
     def _load_give_up_patterns(self) -> dict:
         """Load patterns that indicate agent is giving up."""
@@ -67,34 +85,50 @@ class OutcomeAnalyzer:
         agent_id: str,
         user_prompt: str,
         agent_response: str,
-        context: Optional[dict] = None
+        context: Optional[dict] = None,
+        tool_telemetry: Optional[List[ToolExecutionTelemetry]] = None
     ) -> AgentOutcome:
         """
         Analyze an agent's outcome to determine if it gave up.
+        
+        Enhanced with tool telemetry correlation and semantic analysis.
         
         Args:
             agent_id: ID of the agent
             user_prompt: Original user request
             agent_response: Agent's response
             context: Additional context
+            tool_telemetry: Tool execution telemetry data
             
         Returns:
-            AgentOutcome with classification
+            AgentOutcome with classification and analysis
         """
         logger.info(f"Analyzing outcome for agent {agent_id}")
         
-        # Check if this is a give-up signal
+        # Check if this is a give-up signal (regex-based)
         give_up_signal = self._detect_give_up_signal(agent_response)
         
-        if give_up_signal:
-            outcome_type = OutcomeType.GIVE_UP
-            logger.warning(f"Give-up signal detected: {give_up_signal.value}")
-        else:
-            # Simple heuristic: short responses might indicate failure
-            if len(agent_response.strip()) < 20:
-                outcome_type = OutcomeType.FAILURE
-            else:
-                outcome_type = OutcomeType.SUCCESS
+        # Perform semantic analysis if enabled
+        semantic_analysis = None
+        if self.use_semantic_analysis:
+            semantic_analysis = self.semantic_analyzer.analyze(
+                agent_response=agent_response,
+                user_prompt=user_prompt,
+                tool_telemetry=tool_telemetry
+            )
+            logger.debug(f"Semantic analysis: {semantic_analysis.semantic_category} "
+                        f"(confidence: {semantic_analysis.refusal_confidence:.2f})")
+        
+        # Determine outcome type with enhanced logic
+        outcome_type = self._determine_outcome_type(
+            agent_response=agent_response,
+            give_up_signal=give_up_signal,
+            tool_telemetry=tool_telemetry,
+            semantic_analysis=semantic_analysis
+        )
+        
+        if outcome_type == OutcomeType.GIVE_UP:
+            logger.warning(f"Give-up detected: signal={give_up_signal.value if give_up_signal else 'semantic'}")
         
         outcome = AgentOutcome(
             agent_id=agent_id,
@@ -102,7 +136,9 @@ class OutcomeAnalyzer:
             user_prompt=user_prompt,
             agent_response=agent_response,
             give_up_signal=give_up_signal,
-            context=context or {}
+            context=context or {},
+            tool_telemetry=tool_telemetry or [],
+            semantic_analysis=semantic_analysis
         )
         
         self.outcome_history.append(outcome)
@@ -125,6 +161,121 @@ class OutcomeAnalyzer:
                     return signal_type
         
         return None
+    
+    def _determine_outcome_type(
+        self,
+        agent_response: str,
+        give_up_signal: Optional[GiveUpSignal],
+        tool_telemetry: Optional[List[ToolExecutionTelemetry]],
+        semantic_analysis: Optional[any]
+    ) -> OutcomeType:
+        """
+        Determine outcome type with enhanced logic.
+        
+        Considers:
+        1. Regex-based give-up signal
+        2. Tool execution telemetry
+        3. Semantic analysis
+        
+        Key Enhancement: Correlation with tool execution to avoid false positives
+        """
+        # Check regex signal
+        has_regex_signal = give_up_signal is not None
+        
+        # Check semantic signal
+        has_semantic_signal = (
+            semantic_analysis is not None and
+            semantic_analysis.is_refusal and
+            semantic_analysis.refusal_confidence > 0.6
+        )
+        
+        # Analyze tool telemetry
+        tool_analysis = self._analyze_tool_execution(tool_telemetry)
+        
+        # Decision logic with false positive prevention
+        if has_regex_signal or has_semantic_signal:
+            # Agent said "no data found" or similar
+            
+            # Check if tools were actually called and returned empty
+            if tool_analysis["tools_called"] and tool_analysis["all_empty_results"]:
+                # Valid empty result: Tools called, returned empty -> SUCCESS
+                logger.info("Give-up signal present but tools returned empty results - valid empty set")
+                return OutcomeType.SUCCESS
+            
+            elif tool_analysis["tools_called"] and tool_analysis["has_errors"]:
+                # Tools called but errored -> Potential laziness (didn't handle errors)
+                logger.warning("Give-up with tool errors - potential laziness or error handling issue")
+                return OutcomeType.GIVE_UP
+            
+            elif not tool_analysis["tools_called"]:
+                # No tools called -> Clear laziness
+                logger.warning("Give-up signal without tool execution - clear laziness")
+                return OutcomeType.GIVE_UP
+            
+            else:
+                # Mixed results or unclear -> Default to GIVE_UP for audit
+                logger.warning("Give-up signal with unclear tool usage - flagging for audit")
+                return OutcomeType.GIVE_UP
+        
+        else:
+            # No give-up signal detected
+            if len(agent_response.strip()) < 20:
+                return OutcomeType.FAILURE
+            else:
+                return OutcomeType.SUCCESS
+    
+    def _analyze_tool_execution(
+        self,
+        tool_telemetry: Optional[List[ToolExecutionTelemetry]]
+    ) -> dict:
+        """
+        Analyze tool execution telemetry.
+        
+        Returns a dict with:
+        - tools_called: bool - Were any tools called?
+        - all_empty_results: bool - Did all tools return empty results?
+        - has_errors: bool - Did any tools error?
+        - tool_count: int - Number of tools called
+        """
+        if not tool_telemetry:
+            return {
+                "tools_called": False,
+                "all_empty_results": False,
+                "has_errors": False,
+                "tool_count": 0
+            }
+        
+        called_tools = [
+            t for t in tool_telemetry
+            if t.tool_status != ToolExecutionStatus.NOT_CALLED
+        ]
+        
+        if not called_tools:
+            return {
+                "tools_called": False,
+                "all_empty_results": False,
+                "has_errors": False,
+                "tool_count": 0
+            }
+        
+        empty_results = [
+            t for t in called_tools
+            if t.tool_status == ToolExecutionStatus.EMPTY_RESULT
+        ]
+        
+        errored_tools = [
+            t for t in called_tools
+            if t.tool_status == ToolExecutionStatus.ERROR
+        ]
+        
+        return {
+            "tools_called": True,
+            "all_empty_results": len(empty_results) == len(called_tools),
+            "has_errors": len(errored_tools) > 0,
+            "tool_count": len(called_tools),
+            "empty_count": len(empty_results),
+            "error_count": len(errored_tools)
+        }
     
     def should_trigger_audit(self, outcome: AgentOutcome) -> bool:
         """

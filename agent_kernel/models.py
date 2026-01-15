@@ -269,12 +269,84 @@ class PatchDecayType(str, Enum):
     BUSINESS_CONTEXT = "business_context"  # Type B: Zero decay - world truths
 
 
+class ToolExecutionStatus(str, Enum):
+    """Status of tool execution."""
+    SUCCESS = "success"
+    ERROR = "error"
+    EMPTY_RESULT = "empty_result"
+    NOT_CALLED = "not_called"
+
+
 class OutcomeType(str, Enum):
     """Types of agent outcomes."""
     SUCCESS = "success"
     GIVE_UP = "give_up"  # Negative result - triggers Completeness Auditor
     FAILURE = "failure"
     BLOCKED = "blocked"
+
+
+class ToolExecutionTelemetry(BaseModel):
+    """Telemetry data for tool executions during agent interaction."""
+    
+    tool_name: str = Field(..., description="Name of the tool that was called")
+    tool_status: ToolExecutionStatus = Field(..., description="Execution status of the tool")
+    tool_result: Any = Field(None, description="Result returned by the tool")
+    execution_time_ms: Optional[float] = Field(None, description="Execution time in milliseconds")
+    error_message: Optional[str] = Field(None, description="Error message if tool failed")
+    
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "tool_name": "search_logs",
+                "tool_status": "empty_result",
+                "tool_result": [],
+                "execution_time_ms": 150.5
+            }
+        }
+    )
+
+
+class SemanticAnalysis(BaseModel):
+    """Semantic analysis of agent response for refusal detection."""
+    
+    is_refusal: bool = Field(..., description="Whether response indicates refusal/give-up")
+    refusal_confidence: float = Field(..., ge=0.0, le=1.0, description="Confidence in refusal detection")
+    semantic_category: str = Field(..., description="Category: 'compliance', 'refusal', 'error', 'unclear'")
+    reasoning: str = Field(..., description="Explanation of the classification")
+    
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "is_refusal": True,
+                "refusal_confidence": 0.85,
+                "semantic_category": "refusal",
+                "reasoning": "Response indicates inability to find data without attempting comprehensive search"
+            }
+        }
+    )
+
+
+class NudgeResult(BaseModel):
+    """Result of nudging agent after give-up detection."""
+    
+    nudge_id: str
+    original_outcome: "AgentOutcome"
+    nudge_prompt: str = Field(..., description="The nudge prompt that was injected")
+    retry_response: str = Field(..., description="Agent's response after nudge")
+    retry_successful: bool = Field(..., description="Whether nudge resolved the issue")
+    improvement_detected: bool = Field(..., description="Whether response improved after nudge")
+    
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "nudge_id": "nudge-123",
+                "nudge_prompt": "You claimed no data was found. Please confirm you executed the search tool with correct parameters and checked all data sources.",
+                "retry_response": "After checking all sources, found 15 log entries in archived partition.",
+                "retry_successful": True,
+                "improvement_detected": True
+            }
+        }
+    )
 
 
 class AgentOutcome(BaseModel):
@@ -287,6 +359,14 @@ class AgentOutcome(BaseModel):
     agent_response: str
     give_up_signal: Optional[GiveUpSignal] = None
     context: Dict[str, Any] = Field(default_factory=dict)
+    tool_telemetry: List[ToolExecutionTelemetry] = Field(
+        default_factory=list,
+        description="Telemetry data for tools called during execution"
+    )
+    semantic_analysis: Optional[SemanticAnalysis] = Field(
+        None,
+        description="Semantic analysis of the response"
+    )
     
     model_config = ConfigDict(
         json_schema_extra={

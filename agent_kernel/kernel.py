@@ -11,7 +11,8 @@ from typing import Optional, Dict, Any, List
 
 from .models import (
     AgentFailure, FailureAnalysis, SimulationResult, CorrectionPatch, AgentState,
-    AgentOutcome, CompletenessAudit, ClassifiedPatch
+    AgentOutcome, CompletenessAudit, ClassifiedPatch,
+    ToolExecutionTelemetry, NudgeResult
 )
 from .detector import FailureDetector
 from .analyzer import FailureAnalyzer
@@ -20,6 +21,7 @@ from .patcher import AgentPatcher
 from .outcome_analyzer import OutcomeAnalyzer
 from .completeness_auditor import CompletenessAuditor
 from .semantic_purge import SemanticPurge
+from .nudge_mechanism import NudgeMechanism
 
 logger = logging.getLogger(__name__)
 
@@ -56,11 +58,13 @@ class SelfCorrectingAgentKernel:
         self.patcher = AgentPatcher()
         
         # LOOP 2: Offline Alignment Components
-        self.outcome_analyzer = OutcomeAnalyzer()
+        use_semantic_analysis = self.config.get("use_semantic_analysis", True)
+        self.outcome_analyzer = OutcomeAnalyzer(use_semantic_analysis=use_semantic_analysis)
         self.completeness_auditor = CompletenessAuditor(
             teacher_model=self.config.get("teacher_model", "o1-preview")
         )
         self.semantic_purge = SemanticPurge()
+        self.nudge_mechanism = NudgeMechanism()
         
         # Model version tracking for semantic purge
         self.current_model_version = self.config.get("model_version", "gpt-4o")
@@ -74,6 +78,8 @@ class SelfCorrectingAgentKernel:
         logger.info(f"  Loop 2 (Offline): Alignment Engine (Quality & Efficiency)")
         logger.info(f"    - Completeness Auditor: {self.completeness_auditor.teacher_model}")
         logger.info(f"    - Semantic Purge: Active")
+        logger.info(f"    - Semantic Analysis: {use_semantic_analysis}")
+        logger.info(f"    - Nudge Mechanism: Active")
         logger.info(f"  Model Version: {self.current_model_version}")
         logger.info("=" * 80)
     
@@ -298,7 +304,9 @@ class SelfCorrectingAgentKernel:
         agent_id: str,
         user_prompt: str,
         agent_response: str,
-        context: Optional[Dict[str, Any]] = None
+        context: Optional[Dict[str, Any]] = None,
+        tool_telemetry: Optional[List[ToolExecutionTelemetry]] = None,
+        auto_nudge: bool = True
     ) -> Dict[str, Any]:
         """
         Handle an agent outcome through the Alignment Engine (Loop 2).
@@ -307,35 +315,56 @@ class SelfCorrectingAgentKernel:
         for hard failures, we proactively detect when agents "give up" with
         negative results.
         
+        Enhanced with:
+        - Tool execution telemetry correlation
+        - Automatic nudging on give-up detection
+        - Semantic analysis
+        
         Args:
             agent_id: ID of the agent
             user_prompt: Original user request
             agent_response: Agent's response
             context: Additional context
+            tool_telemetry: Optional tool execution telemetry
+            auto_nudge: Whether to automatically nudge on give-up (default: True)
             
         Returns:
-            Dictionary with outcome analysis and any audit results
+            Dictionary with outcome analysis, audit results, and nudge results
         """
         logger.info(f"🔄 Loop 2 (Alignment Engine): Analyzing outcome for {agent_id}")
         
-        # Step 1: Analyze the outcome
+        # Step 1: Analyze the outcome with enhanced telemetry
         outcome = self.outcome_analyzer.analyze_outcome(
             agent_id=agent_id,
             user_prompt=user_prompt,
             agent_response=agent_response,
-            context=context
+            context=context,
+            tool_telemetry=tool_telemetry
         )
         
         result = {
             "outcome": outcome,
             "audit": None,
             "patch": None,
-            "classified_patch": None
+            "classified_patch": None,
+            "nudge_result": None
         }
         
         # Step 2: Check if this triggers Completeness Audit (Give-Up Signal)
         if self.outcome_analyzer.should_trigger_audit(outcome):
             logger.info(f"🔍 Give-Up Signal detected! Triggering Completeness Auditor...")
+            
+            # Step 2a: Auto-nudge if enabled
+            if auto_nudge and self.nudge_mechanism.should_nudge(outcome):
+                logger.info(f"💡 Auto-nudge enabled - attempting nudge...")
+                nudge_prompt = self.nudge_mechanism.generate_nudge(outcome)
+                logger.info(f"Nudge prompt: {nudge_prompt[:100]}...")
+                
+                # Note: In a real system, you would re-invoke the agent with the nudge
+                # For demo purposes, we'll simulate the nudge result
+                # Real implementation would call: retry_response = agent.invoke(nudge_prompt)
+                result["nudge_prompt"] = nudge_prompt
+                logger.info(f"✓ Nudge prompt generated (agent should be re-invoked)")
             
             # Step 3: Run Completeness Audit (Differential Auditing)
             audit = self.completeness_auditor.audit_give_up(outcome)
@@ -490,8 +519,14 @@ class SelfCorrectingAgentKernel:
         """
         Get statistics about the Alignment Engine (Loop 2).
         
+        Enhanced to include:
+        - Completeness auditor metrics
+        - Semantic purge metrics
+        - Nudge mechanism effectiveness
+        - Value delivery metrics (competence focus)
+        
         Returns:
-            Dictionary with stats about completeness audits and semantic purge
+            Dictionary with comprehensive stats about quality and efficiency
         """
         return {
             "completeness_auditor": self.completeness_auditor.get_audit_stats(),
@@ -499,7 +534,55 @@ class SelfCorrectingAgentKernel:
             "outcome_analyzer": {
                 "total_outcomes": len(self.outcome_analyzer.outcome_history),
                 "give_up_rate": self.outcome_analyzer.get_give_up_rate()
-            }
+            },
+            "nudge_mechanism": self.nudge_mechanism.get_nudge_stats(),
+            "value_delivery": self._calculate_value_delivery_metrics()
+        }
+    
+    def _calculate_value_delivery_metrics(self) -> Dict[str, Any]:
+        """
+        Calculate metrics focused on competence and value delivery.
+        
+        This differentiates the system from standard governance tools
+        that only focus on safety/compliance (Loop 1). We measure:
+        - Give-up rate (lower is better)
+        - Laziness detection rate
+        - Nudge success rate
+        - Competence patch effectiveness
+        
+        Returns:
+            Dictionary with value delivery metrics
+        """
+        audit_stats = self.completeness_auditor.get_audit_stats()
+        nudge_stats = self.nudge_mechanism.get_nudge_stats()
+        give_up_rate = self.outcome_analyzer.get_give_up_rate()
+        
+        # Calculate competence score (0-100)
+        # Higher score = better value delivery
+        competence_score = 100.0
+        
+        # Penalize for high give-up rate
+        competence_score -= (give_up_rate * 30)  # Max 30 point penalty
+        
+        # Penalize for laziness detection
+        laziness_rate = audit_stats.get("laziness_rate", 0.0)
+        competence_score -= (laziness_rate * 40)  # Max 40 point penalty
+        
+        # Reward for nudge effectiveness
+        nudge_success_rate = nudge_stats.get("success_rate", 0.0)
+        competence_score += (nudge_success_rate * 20)  # Max 20 point bonus
+        
+        # Ensure bounds
+        competence_score = max(0, min(100, competence_score))
+        
+        return {
+            "competence_score": round(competence_score, 2),
+            "give_up_rate": round(give_up_rate, 4),
+            "laziness_detection_rate": round(laziness_rate, 4),
+            "nudge_success_rate": round(nudge_success_rate, 4),
+            "total_audits": audit_stats.get("total_audits", 0),
+            "laziness_caught": audit_stats.get("laziness_detected", 0),
+            "focus": "Competence & Value Delivery (differentiates from safety-only tools)"
         }
     
     def get_classified_patches(self) -> Dict[str, List[ClassifiedPatch]]:
