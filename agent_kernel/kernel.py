@@ -3,7 +3,7 @@ Self-Correcting Agent Kernel - Main orchestrator.
 """
 
 import logging
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 
 from .models import AgentFailure, FailureAnalysis, SimulationResult, CorrectionPatch, AgentState
 from .detector import FailureDetector
@@ -165,7 +165,7 @@ class SelfCorrectingAgentKernel:
         """
         return self.patcher.rollback_patch(patch_id)
     
-    def get_failure_history(self, agent_id: Optional[str] = None, limit: int = 100) -> list[AgentFailure]:
+    def get_failure_history(self, agent_id: Optional[str] = None, limit: int = 100) -> List[AgentFailure]:
         """
         Get failure history.
         
@@ -178,7 +178,7 @@ class SelfCorrectingAgentKernel:
         """
         return self.detector.get_failure_history(agent_id, limit)
     
-    def get_patch_history(self, agent_id: Optional[str] = None) -> list[CorrectionPatch]:
+    def get_patch_history(self, agent_id: Optional[str] = None) -> List[CorrectionPatch]:
         """
         Get patch history.
         

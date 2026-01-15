@@ -15,7 +15,7 @@ class PathSimulator:
     """Simulates alternative paths to avoid failures."""
     
     def __init__(self):
-        self.simulation_history: list[SimulationResult] = []
+        self.simulation_history: List[SimulationResult] = []
     
     def simulate(self, analysis: FailureAnalysis) -> SimulationResult:
         """

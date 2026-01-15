@@ -4,7 +4,7 @@ Agent patcher that applies corrections to agents.
 
 import logging
 import uuid
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from datetime import datetime
 
 from .models import FailureAnalysis, SimulationResult, CorrectionPatch, AgentState
@@ -219,7 +219,7 @@ class AgentPatcher:
         if patch.patch_id not in state.patches_applied:
             state.patches_applied.append(patch.patch_id)
     
-    def get_patch_history(self, agent_id: Optional[str] = None) -> list[CorrectionPatch]:
+    def get_patch_history(self, agent_id: Optional[str] = None) -> List[CorrectionPatch]:
         """Get patch history, optionally filtered by agent_id."""
         patches = list(self.patches.values())
         

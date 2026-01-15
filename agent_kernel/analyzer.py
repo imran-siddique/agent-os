@@ -3,7 +3,7 @@ Failure analysis system that diagnoses root causes.
 """
 
 import logging
-from typing import List, Optional
+from typing import List, Optional, Dict
 from collections import Counter
 
 from .models import AgentFailure, FailureAnalysis, FailureType
@@ -15,10 +15,10 @@ class FailureAnalyzer:
     """Analyzes failures to identify root causes and suggest fixes."""
     
     def __init__(self):
-        self.analysis_history: list[FailureAnalysis] = []
-        self.known_patterns: dict[str, dict] = self._load_known_patterns()
+        self.analysis_history: List[FailureAnalysis] = []
+        self.known_patterns: Dict[str, dict] = self._load_known_patterns()
     
-    def _load_known_patterns(self) -> dict[str, dict]:
+    def _load_known_patterns(self) -> Dict[str, dict]:
         """Load known failure patterns and their solutions."""
         return {
             FailureType.BLOCKED_BY_CONTROL_PLANE: {

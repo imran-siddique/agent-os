@@ -3,7 +3,7 @@ Failure detection and monitoring system.
 """
 
 import logging
-from typing import Optional, Callable, Dict, Any
+from typing import Optional, Callable, Dict, Any, List
 from datetime import datetime
 
 from .models import AgentFailure, FailureType, FailureSeverity
@@ -16,7 +16,7 @@ class FailureDetector:
     
     def __init__(self):
         self.failure_handlers: Dict[str, Callable] = {}
-        self.failure_history: list[AgentFailure] = []
+        self.failure_history: List[AgentFailure] = []
         
     def register_handler(self, failure_type: str, handler: Callable):
         """Register a custom handler for a specific failure type."""
@@ -113,7 +113,7 @@ class FailureDetector:
         # Default to medium for unknown
         return FailureSeverity.MEDIUM
     
-    def get_failure_history(self, agent_id: Optional[str] = None, limit: int = 100) -> list[AgentFailure]:
+    def get_failure_history(self, agent_id: Optional[str] = None, limit: int = 100) -> List[AgentFailure]:
         """Get failure history, optionally filtered by agent_id."""
         history = self.failure_history
         

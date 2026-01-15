@@ -5,7 +5,7 @@ Data models for the self-correcting agent kernel.
 from typing import Dict, List, Optional, Any
 from datetime import datetime
 from enum import Enum
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class FailureType(str, Enum):
@@ -37,8 +37,8 @@ class AgentFailure(BaseModel):
     context: Dict[str, Any] = Field(default_factory=dict, description="Additional context")
     stack_trace: Optional[str] = Field(None, description="Stack trace if available")
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "agent_id": "agent-123",
                 "failure_type": "blocked_by_control_plane",
@@ -47,6 +47,7 @@ class AgentFailure(BaseModel):
                 "context": {"action": "delete_file", "resource": "/etc/passwd"}
             }
         }
+    )
 
 
 class FailureAnalysis(BaseModel):
@@ -59,8 +60,8 @@ class FailureAnalysis(BaseModel):
     confidence_score: float = Field(..., ge=0.0, le=1.0, description="Confidence in analysis")
     similar_failures: List[str] = Field(default_factory=list, description="IDs of similar past failures")
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "root_cause": "Agent attempted unauthorized file access",
                 "contributing_factors": ["Missing permission check", "Inadequate input validation"],
@@ -68,6 +69,7 @@ class FailureAnalysis(BaseModel):
                 "confidence_score": 0.85
             }
         }
+    )
 
 
 class SimulationResult(BaseModel):
@@ -80,8 +82,8 @@ class SimulationResult(BaseModel):
     risk_score: float = Field(..., ge=0.0, le=1.0, description="Risk of the alternative")
     estimated_success_rate: float = Field(..., ge=0.0, le=1.0)
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "simulation_id": "sim-456",
                 "success": True,
@@ -94,6 +96,7 @@ class SimulationResult(BaseModel):
                 "estimated_success_rate": 0.92
             }
         }
+    )
 
 
 class CorrectionPatch(BaseModel):
@@ -109,8 +112,8 @@ class CorrectionPatch(BaseModel):
     applied_at: Optional[datetime] = None
     rollback_available: bool = Field(default=True)
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "patch_id": "patch-789",
                 "agent_id": "agent-123",
@@ -124,6 +127,7 @@ class CorrectionPatch(BaseModel):
                 "applied": True
             }
         }
+    )
 
 
 class AgentState(BaseModel):
