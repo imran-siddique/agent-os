@@ -79,7 +79,7 @@ self-correcting-agent-kernel/
 - 💡 **Nudge Mechanism** - Automatic retry logic without human intervention
 - 📊 **Value Delivery Metrics** - Focus on competence, not just safety
 
-> 📘 **See [ENHANCED_FEATURES.md](ENHANCED_FEATURES.md) for detailed documentation on these enhancements**
+> 📘 **See [Enhanced Features](./wiki/Enhanced-Features.md) for detailed documentation on these enhancements**
 
 ## Installation
 
@@ -97,7 +97,7 @@ pip install -e .
 
 ## Quick Start
 
-> 💡 **New to the concepts?** Check out [REFERENCE_IMPLEMENTATIONS.md](REFERENCE_IMPLEMENTATIONS.md) for simplified examples of the three core components: Completeness Auditor, Shadow Teacher, and Memory Manager.
+> 💡 **New to the concepts?** Check out [Reference Implementations](./wiki/Reference-Implementations.md) for simplified examples of the three core components: Completeness Auditor, Shadow Teacher, and Memory Manager.
 
 ### Using the New Structure (Recommended)
 
@@ -131,6 +131,8 @@ if outcome.give_up_signal:
 ```
 
 **See** `examples/partner_level_demo.py` for a complete demonstration of the three core experiments.
+
+> 📘 **Full Documentation**: See the [wiki directory](./wiki/) for comprehensive guides on architecture, features, and implementation details.
 
 ### Using Legacy API (Backward Compatible)
 
@@ -385,7 +387,7 @@ kernel.process_async_queue(batch_size=10)
 - Automatically removes Type A patches when model upgrades
 - **Result**: Reduces context by 40-60% without losing critical knowledge
 
-For detailed architecture documentation, see [DUAL_LOOP_ARCHITECTURE.md](DUAL_LOOP_ARCHITECTURE.md).
+For detailed architecture documentation, see [Dual-Loop Architecture](./wiki/Dual-Loop-Architecture.md).
 
 ## Supported Failure Types
 
@@ -609,7 +611,7 @@ kernel = SelfCorrectingAgentKernel(config=config)
 3. **Competence Patching**: If teacher succeeds, generate lesson to prevent laziness
 4. **Semantic Purge**: Classify patch by decay type, purge Type A on model upgrade
 
-For detailed workflow diagrams, see [DUAL_LOOP_ARCHITECTURE.md](DUAL_LOOP_ARCHITECTURE.md).
+For detailed workflow diagrams, see [Dual-Loop Architecture](./wiki/Dual-Loop-Architecture.md).
 
 ## Key Benefits
 
@@ -635,7 +637,7 @@ For detailed workflow diagrams, see [DUAL_LOOP_ARCHITECTURE.md](DUAL_LOOP_ARCHIT
 
 For educational purposes and to understand the core concepts, see the simplified reference implementations:
 
-- **[REFERENCE_IMPLEMENTATIONS.md](REFERENCE_IMPLEMENTATIONS.md)** - Overview and guide
+- **[Reference Implementations Guide](./wiki/Reference-Implementations.md)** - Overview and guide
 - **`agent_kernel/auditor.py`** - Simplified Completeness Auditor
 - **`agent_kernel/teacher.py`** - Shadow Teacher diagnosis function
 - **`agent_kernel/memory_manager.py`** - Lesson lifecycle manager
@@ -644,6 +646,18 @@ Run the demo:
 ```bash
 python examples/reference_demo.py
 ```
+
+## 📚 Documentation
+
+Comprehensive documentation is available in the [wiki directory](./wiki/):
+
+- **[Dual-Loop Architecture](./wiki/Dual-Loop-Architecture.md)** - Complete system architecture
+- **[Enhanced Features](./wiki/Enhanced-Features.md)** - Advanced features and capabilities
+- **[Three Failure Types](./wiki/Three-Failure-Types.md)** - Specific failure handling strategies
+- **[Reference Implementations](./wiki/Reference-Implementations.md)** - Educational code examples
+- **[Implementation Summary](./wiki/Implementation-Summary.md)** - Technical implementation details
+
+Start with the [wiki README](./wiki/README.md) for a guided tour.
 
 ## Contributing
 
