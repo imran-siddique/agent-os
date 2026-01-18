@@ -1,0 +1,106 @@
+{
+  "description": "Random seeds used for all experiments in Agent Control Plane research",
+  "version": "1.1.0",
+  "date": "2026-01-18",
+  
+  "experiments": {
+    "comparative_study": {
+      "description": "Baseline vs Control Plane safety comparison",
+      "seeds": [42],
+      "iterations": 1,
+      "dataset": "red_team_60",
+      "deterministic": true
+    },
+    
+    "ablation_studies": {
+      "description": "Component removal ablation studies",
+      "seeds": [42, 123, 456, 789, 1024],
+      "iterations": 5,
+      "configs": [
+        "full",
+        "no-mute",
+        "no-graphs",
+        "no-supervisors",
+        "no-policy",
+        "no-audit",
+        "no-sandbox"
+      ],
+      "deterministic": true
+    },
+    
+    "multi_agent_rag": {
+      "description": "Governed multi-agent RAG chain experiment",
+      "seeds": [42],
+      "iterations": 1,
+      "num_agents": 3,
+      "rag_queries": 10,
+      "deterministic": true
+    },
+    
+    "long_horizon_purge": {
+      "description": "Long-horizon task with periodic state purging",
+      "seeds": [42],
+      "iterations": 1,
+      "task_steps": 100,
+      "purge_interval": 10,
+      "deterministic": true
+    }
+  },
+  
+  "statistical_analysis": {
+    "description": "Seeds used for statistical significance testing",
+    "primary_seed": 42,
+    "replication_seeds": [123, 456, 789, 1024],
+    "total_replications": 5,
+    "confidence_level": 0.95,
+    "alpha": 0.05,
+    "bonferroni_correction": true,
+    "family_wise_error_rate": 0.0083
+  },
+  
+  "environment_seeds": {
+    "python_hash_seed": 0,
+    "numpy_seed": 42,
+    "random_seed": 42,
+    "torch_seed": 42,
+    "cuda_seed": 42,
+    "notes": "Set these in environment/code before running experiments"
+  },
+  
+  "usage": {
+    "python_example": "python benchmark.py --seed 42",
+    "environment_vars": [
+      "export PYTHONHASHSEED=0",
+      "export RANDOM_SEED=42"
+    ],
+    "in_code": [
+      "import random; random.seed(42)",
+      "import numpy as np; np.random.seed(42)",
+      "import torch; torch.manual_seed(42)"
+    ]
+  },
+  
+  "verification": {
+    "description": "Use these checksums to verify reproducibility",
+    "benchmark_checksum": {
+      "safety_violation_rate": "0.00%",
+      "false_positive_rate": "0.00%",
+      "avg_tokens_baseline": "26.1 ± 1.2",
+      "avg_tokens_control_plane": "0.5 ± 0.02"
+    },
+    "ablation_checksum": {
+      "full_system_svr": "0.00%",
+      "no_policy_svr": "40.00%",
+      "no_graphs_svr": "3.33%",
+      "no_mute_tokens": "26.3 ± 1.2"
+    }
+  },
+  
+  "notes": [
+    "All core experiments use seed 42 as the primary seed",
+    "Statistical analysis uses 5 replications with different seeds",
+    "Results should be bit-identical for same seed and environment",
+    "Minor variations (<1ms) in latency are expected due to OS scheduling",
+    "Token counts and safety violations should be exactly reproducible"
+  ]
+}

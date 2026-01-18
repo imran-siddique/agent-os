@@ -165,9 +165,54 @@ No system is perfect. While Agent Control Plane achieves **0% safety violations*
 
 ---
 
+### 9. No Built-In LLM Rate Limiting
+
+**What It Means**: ACP limits **actions** (database writes, API calls), but not **LLM inference calls**.
+
+**Limitation**:
+- ✅ Can enforce: "Max 100 database queries per hour"
+- ❌ Cannot enforce: "Max 1000 LLM tokens per hour" (unless integrated with LLM provider)
+
+**Implication**: For cost control, integrate with LLM provider's rate limiting (OpenAI, Anthropic, etc.).
+
+**Workaround**: Track LLM usage in Policy Engine custom rules or use LangChain callbacks.
+
+---
+
+### 10. Limited Multimodal Support
+
+**What It Means**: Current implementation focuses on text-based actions. Image, audio, video processing requires custom adapters.
+
+**Limitation**:
+- ✅ Well-covered: Text-based SQL, file operations, API calls
+- ⚠️ Partial: Image analysis (requires custom validators)
+- ❌ Limited: Audio/video generation, processing
+
+**Implication**: For multimodal agents, extend with custom action types and validators.
+
+**Roadmap**: First-class multimodal support planned for v1.3.0.
+
+---
+
+### 11. Deterministic Only
+
+**What It Means**: ACP provides **deterministic** enforcement. It cannot handle probabilistic safety (e.g., "block with 95% confidence").
+
+**Limitation**:
+- ✅ Can enforce: "Never allow DROP TABLE"
+- ❌ Cannot enforce: "Probably shouldn't allow this, but maybe..."
+
+**Implication**: For probabilistic safety, integrate with ML-based classifiers (LlamaGuard, Perspective API).
+
+**Benefit**: Determinism ensures **reproducible** results and **zero false negatives** for defined rules.
+
+---
+
 ## Edge Cases and Corner Cases
 
-### 9. Race Conditions in Multi-Agent Systems
+---
+
+### 12. Race Conditions in Multi-Agent Systems
 
 **What It Means**: Two agents might pass individual checks but cause a violation when combined.
 
@@ -186,7 +231,7 @@ No system is perfect. While Agent Control Plane achieves **0% safety violations*
 
 ---
 
-### 10. Policy Conflicts
+### 13. Policy Conflicts
 
 **What It Means**: Multiple policies might contradict each other.
 
@@ -203,7 +248,7 @@ No system is perfect. While Agent Control Plane achieves **0% safety violations*
 
 ---
 
-### 11. Temporal Graph Edge Cases
+### 14. Temporal Graph Edge Cases
 
 **What It Means**: Temporal constraints can behave unexpectedly at boundaries.
 
@@ -220,9 +265,23 @@ No system is perfect. While Agent Control Plane achieves **0% safety violations*
 
 ---
 
+### 15. Insufficient Test Coverage for All Attack Vectors
+
+**What It Means**: Our red team dataset has 60 prompts covering major attack categories, but cannot cover all possible adversarial inputs.
+
+**Limitation**:
+- ✅ Tested: 15 direct violations, 15 prompt injections, 15 social engineering, 15 valid requests
+- ⚠️ Not fully tested: Novel attack patterns, zero-day jailbreaks, multi-step attacks
+
+**Implication**: While we achieve 0% SVR on our dataset, new attack patterns may emerge.
+
+**Mitigation**: Combined with ML-based detection and community red teaming to discover new patterns.
+
+---
+
 ## Failure Modes
 
-### 12. Policy Engine Failure → Fail-Closed
+### 16. Policy Engine Failure → Fail-Closed
 
 **What It Means**: If Policy Engine crashes or becomes unavailable, ACP **fails closed** (blocks all actions).
 
@@ -236,7 +295,7 @@ No system is perfect. While Agent Control Plane achieves **0% safety violations*
 
 ---
 
-### 13. Constraint Graph Inconsistency
+### 17. Constraint Graph Inconsistency
 
 **What It Means**: If Data Graph and actual database schema diverge, unexpected behavior occurs.
 
@@ -250,6 +309,40 @@ No system is perfect. While Agent Control Plane achieves **0% safety violations*
 **Implication**: Constraint graphs must be **kept in sync** with actual systems.
 
 **Workaround**: Use schema validation hooks to update Data Graph automatically when schema changes.
+
+---
+
+### 18. Audit Log Storage Limits
+
+**What It Means**: SQLite-based Flight Recorder has storage limits (~280 TB theoretical, ~1 TB practical).
+
+**Limitation**:
+- ✅ Sufficient: For most deployments (<10M actions/day)
+- ⚠️ Consider alternatives: For >100M actions/day
+- ❌ Will fail: When disk fills up
+
+**Implication**: For high-throughput systems, audit logs need archiving or alternative storage.
+
+**Workaround**: 
+- Rotate logs daily/weekly
+- Archive old logs to S3/GCS
+- Use PostgreSQL adapter for unlimited storage
+
+---
+
+### 19. No Built-In Anomaly Detection for Novel Patterns
+
+**What It Means**: Supervisor Agents detect known anomaly patterns, but not completely novel behaviors.
+
+**Example**:
+- Known: Agent suddenly increases API call rate by 10x → Detected
+- Novel: Agent makes valid-looking calls that exfiltrate data gradually → May miss
+
+**Limitation**: ML-based anomaly detection has false negatives for adversarial inputs specifically designed to evade detection.
+
+**Implication**: Combine with signature-based detection and manual review.
+
+**Roadmap**: Adversarial robustness improvements in v1.3.0.
 
 ---
 

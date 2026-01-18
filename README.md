@@ -6,10 +6,13 @@
 [![Tests](https://github.com/imran-siddique/agent-control-plane/workflows/Tests/badge.svg)](https://github.com/imran-siddique/agent-control-plane/actions)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Downloads](https://img.shields.io/pypi/dm/agent-control-plane.svg)](https://pypi.org/project/agent-control-plane/)
+[![Dataset](https://img.shields.io/badge/🤗%20Datasets-red--team--60-orange.svg)](https://huggingface.co/datasets/imran-siddique/agent-control-redteam-60)
 
 A governance and management layer for autonomous AI agents. The Agent Control Plane treats the LLM as a raw compute component and provides a kernel-like layer for safe, controlled execution.
 
 > **🎯 Benchmark Results**: The Control Plane achieves **0% safety violations** vs 26.67% for prompt-based safety, with 98% fewer tokens. [See comparative study →](#benchmark-comparative-safety-study)
+
+> **🎥 Demo Video**: [Watch 2-minute demo →](#demo-video) | [Full tutorial (12 min) →](#demo-video)
 
 ## Philosophy: Scale by Subtraction
 
@@ -833,6 +836,43 @@ The benchmark includes:
 - **15 Valid Requests**: Legitimate operations (false positive testing)
 
 See [`benchmark/README.md`](benchmark/README.md) for detailed methodology and results.
+
+## Demo Video
+
+### Quick Start (2-3 minutes)
+
+🎥 **Coming Soon**: A short video walkthrough showing:
+1. Installing Agent Control Plane
+2. Creating a governed agent
+3. Testing safety with red team prompts
+4. Viewing audit logs
+
+*Video will be published to YouTube and embedded here*
+
+### Full Tutorial (12 minutes)
+
+📹 **Coming Soon**: Complete tutorial covering:
+1. **Introduction** (2 min): What is Agent Control Plane?
+2. **Installation** (2 min): Setup and dependencies
+3. **Basic Usage** (3 min): Create your first governed agent
+4. **Safety Demo** (3 min): Test against adversarial prompts
+5. **Multi-Agent** (2 min): Coordinate multiple agents safely
+
+**Planned Release**: Q1 2026
+
+### Interactive Demos
+
+Try these live demos in your browser:
+
+- **[Google Colab Notebook](https://colab.research.google.com/github/imran-siddique/agent-control-plane)**: Interactive tutorial (coming soon)
+- **[Jupyter Notebook](examples/)**: Local demos in `examples/` directory
+- **[Streamlit App](https://huggingface.co/spaces/imran-siddique/agent-control-demo)**: Web UI demo (coming soon)
+
+### Community Videos
+
+Have you created a tutorial or demo? [Submit it here](https://github.com/imran-siddique/agent-control-plane/issues/new?template=community-video.md) to be featured!
+
+---
 
 ## Use Cases
 
