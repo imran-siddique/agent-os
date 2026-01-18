@@ -1,3 +1,25 @@
 pydantic>=2.0.0
 pyyaml>=6.0
 requests>=2.31.0
+
+# LLM Client Dependencies (optional - install as needed)
+openai>=1.0.0  # For OpenAI API integration
+anthropic>=0.7.0  # For Claude API integration
+
+# Testing and Development
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+
+# Visualization and Developer Tools (optional)
+streamlit>=1.28.0  # For telemetry dashboard
+jupyter>=1.0.0  # For interactive notebooks
+
+# Distributed Computing (optional)
+# ray>=2.8.0  # Uncomment for distributed execution
+
+# Security and Privacy (optional)
+# opacus>=1.4.0  # Uncomment for differential privacy
+
+# Observability (optional)
+# opentelemetry-api>=1.20.0  # Uncomment for OpenTelemetry integration
+# opentelemetry-sdk>=1.20.0
