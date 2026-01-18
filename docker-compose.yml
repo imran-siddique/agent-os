@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  # Agent Control Plane Service
+  agent-control-plane:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: acp-main
+    environment:
+      - ACP_DATA_DIR=/app/data
+      - ACP_LOG_LEVEL=INFO
+    volumes:
+      - acp-data:/app/data
+      - ./examples:/app/examples:ro
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    networks:
+      - acp-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import agent_control_plane; print('healthy')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Development Environment (Optional)
+  acp-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: acp-dev
+    environment:
+      - ACP_DATA_DIR=/app/data
+      - ACP_LOG_LEVEL=DEBUG
+    volumes:
+      - .:/app
+      - acp-dev-data:/app/data
+    ports:
+      - "8001:8000"
+      - "8888:8888"  # Jupyter
+    networks:
+      - acp-network
+    command: bash
+    profiles:
+      - dev
+
+  # Redis (for distributed agent coordination - optional)
+  redis:
+    image: redis:7-alpine
+    container_name: acp-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - acp-network
+    profiles:
+      - distributed
+
+volumes:
+  acp-data:
+    driver: local
+  acp-dev-data:
+    driver: local
+  redis-data:
+    driver: local
+
+networks:
+  acp-network:
+    driver: bridge

@@ -66,6 +66,36 @@ from .a2a_adapter import (
     create_governed_a2a_agent,
 )
 
+from .tool_registry import (
+    ToolRegistry,
+    Tool,
+    ToolType,
+    ToolSchema,
+    create_standard_tool_registry,
+)
+
+from .orchestrator import (
+    AgentOrchestrator,
+    AgentNode,
+    AgentRole,
+    Message,
+    MessageType,
+    OrchestrationType,
+    WorkflowState,
+    create_rag_pipeline,
+)
+
+from .governance_layer import (
+    GovernanceLayer,
+    AlignmentPrinciple,
+    AlignmentRule,
+    BiasType,
+    BiasDetectionResult,
+    PrivacyLevel,
+    PrivacyAnalysis,
+    create_default_governance,
+)
+
 __version__ = "0.1.0"
 __author__ = "Agent Control Plane Contributors"
 
@@ -95,6 +125,33 @@ __all__ = [
     "A2AAdapter",
     "A2AAgent",
     "create_governed_a2a_agent",
+    
+    # Tool Registry (Dynamic Tool Management)
+    "ToolRegistry",
+    "Tool",
+    "ToolType",
+    "ToolSchema",
+    "create_standard_tool_registry",
+    
+    # Multi-Agent Orchestration
+    "AgentOrchestrator",
+    "AgentNode",
+    "AgentRole",
+    "Message",
+    "MessageType",
+    "OrchestrationType",
+    "WorkflowState",
+    "create_rag_pipeline",
+    
+    # Governance Layer (Ethical Alignment & Advanced Safety)
+    "GovernanceLayer",
+    "AlignmentPrinciple",
+    "AlignmentRule",
+    "BiasType",
+    "BiasDetectionResult",
+    "PrivacyLevel",
+    "PrivacyAnalysis",
+    "create_default_governance",
     
     # Kernel
     "AgentKernel",
