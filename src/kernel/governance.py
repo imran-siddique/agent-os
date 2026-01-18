@@ -108,8 +108,8 @@ class GovernanceLayer:
         
         # Jailbreak patterns (heuristic detection)
         self.jailbreak_patterns = [
-            r"ignore\s+(previous|all|above)\s+instructions",
-            r"disregard\s+(previous|all|above)",
+            r"ignore\s+(all\s+)?(previous|all|above)\s+instructions",
+            r"disregard\s+(all\s+)?(previous|above)",
             r"forget\s+(everything|all|previous)",
             r"new\s+instructions?:",
             r"you\s+are\s+now",
@@ -122,7 +122,7 @@ class GovernanceLayer:
         
         # Harmful content patterns
         self.harmful_patterns = [
-            r"how\s+to\s+(make|build|create)\s+(bomb|weapon|explosive)",
+            r"how\s+to\s+(make|build|create)\s+(a\s+)?(bomb|weapon|explosive)",
             r"illegal\s+(drugs|weapons|activities)",
             r"hack\s+(into|system|account)",
             r"(steal|fraud|scam)\s+",
