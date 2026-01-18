@@ -52,3 +52,4 @@ benchmark_summary.csv
 # Flight Recorder database
 flight_recorder.db
 *.db
+.pypirc

@@ -3,7 +3,7 @@
 Setup script for PyPI package preparation
 
 This script prepares the Agent Control Plane package for PyPI release.
-"""
+"""pip 
 
 import subprocess
 import sys
