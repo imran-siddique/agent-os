@@ -1,11 +1,37 @@
 from setuptools import setup, find_packages
 
+with open("README.md", "r", encoding="utf-8") as fh:
+    long_description = fh.read()
+
 setup(
     name="self-correcting-agent-kernel",
-    version="0.1.0",
-    description="Self-correcting agent kernel that analyzes failures and patches agents",
+    version="1.1.0",
+    description="Self-correcting agent kernel with differential auditing and semantic memory hygiene for production AI agents",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     author="Self-Correcting Agent Team",
-    packages=find_packages(),
+    author_email="research@scak.ai",
+    url="https://github.com/imran-siddique/self-correcting-agent-kernel",
+    project_urls={
+        "Bug Tracker": "https://github.com/imran-siddique/self-correcting-agent-kernel/issues",
+        "Documentation": "https://github.com/imran-siddique/self-correcting-agent-kernel/wiki",
+        "Source Code": "https://github.com/imran-siddique/self-correcting-agent-kernel",
+    },
+    packages=find_packages(exclude=["tests*", "experiments*", "examples*", "notebooks*"]),
+    classifiers=[
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Topic :: Scientific/Engineering :: Artificial Intelligence",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+    ],
     install_requires=[
         "pydantic>=2.0.0",
         "pyyaml>=6.0",
@@ -37,4 +63,6 @@ setup(
         ],
     },
     python_requires=">=3.8",
+    keywords="ai agents self-correction alignment differential-auditing semantic-purge llm production-ml",
+    license="MIT",
 )
