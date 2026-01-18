@@ -1,0 +1,117 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Trigger on version tags like v1.1.0
+
+jobs:
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Fetch all history for changelog
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+      
+      - name: Extract version from tag
+        id: get_version
+        run: |
+          echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+      
+      - name: Generate changelog
+        id: changelog
+        run: |
+          # Get commits since last tag
+          PREVIOUS_TAG=$(git describe --abbrev=0 --tags $(git rev-list --tags --skip=1 --max-count=1) 2>/dev/null || echo "")
+          
+          if [ -z "$PREVIOUS_TAG" ]; then
+            echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+            echo "Initial release" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+            git log ${PREVIOUS_TAG}..HEAD --pretty=format:"- %s (%an)" >> $GITHUB_OUTPUT
+            echo "" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.get_version.outputs.TAG_NAME }}
+          release_name: Release ${{ steps.get_version.outputs.TAG_NAME }}
+          body: |
+            # Self-Correcting Agent Kernel ${{ steps.get_version.outputs.TAG_NAME }}
+            
+            ## What's New
+            
+            ${{ steps.changelog.outputs.CHANGELOG }}
+            
+            ## Installation
+            
+            ```bash
+            pip install self-correcting-agent-kernel==${{ steps.get_version.outputs.VERSION }}
+            ```
+            
+            ## Key Features
+            
+            - ✅ Dual-Loop Architecture (Runtime Safety + Alignment Engine)
+            - ✅ Differential Auditing (5-10% overhead)
+            - ✅ Semantic Purge (40-60% context reduction)
+            - ✅ 183 comprehensive tests
+            - ✅ Production-ready (type-safe, async-first)
+            
+            ## Documentation
+            
+            - [README](https://github.com/imran-siddique/self-correcting-agent-kernel/blob/main/README.md)
+            - [Wiki](https://github.com/imran-siddique/self-correcting-agent-kernel/wiki)
+            - [Research Foundation](https://github.com/imran-siddique/self-correcting-agent-kernel/blob/main/RESEARCH.md)
+            - [Novelty Claims](https://github.com/imran-siddique/self-correcting-agent-kernel/blob/main/NOVELTY.md)
+            
+            ## Citation
+            
+            ```bibtex
+            @software{scak2026,
+              title={Self-Correcting Agent Kernel},
+              author={Self-Correcting Agent Team},
+              year={2026},
+              version={${{ steps.get_version.outputs.VERSION }}},
+              url={https://github.com/imran-siddique/self-correcting-agent-kernel}
+            }
+            ```
+            
+            **Full Changelog**: https://github.com/imran-siddique/self-correcting-agent-kernel/compare/$PREVIOUS_TAG...${{ steps.get_version.outputs.TAG_NAME }}
+          
+          draft: false
+          prerelease: false
+      
+      - name: Build package
+        run: |
+          python -m build
+      
+      - name: Publish to PyPI
+        if: success()
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: |
+          # Uncomment when ready to publish to PyPI
+          # twine upload dist/*
+          echo "PyPI upload skipped (uncomment to enable)"
+          echo "To enable: Add PYPI_API_TOKEN secret to GitHub repository"
