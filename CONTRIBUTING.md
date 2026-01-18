@@ -254,8 +254,58 @@ Closes #123
 ## Questions?
 
 If you have questions or need help, please:
+- Check [GitHub Discussions](https://github.com/imran-siddique/agent-control-plane/discussions)
 - Open an issue on GitHub
 - Check existing documentation in the `docs/` directory
+- Review [SUPPORT.md](SUPPORT.md) for detailed support options
 - Look at existing code and tests for examples
+
+## Release Process
+
+### For Maintainers
+
+The release process is mostly automated through GitHub Actions. Here's how to create a new release:
+
+1. **Update Version Numbers**
+   - Update version in `pyproject.toml` (line 7)
+   - Update version in `setup.py` (line 16)
+   - Follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH
+
+2. **Update CHANGELOG.md**
+   - Add a new section at the top with the version and date
+   - List all changes under appropriate categories (Added, Changed, Fixed, etc.)
+   - Follow [Keep a Changelog](https://keepachangelog.com/) format
+
+3. **Run Pre-release Checks**
+   ```bash
+   # Run full test suite
+   python -m pytest tests/ -v
+   
+   # Run linting
+   flake8 src/ --count --select=E9,F63,F7,F82 --show-source
+   
+   # Test package build
+   python -m build
+   twine check dist/*
+   ```
+
+4. **Create and Push Git Tag**
+   ```bash
+   git tag -a v1.2.0 -m "Release version 1.2.0"
+   git push origin v1.2.0
+   ```
+
+5. **Automated Workflows**
+   - GitHub Actions automatically creates a GitHub Release from the tag
+   - Release notes are extracted from CHANGELOG.md
+   - Package is automatically published to PyPI
+
+6. **Post-Release Tasks**
+   - Verify release appears on GitHub: https://github.com/imran-siddique/agent-control-plane/releases
+   - Verify package on PyPI: https://pypi.org/project/agent-control-plane/
+   - Test installation: `pip install agent-control-plane==X.Y.Z`
+   - Announce in GitHub Discussions
+
+For detailed PyPI publishing instructions, see [docs/PYPI_PUBLISHING.md](docs/PYPI_PUBLISHING.md).
 
 Thank you for contributing to Agent Control Plane!

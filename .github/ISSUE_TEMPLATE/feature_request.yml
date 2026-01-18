@@ -6,7 +6,12 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for your interest in improving Agent Control Plane! Please describe your feature idea.
+        Thanks for your interest in improving Agent Control Plane! 
+        
+        Before submitting:
+        - Check our [Roadmap](https://github.com/imran-siddique/agent-control-plane/blob/main/ROADMAP.md) to see if this is already planned
+        - Search [existing issues](https://github.com/imran-siddique/agent-control-plane/issues) to avoid duplicates
+        - Consider discussing in [GitHub Discussions](https://github.com/imran-siddique/agent-control-plane/discussions) first for major changes
   
   - type: textarea
     id: problem
@@ -91,6 +96,8 @@ body:
     attributes:
       label: Pre-submission Checklist
       options:
+        - label: I have checked the [Roadmap](https://github.com/imran-siddique/agent-control-plane/blob/main/ROADMAP.md) and this feature is not already planned
+          required: true
         - label: I have searched existing issues to ensure this is not a duplicate
           required: true
         - label: I have provided sufficient detail about my use case

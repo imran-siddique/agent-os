@@ -1,9 +1,11 @@
 # Agent Control Plane
 
+[![PyPI version](https://img.shields.io/pypi/v/agent-control-plane.svg)](https://pypi.org/project/agent-control-plane/)
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Tests](https://github.com/imran-siddique/agent-control-plane/workflows/Tests/badge.svg)](https://github.com/imran-siddique/agent-control-plane/actions)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Downloads](https://img.shields.io/pypi/dm/agent-control-plane.svg)](https://pypi.org/project/agent-control-plane/)
 
 A governance and management layer for autonomous AI agents. The Agent Control Plane treats the LLM as a raw compute component and provides a kernel-like layer for safe, controlled execution.
 
@@ -78,12 +80,24 @@ The Agent Control Plane sits between the LLM (raw compute) and the execution env
 
 ### Installation
 
+#### Option 1: Install from PyPI (Recommended)
+
+```bash
+# Install the latest stable version
+pip install agent-control-plane
+
+# Or install with development dependencies
+pip install agent-control-plane[dev]
+```
+
+#### Option 2: Install from Source
+
 ```bash
 # Clone the repository
 git clone https://github.com/imran-siddique/agent-control-plane.git
 cd agent-control-plane
 
-# Install the package
+# Install the package in editable mode
 pip install -e .
 
 # Or install with development dependencies
@@ -1028,6 +1042,60 @@ If you use Agent Control Plane in research:
   note = {MIT License}
 }
 ```
+
+## Community & Support
+
+### Get Involved
+
+Join our growing community:
+
+- 🌟 **[Star the repository](https://github.com/imran-siddique/agent-control-plane)** to show support
+- 💬 **[GitHub Discussions](https://github.com/imran-siddique/agent-control-plane/discussions)** - Ask questions, share ideas, showcase projects
+- 🐛 **[Issue Tracker](https://github.com/imran-siddique/agent-control-plane/issues)** - Report bugs or request features
+- 📚 **[Documentation](docs/)** - Comprehensive guides and API reference
+- 🗺️ **[Roadmap](ROADMAP.md)** - See what's planned for 2026
+- 💡 **[Support Guide](SUPPORT.md)** - How to get help
+
+### Roadmap Highlights
+
+See [ROADMAP.md](ROADMAP.md) for the complete 2026 roadmap. Key upcoming features:
+
+**Q1 2026** (Current)
+- ✅ PyPI distribution (`pip install agent-control-plane`)
+- ✅ GitHub releases and versioning
+- ✅ Community forum (GitHub Discussions)
+- 🚧 Documentation portal (ReadTheDocs/GitHub Pages)
+
+**Q2 2026** - Advanced Intelligence
+- ML-based intent classification
+- Constitutional fine-tuning hooks (RLHF/LoRA)
+- Multi-turn red-teaming datasets
+- Privacy enhancements (differential privacy, federated learning)
+
+**Q3 2026** - Multimodal & Ecosystem
+- Production-ready vision and audio governance
+- Vector store integrations (Pinecone, Weaviate, Qdrant)
+- Advanced RAG patterns with fact verification
+
+**Q4 2026** - Scale & Operations
+- Grafana/Prometheus dashboard templates
+- Streamlit interactive governance UI
+- Tool marketplace (200+ governed tools)
+
+### Success Metrics & Goals
+
+**2026 Targets:**
+- 1,000+ GitHub stars
+- 10,000+ monthly PyPI downloads
+- 50+ production deployments
+- 20+ active contributors
+- 10+ academic citations
+
+### Stay Connected
+
+- Watch the repository for updates and releases
+- Follow project announcements in Discussions
+- Contribute to help us reach our goals!
 
 ## Contributing
 
