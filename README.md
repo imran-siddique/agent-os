@@ -505,6 +505,91 @@ Based on real-world validation experiments:
 
 ---
 
+## **9a. Reproducibility & Exact Configurations**
+
+All experiments are designed for reproducibility. LLM calls are stochastic, so we average over multiple runs.
+
+📂 **Full details:** [`reproducibility/README.md`](./reproducibility/README.md)
+
+### **Environment**
+
+| Component | Version/Specification |
+|-----------|----------------------|
+| **Python** | 3.10.12 |
+| **Hardware** | AWS EC2 c5.2xlarge (8 vCPU, 32GB RAM) |
+| **Weak Model** | OpenAI `gpt-4o-2024-08-06` |
+| **Teacher Model** | OpenAI `o1-preview-2024-09-12` |
+| **Global Seed** | 42 (via `reproducibility/seed_control.py`) |
+
+### **API Costs (Approximate)**
+
+| Experiment | Queries | Est. Cost |
+|------------|---------|-----------|
+| GAIA Benchmark | 50 | ~$2.50 (GPT-4o) + ~$5.00 (o1-preview) |
+| Chaos Engineering | 20 | ~$1.00 |
+| Amnesia Test | N/A | ~$0.50 |
+| **Total** | — | **~$9.00** |
+
+### **Quick Reproduction Commands**
+
+```bash
+# 1. Install with all dependencies
+pip install scak[all]
+
+# 2. Set seeds (all experiments use this)
+python -c "from reproducibility.seed_control import set_seeds; set_seeds(42)"
+
+# 3. Run GAIA Laziness Benchmark
+python experiments/gaia_benchmark/run_benchmark.py \
+  --queries datasets/gaia_vague_queries/vague_queries.json \
+  --output results/gaia_results.json \
+  --seed 42
+
+# 4. Run Chaos Engineering
+python experiments/chaos_engineering/run_chaos.py \
+  --scenarios datasets/chaos_scenarios/schema_failures.json \
+  --output results/chaos_results.json \
+  --seed 42
+
+# 5. Run with Docker (fully reproducible)
+cd reproducibility
+docker build -t scak-repro:1.0 -f Dockerfile.reproducibility .
+docker run --rm scak-repro:1.0 python run_all_experiments.py
+```
+
+### **Expected Results (±2% LLM Variance)**
+
+| Metric | Expected | Tolerance |
+|--------|----------|-----------|
+| Detection Rate | 100% | ±2% |
+| Correction Rate | 72% | ±3% |
+| Post-Patch Success | 81% | ±4% |
+| Context Reduction | 50% | ±5% |
+| MTTR | 28s | ±6s |
+
+### **Ablation Commands**
+
+```bash
+# Without Semantic Purge (expect: 0% context reduction)
+python experiments/ablation_studies/run_ablation.py --disable semantic_purge
+
+# Without Differential Auditing (expect: 0% laziness detection)
+python experiments/ablation_studies/run_ablation.py --disable differential_audit
+```
+
+### **Statistical Analysis**
+
+```bash
+python reproducibility/statistical_analysis.py \
+  --treatment results/gaia_results.json \
+  --control results/baseline_gpt4o.json \
+  --output results/statistical_report.json
+```
+
+**Note:** LLM API calls are non-deterministic even with seeds. Run experiments 5× and average results for paper-quality numbers.
+
+---
+
 ## **10. Repository Structure**
 
 ```text
