@@ -19,8 +19,9 @@ This directory contains all resources needed to reproduce the experiments and re
 2. **`seeds.json`** - Random seeds used for all experiments
 3. **`commands.md`** - Exact commands to reproduce all experiments
 4. **`requirements_frozen.txt`** - Frozen dependency versions
-5. **`docker_config/`** - Docker configuration for reproducible environment
-6. **`experiment_configs/`** - Configuration files for each experiment
+5. **`ABLATIONS.md`** - Statistical ablation tables with p-values and effect sizes
+6. **`docker_config/`** - Docker configuration for reproducible environment
+7. **`experiment_configs/`** - Configuration files for each experiment
 
 ## Quick Start
 
