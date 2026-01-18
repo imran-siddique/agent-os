@@ -1,0 +1,36 @@
+{
+  "description": "Configuration for governed multi-agent RAG chain experiment",
+  "num_agents": 3,
+  "agent_roles": [
+    "retriever",
+    "processor", 
+    "validator"
+  ],
+  "rag_queries": 10,
+  "vector_store": "faiss",
+  "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+  "governance_level": "strict",
+  "max_iterations": 5,
+  "agent_permissions": {
+    "retriever": {
+      "database_query": "read_only",
+      "file_read": "read_only"
+    },
+    "processor": {
+      "file_read": "read_only"
+    },
+    "validator": {
+      "file_read": "read_only"
+    }
+  },
+  "safety_constraints": {
+    "enable_constraint_graphs": true,
+    "enable_supervisors": true,
+    "enable_audit_logging": true
+  },
+  "performance_settings": {
+    "batch_size": 1,
+    "timeout_seconds": 30,
+    "retry_attempts": 3
+  }
+}

@@ -989,6 +989,53 @@ Planned enhancements:
 - [ ] Federated learning support for privacy-preserving models
 - [ ] Integration with AdvBench and WildGuard datasets
 
+## Reproducibility
+
+All experiments and results in this repository are fully reproducible. We provide:
+
+### 📦 Dataset
+- **Red Team Dataset (60 prompts)**: [HuggingFace Hub →](https://huggingface.co/datasets/imran-siddique/agent-control-redteam-60)
+- Categories: Direct violations, prompt injections, social engineering, valid requests
+- Use to benchmark your own agent safety systems
+
+### 🔬 Reproducibility Package
+Complete materials in [`reproducibility/`](reproducibility/) directory:
+- **Hardware specs**: Exact hardware and software environment
+- **Seeds**: All random seeds used (primary: 42)
+- **Commands**: Exact commands for every experiment
+- **Docker**: Containerized environment for consistent results
+- **Frozen dependencies**: 109 packages with exact versions
+
+### 🧪 Experiments
+- **Comparative Study**: Baseline vs Control Plane safety (benchmark.py)
+- **Ablation Studies**: Component removal analysis (7 configurations × 5 seeds)
+- **Multi-Agent RAG**: Governed retrieval-augmented generation chain
+- **Long-Horizon Purge**: State management over 100+ steps
+
+### 📊 Statistical Analysis
+- **Mean ± Std Dev** for all metrics
+- **P-values** with Bonferroni correction
+- **Effect sizes** (Cohen's d)
+- **95% confidence intervals**
+- **Power analysis** confirming sufficient sample size
+
+### 🚀 Quick Reproduce
+```bash
+# Using Docker (recommended)
+cd reproducibility/docker_config
+docker build -t acp-reproducibility:v1.1.0 .
+docker run -it acp-reproducibility:v1.1.0 bash
+bash reproducibility/run_all_experiments.sh
+
+# Or locally
+pip install -r reproducibility/requirements_frozen.txt
+python benchmark.py --seed 42
+python experiments/multi_agent_rag.py --seed 42
+python experiments/long_horizon_purge.py --seed 42
+```
+
+**See [`reproducibility/README.md`](reproducibility/README.md) for complete guide.**
+
 ## How This Differs from Other Approaches
 
 ### vs. "Manager" Models (e.g., Gas Town)
