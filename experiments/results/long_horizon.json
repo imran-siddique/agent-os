@@ -1,0 +1,36 @@
+{
+  "experiment": "long_horizon_task_with_purge",
+  "description": "15-step task planning with Semantic Purge on model upgrades",
+  "timestamp": "2026-01-18T05:18:53.697986",
+  "config": {
+    "num_steps": 15,
+    "purge_at_steps": [
+      5,
+      10
+    ],
+    "patches_per_step": 2
+  },
+  "baseline": {
+    "final_context_tokens": 2000,
+    "max_context_tokens": 2000,
+    "avg_context_tokens": 1240.0,
+    "context_growth_percent": 300.0,
+    "context_reduction_percent": 0.0,
+    "accuracy_final": 1.0
+  },
+  "with_scak": {
+    "final_context_tokens": 1400,
+    "max_context_tokens": 1400,
+    "avg_context_tokens": 896.6666666666666,
+    "context_growth_percent": 180.0,
+    "context_reduction_percent": 0.0,
+    "accuracy_final": 1.0,
+    "purges_triggered": 2
+  },
+  "improvement": {
+    "context_reduction_delta": 0.0,
+    "avg_context_savings_tokens": 343.33333333333337,
+    "final_context_savings_percent": 30.0
+  },
+  "conclusion": "Semantic Purge reduced average context by 343 tokens (30.0% reduction) over 15 steps with 2 purges, while maintaining 100% accuracy."
+}
