@@ -1,0 +1,70 @@
+name: Question or Discussion
+description: Ask a question or start a discussion
+title: "[Question]: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have a question about Agent Control Plane? We're here to help!
+        
+        💡 **Tip**: Consider using [GitHub Discussions](https://github.com/imran-siddique/agent-control-plane/discussions) for open-ended questions or community discussions.
+  
+  - type: textarea
+    id: question
+    attributes:
+      label: Your Question
+      description: What would you like to know?
+      placeholder: How do I...
+    validations:
+      required: true
+  
+  - type: dropdown
+    id: category
+    attributes:
+      label: Question Category
+      description: What is your question about?
+      options:
+        - Getting Started
+        - Configuration
+        - Integration (OpenAI, LangChain, etc.)
+        - Multi-Agent Systems
+        - Safety and Compliance
+        - Performance and Scaling
+        - Troubleshooting
+        - Best Practices
+        - Architecture and Design
+        - Other
+    validations:
+      required: true
+  
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Please provide any relevant context for your question
+      placeholder: I'm trying to build...
+  
+  - type: textarea
+    id: attempted
+    attributes:
+      label: What Have You Tried?
+      description: What have you already tried or researched?
+      placeholder: I've looked at the documentation for...
+  
+  - type: textarea
+    id: code
+    attributes:
+      label: Relevant Code
+      description: If applicable, please share relevant code snippets
+      render: python
+  
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      options:
+        - label: I have searched existing issues and discussions
+          required: true
+        - label: I have reviewed the documentation
+          required: true

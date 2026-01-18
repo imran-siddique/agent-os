@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 GitHub Discussions
+    url: https://github.com/imran-siddique/agent-control-plane/discussions
+    about: Ask questions, share ideas, and discuss with the community
+  - name: 📚 Documentation
+    url: https://github.com/imran-siddique/agent-control-plane/tree/main/docs
+    about: Read the comprehensive documentation
+  - name: 🔒 Private Security Report
+    url: https://github.com/imran-siddique/agent-control-plane/security/advisories/new
+    about: Report a security vulnerability privately
