@@ -1,0 +1,46 @@
+{
+  "description": "Configuration for long-horizon task with state purge experiment",
+  "task_steps": 100,
+  "purge_interval": 10,
+  "purge_strategy": "lru",
+  "retention_threshold": 0.8,
+  "safety_checks": true,
+  "checkpoint_frequency": 5,
+  "agent_config": {
+    "max_memory_mb": 512,
+    "enable_sandboxing": true,
+    "enable_rollback": true
+  },
+  "purge_strategies": {
+    "lru": {
+      "description": "Least Recently Used - keeps recent state",
+      "retention_ratio": 0.8
+    },
+    "fifo": {
+      "description": "First In First Out - keeps newest state",
+      "retention_ratio": 0.7
+    },
+    "all": {
+      "description": "Clear all state",
+      "retention_ratio": 0.0
+    }
+  },
+  "checkpoint_config": {
+    "enabled": true,
+    "frequency": 5,
+    "storage": "local",
+    "compression": true
+  },
+  "safety_constraints": {
+    "max_state_size": 1000,
+    "purge_on_violation": true,
+    "checkpoint_before_purge": true
+  },
+  "metrics_to_track": [
+    "state_size_over_time",
+    "purge_efficiency",
+    "checkpoint_success_rate",
+    "safety_violations",
+    "task_completion_rate"
+  ]
+}
