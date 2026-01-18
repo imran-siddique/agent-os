@@ -27,6 +27,28 @@ import asyncio
 import logging
 from uuid import uuid4
 
+# Import enhanced multi-agent capabilities (backward compatible)
+_PUBSUB_AVAILABLE = True
+_CONFLICT_RESOLUTION_AVAILABLE = True
+
+try:
+    from .pubsub import InMemoryPubSub, PubSubBackend, AgentSwarm, MessagePriority
+except ImportError:
+    _PUBSUB_AVAILABLE = False
+    InMemoryPubSub = None
+    PubSubBackend = None
+    AgentSwarm = None
+    MessagePriority = None
+
+try:
+    from .conflict_resolution import ConflictResolver, AgentVote, ConflictType, VoteType
+except ImportError:
+    _CONFLICT_RESOLUTION_AVAILABLE = False
+    ConflictResolver = None
+    AgentVote = None
+    ConflictType = None
+    VoteType = None
+
 logger = logging.getLogger(__name__)
 
 
@@ -130,7 +152,9 @@ class Orchestrator:
     def __init__(
         self,
         agents: List[AgentSpec],
-        message_broker: Optional[Any] = None
+        message_broker: Optional[Any] = None,
+        enable_pubsub: bool = True,
+        enable_conflict_resolution: bool = True
     ):
         """
         Initialize orchestrator with agent specifications.
@@ -138,6 +162,8 @@ class Orchestrator:
         Args:
             agents: List of agent specifications
             message_broker: Optional message broker (Redis pub-sub in production)
+            enable_pubsub: Enable pub-sub messaging (default: True)
+            enable_conflict_resolution: Enable conflict resolution (default: True)
         """
         self.agents = {agent.agent_id: agent for agent in agents}
         self.tasks: Dict[str, OrchestratedTask] = {}
@@ -146,6 +172,38 @@ class Orchestrator:
         
         # Agent execution functions (injected by user)
         self.agent_executors: Dict[str, Callable[[str, Dict[str, Any]], Awaitable[Dict[str, Any]]]] = {}
+        
+        # Enhanced capabilities
+        self.pubsub: Optional[PubSubBackend] = None
+        self.conflict_resolver: Optional[ConflictResolver] = None
+        self.swarms: Dict[str, AgentSwarm] = {}
+        
+        if enable_pubsub:
+            if not _PUBSUB_AVAILABLE:
+                logger.warning("Pub-sub requested but module not available")
+            elif message_broker:
+                self.pubsub = message_broker
+                logger.info("Pub-sub messaging enabled (custom broker)")
+            elif InMemoryPubSub:
+                self.pubsub = InMemoryPubSub()
+                logger.info("Pub-sub messaging enabled (in-memory)")
+        
+        if enable_conflict_resolution:
+            if not _CONFLICT_RESOLUTION_AVAILABLE:
+                logger.warning("Conflict resolution requested but module not available")
+            elif ConflictResolver:
+                # Find supervisor agent for escalation
+                supervisor_id = None
+                for agent in agents:
+                    if agent.role == AgentRole.SUPERVISOR:
+                        supervisor_id = agent.agent_id
+                        break
+                
+                self.conflict_resolver = ConflictResolver(
+                    default_vote_type=VoteType.MAJORITY,
+                    supervisor_agent_id=supervisor_id
+                )
+                logger.info(f"Conflict resolution enabled (supervisor: {supervisor_id})")
         
         logger.info(f"Orchestrator initialized with {len(agents)} agents")
     
@@ -474,6 +532,155 @@ class Orchestrator:
             stats["avg_completion_time_ms"] = total_ms / len(completed_tasks)
         
         return stats
+    
+    async def create_swarm(
+        self,
+        swarm_id: str,
+        agent_ids: List[str]
+    ) -> Optional[Any]:
+        """
+        Create an agent swarm for collaborative tasks.
+        
+        Args:
+            swarm_id: Unique swarm identifier
+            agent_ids: List of agent IDs to include in swarm
+            
+        Returns:
+            AgentSwarm instance or None if pub-sub not enabled
+        """
+        if not self.pubsub or not _PUBSUB_AVAILABLE or not AgentSwarm:
+            logger.warning("Pub-sub not available, cannot create swarm")
+            return None
+        
+        # Validate all agents exist
+        for agent_id in agent_ids:
+            if agent_id not in self.agents:
+                raise ValueError(f"Agent {agent_id} not found")
+        
+        swarm = AgentSwarm(swarm_id, self.pubsub, agent_ids)
+        self.swarms[swarm_id] = swarm
+        
+        logger.info(f"Swarm {swarm_id} created with {len(agent_ids)} agents")
+        
+        return swarm
+    
+    async def resolve_agent_conflict(
+        self,
+        conflict_id: str,
+        conflict_type: str,
+        votes: List[Dict[str, Any]],
+        vote_type: Optional[str] = None
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Resolve conflict between agents using voting.
+        
+        Args:
+            conflict_id: Unique conflict identifier
+            conflict_type: Type of conflict (decision, interpretation, etc.)
+            votes: List of votes as dicts with agent_id, option, confidence
+            vote_type: Voting mechanism (majority, weighted, etc.)
+            
+        Returns:
+            Resolution dict or None if conflict resolution not available
+        """
+        if not self.conflict_resolver or not _CONFLICT_RESOLUTION_AVAILABLE or not AgentVote or not ConflictType:
+            logger.warning("Conflict resolution not available")
+            return None
+        
+        # Convert dicts to AgentVote objects
+        vote_objects = [
+            AgentVote(
+                agent_id=v["agent_id"],
+                option=v["option"],
+                confidence=v.get("confidence", 1.0),
+                reasoning=v.get("reasoning")
+            )
+            for v in votes
+        ]
+        
+        # Convert strings to enums
+        conflict_type_enum = ConflictType(conflict_type)
+        vote_type_enum = VoteType(vote_type) if vote_type else None
+        
+        resolution = await self.conflict_resolver.resolve_conflict(
+            conflict_id,
+            conflict_type_enum,
+            vote_objects,
+            vote_type_enum
+        )
+        
+        return {
+            "conflict_id": resolution.conflict_id,
+            "winning_option": resolution.winning_option,
+            "consensus_score": resolution.consensus_score,
+            "total_votes": resolution.total_votes,
+            "votes_for_winner": resolution.votes_for_winner,
+            "dissenting_agents": resolution.dissenting_agents,
+            "escalated": resolution.escalated_to_supervisor
+        }
+    
+    async def broadcast_to_swarm(
+        self,
+        swarm_id: str,
+        from_agent: str,
+        message: str,
+        payload: Optional[Dict[str, Any]] = None
+    ) -> bool:
+        """
+        Broadcast message to all agents in a swarm.
+        
+        Args:
+            swarm_id: Swarm to broadcast to
+            from_agent: Sender agent ID
+            message: Message content
+            payload: Optional structured data
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        if swarm_id not in self.swarms:
+            logger.warning(f"Swarm {swarm_id} not found")
+            return False
+        
+        swarm = self.swarms[swarm_id]
+        await swarm.broadcast(from_agent, message, payload)
+        
+        return True
+    
+    async def request_swarm_consensus(
+        self,
+        swarm_id: str,
+        from_agent: str,
+        proposal: str,
+        context: Dict[str, Any],
+        required_votes: Optional[int] = None
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Request consensus vote from swarm agents.
+        
+        Args:
+            swarm_id: Swarm to request consensus from
+            from_agent: Agent making proposal
+            proposal: Decision to vote on
+            context: Context for decision
+            required_votes: Minimum votes needed
+            
+        Returns:
+            Consensus result dict or None if swarm not found
+        """
+        if swarm_id not in self.swarms:
+            logger.warning(f"Swarm {swarm_id} not found")
+            return None
+        
+        swarm = self.swarms[swarm_id]
+        result = await swarm.request_consensus(
+            from_agent,
+            proposal,
+            context,
+            required_votes
+        )
+        
+        return result
 
 
 # Example usage pattern
