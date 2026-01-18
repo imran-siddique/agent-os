@@ -4,9 +4,9 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
-    name="self-correcting-agent-kernel",
+    name="scak",  # Short, memorable PyPI name
     version="1.1.0",
-    description="Self-correcting agent kernel with differential auditing and semantic memory hygiene for production AI agents",
+    description="Self-Correcting Agent Kernel: Automated alignment via differential auditing and semantic memory hygiene for production AI agents",
     long_description=long_description,
     long_description_content_type="text/markdown",
     author="Self-Correcting Agent Team",
@@ -16,6 +16,7 @@ setup(
         "Bug Tracker": "https://github.com/imran-siddique/self-correcting-agent-kernel/issues",
         "Documentation": "https://github.com/imran-siddique/self-correcting-agent-kernel/wiki",
         "Source Code": "https://github.com/imran-siddique/self-correcting-agent-kernel",
+        "Changelog": "https://github.com/imran-siddique/self-correcting-agent-kernel/blob/main/CHANGELOG.md",
     },
     packages=find_packages(exclude=["tests*", "experiments*", "examples*", "notebooks*"]),
     classifiers=[
@@ -29,6 +30,7 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
@@ -63,6 +65,6 @@ setup(
         ],
     },
     python_requires=">=3.8",
-    keywords="ai agents self-correction alignment differential-auditing semantic-purge llm production-ml",
+    keywords="ai agents self-correction alignment differential-auditing semantic-purge llm production-ml scak self-correcting-kernel",
     license="MIT",
 )

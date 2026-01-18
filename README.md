@@ -2,7 +2,7 @@
 
 ### *Automated Alignment via Differential Auditing and Semantic Memory Hygiene*
 
-[![PyPI version](https://img.shields.io/badge/pypi-v1.1.0-blue.svg)](https://pypi.org/project/self-correcting-agent-kernel/)
+[![PyPI version](https://img.shields.io/badge/pypi-scak-blue.svg)](https://pypi.org/project/scak/)
 [![Python](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Tests](https://img.shields.io/badge/tests-183%20passed-brightgreen.svg)](./tests/)
@@ -115,6 +115,24 @@ graph TD
 ---
 
 ## **5. Installation**
+
+### **Quick Install from PyPI** ⭐
+
+```bash
+# Install the package (minimal dependencies)
+pip install scak
+
+# Or with LLM integrations (OpenAI, Anthropic)
+pip install scak[llm]
+
+# Or with development tools (testing, dashboard, notebooks)
+pip install scak[dev]
+
+# Or install everything
+pip install scak[all]
+```
+
+### **Install from Source**
 
 ```bash
 # Clone the repository
