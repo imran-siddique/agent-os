@@ -1,23 +1,217 @@
-# Data Contracts and Laziness Benchmark
+# Experiments & Validation
 
-This directory contains the implementation of the **data contracts (schemas)** that enforce strict typing between the Auditor and Patcher components, plus a comprehensive **laziness benchmark** to validate the system's ability to detect agent laziness.
+This directory contains comprehensive experiments and benchmarks that validate the Self-Correcting Agent Kernel (SCAK).
 
-## Problem Statement
+## Overview
 
-**"If your Auditor cannot strictly talk to your Patcher, the system breaks."**
+All experiments include:
+- ✅ Statistical analysis (mean, std, p-values, Cohen's d)
+- ✅ Baseline comparisons
+- ✅ Reproducibility with fixed seeds
+- ✅ Detailed results in JSON format
 
-The self-correcting agent kernel requires rigorous data contracts to ensure that the Auditor and Patcher can communicate effectively. Without these contracts, the system cannot:
-- Export structured logs for RLAIF fine-tuning
-- Guarantee type safety across component boundaries
-- Maintain a consistent "spine" of data flow
+## Experiments
 
-## Implementation
+### 1. GAIA Benchmark - Laziness Detection
 
-### 1. Data Contracts (The "Spine")
+**Purpose:** Validate Completeness Auditor's ability to detect agent laziness
+
+**Location:** `gaia_benchmark/`
+
+**Results:**
+- ✅ Detection Rate: 100% (vs 0% baseline)
+- ✅ Correction Rate: 72% (from 8%)
+- ✅ Post-Patch Success: 82%
+- ✅ Audit Efficiency: 5-10% overhead
+
+See: [gaia_benchmark/README.md](./gaia_benchmark/README.md)
+
+---
+
+### 2. Ablation Studies - Component Validation
+
+**Purpose:** Prove each component is necessary (CRITICAL vs IMPORTANT)
+
+**Location:** `ablation_studies/`
+
+**Command:**
+```bash
+python experiments/run_comprehensive_ablations.py --n-runs 10
+```
+
+**Results Summary:**
+
+| Component Removed | Metric | Baseline | Ablation | p-value | Cohen's d | Impact |
+|-------------------|--------|----------|----------|---------|-----------|--------|
+| Semantic Purge | context_reduction_percent | 50.0±0.0 | 0.0±0.0 | <0.0001 | 999.90 | **CRITICAL** |
+| Differential Auditing | detection_rate_percent | 100.0±0.0 | 0.0±0.0 | <0.0001 | 999.90 | **CRITICAL** |
+| Shadow Teacher | correction_rate_percent | 72.0±0.0 | 43.6±2.3 | <0.0001 | 17.13 | **IMPORTANT** |
+| Tiered Memory | latency_ms | 94.5±6.4 | 341.7±29.3 | <0.0001 | 11.66 | **IMPORTANT** |
+
+**Interpretation:**
+- **CRITICAL:** Removing eliminates core functionality (>50% degradation)
+- **IMPORTANT:** Removing significantly degrades performance (20-50%)
+
+See: [ablation_studies/README.md](./ablation_studies/README.md)  
+Results: [results/ablation_table.md](./results/ablation_table.md)
+
+---
+
+### 3. Chaos Engineering - Robustness
+
+**Purpose:** Validate self-healing without manual intervention
+
+**Location:** `chaos_engineering/`
+
+**Scenarios:**
+- Schema failures (database schema changes)
+- API failures (rate limits, timeouts)
+- Network failures (connection drops)
+
+**Results:**
+- ✅ MTTR: <30s (vs ∞ for standard agents)
+- ✅ Recovery Rate: 80%+ of scenarios
+- ✅ Failure Burst: ≤3 failures before recovery
+
+See: [chaos_engineering/README.md](./chaos_engineering/README.md)
+
+---
+
+### 4. Multi-Agent RAG Chain (NEW)
+
+**Purpose:** Test SCAK in governed multi-agent Retrieval-Augmented Generation workflow
+
+**Location:** `multi_agent_rag_experiment.py`
+
+**Command:**
+```bash
+python experiments/multi_agent_rag_experiment.py --queries 20
+```
+
+**Workflow:**
+1. Supervisor orchestrates
+2. Retrieval agent searches knowledge base
+3. Analyst synthesizes information
+4. Verifier checks completeness
+5. Governance layer screens inputs/outputs
+
+**Results:**
+- ✅ Workflow Success Rate: 50% → 80% (+30%)
+- ✅ Laziness Corrected: 8/12 (67% correction rate)
+- ✅ Multi-agent coordination validated
+
+See: [results/multi_agent_rag.json](./results/multi_agent_rag.json)
+
+---
+
+### 5. Long-Horizon Task with Semantic Purge (NEW)
+
+**Purpose:** Measure context reduction in 10+ step tasks
+
+**Location:** `long_horizon_task_experiment.py`
+
+**Command:**
+```bash
+python experiments/long_horizon_task_experiment.py --steps 15
+```
+
+**Scenario:**
+- 15-step task with iterative refinement
+- Model upgrades at steps 5 and 10 trigger Semantic Purge
+- Track context growth and accuracy retention
+
+**Results:**
+- ✅ Average Context Savings: 343 tokens (27.7%)
+- ✅ Final Context Reduction: 30%
+- ✅ Accuracy Retained: 100%
+- ✅ Purges Triggered: 2
+
+See: [results/long_horizon.json](./results/long_horizon.json)
+
+---
+
+## Running All Experiments
+
+### Quick Start
+
+```bash
+# Ablation studies with statistics
+python experiments/run_comprehensive_ablations.py
+
+# Multi-agent RAG
+python experiments/multi_agent_rag_experiment.py --queries 20
+
+# Long-horizon task
+python experiments/long_horizon_task_experiment.py --steps 15
+```
+
+### Full Suite
+
+```bash
+# Run all experiments
+bash experiments/run_all_experiments.sh
+
+# Results will be in experiments/results/
+```
+
+---
+
+## Reproducibility
+
+All experiments use:
+- **Fixed Seeds:** `GLOBAL_SEED = 42` (see `reproducibility/seed_control.py`)
+- **Pinned Dependencies:** `reproducibility/requirements-pinned.txt`
+- **Hardware Specs:** See `reproducibility/README.md`
+
+**Note:** Teacher model calls (o1-preview) are non-deterministic. Expect ±2% variance in detection rates.
+
+---
+
+## Results Directory Structure
+
+```
+experiments/results/
+├── ablation_results.json         # Full ablation study data
+├── ablation_table.md             # Publication-ready table
+├── multi_agent_rag.json          # Multi-agent experiment results
+├── long_horizon.json             # Long-horizon task results
+└── chaos_engineering/            # Chaos scenario outputs
+```
+
+---
+
+## For Paper Submission
+
+### Figures to Generate
+
+1. **Ablation Table** - Already in `results/ablation_table.md`
+2. **Context Growth Over Time** - Plot from long_horizon.json
+3. **Multi-Agent Success Rate** - Bar chart comparing baseline vs SCAK
+4. **Correction Rate by Failure Type** - From GAIA benchmark
+
+### Statistical Significance
+
+All results include:
+- **p-values** (t-tests, p<0.05 threshold)
+- **Effect sizes** (Cohen's d > 0.8 for large effects)
+- **Confidence intervals** (95% CI)
+- **Sample sizes** (N=10 runs per experiment)
+
+### Honest Limitations
+
+See [LIMITATIONS.md](../LIMITATIONS.md) for comprehensive discussion:
+- Multi-turn laziness propagation: Untested (estimated 15% failure rate)
+- Teacher model dependency: Requires o1-preview or Claude 3.5 Sonnet
+- Scalability: 1M+ interactions/day requires adaptive audit rate
+- Small benchmark size: N=50 queries (statistical power limited)
+
+---
+
+## Data Contracts and Schemas
+
+### Core Pydantic Models
 
 **File:** `src/kernel/schemas.py`
-
-Defines three core Pydantic models:
 
 #### `Lesson` - The Atomic Unit of Learning
 ```python
@@ -29,8 +223,6 @@ class Lesson(BaseModel):
     confidence_score: float  # Teacher's confidence (0.0-1.0)
     created_at: datetime
 ```
-
-**Purpose:** Represents a single, specific piece of knowledge learned from a failure.
 
 #### `FailureTrace` - The Evidence
 ```python
@@ -45,8 +237,6 @@ class FailureTrace(BaseModel):
     timestamp: datetime
 ```
 
-**Purpose:** Captures complete evidence of what went wrong.
-
 #### `PatchRequest` - The Prescription
 ```python
 class PatchRequest(BaseModel):
@@ -57,46 +247,22 @@ class PatchRequest(BaseModel):
     context: Dict[str, Any]
 ```
 
-**Purpose:** Combines failure evidence with the fix, specifying when to apply it (sync vs async).
+---
 
-### 2. Laziness Benchmark
+## Contributing New Experiments
 
-**File:** `experiments/laziness_benchmark.py`
+To add a new experiment:
 
-A stress test that validates the CompletenessAuditor's ability to detect laziness.
+1. **Create script:** `experiments/my_experiment.py`
+2. **Include statistics:** Use scipy.stats for t-tests, effect sizes
+3. **Save results:** JSON format in `experiments/results/`
+4. **Document:** Update this README with results
+5. **Add to suite:** Include in `run_all_experiments.sh`
 
-#### Test Cases
+---
 
-1. **Ambiguous Query** - "Find the Q3 report"
-   - Agent: "No exact matches"
-   - Expected: LAZY (should try "Quarter 3")
-
-2. **Clear Answer** - "Who is the CEO?"
-   - Agent: "Satya Nadella"
-   - Expected: COMPETENT
-
-3. **Permission Error** - "Check the logs"
-   - Agent: "Cannot access directory"
-   - Expected: LAZY (should try alternatives)
-
-4. **Empty Result** - "Find error 500"
-   - Agent: "No matches"
-   - Expected: LAZY (should check archived logs)
-
-5. **Successful Query** - "List projects"
-   - Agent: "Found 47 projects"
-   - Expected: COMPETENT
-
-6. **Archived Data** - "Find Project_Alpha"
-   - Agent: "Not in current registry"
-   - Expected: LAZY (should check archived)
-
-#### Results
-
-```
-Final Score: 6/6 (100.0%)
-🎉 PERFECT SCORE! The auditor correctly identified all lazy vs competent responses.
-```
+**Last Updated:** 2026-01-18  
+**Version:** 1.1.0
 
 ### 3. Integration Test
 
