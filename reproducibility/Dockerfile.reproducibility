@@ -1,0 +1,34 @@
+FROM python:3.10.12-slim-bullseye
+
+# Set working directory
+WORKDIR /workspace
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
+COPY requirements-pinned.txt .
+
+# Install Python dependencies with exact versions
+RUN pip install --no-cache-dir -r requirements-pinned.txt
+
+# Copy repository code
+COPY .. /workspace/
+
+# Set Python path
+ENV PYTHONPATH=/workspace:$PYTHONPATH
+
+# Set random seed for reproducibility
+ENV PYTHONHASHSEED=42
+
+# Default command
+CMD ["python", "--version"]
+
+# Labels for tracking
+LABEL maintainer="Self-Correcting Agent Team"
+LABEL version="1.0"
+LABEL description="Reproducibility environment for SCAK paper"
+LABEL build_date="2026-01-18"

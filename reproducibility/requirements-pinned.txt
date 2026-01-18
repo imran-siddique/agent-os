@@ -1,0 +1,32 @@
+# Pinned dependencies for exact reproducibility
+# Generated: 2026-01-18
+# Python: 3.10.12
+
+# Core dependencies
+pydantic==2.5.3
+pyyaml==6.0.1
+requests==2.31.0
+
+# LLM clients
+openai==1.7.2
+anthropic==0.8.1
+
+# Testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
+
+# Data processing
+numpy==1.24.3
+pandas==2.0.3
+
+# Visualization
+matplotlib==3.7.2
+seaborn==0.12.2
+
+# Statistical analysis
+scipy==1.11.3
+statsmodels==0.14.0
+
+# Utilities
+python-dateutil==2.8.2
+pytz==2023.3
