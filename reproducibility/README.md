@@ -20,8 +20,10 @@ This directory contains all resources needed to reproduce the experiments and re
 3. **`commands.md`** - Exact commands to reproduce all experiments
 4. **`requirements_frozen.txt`** - Frozen dependency versions
 5. **`ABLATIONS.md`** - Statistical ablation tables with p-values and effect sizes
-6. **`docker_config/`** - Docker configuration for reproducible environment
-7. **`experiment_configs/`** - Configuration files for each experiment
+6. **`LIMITATIONS.md`** - Evaluation limitations and future work
+7. **`PAPER_APPENDIX.md`** - Consolidated appendix materials for paper submission
+8. **`docker_config/`** - Docker configuration for reproducible environment
+9. **`experiment_configs/`** - Configuration files for each experiment
 
 ## Quick Start
 
