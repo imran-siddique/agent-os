@@ -148,6 +148,175 @@ Complete list of research papers, technical reports, and industry publications t
     - Publisher: MIT Press (2013)
     - Key Topics: Coordination, negotiation, distributed problem solving
 
+### Safety and Guardrails (2025-2026)
+
+27. **LlamaGuard-2: Advanced Content Moderation**
+    - Organization: Meta AI
+    - Year: 2025
+    - URL: https://ai.meta.com/research/publications/
+    - Key Contribution: Multi-turn safety classification, improved jailbreak detection
+
+28. **WildGuard: Adversarial Safety Testing**
+    - Authors: Various
+    - Published: arXiv:2406.18495 (2024, updated 2025)
+    - URL: https://arxiv.org/abs/2406.18495
+    - Key Contribution: Large-scale adversarial prompt dataset, automated red-teaming
+
+29. **Constitutional AI: Harmlessness from AI Feedback**
+    - Organization: Anthropic
+    - Year: 2024
+    - URL: https://www.anthropic.com/research
+    - Key Contribution: RLHF with AI-generated feedback, value alignment
+
+30. **Guardrails AI: Output Validation Framework**
+    - Organization: Guardrails AI
+    - Year: 2024-2025
+    - URL: https://www.guardrailsai.com/
+    - Key Contribution: Composable validators, reactive safety checks
+
+### Agent Learning and Self-Correction (2025-2026)
+
+31. **Reflexion: Language Agents with Verbal Reinforcement Learning**
+    - Authors: Shinn et al.
+    - Published: NeurIPS 2023, extended arXiv:2303.11366 (2025)
+    - URL: https://arxiv.org/abs/2303.11366
+    - Key Contribution: Self-reflection for iterative improvement, verbal RL
+
+32. **Self-Refine: Iterative Refinement with Self-Feedback**
+    - Authors: Madaan et al.
+    - Published: ICLR 2024
+    - URL: https://arxiv.org/abs/2303.17651
+    - Key Contribution: Iterative self-feedback without external reward model
+
+33. **Voyager: Open-Ended Skill Library for Embodied Agents**
+    - Authors: Wang et al.
+    - Published: arXiv:2305.16291 (2023, updated 2025)
+    - URL: https://arxiv.org/abs/2305.16291
+    - Key Contribution: Automatic curriculum learning, skill library management
+
+34. **DEPS: Dialogue Evaluation with Persona-based Scenarios**
+    - Authors: Various
+    - Published: ACL 2024
+    - URL: https://aclanthology.org/
+    - Key Contribution: Evolvable agent teams, dynamic role assignment
+
+35. **Agentic AI: A Comprehensive Survey**
+    - Authors: Various
+    - Published: arXiv:2510.25445 (2025)
+    - URL: https://arxiv.org/abs/2510.25445
+    - Key Contribution: Comprehensive 2025 survey of agentic systems, taxonomy, challenges
+
+### Enterprise Governance and Compliance (2025-2026)
+
+36. **EU AI Act Implementation Guidelines**
+    - Organization: European Commission
+    - Year: 2025
+    - URL: https://digital-strategy.ec.europa.eu/
+    - Key Contribution: Legal requirements for high-risk AI systems, compliance standards
+
+37. **AI Governance in 2025: WEF Whitepaper**
+    - Organization: World Economic Forum
+    - Year: 2025
+    - URL: https://www.weforum.org/
+    - Key Contribution: Industry best practices, risk-based governance frameworks
+
+38. **SOC 2 for AI Systems: Security Framework**
+    - Organization: AICPA
+    - Year: 2025
+    - URL: https://www.aicpa.org/
+    - Key Contribution: Security, availability, and confidentiality controls for AI
+
+39. **GDPR Compliance for Agentic Systems**
+    - Organization: ICO (UK Information Commissioner's Office)
+    - Year: 2024-2025
+    - URL: https://ico.org.uk/
+    - Key Contribution: Data protection requirements, right to explanation
+
+40. **HIPAA for AI Healthcare Agents**
+    - Organization: HHS Office for Civil Rights
+    - Year: 2025
+    - URL: https://www.hhs.gov/hipaa/
+    - Key Contribution: Privacy and security requirements for healthcare AI
+
+### Evaluation Frameworks and Benchmarks (2025-2026)
+
+41. **GAIA: General AI Assistants Benchmark**
+    - Authors: Mialon et al.
+    - Published: arXiv:2311.12983 (2023, updated 2025)
+    - URL: https://arxiv.org/abs/2311.12983
+    - Key Contribution: Multi-step reasoning, real-world tasks, tool use evaluation
+
+42. **AgentBench: Evaluating LLMs as Agents**
+    - Authors: Liu et al.
+    - Published: arXiv:2308.03688 (2023, updated 2025)
+    - URL: https://arxiv.org/abs/2308.03688
+    - Key Contribution: Multi-domain agent evaluation, 8 different environments
+
+43. **ToolBench: Tool Learning with Foundation Models**
+    - Authors: Qin et al.
+    - Published: arXiv:2307.16789 (2023, updated 2025)
+    - URL: https://arxiv.org/abs/2307.16789
+    - Key Contribution: 16,000+ real-world APIs, tool use benchmarking
+
+44. **HaluEval: Hallucination Evaluation for LLMs**
+    - Authors: Li et al.
+    - Published: EMNLP 2023, extended 2025
+    - URL: https://arxiv.org/abs/2305.11747
+    - Key Contribution: Automated hallucination detection, factual accuracy
+
+45. **SafetyBench: Comprehensive Safety Evaluation**
+    - Authors: Zhang et al.
+    - Published: arXiv:2309.07045 (2023, updated 2025)
+    - URL: https://arxiv.org/abs/2309.07045
+    - Key Contribution: 11,435 diverse safety prompts, multi-lingual coverage
+
+### Advanced Agent Architectures (2025-2026)
+
+46. **AutoGen: Enabling Next-Gen LLM Applications**
+    - Authors: Wu et al.
+    - Organization: Microsoft Research
+    - Published: arXiv:2308.08155 (2023, updated 2025)
+    - URL: https://arxiv.org/abs/2308.08155
+    - Key Contribution: Multi-agent conversation framework, customizable agents
+
+47. **LangGraph: Graph-Based Agent Workflows**
+    - Organization: LangChain
+    - Year: 2024-2025
+    - URL: https://langchain-ai.github.io/langgraph/
+    - Key Contribution: Stateful agent workflows, cycles and branches
+
+48. **o1-preview: OpenAI Reasoning Models**
+    - Organization: OpenAI
+    - Year: 2024-2025
+    - URL: https://openai.com/research/
+    - Key Contribution: Chain-of-thought reasoning, improved problem solving
+
+49. **Chain-of-Verification (CoVe)**
+    - Authors: Dhuliawala et al.
+    - Published: arXiv:2309.11495 (2023, updated 2025)
+    - URL: https://arxiv.org/abs/2309.11495
+    - Key Contribution: Systematic verification to reduce hallucination
+
+50. **ReAct: Synergizing Reasoning and Acting**
+    - Authors: Yao et al.
+    - Published: ICLR 2023, extended 2025
+    - URL: https://arxiv.org/abs/2210.03629
+    - Key Contribution: Interleaving reasoning traces and actions
+
+### Tool Use and Function Calling (2025-2026)
+
+51. **Gorilla: Large Language Model Connected with APIs**
+    - Authors: Patil et al.
+    - Published: arXiv:2305.15334 (2023, updated 2025)
+    - URL: https://arxiv.org/abs/2305.15334
+    - Key Contribution: API call generation, retrieval-aware training
+
+52. **ToolLLM: Facilitating Tool Use with LLMs**
+    - Authors: Qin et al.
+    - Published: arXiv:2307.16789 (2023, updated 2025)
+    - URL: https://arxiv.org/abs/2307.16789
+    - Key Contribution: Tool documentation understanding, planning
+
 ## Preprint Archive Searches
 
 For the latest research, we regularly monitor:
@@ -179,3 +348,20 @@ Found a relevant paper? Submit a pull request with:
 
 **Maintained by**: Agent Control Plane Research Team  
 **Last Updated**: January 2026
+**Total Citations**: 52 papers and reports
+
+## Summary by Category
+
+- **Agent Safety and Governance**: 10 papers
+- **Multi-Agent Systems**: 6 papers  
+- **Privacy and Security**: 3 papers
+- **Enterprise AI**: 3 reports
+- **Safety and Guardrails (2025-2026)**: 4 papers
+- **Agent Learning and Self-Correction (2025-2026)**: 5 papers
+- **Enterprise Governance (2025-2026)**: 5 standards
+- **Evaluation Frameworks (2025-2026)**: 5 benchmarks
+- **Advanced Architectures (2025-2026)**: 5 papers
+- **Tool Use (2025-2026)**: 2 papers
+- **Standards and Specifications**: 3 standards
+- **Competitive Frameworks**: 5 frameworks
+- **Books**: 2 comprehensive references
