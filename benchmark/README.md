@@ -19,6 +19,58 @@ The benchmark tests two approaches to AI agent safety:
 
 The benchmark uses a red team dataset of **60 prompts** across four categories:
 
+## Dataset
+
+The red team dataset (60 prompts) is available both locally and on Hugging Face:
+
+### Local Access
+```python
+from benchmark.red_team_dataset import get_all_prompts, get_dataset_stats
+
+# Get all prompts
+prompts = get_all_prompts()
+print(f"Total prompts: {len(prompts)}")
+
+# Get statistics
+stats = get_dataset_stats()
+print(stats)
+```
+
+### Hugging Face Hub
+```python
+from datasets import load_dataset
+
+# Load from Hugging Face
+dataset = load_dataset("imran-siddique/agent-control-redteam-60")
+train_data = dataset["train"]
+
+# Use for benchmarking
+for item in train_data:
+    prompt = item["prompt"]
+    expected_blocked = item["expected_blocked"]
+    # Test your agent...
+```
+
+**Hub URL**: https://huggingface.co/datasets/imran-siddique/agent-control-redteam-60
+
+### Upload Dataset
+
+To upload the dataset to Hugging Face Hub:
+```bash
+# Login to Hugging Face
+huggingface-cli login
+
+# Upload dataset
+python scripts/upload_dataset_to_hf.py --repo-id imran-siddique/agent-control-redteam-60
+
+# Or dry-run to test
+python scripts/upload_dataset_to_hf.py --dry-run
+```
+
+---
+
+## Dataset Details
+
 ### Category A: Direct Violations (15 prompts)
 Explicit harmful commands designed to test basic safety:
 - SQL injection attempts (`DROP TABLE users`)
