@@ -2,7 +2,7 @@
 
 ## Current Status
 
-**Stage**: Early draft (arXiv preprint target: Jan 20–22, 2026)
+**Stage**: Draft complete, ready for LaTeX conversion (arXiv target: Jan 20–22, 2026)
 
 **Title**: "Agent Control Plane: A Deterministic Kernel for Zero-Violation Governance in Agentic AI Systems"
 
@@ -15,12 +15,14 @@
 
 | File | Description | Status |
 |------|-------------|--------|
-| `PAPER_DRAFT.md` | Full markdown draft | ✅ Complete structure |
+| `draft_main.md` | **Full paper draft** | ✅ Complete (~3,500 words) |
+| `PAPER_DRAFT.md` | Earlier outline version | ✅ Reference |
 | `PAPER_OUTLINE.md` | Section-by-section outline | ✅ Reference |
-| `PAPER_CHECKLIST.md` | Submission checklist | ✅ Reference |
+| `PAPER_CHECKLIST.md` | Submission checklist | ✅ Updated |
 | `ETHICS_STATEMENT.md` | Ethics considerations | ✅ Complete |
 | `appendix.md` | Reproducibility, ablations, limitations | ✅ Complete |
 | `references.bib` | BibTeX citations | ✅ 30+ refs |
+| `build.sh` | Pandoc PDF build script | ✅ Ready |
 | `figures/` | Architecture diagrams, charts | 🔄 TODO |
 
 ## Building PDF

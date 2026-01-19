@@ -2,6 +2,51 @@
 
 This checklist ensures compliance with 2025-2026 top-tier AI/ML venue requirements (NeurIPS, ICML, ICLR, AAMAS, etc.).
 
+## Agent Control Plane Paper Status
+
+### Content Sections
+- [x] Title finalized: "Agent Control Plane: A Deterministic Kernel for Zero-Violation Governance in Agentic AI"
+- [x] Abstract complete (248 words): 0% violations, 98.1% token reduction, ablations
+- [x] Introduction: Problem (jailbreaks, prompt injection), solution (kernel philosophy), contributions
+- [x] Related Work: RLHF, LlamaGuard, Guardrails.ai, NeMo, LangChain, ABAC
+- [x] System Design: Architecture, PolicyEngine, ConstraintGraphs, MuteAgent, FlightRecorder
+- [x] Experiments: Main results table, ablation table with p-values/Cohen's d
+- [x] Discussion & Limitations: Dataset scope, modality, baselines, ethics
+- [x] Conclusion: Summary with key stats
+- [x] References: 20 citations (expand to 30+ for submission)
+- [x] Cross-reference to companion paper (Self-Correcting Agent Kernel)
+
+### Figures & Tables
+- [ ] Architecture diagram (figures/architecture.png) - TODO
+- [ ] Results bar chart (figures/results_chart.pdf) - TODO
+- [x] Table 1: Main benchmark results
+- [x] Table 2: Ablation study with statistics
+- [x] Table 3: Latency breakdown
+
+### Bibliography
+- [x] references.bib created with 30+ entries
+- [ ] Verify all citations have complete metadata
+- [ ] Check for duplicate entries
+- [ ] Add missing arXiv IDs where applicable
+
+### Reproducibility Artifacts
+- [x] Code publicly available (GitHub)
+- [x] PyPI package (`pip install agent-control-plane`)
+- [x] Dataset on HuggingFace
+- [x] Docker configuration
+- [x] Frozen dependencies (requirements_frozen.txt)
+- [x] Seeds documented (42, 123, 456, 789, 1024)
+- [x] Hardware specs documented
+- [x] Statistical methods documented (Welch's t-test, Bonferroni, Cohen's d)
+
+### Build & Format
+- [ ] Convert to LaTeX (Overleaf with NeurIPS/ICLR template)
+- [ ] PDF builds without errors
+- [ ] Page count within limits (target: 8-9 pages + appendix)
+- [ ] Font and margin compliance
+
+---
+
 ## Pre-Submission Requirements
 
 ### 1. Anonymity (Double-Blind Review)

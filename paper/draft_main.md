@@ -327,6 +327,10 @@ The red-team dataset contains adversarial prompts that could inform attack devel
 - **Multi-modal benchmarks**: Extend evaluation to vision/audio injection attacks.
 - **Automatic policy learning**: Infer policies from audit logs using anomaly detection.
 
+### 5.5 Companion Work
+
+For complementary self-correction mechanisms that operate at the reasoning level (rather than action level), see our concurrent preprint on the Self-Correcting Agent Kernel, which uses teacher-student distillation to improve agent reliability through iterative refinement. The two approaches are complementary: ACP enforces hard constraints on *actions*, while self-correction improves *reasoning quality*.
+
 ---
 
 ## 6. Conclusion
