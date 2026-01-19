@@ -18,6 +18,8 @@
 \usepackage{amsmath}
 \usepackage{listings}
 \usepackage{geometry}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows, positioning, calc}
 
 % Page geometry for arXiv (approx. standard academic margins)
 \geometry{
@@ -54,6 +56,52 @@ The prevailing dogma in agentic AI is \textit{accumulation}: if an agent fails, 
 
 Simultaneously, deployed agents exhibit \textbf{laziness}---a capability failure disguised as compliance. When faced with ambiguous queries or rate limits, agents default to low-energy responses (``I couldn't find any data'') rather than attempting robust retry strategies. Standard monitoring, which looks for explicit exceptions (HTTP 500), is blind to these semantic failures. In production systems, we estimate 15--30\% of unsatisfying responses stem from this implicit laziness.
 
+While SCAK focuses on the \textit{internal} alignment and capability restoration of the agent (Loop 2), the enforcement of strict safety boundaries and access control is handled by the \textbf{Agent Control Plane}. We refer readers to our companion paper [Anonymous, 2026] for details on the runtime governance mechanisms (Loop 1) that complement SCAK's self-correction.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[node distance=1.5cm, auto,
+    process/.style={rectangle, draw, fill=blue!10, text centered, rounded corners, minimum height=1cm, minimum width=2.5cm},
+    decision/.style={diamond, draw, fill=green!10, text centered, inner sep=0pt, minimum height=1cm, minimum width=1cm},
+    data/.style={trapezium, trapezium left angle=70, trapezium right angle=110, draw, fill=red!10, text centered, minimum height=0.8cm},
+    line/.style={draw, -latex', thick}]
+
+    % Loop 1: Runtime
+    \node [data] (user) {User Query};
+    \node [process, below of=user] (triage) {Triage Engine};
+    \node [process, below of=triage] (execute) {Execute Agent};
+    \node [process, below of=execute] (response) {Response};
+    \node [data, below of=response] (output) {User Output};
+
+    % Loop 2: Alignment (Side Loop)
+    \node [decision, right=2cm of response] (audit) {Give-Up?};
+    \node [process, right=1.5cm of audit] (teacher) {Shadow Teacher};
+    \node [process, above of=teacher] (patch) {Generate Patch};
+    \node [process, above of=patch] (memory) {Memory Controller};
+    
+    % Connections Loop 1
+    \path [line] (user) -- (triage);
+    \path [line] (triage) -- (execute);
+    \path [line] (execute) -- (response);
+    \path [line] (response) -- (output);
+    
+    % Connections Loop 2
+    \path [line] (response) -- (audit);
+    \path [line] (audit) -- node [near start] {Yes} (teacher);
+    \path [line] (teacher) -- (patch);
+    \path [line] (patch) -- (memory);
+    \path [line] (memory) -| node [near start] {Inject Context} (execute);
+    \path [line] (audit) -- node [left] {No} +(0,-1.5) -| (output); % Silent exit
+
+    % Labels
+    \node[draw, dashed, fit=(triage) (execute) (response), label=left:\textbf{Loop 1: Runtime (Fast)}] {};
+    \node[draw, dashed, fit=(audit) (teacher) (patch) (memory), label=right:\textbf{Loop 2: Alignment (Slow)}] {};
+
+\end{tikzpicture}
+\caption{\textbf{The SCAK Dual-Loop Architecture.} Loop 1 (left) handles synchronous execution with strict safety constraints. Loop 2 (right) asynchronously audits ``give-up signals'' via a strong Teacher Model to generate competence patches, ensuring high reliability without latency penalties.}
+\label{fig:ooda}
+\end{figure}
+
 \subsection{Scale by Subtraction}
 We propose that long-term reliability requires \textbf{Scale by Subtraction}: the architectural principle that an agent improves not just when it learns a new skill, but when it successfully \textit{forgets} a temporary dependency. 
 
@@ -71,6 +119,48 @@ To this end, we introduce the \textbf{Self-Correcting Agent Kernel (SCAK)}, a sy
 
 \subsection{Self-Correcting Language Agents}
 Recent work has explored using LLMs to correct their own output. \textbf{Reflexion} [Shinn et al., 2023] pioneered verbal reinforcement learning, where agents maintain a text-based trace of past failures. While effective for short-horizon tasks, Reflexion lacks a memory lifecycle; reflection traces accumulate indefinitely, eventually saturating the context window. \textbf{Self-Refine} [Madaan et al., 2023] demonstrates iterative improvement without external rewards but relies on the model's own capability to critique itself. Our ablation studies ($\S$4.5) show that self-critique fails on ``laziness'' tasks because the model shares the same blind spots as its generator. SCAK overcomes this by using a stronger external teacher (o1-preview) and introducing \textit{Semantic Purge} to prevent the ``technical debt of belief.''
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+    % Triangle
+    \coordinate (A) at (0,6);
+    \coordinate (B) at (-4,0);
+    \coordinate (C) at (4,0);
+    
+    \draw [thick, fill=gray!5] (A) -- (B) -- (C) -- cycle;
+    
+    % Tiers
+    \draw [thick] (-1.33, 4) -- (1.33, 4);
+    \draw [thick] (-2.66, 2) -- (2.66, 2);
+    
+    % Labels
+    \node at (0, 5) {\textbf{Tier 1: Kernel}};
+    \node at (0, 4.5) {\footnotesize (System Prompt)};
+    \node at (0, 4.2) {\scriptsize \textit{Safety Rules, Identity}};
+    
+    \node at (0, 3) {\textbf{Tier 2: Cache}};
+    \node at (0, 2.5) {\footnotesize (Redis / Hot Path)};
+    \node at (0, 2.2) {\scriptsize \textit{Tool Skills, Active Patches}};
+    
+    \node at (0, 1) {\textbf{Tier 3: Archive}};
+    \node at (0, 0.5) {\footnotesize (Vector DB / Cold Path)};
+    \node at (0, 0.2) {\scriptsize \textit{Long-tail Wisdom, Deprecated Rules}};
+    
+    % Arrows indicating flow
+    \draw [->, thick, red] (4.5, 1) -- node[right] {Demotion (Unused)} (4.5, 3); 
+    % Note: Arrow direction usually implies flow, let's fix semantics
+    \draw [->, thick, blue] (-4.5, 0.5) -- node[left] {Promotion (Frequent)} (-4.5, 2.5);
+    \draw [->, thick, blue] (-4.5, 3.5) -- (-4.5, 4.5);
+    
+    % Type A/B
+    \node[align=right] at (5, 5) {\textbf{Semantic Purge}\\Type A deleted here};
+    \draw [->, dashed] (2.5, 5) -- (1.5, 5);
+
+\end{tikzpicture}
+\caption{\textbf{Three-Tier Memory Hierarchy.} SCAK promotes frequently used ``Type B'' patches to the Kernel (Tier 1) for speed, while demoting unused or ``Type A'' syntax patches to the Archive (Tier 3). This hierarchy enables \textit{Scale by Subtraction} by keeping the active context window lean.}
+\label{fig:memory}
+\end{figure}
 
 \subsection{Multi-Agent Systems and Skill Libraries}
 \textbf{Voyager} [Wang et al., 2023] introduced the concept of an open-ended skill library for embodied agents (Minecraft). While Voyager demonstrates the power of persistent skills, its library grows monotonically. In enterprise settings, monotonic growth leads to \textit{Context Rot}. SCAK's contribution is the \textbf{Type A/B Taxonomy}, which provides a principled mechanism for \textit{forgetting} skills that become obsolete due to foundational model improvements (e.g., GPT-4o $\rightarrow$ GPT-5).
@@ -171,8 +261,7 @@ A common critique of ``Scale by Subtraction'' is that deleting patches risks reg
     \item \textbf{Cold Start:} New agents require a ``training period'' (approx. 7 days) to populate their semantic memory, during which performance trails mature agents.
 \end{itemize}
 
-\section{Conclusion}
-SCAK demonstrates that the path to reliable agentic AI is not through larger context windows or stricter static rails, but through \textbf{dynamic, hygienic memory}. By coupling \textit{Differential Auditing} (to detect what is missing) with \textit{Semantic Purge} (to remove what is obsolete), we achieve a system that improves with age rather than degrading under the weight of its own instructions.
+\section{Conclusion}We presented the \textbf{Self-Correcting Agent Kernel (SCAK)}, a system that challenges the prevailing dogma of ``more context is better.'' By coupling \textbf{Differential Auditing} (which detects missing capabilities at 10% the cost of full verification) with \textbf{Semantic Purge} (which actively removes obsolete instructions), we achieve a system that improves with age rather than degrading under the weight of its own prompt.Our empirical results on the GAIA extension demonstrate that reliability in agentic systems stems not from raw model intelligence, but from hygienic memory management. The capability to achieve a $<30$s MTTR in chaos scenarios suggests that SCAK is a viable kernel for mission-critical enterprise deployments.Ultimately, SCAK shifts the paradigm from \textit{Scale by Addition} to \textbf{Scale by Subtraction}. Future work will focus on federating competence patches across disparate agent fleets and exploring self-distillation techniques to remove the dependency on external teacher models entirely. This work serves as the foundational \textit{alignment engine} for autonomous systems; for the complementary \textit{runtime governance} architecture, we refer readers to our concurrent work on the Agent Control Plane [Cite ACP].
 
 \bibliographystyle{plain}
 \bibliography{bibliography}
