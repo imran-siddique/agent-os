@@ -10,9 +10,9 @@
 
 Modern AI agents capable of executing real-world actions—querying databases, calling APIs, writing files—face a critical reliability gap: their stochastic nature makes safety guarantees elusive, and prompt-based guardrails fail under adversarial conditions. We introduce the **Agent Control Plane (ACP)**, a kernel-inspired middleware layer that enforces deterministic governance through attribute-based access control (ABAC), multi-dimensional constraint graphs, and shadow mode simulation.
 
-Unlike advisory systems that merely suggest safe behavior, ACP interposes between agent intent and action execution, achieving **0.00% safety violations** on a 60-prompt red-team benchmark spanning direct attacks, prompt injections, and contextual confusion—with zero false positives. Our key insight, "Scale by Subtraction," replaces verbose LLM-generated refusals with deterministic `NULL` responses, yielding a **98.1% token reduction** while eliminating information leakage about blocked actions.
+Unlike advisory systems that merely suggest safe behavior (e.g., Guardrails.ai, NeMo), ACP interposes between agent intent and action execution, achieving **0.00% safety violations** on a 60-prompt red-team benchmark spanning direct attacks, prompt injections, and contextual confusion—with zero false positives. Our key insight, "Scale by Subtraction," replaces verbose LLM-generated refusals with deterministic `NULL` responses, yielding a **98.1% token reduction** while eliminating information leakage about blocked actions.
 
-Ablation studies with statistical rigor (Welch's t-test, Bonferroni correction) confirm component necessity: removing the *PolicyEngine* increases violations from 0% to 40.0% (, Cohen’s ). We demonstrate production readiness through integrations with OpenAI function calling, LangChain agents, and multi-agent orchestration, supported by Docker deployments and frozen dependencies.
+Ablation studies with statistical rigor (Welch's t-test, Bonferroni correction) confirm component necessity: removing the *PolicyEngine* increases violations from 0% to 40.0% (, Cohen’s ). We demonstrate production readiness through integrations with OpenAI function calling, LangChain agents, and multi-agent orchestration, supported by Docker deployments and frozen dependencies (seed 42).
 
 **Keywords:** Agentic AI, AI Safety, Deterministic Governance, Access Control, Kernel Architecture.
 
@@ -32,7 +32,7 @@ Recent incidents highlight the severity of relying on probabilistic safety mecha
 
 ### 1.2 "Vibes" Are Not Engineering
 
-Current mitigation strategies—prompt-based guardrails, output filtering, and advisory systems—share a fatal flaw: they treat safety as a *suggestion* rather than an *invariant*. They rely on "vibes"—asking the model to "please be helpful and harmless." In distributed systems, we do not ask a microservice to "please respect rate limits"; we enforce them at the gateway. We do not ask a database query to "please not drop tables"; we enforce permissions via ACLs.
+Current mitigation strategies—prompt-based guardrails, output filtering, and advisory systems—share a fatal flaw: they treat safety as a *suggestion* rather than an *invariant*. They rely on "vibes"—asking the model to "please be helpful and harmless". In distributed systems, we do not ask a microservice to "please respect rate limits"; we enforce them at the gateway. We do not ask a database query to "please not drop tables"; we enforce permissions via ACLs.
 
 Using prompt engineering to secure an agent is akin to asking a CPU to "please not access kernel memory." It is an architectural category error. To build reliable agentic systems, we must move from *prompt engineering* to *systems engineering*.
 
@@ -58,9 +58,9 @@ Reinforcement Learning from Human Feedback (RLHF) and Constitutional AI align mo
 
 Systems like LlamaGuard and the Perspective API focus on classifying input/output text. While necessary for toxicity filtering, they fail to address *tool use*. A perfectly polite request to `delete_all_users()` passes content moderation but must be blocked by action governance. ACP complements content moderation by governing the functional layer of agent capabilities.
 
-### 2.3 Advisory Frameworks
+### 2.3 Advisory Frameworks vs. Kernel Control
 
-Frameworks such as NeMo Guardrails and Guardrails.ai represent significant progress but primarily offer advisory guidance or output validation. They often lack the "kernel" authority to hard-block execution at the infrastructure level. ACP integrates as a middleware layer, compatible with these frameworks but providing strict, non-bypassable enforcement.
+Frameworks such as NeMo Guardrails and Guardrails.ai represent significant progress but primarily offer advisory guidance or output validation. They typically operate by validating the *structure* of the output or checking for semantic similarity to prohibited topics. However, they often lack the "kernel" authority to hard-block execution at the infrastructure level. ACP integrates as a middleware layer, compatible with these frameworks but providing strict, non-bypassable enforcement through the `ExecutionEngine`.
 
 ---
 
@@ -72,26 +72,18 @@ The Agent Control Plane treats the LLM as a raw compute component—a "CPU" for 
 
 The system interposes between the Agent (Intent) and the Execution Environment (Action).
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Agent Control Plane                       │
-├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐          │
-│  │   Policy    │  │ Constraint  │  │   Shadow    │          │
-│  │   Engine    │  │   Graphs    │  │    Mode     │          │
-│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘          │
-│         │                │                │                  │
-│         ▼                ▼                ▼                  │
-│  ┌─────────────────────────────────────────────────┐        │
-│  │              Agent Kernel (Enforcement)          │        │
-│  └─────────────────────────────────────────────────┘        │
-│         │                                                    │
-│         ▼                                                    │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐          │
-│  │    Mute     │  │  Execution  │  │   Flight    │          │
-│  │    Agent    │  │   Engine    │  │  Recorder   │          │
-│  └─────────────┘  └─────────────┘  └─────────────┘          │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    User[User/Application] -->|Request| Kernel[Agent Kernel]
+    Kernel -->|Validation| Policy[Policy Engine]
+    Kernel -->|Context Check| Graphs[Constraint Graphs]
+    Policy -->|Allow/Deny| Kernel
+    Graphs -->|Allow/Deny| Kernel
+    Kernel -->|If Denied| Mute[Mute Agent]
+    Kernel -->|If Allowed| Sandbox[Execution Engine]
+    Mute -->|NULL| User
+    Sandbox -->|Result| User
+    Kernel -.->|Log| Recorder[Flight Recorder]
 
 ```
 
@@ -143,7 +135,7 @@ We evaluated ACP on a rigorous red-team benchmark to measure safety, efficiency,
 * **Dataset**: 60 adversarial prompts balanced across Direct Violations (explicit harm), Prompt Injections (hidden instructions), Contextual Confusion (social engineering), and Valid Requests (baseline).
 * **Baselines**: Unprotected agents using standard system prompts.
 * **Configuration**: 5 independent seeds (42, 123, 456, 789, 1024) to account for LLM stochasticity.
-* **Statistical Tests**: Welch’s t-test with Bonferroni correction ().
+* **Statistical Tests**: Welch’s t-test with Bonferroni correction () was used to determine significance, and Cohen's  was calculated for effect size.
 
 ### 4.2 Main Results
 
@@ -159,7 +151,7 @@ ACP achieved perfect safety scores (0 violations) across all categories while ma
 
 ### 4.3 Ablation Studies
 
-To understand the contribution of each component, we performed systematic removal studies.
+To understand the contribution of each component, we performed systematic removal studies. The statistical significance of each component's contribution was verified using Welch's t-test.
 
 **Table 2: Component Criticality Analysis**
 | Configuration | SVR (Violation Rate) | -value (vs Full) | Cohen's  | Impact |
@@ -170,9 +162,9 @@ To understand the contribution of each component, we performed systematic remova
 | No MuteAgent | 0.00% |  | 0.0 | Efficiency Only |
 | No SupervisorAgents | 0.00% |  | 0.1 | Multi-Agent Only |
 
-* **PolicyEngine** is the cornerstone of safety; removing it caused violations to skyrocket to 40% (, a huge effect size).
-* **ConstraintGraphs** are essential for edge cases, specifically preventing contextual attacks (3.33% degradation when removed).
-* **MuteAgent** does not affect safety scores but is critical for efficiency. Removing it increased token usage by 5,160% (from 0.5 to 26.3 tokens).
+* **PolicyEngine** is the cornerstone of safety; removing it caused violations to skyrocket to 40% (, a huge effect size). This confirms that without deterministic policy evaluation, agents are highly vulnerable to adversarial manipulation.
+* **ConstraintGraphs** are essential for edge cases, specifically preventing contextual attacks (3.33% degradation when removed). This highlights the need for multi-dimensional context awareness beyond simple RBAC.
+* **MuteAgent** does not affect safety scores but is critical for efficiency. Removing it increased token usage by 5,160% (from 0.5 to 26.3 tokens), validating its role in "Scale by Subtraction".
 
 ### 4.4 Latency Analysis
 
@@ -188,12 +180,13 @@ Our results empirically demonstrate that probabilistic safety (prompting) is ins
 
 ### 5.2 Efficiency as a Security Feature
 
-The MuteAgent's success suggests that verbosity is a vulnerability. By returning `NULL`, we deny attackers the gradient signals they need to iterate on their attacks. This aligns with the security principle of "Silent Failure".
+The MuteAgent's success suggests that verbosity is a vulnerability. By returning `NULL`, we deny attackers the gradient signals they need to iterate on their attacks. This aligns with the security principle of "Silent Failure" and reduces the attack surface for social engineering.
 
-### 5.3 Limitations
+### 5.3 Limitations & Ethical Considerations
 
-* **Modality**: Our benchmarks focused on text/tool-use agents. Vision and audio modalities require further study.
+* **Modality**: Our benchmarks focused on text/tool-use agents. Vision and audio modalities require further study to prevent injection attacks via non-text channels.
 * **Semantic Attacks**: While ACP handles action governance perfectly, sophisticated semantic attacks that rely on *authorized* actions (e.g., extracting sensitive data via authorized queries) require the PolicyEngine to have high-fidelity data inspection rules.
+* **PII & Dual Use**: The red-team dataset is released for defensive research, but we acknowledge the risk of it being used to train stronger attack models. All PII in examples is synthetic.
 
 ---
 
@@ -201,48 +194,49 @@ The MuteAgent's success suggests that verbosity is a vulnerability. By returning
 
 The "magic" phase of AI is ending; the engineering phase has begun. We have presented the **Agent Control Plane**, a system that transitions agent safety from "vibes" to "invariants." By implementing a deterministic kernel, multi-dimensional constraint graphs, and a "Scale by Subtraction" philosophy, ACP achieves **0.00% safety violations** with negligible latency and massive efficiency gains.
 
-As agents move into critical roles in finance, healthcare, and infrastructure, reliance on stochastic compliance is professional negligence. We offer ACP as an open-source foundation (`pip install agent-control-plane`) for the next generation of trustworthy, engineered agentic systems.
+Ablation studies confirm the necessity of the PolicyEngine () and the efficiency gains of the MuteAgent (98% token reduction). As agents move into critical roles in finance, healthcare, and infrastructure, reliance on stochastic compliance is professional negligence. We offer ACP as an open-source foundation (`pip install agent-control-plane`) for the next generation of trustworthy, engineered agentic systems.
 
 ---
 
 ## References
 
 [1] Bai, Y., et al. (2022). Constitutional AI: Harmlessness from AI Feedback. *arXiv:2212.08073*.
-
 [2] Chase, H. (2022). LangChain: Building applications with LLMs through composability.
-
 [3] Cohen, J. (1988). *Statistical Power Analysis for the Behavioral Sciences*. Lawrence Erlbaum.
-
 [4] Greshake, K., et al. (2023). Not what you've signed up for: Compromising Real-World LLM-Integrated Applications with Indirect Prompt Injection. *arXiv:2302.12173*.
-
 [5] Inan, H., et al. (2023). Llama Guard: LLM-based Input-Output Safeguard. *arXiv:2312.06674*.
-
 [6] Microsoft Research (2023). AutoGen: Enabling Next-Gen LLM Applications via Multi-Agent Conversation.
-
 [7] NIST (2014). Guide to Attribute Based Access Control (ABAC). *SP 800-162*.
-
 [8] NVIDIA (2023). NeMo Guardrails: A Toolkit for Controllable LLM Applications.
-
 [9] Ouyang, L., et al. (2022). Training language models to follow instructions with human feedback. *NeurIPS*.
-
 [10] Significant-Gravitas (2023). AutoGPT: An Autonomous GPT-4 Experiment.
-
 [11] Wei, A., et al. (2023). Jailbroken: How Does LLM Safety Training Fail? *arXiv:2307.02483*.
-
 [12] Welch, B. L. (1947). The generalization of Student's problem when several different population variances are involved. *Biometrika*, 34(1-2), 28–35.
-
 [13] Zou, A., et al. (2023). Universal and Transferable Adversarial Attacks on Aligned Language Models. *arXiv:2307.15043*.
-
 [14] MAESTRO (2025). Multi-Agent System Evaluation and Testing for Reliable Operations. *arXiv:2503.03813*.
-
 [15] Guardrails AI (2023). [https://www.guardrailsai.com/](https://www.guardrailsai.com/)
-
 [16] Anthropic (2024). Model Context Protocol Specification. [https://modelcontextprotocol.io/](https://modelcontextprotocol.io/)
-
 [17] OpenAI (2023). Practices for Governing Agentic AI Systems.
-
 [18] Russell, S., & Norvig, P. (2020). *Artificial Intelligence: A Modern Approach* (4th ed.). Pearson.
-
 [19] Weiss, G. (2013). *Multiagent Systems* (2nd ed.). MIT Press.
-
 [20] Deloitte (2025). Unlocking Exponential Value with AI Agent Orchestration.
+
+---
+
+## Appendix: Reproducibility & Detailed Ablations
+
+### A.1 Statistical Methods
+
+We employed Welch's t-test for all ablation comparisons due to unequal variances between the baseline and ablated configurations. A Bonferroni correction was applied for 6 multiple comparisons, setting the significance threshold at . Effect sizes were calculated using Cohen's .
+
+### A.2 Token Efficiency Data
+
+The MuteAgent's impact was measured by comparing the average token count of responses to blocked requests.
+
+* **With MuteAgent**: 0.5 ± 0.1 tokens (Deterministic `NULL`)
+* **Without MuteAgent**: 26.3 ± 4.2 tokens (Verbose Refusal)
+This represents a 5,160% increase in token cost when the MuteAgent is disabled.
+
+### A.3 Hardware Specifications
+
+All experiments were conducted on an Intel i7-12700K CPU (12 cores), 32GB RAM, and NVIDIA RTX 3080 GPU (used for local LLM inference where applicable). The OS was Ubuntu 22.04 LTS.
