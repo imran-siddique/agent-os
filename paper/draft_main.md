@@ -1,12 +1,14 @@
 # Agent Control Plane: A Deterministic Kernel for Zero-Violation Governance in Agentic AI
 
-**Imran Siddique** *Principal Group Engineering Manager, Microsoft* *Independent Researcher* *imran.siddique@microsoft.com* | *@isiddique*
+**Imran Siddique**
+*Principal Group Engineering Manager, Microsoft* | *Independent Researcher*
+*Correspondence: @isiddique (GitHub/Medium)*
 
 ---
 
 ## Abstract
 
-Modern AI agents capable of executing real-world actions—querying databases, calling APIs, writing files—face a critical reliability gap: their stochastic nature makes safety guarantees elusive, and prompt-based guardrails fail under adversarial conditions. We introduce the **Agent Control Plane (ACP)**, a kernel-inspired middleware layer that enforces deterministic governance through attribute-based access control (ABAC), multi-dimensional constraint graphs, shadow mode simulation, and comprehensive flight recording for audits.
+Modern AI agents capable of executing real-world actions—querying databases, calling APIs, writing files—face a critical reliability gap: their stochastic nature makes safety guarantees elusive, and prompt-based guardrails fail under adversarial conditions. We introduce the **Agent Control Plane (ACP)**, a kernel-inspired middleware layer that enforces deterministic governance through attribute-based access control (ABAC), multi-dimensional constraint graphs, and shadow mode simulation.
 
 Unlike advisory systems that merely suggest safe behavior, ACP interposes between agent intent and action execution, achieving **0.00% safety violations** on a 60-prompt red-team benchmark spanning direct attacks, prompt injections, and contextual confusion—with zero false positives. Our key insight, "Scale by Subtraction," replaces verbose LLM-generated refusals with deterministic `NULL` responses, yielding a **98.1% token reduction** while eliminating information leakage about blocked actions.
 
@@ -20,12 +22,12 @@ Ablation studies with statistical rigor (Welch's t-test, Bonferroni correction) 
 
 ### 1.1 The Agent Safety Crisis
 
-The deployment of autonomous AI agents in enterprise environments has accelerated dramatically. Agents are no longer passive chat interfaces; they are active entities capable of executing consequential real-world actions: querying production databases, calling external APIs, modifying file systems, and orchestrating multi-step workflows [1, 20]. Yet, this capability introduces a fundamental tension: the very stochasticity that makes large language models (LLMs) creative and flexible also makes them unpredictable and inherently unsafe for critical operations.
+The deployment of autonomous AI agents in enterprise environments has accelerated dramatically. Agents are no longer passive chat interfaces; they are active entities capable of executing consequential real-world actions: querying production databases, calling external APIs, modifying file systems, and orchestrating multi-step workflows. Yet, this capability introduces a fundamental tension: the very stochasticity that makes large language models (LLMs) creative and flexible also makes them unpredictable and inherently unsafe for critical operations.
 
 Recent incidents highlight the severity of relying on probabilistic safety mechanisms:
 
-* **Jailbreak vulnerabilities**: Adversarial prompts routinely bypass safety training. Techniques like "DAN" (Do Anything Now) and role-playing exploits achieve success rates exceeding 80% on supposedly aligned models [11, 13].
-* **Prompt injection attacks**: Malicious instructions embedded in retrieved documents or user inputs can hijack agent behavior, causing unintended data exfiltration or destructive actions [4].
+* **Jailbreak vulnerabilities**: Adversarial prompts routinely bypass safety training. Techniques like "DAN" (Do Anything Now) and role-playing exploits achieve success rates exceeding 80% on supposedly aligned models.
+* **Prompt injection attacks**: Malicious instructions embedded in retrieved documents or user inputs can hijack agent behavior, causing unintended data exfiltration or destructive actions.
 * **Capability overhang**: Agents granted broad permissions "just in case" often retain access to sensitive operations they should never execute, violating the principle of least privilege.
 
 ### 1.2 "Vibes" Are Not Engineering
@@ -40,8 +42,8 @@ We propose the **Agent Control Plane (ACP)**, a kernel-inspired architecture tha
 
 Our design is grounded in three core philosophies:
 
-1. **Deterministic over Stochastic**: Safety decisions must be binary (allow/deny). A database query is either permitted or blocked; there is no "85% safe." This eliminates the ambiguity adversaries exploit in probabilistic filtering [1].
-2. **Action-Level over Content-Level**: We govern what agents *do*, not just what they *say*. An agent may generate text describing a `DROP TABLE` operation, but the ACP kernel prevents the command from ever reaching the database execution engine.
+1. **Deterministic over Stochastic**: Safety decisions must be binary (allow/deny). A database query is either permitted or blocked; there is no "85% safe." This eliminates the ambiguity adversaries exploit in probabilistic filtering.
+2. **Action-Level over Content-Level**: We govern what agents *do*, not just what they *say*. An agent may generate text describing a `DROP TABLE` operation, but the ACP kernel prevents the command from ever reaching the execution engine.
 3. **Scale by Subtraction**: Traditional refusal mechanisms ("I'm sorry, I cannot do that...") leak information about security boundaries and waste tokens. ACP’s **MuteAgent** component returns deterministic `NULL` responses for blocked actions. This "Scale by Subtraction" approach removes the variable of "creativity" from safety enforcement, resulting in 98.1% greater efficiency and zero information leakage.
 
 ---
@@ -50,15 +52,15 @@ Our design is grounded in three core philosophies:
 
 ### 2.1 Training-Time Alignment vs. Runtime Enforcement
 
-Reinforcement Learning from Human Feedback (RLHF) [9] and Constitutional AI [1] align models during training. While effective for general behavior shaping, training-time alignment is vulnerable to jailbreaks at inference time [11] and cannot adapt to dynamic enterprise policies (e.g., "no database writes during maintenance windows"). ACP operates at runtime, providing defense-in-depth that remains effective even when alignment fails.
+Reinforcement Learning from Human Feedback (RLHF) and Constitutional AI align models during training. While effective for general behavior shaping, training-time alignment is vulnerable to jailbreaks at inference time and cannot adapt to dynamic enterprise policies (e.g., "no database writes during maintenance windows"). ACP operates at runtime, providing defense-in-depth that remains effective even when alignment fails.
 
 ### 2.2 Content Moderation
 
-Systems like LlamaGuard [5] and the Perspective API focus on classifying input/output text. While necessary for toxicity filtering, they fail to address *tool use*. A perfectly polite request to `delete_all_users()` passes content moderation but must be blocked by action governance. ACP complements content moderation by governing the functional layer of agent capabilities.
+Systems like LlamaGuard and the Perspective API focus on classifying input/output text. While necessary for toxicity filtering, they fail to address *tool use*. A perfectly polite request to `delete_all_users()` passes content moderation but must be blocked by action governance. ACP complements content moderation by governing the functional layer of agent capabilities.
 
 ### 2.3 Advisory Frameworks
 
-Frameworks such as NeMo Guardrails [8] and Guardrails.ai [15] represent significant progress but primarily offer advisory guidance or output validation. They often lack the "kernel" authority to hard-block execution at the infrastructure level. ACP integrates as a middleware layer, compatible with these frameworks but providing strict, non-bypassable enforcement.
+Frameworks such as NeMo Guardrails and Guardrails.ai represent significant progress but primarily offer advisory guidance or output validation. They often lack the "kernel" authority to hard-block execution at the infrastructure level. ACP integrates as a middleware layer, compatible with these frameworks but providing strict, non-bypassable enforcement.
 
 ---
 
@@ -186,7 +188,7 @@ Our results empirically demonstrate that probabilistic safety (prompting) is ins
 
 ### 5.2 Efficiency as a Security Feature
 
-The MuteAgent's success suggests that verbosity is a vulnerability. By returning `NULL`, we deny attackers the gradient signals they need to iterate on their attacks. This aligns with the security principle of "Silent Failure."
+The MuteAgent's success suggests that verbosity is a vulnerability. By returning `NULL`, we deny attackers the gradient signals they need to iterate on their attacks. This aligns with the security principle of "Silent Failure".
 
 ### 5.3 Limitations
 
