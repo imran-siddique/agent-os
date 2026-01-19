@@ -45,16 +45,26 @@ As required by conference submission guidelines, we provide complete transparenc
   - Generating scientific claims
   - Paraphrasing or summarizing research
 
-### 3. ChatGPT-4 (OpenAI)
-- **Purpose:** Brainstorming and early drafting
+### 3. ChatGPT-4 / Claude (OpenAI / Anthropic)
+- **Purpose:** Brainstorming, early drafting, and technical assistance
 - **Scope:**
   - Initial outline generation (abstract structure)
   - Synonym suggestions for repetitive words
   - Reformatting equations into LaTeX syntax
+  - ASCII diagram creation for architecture visualization
 - **NOT Used For:**
   - Generating novel research ideas
   - Writing experimental results or analysis
-  - Creating figures or tables
+  - Creating figures or tables with fabricated data
+
+### 4. Grok / xAI (X platform)
+- **Purpose:** Cross-checking technical claims and literature review
+- **Scope:**
+  - Verifying citation accuracy for recent papers (2024-2025)
+  - Suggesting related work that may have been missed
+- **NOT Used For:**
+  - Writing any section of the paper
+  - Generating experimental data
 
 ---
 

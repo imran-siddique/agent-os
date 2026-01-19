@@ -2,16 +2,26 @@
 
 This folder contains figures for the Self-Correcting Agent Kernel paper.
 
-## Required Figures
+## Figure Status
 
 | Figure | Description | Source | Status |
 |--------|-------------|--------|--------|
-| `fig1_architecture.pdf` | Dual-Loop OODA Architecture | paper_draft.md §3.2 | ⏳ Pending |
-| `fig2_memory_hierarchy.pdf` | Three-Tier Memory System | paper_draft.md §3.5 | ⏳ Pending |
-| `fig3_gaia_results.pdf` | GAIA Benchmark Bar Chart | paper_draft.md Table 2 | ⏳ Pending |
-| `fig4_ablation_heatmap.pdf` | Ablation Study Results | paper_draft.md Table 5 | ⏳ Pending |
-| `fig5_context_reduction.pdf` | Token Reduction Over Time | paper_draft.md Table 3 | ⏳ Pending |
-| `fig6_mttr_boxplot.pdf` | MTTR Comparison Box Plot | paper_draft.md Table 4 | ⏳ Pending |
+| `fig1_ooda_architecture.md` | Dual-Loop OODA Architecture | draft_main.md §3.2 | ✅ Spec ready |
+| `fig2_memory_hierarchy.md` | Three-Tier Memory System | draft_main.md §3.5 | ✅ Spec ready |
+| `fig3_gaia_results.md` | GAIA Benchmark Bar Chart | draft_main.md Table 1 | ✅ Spec ready |
+| `fig4_ablation_heatmap.md` | Ablation Study Results | draft_main.md Table 4 | ✅ Spec ready |
+| `fig5_context_reduction.md` | Token Reduction Over Time | draft_main.md Table 2 | ✅ Spec ready |
+| `fig6_mttr_boxplot.md` | MTTR Comparison Box Plot | draft_main.md Table 3 | ✅ Spec ready |
+
+## Next Steps
+
+1. Convert `.md` specs to vector graphics (PDF/SVG)
+2. Use tools: draw.io, Matplotlib, TikZ, or Excalidraw
+3. Each `.md` file contains:
+   - ASCII reference diagram
+   - Color scheme
+   - Data tables
+   - Caption text
 
 ## Tools
 

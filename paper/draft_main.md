@@ -143,7 +143,9 @@ We present the **Self-Correcting Agent Kernel (SCAK)**, a dual-loop architecture
 
 ### 3.2 Dual-Loop Architecture
 
-SCAK implements the **OODA loop** (Observe-Orient-Decide-Act) [Boyd, 1987] as two concurrent processes:
+SCAK implements the **OODA loop** (Observe-Orient-Decide-Act) [Boyd, 1987] as two concurrent processes (Figure 1).
+
+![Figure 1: Dual-Loop OODA Architecture](figures/fig1_ooda_architecture.png)
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -249,7 +251,9 @@ Output: Reduced patch set P'
 
 ### 3.5 Three-Tier Memory Hierarchy
 
-SCAK organizes patches into three storage tiers optimized for different access patterns:
+SCAK organizes patches into three storage tiers optimized for different access patterns (Figure 2).
+
+![Figure 2: Three-Tier Memory Hierarchy](figures/fig2_memory_hierarchy.png)
 
 | Tier | Storage | Capacity | Access Pattern | Contents |
 |------|---------|----------|----------------|----------|
@@ -315,6 +319,8 @@ SCAK organizes patches into three storage tiers optimized for different access p
 
 **Key Finding:** Differential auditing with an external teacher achieves 80% more corrections than self-critique alone.
 
+![Figure 3: GAIA Laziness Benchmark Results](figures/fig3_gaia_results.png)
+
 ### 4.3 Amnesia Test (Context Efficiency)
 
 **Table 2: Context Reduction via Semantic Purge**
@@ -328,6 +334,8 @@ SCAK organizes patches into three storage tiers optimized for different access p
 
 **Interpretation:** Without Semantic Purge, prompts grow unboundedly. SCAK's Type A/B classification achieves 45% reduction while preserving all business-critical knowledge.
 
+![Figure 5: Context Reduction via Semantic Purge](figures/fig5_context_reduction.png)
+
 ### 4.4 Chaos Engineering (Robustness)
 
 **Table 3: Recovery from Injected Failures**
@@ -339,6 +347,8 @@ SCAK organizes patches into three storage tiers optimized for different access p
 | **SCAK** | **28s ± 6s** | **85%** | **2.3 failures** |
 
 **Test Scenarios:** Database connection timeout, API rate limit exceeded, malformed tool response, concurrent request conflict.
+
+![Figure 6: MTTR Comparison Box Plot](figures/fig6_mttr_boxplot.png)
 
 ### 4.5 Ablation Studies
 
@@ -365,6 +375,8 @@ Self-Critique: [42, 38, 40, 36, 44] → mean=40.0, std=3.16
 2. **Self-critique is insufficient:** Internal reflection achieves only 55% of SCAK's performance
 3. **Differential auditing is essential:** Without it, detection drops to 0%
 4. **Semantic Purge provides modest gains:** 4% improvement, statistically significant
+
+![Figure 4: Ablation Study Heatmap](figures/fig4_ablation_heatmap.png)
 
 ### 4.6 Cost Analysis
 
@@ -435,6 +447,8 @@ Ablation studies confirm the necessity of each component, with the external teac
 - **Adversarial robustness:** Defend against patch injection attacks
 
 **Availability:** Code (`pip install scak`), datasets, and reproduction materials are publicly available at [GitHub repository] and [Hugging Face datasets].
+
+**Companion Work:** Runtime governance and multi-agent orchestration aspects are detailed in our concurrent preprint "Agent Control Plane: A Unified Architecture for LLM Agent Governance" [Anonymous, 2026].
 
 ---
 
