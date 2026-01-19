@@ -18,9 +18,9 @@ if ! command -v pandoc &> /dev/null; then
 fi
 
 # Build main paper
-echo "Converting PAPER_DRAFT.md to PDF..."
-pandoc PAPER_DRAFT.md \
-    -o draft.pdf \
+echo "Converting main.md to PDF..."
+pandoc main.md \
+    -o paper.pdf \
     --pdf-engine=xelatex \
     -V geometry:margin=1in \
     -V fontsize=11pt \
@@ -28,9 +28,9 @@ pandoc PAPER_DRAFT.md \
     --number-sections \
     --bibliography=references.bib \
     --citeproc \
-    2>/dev/null || pandoc PAPER_DRAFT.md -o draft.pdf --pdf-engine=pdflatex -V geometry:margin=1in
+    2>/dev/null || pandoc main.md -o paper.pdf --pdf-engine=pdflatex -V geometry:margin=1in
 
-echo "✓ Created draft.pdf"
+echo "✓ Created paper.pdf"
 
 # Build appendix if exists
 if [ -f "appendix.md" ]; then
