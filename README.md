@@ -10,7 +10,7 @@
 
 > **"We do not fix agents by adding more rules. We fix them by architecting the capacity to learn from failure without bloating the context."**
 
-📄 **[Paper](https://arxiv.org)** | 📚 **[Documentation](./wiki/)** | 🎯 **[Benchmarks](./experiments/)** | 🤝 **[Contributing](./CONTRIBUTING.md)**
+📄 **[Paper](./paper/)** | 📚 **[Documentation](./docs/)** | 🎯 **[Benchmarks](./experiments/)** | 🤝 **[Contributing](./CONTRIBUTING.md)**
 
 ---
 
@@ -627,7 +627,7 @@ self-correcting-agent-kernel/
 │   ├── gaia_benchmark/      # Laziness stress test
 │   └── chaos_engineering/   # Robustness test
 ├── examples/                # Demos and examples
-├── wiki/                    # Comprehensive documentation
+├── docs/                    # Comprehensive documentation
 └── tests/                   # Test suite (183 tests)
 ```
 
@@ -779,17 +779,14 @@ stats = kernel.process_async_queue(batch_size=10)
 
 ## **15. 📚 Documentation**
 
-Comprehensive documentation is available in the [wiki directory](./wiki/):
+Comprehensive documentation is available in the [docs directory](./docs/):
 
-- **[Dual-Loop Architecture](./wiki/Dual-Loop-Architecture.md)** - Complete system architecture
-- **[Enhanced Features](./wiki/Enhanced-Features.md)** - Advanced features and capabilities
-- **[Three Failure Types](./wiki/Three-Failure-Types.md)** - Specific failure handling strategies
-- **[Reference Implementations](./wiki/Reference-Implementations.md)** - Educational code examples
-- **[Adaptive Memory Hierarchy](./wiki/Adaptive-Memory-Hierarchy.md)** - Three-tier memory system
-- **[Phase 3 Memory Lifecycle](./wiki/Phase3-Memory-Lifecycle.md)** - SkillMapper, Rubric, Write-Through
-- **[Data Contracts](./wiki/Data-Contracts-and-Schemas.md)** - Pydantic schemas and RLAIF readiness
+- **[Dual-Loop Architecture](./docs/Dual-Loop-Architecture.md)** - Complete system architecture
+- **[Three Failure Types](./docs/Three-Failure-Types.md)** - Specific failure handling strategies
+- **[Adaptive Memory Hierarchy](./docs/Adaptive-Memory-Hierarchy.md)** - Three-tier memory system
+- **[Data Contracts](./docs/Data-Contracts-and-Schemas.md)** - Pydantic schemas and RLAIF readiness
 
-Start with the [wiki README](./wiki/README.md) for a guided tour.
+Start with the [docs README](./docs/README.md) for a guided tour.
 
 ---
 

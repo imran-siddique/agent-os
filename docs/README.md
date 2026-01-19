@@ -1,6 +1,6 @@
-# Self-Correcting Agent Kernel - Documentation Wiki
+# Self-Correcting Agent Kernel - Documentation
 
-Welcome to the Self-Correcting Agent Kernel documentation wiki. This directory contains comprehensive guides and references for understanding and using the system.
+Welcome to the SCAK documentation. This directory contains comprehensive guides and references.
 
 ## 📚 Documentation Index
 
@@ -13,16 +13,12 @@ Welcome to the Self-Correcting Agent Kernel documentation wiki. This directory c
 
 ### Feature Guides
 
-- **[Enhanced Features](./Enhanced-Features.md)** - Advanced features and enhancements
-  - Tool Execution Telemetry (False Positive Prevention)
-  - Semantic Analysis (Beyond Regex)
-  - Nudge Mechanism (Automatic Retry Logic)
-  - Value Delivery Metrics (Competence Focus)
-
 - **[Three Failure Types](./Three-Failure-Types.md)** - Implementation guide for specific failures
   - Tool Misuse (Schema Injection)
   - Hallucination (RAG Patch)
   - Policy Violation (Constitutional Update)
+
+- **[Enhanced Features](./Enhanced-Features.md)** - Advanced features and enhancements
 
 ### Memory Management
 
@@ -30,20 +26,10 @@ Welcome to the Self-Correcting Agent Kernel documentation wiki. This directory c
   - Tier 1 (Kernel): Safety-critical rules
   - Tier 2 (Skill Cache): Tool-specific lessons
   - Tier 3 (Archive): Long-tail wisdom
-  - Write-Through Architecture
-  - Promotion/Demotion mechanisms
-
-- **[Phase 3: Memory Lifecycle](./Phase3-Memory-Lifecycle.md)** - Advanced memory management
-  - SkillMapper: Tool signature matching
-  - LessonRubric: Retention scoring (S+G+F formula)
-  - Write-Through Protocol (safe purge)
-  - Disaster recovery with cache rebuild
 
 - **[Data Contracts and Schemas](./Data-Contracts-and-Schemas.md)** - Type-safe communication
-  - Pydantic data models (Lesson, FailureTrace, PatchRequest)
-  - Auditor-Patcher integration
+  - Pydantic data models
   - RLAIF export readiness
-  - 100% laziness detection accuracy
 
 ### Reference Materials
 

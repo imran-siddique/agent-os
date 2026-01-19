@@ -12,12 +12,12 @@
 | File | Purpose | Status |
 |------|---------|--------|
 | `draft_main.md` | **Primary paper draft** (camera-ready skeleton) | ✅ Complete |
-| `paper_draft.md` | Extended draft with notes & alternatives | Reference |
+| `appendix.md` | Paper appendix (Sections A-G) | ✅ Complete |
 | `bibliography.bib` | BibTeX references (30+ citations) | ✅ Ready |
 | `PAPER_CHECKLIST.md` | Submission checklist & progress tracker | ✅ Updated |
 | `LLM_DISCLOSURE.md` | Required LLM usage disclosure | ✅ Complete |
-| `figures/` | Architecture diagrams, result charts | 🔄 To be created |
-| `appendix.md` | Extended reproducibility, ablations | → See `reproducibility/paper_appendix.md` |
+| `figures/` | Architecture diagrams, result charts | ✅ Specs ready |
+| `build.sh` | Pandoc build script | ✅ Ready |
 
 ---
 
@@ -26,7 +26,7 @@
 ### View/Edit Draft
 ```bash
 # Markdown (recommended for quick editing)
-code paper/paper_draft.md
+code paper/draft_main.md
 
 # Or open in any markdown editor
 ```
