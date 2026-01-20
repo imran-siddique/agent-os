@@ -134,8 +134,7 @@ Our objective is to maximize $P(\pi)$ while minimizing $\mathcal{R}$ and elimina
 
 \begin{figure}[t]
     \centering
-    % Placeholder for architecture diagram
-    \fbox{\parbox{0.9\textwidth}{\centering\vspace{2cm}\textbf{[Figure 1: Dual-Loop OODA Architecture]}\\\small See figures/fig1\_ooda\_architecture.md for spec\vspace{2cm}}}
+    \includegraphics[width=0.95\textwidth]{figures/fig1_ooda_architecture.pdf}
     \caption{\textbf{\scak{} Dual-Loop Architecture.} Loop 1 (Runtime) handles user queries with minimal latency. Loop 2 (Alignment) triggers asynchronously on give-up signals, using differential auditing to detect laziness and generate competence patches.}
     \label{fig:architecture}
 \end{figure}
@@ -182,8 +181,7 @@ We classify every patch $p$ into a Decay Category $D$ to prevent context rot (Fi
 
 \begin{figure}[t]
     \centering
-    % Placeholder for memory hierarchy diagram
-    \fbox{\parbox{0.9\textwidth}{\centering\vspace{1.5cm}\textbf{[Figure 2: Three-Tier Memory Hierarchy]}\\\small Tier 1 (Kernel): System Prompt | Tier 2 (Cache): Redis | Tier 3 (Archive): Vector DB\vspace{1.5cm}}}
+    \includegraphics[width=0.95\textwidth]{figures/fig2_memory_hierarchy.pdf}
     \caption{\textbf{Three-Tier Memory Hierarchy.} Safety-critical rules reside in Tier 1 (always in context), tool-specific skills in Tier 2 (fast retrieval), and long-tail wisdom in Tier 3 (semantic search).}
     \label{fig:memory}
 \end{figure}
@@ -261,8 +259,7 @@ Self-Critique & 100\% & 40\% & 48\% \\
 
 \begin{figure}[t]
     \centering
-    % Placeholder for GAIA results bar chart
-    \fbox{\parbox{0.9\textwidth}{\centering\vspace{1.5cm}\textbf{[Figure 3: GAIA Benchmark Results]}\\\small Bar chart comparing correction rates across methods\vspace{1.5cm}}}
+    \includegraphics[width=0.9\textwidth]{figures/fig3_gaia_results.pdf}
     \caption{\textbf{GAIA Laziness Benchmark: Correction Rates.} \scak{} achieves 72\% correction rate, outperforming both self-critique (40\%) and the stronger o1-preview model used alone (40\%).}
     \label{fig:gaia}
 \end{figure}
@@ -287,8 +284,7 @@ No Purge & 800 & 1,600 & 1,600 & 0\% \\
 
 \begin{figure}[t]
     \centering
-    % Placeholder for context reduction chart
-    \fbox{\parbox{0.9\textwidth}{\centering\vspace{1.5cm}\textbf{[Figure 4: Context Token Count Over Time]}\\\small Line chart showing token reduction after model upgrade\vspace{1.5cm}}}
+    \includegraphics[width=0.9\textwidth]{figures/fig5_context_reduction.pdf}
     \caption{\textbf{Context Efficiency: Semantic Purge Effect.} Without purge, context grows monotonically. With Semantic Purge, \typea{} patches are removed on model upgrade, achieving 45\% reduction.}
     \label{fig:context}
 \end{figure}
@@ -314,8 +310,7 @@ AutoGen & $\infty$ & 5\% \\
 
 \begin{figure}[t]
     \centering
-    % Placeholder for MTTR boxplot
-    \fbox{\parbox{0.9\textwidth}{\centering\vspace{1.5cm}\textbf{[Figure 5: MTTR Comparison Box Plot]}\\\small Box plot showing recovery time distribution\vspace{1.5cm}}}
+    \includegraphics[width=0.75\textwidth]{figures/fig6_mttr_boxplot.pdf}
     \caption{\textbf{Mean Time To Recovery (MTTR).} \scak{} achieves consistent recovery in under 30 seconds across all failure scenarios.}
     \label{fig:mttr}
 \end{figure}
@@ -345,8 +340,7 @@ $-$ Give-Up Detection & 15\% $\pm$ 3.2\%$^{***}$ & 45\% & $-57\%$ \\
 
 \begin{figure}[t]
     \centering
-    % Placeholder for ablation heatmap
-    \fbox{\parbox{0.9\textwidth}{\centering\vspace{1.5cm}\textbf{[Figure 6: Ablation Study Heatmap]}\\\small Heatmap showing component contributions\vspace{1.5cm}}}
+    \includegraphics[width=0.95\textwidth]{figures/fig4_ablation_heatmap.pdf}
     \caption{\textbf{Ablation Study: Component Contributions.} Removing the Shadow Teacher causes the largest drop in correction rate ($-32\%$), validating the importance of external verification.}
     \label{fig:ablation}
 \end{figure}
