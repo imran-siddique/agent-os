@@ -23,3 +23,7 @@ jupyter>=1.0.0  # For interactive notebooks
 # Observability (optional)
 # opentelemetry-api>=1.20.0  # Uncomment for OpenTelemetry integration
 # opentelemetry-sdk>=1.20.0
+
+# LangChain Integration (optional)
+langchain>=0.1.0  # For LangChain integration
+langchain-core>=0.1.0  # Core LangChain abstractions
