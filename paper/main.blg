@@ -1,0 +1,55 @@
+This is BibTeX, Version 0.99e
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: main.aux
+Reallocating 'name_of_file' (item size: 1) to 9 items.
+The style file: plainnat.bst
+Reallocating 'name_of_file' (item size: 1) to 13 items.
+Database file #1: bibliography.bib
+Warning--entry type for "scak2026" isn't style-file defined
+--line 551 of file bibliography.bib
+Warning--empty journal in hong2023metagpt
+Warning--empty journal in liu2023lost
+Warning--empty journal in mohtashami2023landmark
+Warning--empty journal in wang2023voyager
+You've used 12 entries,
+            2773 wiz_defined-function locations,
+            651 strings with 6983 characters,
+and the built_in function-call counts, 5270 in all, are:
+= -- 424
+> -- 393
+< -- 3
++ -- 135
+- -- 123
+* -- 419
+:= -- 866
+add.period$ -- 43
+call.type$ -- 12
+change.case$ -- 68
+chr.to.int$ -- 12
+cite$ -- 28
+duplicate$ -- 238
+empty$ -- 396
+format.name$ -- 137
+if$ -- 1070
+int.to.chr$ -- 1
+int.to.str$ -- 1
+missing$ -- 11
+newline$ -- 75
+num.names$ -- 48
+pop$ -- 159
+preamble$ -- 1
+purify$ -- 57
+quote$ -- 0
+skip$ -- 188
+stack$ -- 0
+substring$ -- 24
+swap$ -- 10
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 127
+warning$ -- 4
+while$ -- 36
+width$ -- 0
+write$ -- 161
+(There were 5 warnings)

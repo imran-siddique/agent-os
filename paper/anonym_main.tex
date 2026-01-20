@@ -1,25 +1,39 @@
 % Self-Correcting Agent Kernel - ANONYMIZED VERSION
 % Target: NeurIPS 2026 / ICML 2026 (Double-Blind Review)
 % Compile: pdflatex anonym_main.tex && bibtex anonym_main && pdflatex anonym_main.tex && pdflatex anonym_main.tex
+% arXiv compatible: Yes
 
-\documentclass{article}
+\pdfoutput=1  % Required for arXiv PDF submission
 
-% ===== Packages =====
+\documentclass[11pt]{article}
+
+% ===== Core Packages =====
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
+\usepackage{lmodern}  % Scalable fonts (arXiv compatible)
+
+% ===== Math and Symbols =====
+\usepackage{amsmath,amssymb}
+
+% ===== Tables and Figures =====
 \usepackage{graphicx}
 \usepackage{booktabs}
-\usepackage{amsmath,amssymb}
-\usepackage{algorithm}
-\usepackage{algorithmic}
-\usepackage{hyperref}
-\usepackage{xcolor}
-\usepackage{microtype}
-\usepackage{natbib}
 \usepackage{multirow}
 \usepackage{subcaption}
 
-% Hyperref setup - ANONYMIZED
+% ===== Algorithms =====
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+% ===== Typography =====
+\usepackage{microtype}
+\usepackage{xcolor}
+
+% ===== Citations =====
+\usepackage{natbib}
+
+% ===== Hyperref (must be loaded last for arXiv compatibility) =====
+\usepackage[pdfusetitle]{hyperref}
 \hypersetup{
     colorlinks=true,
     linkcolor=blue,
@@ -28,6 +42,9 @@
     citecolor=blue,
     pdftitle={Self-Correcting Agent Kernel},
     pdfauthor={Anonymous},
+    pdfkeywords={AI agents, self-correction, memory management, LLM},
+    bookmarksnumbered=true,
+    breaklinks=true
 }
 
 % Custom commands
