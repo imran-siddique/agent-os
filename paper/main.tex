@@ -1,34 +1,38 @@
-\documentclass{article}
+\documentclass[11pt,a4paper]{article}
 
 % Required packages
-\usepackage{arxiv}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
+\usepackage[margin=1in]{geometry}
 \usepackage{hyperref}
 \usepackage{url}
 \usepackage{booktabs}
 \usepackage{amsfonts}
+\usepackage{amsmath}
 \usepackage{nicefrac}
 \usepackage{microtype}
 \usepackage{graphicx}
-\usepackage{doi}
 \usepackage{listings}
 \usepackage{xcolor}
 \usepackage{float}
+\usepackage{authblk}
+
+% Hyperref setup
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    citecolor=blue,
+    urlcolor=blue
+}
+
+% Keywords command
+\providecommand{\keywords}[1]{\textbf{Keywords:} #1}
 
 % Title and Author
 \title{Agent Control Plane: A Deterministic Kernel for Zero-Violation Governance in Agentic AI}
 
-\author{ \href{https://orcid.org/0000-0000-0000-0000}{\includegraphics[scale=0.06]{orcid.pdf}\hspace{1mm}Imran Siddique} \\
-	Principal Group Engineering Manager, Microsoft\\
-	Independent Researcher\\
-	\texttt{imran.siddique@microsoft.com} \\
-	%% \AND
-	%% Co-author name \\
-	%% Affiliation \\
-	%% Address \\
-	%% \texttt{email} \\
-}
+\author{Imran Siddique}
+\affil{Principal Group Engineering Manager, Microsoft \\ Independent Researcher \\ \texttt{imran.siddique@microsoft.com}}
 
 \begin{document}
 \maketitle
@@ -102,6 +106,15 @@ Enterprise context is not flat. We model it using three graph structures:
     \item \textbf{Temporal Graph}: Enforces time-based states (e.g., ``No production writes between 2 AM and 4 AM'').
 \end{enumerate}
 
+A request must satisfy all three graphs to proceed. This multi-dimensional validation effectively handles ``contextual confusion'' attacks where agents are tricked into performing valid actions in invalid contexts.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{figures/constraint_graphs.png}
+    \caption{Multi-dimensional constraint validation. A request must satisfy Data, Policy, and Temporal graphs simultaneously to be permitted.}
+    \label{fig:constraint_graphs}
+\end{figure}
+
 \subsection{MuteAgent: Scale by Subtraction}
 When an action is blocked, traditional systems generate verbose refusals. The \textbf{MuteAgent} component returns a deterministic \texttt{NULL}.
 \begin{itemize}
@@ -136,6 +149,13 @@ We evaluated ACP on a red-team benchmark using 5 independent seeds (42, 123, 456
     \label{tab:main_results}
 \end{table}
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{figures/results_chart.png}
+    \caption{Safety Violation Rate and Token Efficiency comparison between Baseline (no governance) and ACP-protected agents. Error bars represent standard deviation across 5 seeds.}
+    \label{fig:results}
+\end{figure}
+
 ACP achieved perfect safety scores (0 violations) across all categories while maintaining zero false positives for valid requests.
 
 \subsection{Ablation Studies}
@@ -156,6 +176,13 @@ We systematically removed components to understand their criticality.
     \end{tabular}
     \label{tab:ablation}
 \end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{figures/ablation_chart.png}
+    \caption{Ablation study results showing Safety Violation Rate (SVR) when each component is removed. PolicyEngine removal causes catastrophic failure ($d=8.7$).}
+    \label{fig:ablation}
+\end{figure}
 
 \begin{itemize}
     \item \textbf{PolicyEngine} is the cornerstone of safety ($d=8.7$). Without it, agents are highly vulnerable.
