@@ -355,11 +355,12 @@ class TestSelfCorrectingRunnable(unittest.TestCase):
         """Test invocation with sync correction (critical)."""
         # First call fails, second succeeds
         self.base_agent.invoke.side_effect = [
-            ValueError("Test error"),
+            ValueError("Test error with delete_resource"),
             {"output": "Success after correction!"}
         ]
         
         # Use a critical tool to trigger SYNC_JIT
+        # The error message mentions "delete_resource" which will be extracted as tool name
         input_data = {"input": "Delete user records"}
         
         result = self.runnable.invoke(input_data)

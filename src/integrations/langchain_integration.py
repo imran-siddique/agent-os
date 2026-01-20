@@ -797,7 +797,12 @@ class SelfCorrectingRunnable(Runnable if LANGCHAIN_AVAILABLE else object):
         """Extract tool name from error message if possible."""
         error_str = str(error).lower()
         
-        # Common tool patterns
+        # Check for critical tool names in error message
+        for tool in self.triage.critical_tools:
+            if tool in error_str:
+                return tool
+        
+        # Common tool patterns (fallback)
         tool_patterns = [
             "sql", "database", "file", "api", "http", "search"
         ]
