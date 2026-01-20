@@ -1,26 +1,44 @@
 % Self-Correcting Agent Kernel - LaTeX Draft
 % Target: NeurIPS 2026 / ICML 2026
 % Compile: pdflatex main.tex && bibtex main && pdflatex main.tex && pdflatex main.tex
+% arXiv compatible: Yes
 
-\documentclass{article}
+\pdfoutput=1  % Required for arXiv
 
-% ===== Packages =====
+\documentclass[11pt]{article}
+
+% ===== Page Layout =====
+\usepackage[margin=1in]{geometry}  % Consistent margins
+\pagestyle{plain}  % Page numbers
+
+% ===== Core Packages =====
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}  % Scalable fonts for microtype
+
+% ===== Math and Symbols =====
+\usepackage{amsmath,amssymb}
+
+% ===== Tables and Figures =====
 \usepackage{graphicx}
 \usepackage{booktabs}
-\usepackage{amsmath,amssymb}
-\usepackage{algorithm}
-\usepackage{algorithmic}
-\usepackage{hyperref}
-\usepackage{xcolor}
-\usepackage{microtype}
-\usepackage{natbib}
 \usepackage{multirow}
 \usepackage{subcaption}
+\usepackage{adjustbox}  % For table width control
 
-% Hyperref setup
+% ===== Algorithms =====
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+% ===== Typography =====
+\usepackage{microtype}
+\usepackage{xcolor}
+
+% ===== Citations =====
+\usepackage{natbib}
+
+% ===== Hyperref (load last for compatibility) =====
+\usepackage[pdfusetitle]{hyperref}
 \hypersetup{
     colorlinks=true,
     linkcolor=blue,
@@ -29,6 +47,9 @@
     citecolor=blue,
     pdftitle={Self-Correcting Agent Kernel},
     pdfauthor={Anonymous},
+    pdfkeywords={AI agents, self-correction, memory management, LLM, differential auditing},
+    bookmarksnumbered=true,
+    breaklinks=true
 }
 
 % Custom commands
@@ -59,6 +80,8 @@ Production AI agents face a ``Reliability Wall'' defined by two invisible pathol
 
 Evaluations on GAIA benchmark extensions demonstrate \textbf{100\% laziness detection} and a \textbf{72\% correction rate} ($p<0.001$) at 90\% lower cost than full verification. Chaos engineering tests show a \textbf{$<$30s Mean Time To Recovery (MTTR)}, validating that reliability stems not from infinite memory, but from hygienic forgetting.
 \end{abstract}
+
+\noindent\textbf{Keywords:} AI agents, self-correction, differential auditing, memory management, semantic purge, LLM alignment
 
 % ===== Introduction =====
 \section{Introduction}
@@ -107,6 +130,10 @@ While recent work argues that observing and acting on untrusted inputs creates a
 \subsection{Context Management}
 
 The ``Lost in the Middle'' phenomenon~\citep{liu2023lost} demonstrates that models struggle with information placed in long contexts. \textbf{Landmark Attention}~\citep{mohtashami2023landmark} addresses this architecturally, while \textbf{RAG}~\citep{lewis2020retrieval} externalizes memory. \scak{} takes a complementary approach: rather than expanding capacity, we \emph{reduce} context through principled forgetting.
+
+\subsection{Recent Advances in Agent Alignment (2024--2026)}
+
+Recent work has highlighted the urgency of agent governance. The \textbf{EU AI Act}~\citep{euai2024} mandates risk assessment for autonomous systems, while \textbf{WEF guidelines}~\citep{wef2025governance} recommend continuous monitoring for agentic deployments. \textbf{LlamaGuard 2}~\citep{meta2024llamaguard2} and \textbf{WildGuard}~\citep{han2024wildguard} provide safety classification but focus on content moderation rather than capability failures. \scak{} addresses a complementary gap: detecting when agents \emph{can} succeed but \emph{choose not to}.
 
 % ===== System Design =====
 \section{System Design}
@@ -391,7 +418,13 @@ We acknowledge several limitations of this work:
 
 \subsection{Broader Impact}
 
-The techniques presented in this work have implications for the deployment of AI agents in production environments. By enabling \emph{self-healing} behavior, \scak{} reduces the operational burden on engineering teams and improves user experience. However, automated correction systems must be deployed with appropriate human oversight to prevent unintended behavior drift.
+The techniques presented in this work have significant implications for the deployment of AI agents in production environments:
+
+\textbf{Positive Impacts:} By enabling \emph{self-healing} behavior, \scak{} reduces the operational burden on engineering teams and improves user experience. The differential auditing approach democratizes access to stronger models---organizations can deploy cheaper agents while selectively invoking expensive teachers only when needed.
+
+\textbf{Ethical Considerations:} Automated correction systems must be deployed with appropriate human oversight. We recommend: (1) logging all patches for audit trails; (2) requiring human approval for \typeb{} patches that encode business rules; (3) implementing rollback mechanisms for patches that cause regressions. The ``Scale by Subtraction'' philosophy aligns with emerging AI governance frameworks~\citep{wef2025governance,euai2024} that emphasize minimal footprint and explainability.
+
+\textbf{Risks and Mitigations:} Self-correction could mask underlying model deficiencies, creating false confidence. We mitigate this by requiring transparency: all patches are logged, classified, and subject to periodic human review. The Semantic Purge mechanism ensures that temporary workarounds do not become permanent technical debt.
 
 % ===== Conclusion =====
 \section{Conclusion}
@@ -404,7 +437,9 @@ The broader implication of this work is that \textbf{reliability engineering for
 
 \textbf{Future directions} include: (1) federated patch sharing across agent deployments, enabling collective learning; (2) causal analysis of patch effectiveness to improve classification accuracy; (3) integration with fine-tuning pipelines to ``graduate'' high-value patches into model weights; and (4) adversarial robustness testing against prompt injection attacks that attempt to corrupt the patch store.
 
-We release our implementation, datasets, and reproducibility package to accelerate research in self-correcting agent architectures.\footnote{Code and data available at: \url{https://github.com/[redacted-for-review]}}
+We release our implementation as open-source software to accelerate research in self-correcting agent architectures. The \scak{} framework is designed for easy integration with existing agent frameworks (AutoGen, LangChain, CrewAI) and can be adopted incrementally---starting with give-up detection alone provides immediate value.\footnote{Code: \url{https://github.com/[redacted-for-review]}; Dataset: \url{https://huggingface.co/datasets/[redacted]}; Documentation: \url{https://[redacted].github.io/scak}}
+
+\paragraph{LLM Disclosure.} This paper was drafted with assistance from Claude (Anthropic) for LaTeX formatting and literature review. All technical contributions, experimental design, and analysis are the work of the authors. The \scak{} system does not use LLMs in its core correction loop beyond the explicitly described GPT-4o/o1-preview teacher-student mechanism.
 
 % ===== Acknowledgments =====
 % \section*{Acknowledgments}

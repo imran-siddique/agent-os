@@ -11,45 +11,45 @@ Warning--empty journal in hong2023metagpt
 Warning--empty journal in liu2023lost
 Warning--empty journal in mohtashami2023landmark
 Warning--empty journal in wang2023voyager
-You've used 12 entries,
+You've used 16 entries,
             2773 wiz_defined-function locations,
-            651 strings with 6983 characters,
-and the built_in function-call counts, 5270 in all, are:
-= -- 424
-> -- 393
-< -- 3
-+ -- 135
-- -- 123
-* -- 419
-:= -- 866
-add.period$ -- 43
-call.type$ -- 12
-change.case$ -- 68
-chr.to.int$ -- 12
-cite$ -- 28
-duplicate$ -- 238
-empty$ -- 396
-format.name$ -- 137
-if$ -- 1070
+            670 strings with 7581 characters,
+and the built_in function-call counts, 6616 in all, are:
+= -- 540
+> -- 461
+< -- 6
++ -- 160
+- -- 144
+* -- 498
+:= -- 1079
+add.period$ -- 56
+call.type$ -- 16
+change.case$ -- 86
+chr.to.int$ -- 16
+cite$ -- 36
+duplicate$ -- 303
+empty$ -- 523
+format.name$ -- 162
+if$ -- 1355
 int.to.chr$ -- 1
 int.to.str$ -- 1
-missing$ -- 11
-newline$ -- 75
-num.names$ -- 48
-pop$ -- 159
+missing$ -- 12
+newline$ -- 96
+num.names$ -- 64
+pop$ -- 207
 preamble$ -- 1
-purify$ -- 57
+purify$ -- 71
 quote$ -- 0
-skip$ -- 188
+skip$ -- 241
 stack$ -- 0
-substring$ -- 24
-swap$ -- 10
+substring$ -- 32
+swap$ -- 15
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 127
+type$ -- 171
 warning$ -- 4
-while$ -- 36
+while$ -- 48
 width$ -- 0
-write$ -- 161
+write$ -- 211
 (There were 5 warnings)

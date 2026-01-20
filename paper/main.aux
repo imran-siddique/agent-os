@@ -3,6 +3,7 @@
 \providecommand\HyField@AuxAddToFields[1]{}
 \providecommand\HyField@AuxAddToCoFields[2]{}
 \citation{liu2023lost}
+\providecommand \oddpage@label [2]{}
 \@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{section.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {1.1}The Accumulation Paradox}{1}{subsection.1.1}\protected@file@percent }
 \citation{bai2022constitutional}
@@ -11,81 +12,92 @@
 \citation{shinn2023reflexion}
 \citation{madaan2023self}
 \citation{bai2022constitutional}
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.2}The ``Scale by Subtraction'' Philosophy}{2}{subsection.1.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {2}Related Work}{2}{section.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}The OODA Loop: Attack Surface or Defense?}{2}{subsection.2.1}\protected@file@percent }
 \citation{wu2023autogen}
 \citation{hong2023metagpt}
 \citation{wang2023voyager}
 \citation{liu2023lost}
 \citation{mohtashami2023landmark}
 \citation{lewis2020retrieval}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.2}The ``Scale by Subtraction'' Philosophy}{2}{subsection.1.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2}Related Work}{2}{section.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}The OODA Loop: Attack Surface or Defense?}{2}{subsection.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Self-Correction and Feedback}{2}{subsection.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Multi-Agent Systems}{2}{subsection.2.3}\protected@file@percent }
+\citation{euai2024}
+\citation{wef2025governance}
+\citation{meta2024llamaguard2}
+\citation{han2024wildguard}
 \citation{boyd1987discourse}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Self-Correction and Feedback}{3}{subsection.2.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Multi-Agent Systems}{3}{subsection.2.3}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.4}Context Management}{3}{subsection.2.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.5}Recent Advances in Agent Alignment (2024--2026)}{3}{subsection.2.5}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {3}System Design}{3}{section.3}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Problem Formulation}{3}{subsection.3.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Dual-Loop Architecture}{3}{subsection.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Differential Auditing Algorithm}{3}{subsection.3.3}\protected@file@percent }
 \@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces \textbf  {\textsc  {SCAK}{} Dual-Loop Architecture.} Loop 1 (Runtime) handles user queries with minimal latency. Loop 2 (Alignment) triggers asynchronously on give-up signals, using differential auditing to detect laziness and generate competence patches.}}{4}{figure.caption.1}\protected@file@percent }
 \providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
 \newlabel{fig:architecture}{{1}{4}{\textbf {\scak {} Dual-Loop Architecture.} Loop 1 (Runtime) handles user queries with minimal latency. Loop 2 (Alignment) triggers asynchronously on give-up signals, using differential auditing to detect laziness and generate competence patches}{figure.caption.1}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Differential Auditing Algorithm}{4}{subsection.3.3}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Semantic Purge (Formalizing Decay)}{4}{subsection.3.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.5}Three-Tier Memory Hierarchy}{4}{subsection.3.5}\protected@file@percent }
+\citation{wu2023autogen}
 \@writefile{loa}{\contentsline {algorithm}{\numberline {1}{\ignorespaces Differential Auditing}}{5}{algorithm.1}\protected@file@percent }
 \newlabel{alg:audit}{{1}{5}{Differential Auditing}{algorithm.1}{}}
 \@writefile{loa}{\contentsline {algorithm}{\numberline {2}{\ignorespaces Semantic Purge (Model Upgrade)}}{5}{algorithm.2}\protected@file@percent }
 \newlabel{alg:purge}{{2}{5}{Semantic Purge (Model Upgrade)}{algorithm.2}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.5}Three-Tier Memory Hierarchy}{5}{subsection.3.5}\protected@file@percent }
-\citation{wu2023autogen}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Experiments}{5}{section.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Experimental Setup}{5}{subsection.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}GAIA Laziness Benchmark}{5}{subsection.4.2}\protected@file@percent }
 \@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces \textbf  {Three-Tier Memory Hierarchy.} Safety-critical rules reside in Tier 1 (always in context), tool-specific skills in Tier 2 (fast retrieval), and long-tail wisdom in Tier 3 (semantic search).}}{6}{figure.caption.2}\protected@file@percent }
 \newlabel{fig:memory}{{2}{6}{\textbf {Three-Tier Memory Hierarchy.} Safety-critical rules reside in Tier 1 (always in context), tool-specific skills in Tier 2 (fast retrieval), and long-tail wisdom in Tier 3 (semantic search)}{figure.caption.2}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {4}Experiments}{6}{section.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Experimental Setup}{6}{subsection.4.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}GAIA Laziness Benchmark}{6}{subsection.4.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Amnesia Test (Context Efficiency)}{6}{subsection.4.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Chaos Engineering (Robustness)}{6}{subsection.4.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.5}Ablation Studies}{6}{subsection.4.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.6}Cost Analysis}{6}{subsection.4.6}\protected@file@percent }
 \@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces \textbf  {GAIA Laziness Benchmark Results.} Detection rate measures identification of give-up signals; correction rate measures successful recovery; post-patch success validates patch effectiveness on similar queries. Results show mean $\pm $ std over 5 runs. Statistical significance: $^{***}p<0.001$ vs. baseline.}}{7}{table.caption.3}\protected@file@percent }
 \newlabel{tab:gaia}{{1}{7}{\textbf {GAIA Laziness Benchmark Results.} Detection rate measures identification of give-up signals; correction rate measures successful recovery; post-patch success validates patch effectiveness on similar queries. Results show mean $\pm $ std over 5 runs. Statistical significance: $^{***}p<0.001$ vs. baseline}{table.caption.3}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces \textbf  {Context Reduction via Semantic Purge.} \textsc  {SCAK}{} achieves 45\% context reduction on model upgrade while retaining 100\% of business rules (10/10 Type~B{} patches preserved).}}{7}{table.caption.5}\protected@file@percent }
 \newlabel{tab:amnesia}{{2}{7}{\textbf {Context Reduction via Semantic Purge.} \scak {} achieves 45\% context reduction on model upgrade while retaining 100\% of business rules (10/10 \typeb {} patches preserved)}{table.caption.5}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Amnesia Test (Context Efficiency)}{7}{subsection.4.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Chaos Engineering (Robustness)}{7}{subsection.4.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.5}Ablation Studies}{7}{subsection.4.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.6}Cost Analysis}{7}{subsection.4.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5}Discussion}{7}{section.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}The Virtue of Forgetting}{7}{subsection.5.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Why External Teachers Outperform Self-Critique}{7}{subsection.5.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Limitations}{7}{subsection.5.3}\protected@file@percent }
+\citation{wef2025governance,euai2024}
 \@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces \textbf  {GAIA Laziness Benchmark: Correction Rates.} \textsc  {SCAK}{} achieves 72\% correction rate, outperforming both self-critique (40\%) and the stronger o1-preview model used alone (40\%).}}{8}{figure.caption.4}\protected@file@percent }
 \newlabel{fig:gaia}{{3}{8}{\textbf {GAIA Laziness Benchmark: Correction Rates.} \scak {} achieves 72\% correction rate, outperforming both self-critique (40\%) and the stronger o1-preview model used alone (40\%)}{figure.caption.4}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces \textbf  {Chaos Engineering Results.} MTTR measures seconds to recover from injected failures. \textsc  {SCAK}{} recovers from all scenarios; baselines require manual intervention.}}{8}{table.caption.7}\protected@file@percent }
 \newlabel{tab:chaos}{{3}{8}{\textbf {Chaos Engineering Results.} MTTR measures seconds to recover from injected failures. \scak {} recovers from all scenarios; baselines require manual intervention}{table.caption.7}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {5}Discussion}{8}{section.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}The Virtue of Forgetting}{8}{subsection.5.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Why External Teachers Outperform Self-Critique}{8}{subsection.5.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.4}Broader Impact}{8}{subsection.5.4}\protected@file@percent }
 \@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces \textbf  {Context Efficiency: Semantic Purge Effect.} Without purge, context grows monotonically. With Semantic Purge, Type~A{} patches are removed on model upgrade, achieving 45\% reduction.}}{9}{figure.caption.6}\protected@file@percent }
 \newlabel{fig:context}{{4}{9}{\textbf {Context Efficiency: Semantic Purge Effect.} Without purge, context grows monotonically. With Semantic Purge, \typea {} patches are removed on model upgrade, achieving 45\% reduction}{figure.caption.6}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Limitations}{9}{subsection.5.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.4}Broader Impact}{9}{subsection.5.4}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces \textbf  {Mean Time To Recovery (MTTR).} \textsc  {SCAK}{} achieves consistent recovery in under 30 seconds across all failure scenarios.}}{10}{figure.caption.8}\protected@file@percent }
-\newlabel{fig:mttr}{{5}{10}{\textbf {Mean Time To Recovery (MTTR).} \scak {} achieves consistent recovery in under 30 seconds across all failure scenarios}{figure.caption.8}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {6}Conclusion}{10}{section.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6}Conclusion}{9}{section.6}\protected@file@percent }
 \bibstyle{plainnat}
 \bibdata{bibliography}
 \bibcite{bai2022constitutional}{{1}{2022}{{Bai et~al.}}{{Bai, Kadavath, Kundu, et~al.}}}
+\bibcite{basiri2016chaos}{{2}{2016}{{Basiri et~al.}}{{Basiri, Behnam, de~Rooij, et~al.}}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces \textbf  {Mean Time To Recovery (MTTR).} \textsc  {SCAK}{} achieves consistent recovery in under 30 seconds across all failure scenarios.}}{10}{figure.caption.8}\protected@file@percent }
+\newlabel{fig:mttr}{{5}{10}{\textbf {Mean Time To Recovery (MTTR).} \scak {} achieves consistent recovery in under 30 seconds across all failure scenarios}{figure.caption.8}{}}
+\@writefile{toc}{\contentsline {paragraph}{LLM Disclosure.}{10}{section*.12}\protected@file@percent }
+\bibcite{boyd1987discourse}{{3}{1987}{{Boyd}}{{}}}
+\bibcite{euai2024}{{4}{2024}{{European Parliament}}{{}}}
+\bibcite{han2024wildguard}{{5}{2024}{{Han et~al.}}{{Han, Zheng, Liu, et~al.}}}
+\bibcite{hong2023metagpt}{{6}{2023}{{Hong et~al.}}{{Hong, Zheng, Chen, et~al.}}}
+\bibcite{lewis2020retrieval}{{7}{2020}{{Lewis et~al.}}{{Lewis, Perez, Piktus, et~al.}}}
+\bibcite{liu2023lost}{{8}{2023}{{Liu et~al.}}{{Liu, Lin, Hewitt, et~al.}}}
 \@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces \textbf  {Ablation Study.} Each row removes one component from the full \textsc  {SCAK}{} system. Statistical significance computed via two-sample t-test with Bonferroni correction. $^{***}p<0.001$, $^{**}p<0.01$, $^{*}p<0.05$.}}{11}{table.caption.9}\protected@file@percent }
 \newlabel{tab:ablation}{{4}{11}{\textbf {Ablation Study.} Each row removes one component from the full \scak {} system. Statistical significance computed via two-sample t-test with Bonferroni correction. $^{***}p<0.001$, $^{**}p<0.01$, $^{*}p<0.05$}{table.caption.9}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces \textbf  {Ablation Study: Component Contributions.} Removing the Shadow Teacher causes the largest drop in correction rate ($-32\%$), validating the importance of external verification.}}{11}{figure.caption.10}\protected@file@percent }
 \newlabel{fig:ablation}{{6}{11}{\textbf {Ablation Study: Component Contributions.} Removing the Shadow Teacher causes the largest drop in correction rate ($-32\%$), validating the importance of external verification}{figure.caption.10}{}}
-\bibcite{basiri2016chaos}{{2}{2016}{{Basiri et~al.}}{{Basiri, Behnam, de~Rooij, et~al.}}}
-\bibcite{boyd1987discourse}{{3}{1987}{{Boyd}}{{}}}
-\bibcite{hong2023metagpt}{{4}{2023}{{Hong et~al.}}{{Hong, Zheng, Chen, et~al.}}}
-\bibcite{lewis2020retrieval}{{5}{2020}{{Lewis et~al.}}{{Lewis, Perez, Piktus, et~al.}}}
-\bibcite{liu2023lost}{{6}{2023}{{Liu et~al.}}{{Liu, Lin, Hewitt, et~al.}}}
-\bibcite{madaan2023self}{{7}{2023}{{Madaan et~al.}}{{Madaan, Tandon, Gupta, et~al.}}}
-\bibcite{mohtashami2023landmark}{{8}{2023}{{Mohtashami and Jaggi}}{{}}}
-\bibcite{scak2026}{{9}{2026}{{Self-Correcting Agent Team}}{{}}}
-\bibcite{shinn2023reflexion}{{10}{2023}{{Shinn et~al.}}{{Shinn, Cassano, Gopinath, Narasimhan, and Yao}}}
-\bibcite{wang2023voyager}{{11}{2023}{{Wang et~al.}}{{Wang, Xie, Jiang, et~al.}}}
+\bibcite{madaan2023self}{{9}{2023}{{Madaan et~al.}}{{Madaan, Tandon, Gupta, et~al.}}}
+\bibcite{meta2024llamaguard2}{{10}{2024}{{Meta AI}}{{}}}
+\bibcite{mohtashami2023landmark}{{11}{2023}{{Mohtashami and Jaggi}}{{}}}
+\bibcite{scak2026}{{12}{2026}{{Self-Correcting Agent Team}}{{}}}
+\bibcite{shinn2023reflexion}{{13}{2023}{{Shinn et~al.}}{{Shinn, Cassano, Gopinath, Narasimhan, and Yao}}}
+\bibcite{wang2023voyager}{{14}{2023}{{Wang et~al.}}{{Wang, Xie, Jiang, et~al.}}}
+\bibcite{wef2025governance}{{15}{2025}{{World Economic Forum}}{{}}}
+\bibcite{wu2023autogen}{{16}{2023}{{Wu et~al.}}{{Wu, Bansal, Zhang, et~al.}}}
 \@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces \textbf  {Cost Efficiency.} Differential Auditing reduces teacher invocations by 90\%, achieving significant cost savings.}}{12}{table.caption.11}\protected@file@percent }
 \newlabel{tab:cost}{{5}{12}{\textbf {Cost Efficiency.} Differential Auditing reduces teacher invocations by 90\%, achieving significant cost savings}{table.caption.11}{}}
-\bibcite{wu2023autogen}{{12}{2023}{{Wu et~al.}}{{Wu, Bansal, Zhang, et~al.}}}
-\@writefile{toc}{\contentsline {section}{\numberline {A}Reproducibility Details}{13}{appendix.A}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {A}Reproducibility Details}{12}{appendix.A}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {B}Extended Ablation Results}{13}{appendix.B}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {C}Patch Examples}{13}{appendix.C}\protected@file@percent }
 \gdef \@abspage@last{13}

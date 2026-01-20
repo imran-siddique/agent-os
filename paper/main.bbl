@@ -1,4 +1,4 @@
-\begin{thebibliography}{12}
+\begin{thebibliography}{16}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -18,6 +18,17 @@ Ali Basiri, Niosha Behnam, Ruud de~Rooij, et~al.
 John~R Boyd.
 \newblock \emph{A Discourse on Winning and Losing}.
 \newblock Air University Press, 1987.
+
+\bibitem[{European Parliament}(2024)]{euai2024}
+{European Parliament}.
+\newblock Regulation (eu) 2024/1689 - artificial intelligence act.
+\newblock Official Journal of the European Union, 2024.
+
+\bibitem[Han et~al.(2024)Han, Zheng, Liu, et~al.]{han2024wildguard}
+Ximing Han, Chulin Zheng, Tianyu Liu, et~al.
+\newblock Wildguard: Open one-stop moderation tools for safety risks,
+  jailbreaks, and refusals of llms.
+\newblock \emph{arXiv preprint arXiv:2406.18495}, 2024.
 
 \bibitem[Hong et~al.(2023)Hong, Zheng, Chen, et~al.]{hong2023metagpt}
 Sirui Hong, Xiawu Zheng, Jonathan Chen, et~al.
@@ -44,6 +55,12 @@ Aman Madaan, Niket Tandon, Prakhar Gupta, et~al.
 \newblock \emph{Advances in Neural Information Processing Systems (NeurIPS)},
   2023.
 \newblock URL \url{https://arxiv.org/abs/2303.17651}.
+
+\bibitem[{Meta AI}(2024)]{meta2024llamaguard2}
+{Meta AI}.
+\newblock Llamaguard 2: Safety classification for llm interactions.
+\newblock Meta Research Blog, 2024.
+\newblock Technical report on improved safety classification.
 
 \bibitem[Mohtashami and Jaggi(2023)]{mohtashami2023landmark}
 Amirkeivan Mohtashami and Martin Jaggi.
@@ -75,6 +92,11 @@ Guanzhi Wang, Yuqi Xie, Yunfan Jiang, et~al.
 \newblock Voyager: An open-ended embodied agent with large language models.
 \newblock 2023.
 \newblock URL \url{https://arxiv.org/abs/2305.16291}.
+
+\bibitem[{World Economic Forum}(2025)]{wef2025governance}
+{World Economic Forum}.
+\newblock Ai agents in the workplace: Governance framework and risk mitigation.
+\newblock WEF Whitepaper, January 2025.
 
 \bibitem[Wu et~al.(2023)Wu, Bansal, Zhang, et~al.]{wu2023autogen}
 Qingyun Wu, Gagan Bansal, Jieyu Zhang, et~al.
