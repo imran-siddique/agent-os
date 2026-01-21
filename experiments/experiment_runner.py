@@ -210,7 +210,7 @@ class ExperimentRunner:
         print(f"\nAccuracy:")
         print(f"  Baseline: {baseline_results['accuracy']:.2%}")
         print(f"  CMVK:     {cmvk_results['accuracy']:.2%}")
-        print(f"  Improvement: {(cmvk_results['accuracy'] - baseline_results['accuracy'])*100:.2f}%")
+        print(f"  Accuracy difference (percentage points): {(cmvk_results['accuracy'] - baseline_results['accuracy'])*100:.2f}")
         
         print(f"\nAverage Time:")
         print(f"  Baseline: {baseline_results['avg_time']:.2f}s")
