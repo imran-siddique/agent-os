@@ -1,29 +1,70 @@
-# Python cache files
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
 # Virtual environments
 venv/
 env/
 ENV/
+.venv
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
-
-# OS
+*~
 .DS_Store
-Thumbs.db
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb_checkpoints/
 
 # Testing
 .pytest_cache/
 .coverage
 htmlcov/
+.tox/
+.nox/
 
-# Distribution
-dist/
-build/
-*.egg-info/
+# Logs
+logs/
+*.log
+
+# Environment variables
+.env
+.env.local
+
+# Experiments and results
+experiments/results/
+*.json.bak
+
+# Docker
+.dockerignore
+
+# Temporary files
+/tmp/
+*.tmp
+*.bak
+
+# Model outputs (optional)
+outputs/
+checkpoints/

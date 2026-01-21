@@ -1,0 +1,40 @@
+# Cross-Model Verification Kernel Configuration
+# Owner: Imran Siddique
+
+# API Keys (Environment variables recommended)
+api_keys:
+  openai_key: ${OPENAI_API_KEY}
+  google_key: ${GOOGLE_API_KEY}
+  anthropic_key: ${ANTHROPIC_API_KEY}
+
+# Model Configuration
+models:
+  generator:
+    provider: "openai"
+    model_name: "gpt-4o"
+    temperature: 0.7
+    max_tokens: 2000
+    
+  verifier:
+    provider: "google"
+    model_name: "gemini-1.5-pro"
+    temperature: 0.3  # Lower temperature for more deterministic verification
+    max_tokens: 2000
+
+# Kernel Configuration
+kernel:
+  max_loops: 5  # Maximum Generator->Verifier cycles before declaring failure
+  confidence_threshold: 0.85  # Minimum confidence to accept a solution
+  enable_graph_memory: true
+  enable_runtime_testing: true
+
+# Sandbox Configuration
+sandbox:
+  timeout_seconds: 30
+  memory_limit_mb: 512
+  enable_docker: false  # Set to true for production
+
+# Logging
+logging:
+  level: "INFO"
+  log_file: "logs/cmvk.log"

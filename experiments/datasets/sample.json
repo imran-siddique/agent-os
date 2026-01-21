@@ -1,0 +1,40 @@
+{
+  "name": "Sample Dataset",
+  "description": "A small sample dataset for testing the CMVK system",
+  "version": "1.0",
+  "tasks": [
+    {
+      "id": "task_1",
+      "description": "Write a Python function that takes a string and returns it reversed.",
+      "difficulty": "easy",
+      "expected_output": "A function named 'reverse_string' that correctly reverses any input string",
+      "test_cases": [
+        {"input": "hello", "expected": "olleh"},
+        {"input": "world", "expected": "dlrow"},
+        {"input": "", "expected": ""}
+      ]
+    },
+    {
+      "id": "task_2",
+      "description": "Implement a binary search algorithm that finds the index of a target value in a sorted array. Return -1 if not found.",
+      "difficulty": "medium",
+      "expected_output": "A function named 'binary_search' that efficiently searches sorted arrays",
+      "test_cases": [
+        {"input": {"arr": [1, 2, 3, 4, 5], "target": 3}, "expected": 2},
+        {"input": {"arr": [1, 2, 3, 4, 5], "target": 6}, "expected": -1},
+        {"input": {"arr": [], "target": 1}, "expected": -1}
+      ]
+    },
+    {
+      "id": "task_3",
+      "description": "Write a function to check if a given string is a valid palindrome, ignoring spaces and case.",
+      "difficulty": "easy",
+      "expected_output": "A function named 'is_palindrome' that correctly identifies palindromes",
+      "test_cases": [
+        {"input": "A man a plan a canal Panama", "expected": true},
+        {"input": "race a car", "expected": false},
+        {"input": "Was it a car or a cat I saw", "expected": true}
+      ]
+    }
+  ]
+}
