@@ -56,6 +56,31 @@ class SandboxExecutor:
         else:
             return self._execute_local_python(code, test_code)
     
+    def execute(self, code: str) -> Dict[str, Any]:
+        """
+        Convenience method for executing code with a simpler interface.
+        Returns result in format: {'status': 'success'|'error', 'output': str, 'error': str}
+        
+        Args:
+            code: The Python code to execute
+            
+        Returns:
+            Dictionary with execution results:
+                - status: 'success' or 'error'
+                - output: combined stdout + stderr (for complete output)
+                - error: error message if failed (stderr only)
+                
+        Note: The 'output' field intentionally combines both stdout and stderr
+        to provide complete execution context. Use 'error' field for error-specific output.
+        """
+        result = self.execute_python(code)
+        
+        return {
+            'status': 'success' if result['success'] else 'error',
+            'output': result['output'] + result['error'],
+            'error': result['error'] if not result['success'] else ''
+        }
+    
     def _execute_local_python(self, code: str, test_code: Optional[str] = None) -> Dict[str, Any]:
         """Execute Python code locally with timeout."""
         # Create a temporary file for the code
@@ -131,3 +156,7 @@ class SandboxExecutor:
         """
         result = self.execute_python(solution_code, test_cases)
         return result['success']
+
+
+# Alias for compatibility
+Sandbox = SandboxExecutor
