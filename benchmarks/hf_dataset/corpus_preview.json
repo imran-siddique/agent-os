@@ -1,0 +1,193 @@
+[
+  {
+    "id": "96546c29fda2",
+    "filename": "api_reference.md",
+    "content": "# Context-as-a-Service API Reference\n\n## Overview\n\nThe CaaS API provides RESTful endpoints for document ingestion, context retrieval, and system management.\n\n**Base URL:** `https://api.caas.example.com/v1`\n\n**Authentication:** Bearer token (OAuth 2.0)\n\n## Authentication\n\nAll API requests require authentication via Bearer token:\n\n```http\nAuthorization: Bearer <your-api-token>\n```\n\n### Obtaining a Token\n\n```http\nPOST /auth/token\nContent-Type: application/json\n\n{\n  \"client_id\": \"your-client-id\",\n  \"client_secret\": \"your-client-secret\",\n  \"grant_type\": \"client_credentials\"\n}\n```\n\n**Response:**\n```json\n{\n  \"access_token\": \"eyJhbGciOiJIUzI1...\",\n  \"token_type\": \"Bearer\",\n  \"expires_in\": 3600\n}\n```\n\n## Endpoints\n\n### Documents\n\n#### POST /documents\n\nUpload a document for processing.\n\n**Request:**\n```http\nPOST /documents\nContent-Type: multipart/form-data\n\nfile: <binary>\nmetadata: {\"source\": \"legal\", \"priority\": \"high\"}\n```\n\n**Response (201 Created):**\n```json\n{\n  \"id\": \"doc_abc123\",\n  \"filename\": \"contract.pdf\",\n  \"status\": \"processing\",\n  \"created_at\": \"2026-01-20T10:30:00Z\",\n  \"chunks_count\": null\n}\n```\n\n**Error Codes:**\n| Code | Description |\n|------|-------------|\n| 400  | Invalid file format |\n| 413  | File too large (max 50MB) |\n| 429  | Rate limit exceeded |\n\n#### GET /documents/{id}\n\nRetrieve document metadata and processing status.\n\n**Response:**\n```json\n{\n  \"id\": \"doc_abc123\",\n  \"filename\": \"contract.pdf\",\n  \"status\": \"completed\",\n  \"created_at\": \"2026-01-20T10:30:00Z\",\n  \"processed_at\": \"2026-01-20T10:31:15Z\",\n  \"chunks_count\": 47,\n  \"metadata\": {\n    \"source\": \"legal\",\n    \"priority\": \"high\",\n    \"detected_type\": \"contract\",\n    \"language\": \"en\"\n  }\n}\n```\n\n#### DELETE /documents/{id}\n\nRemove a document and all associated chunks.\n\n**Response (204 No Content)**\n\n### Context Retrieval\n\n#### POST /context/query\n\nRetrieve relevant context for a query.\n\n**Request:**\n```json\n{\n  \"query\": \"What are the payment terms?\",\n  \"max_chunks\": 10,\n  \"filters\": {\n    \"source\": [\"legal\", \"finance\"],\n    \"date_range\": {\n      \"start\": \"2025-01-01\",\n      \"end\": \"2026-01-20\"\n    }\n  },\n  \"include_metadata\": true,\n  \"time_decay\": {\n    \"enabled\": true,\n    \"half_life_days\": 90\n  }\n}\n```\n\n**Response:**\n```json\n{\n  \"query_id\": \"qry_xyz789\",\n  \"chunks\": [\n    {\n      \"id\": \"chunk_001\",\n      \"content\": \"Payment is due within 30 days...\",\n      \"score\": 0.94,\n      \"document_id\": \"doc_abc123\",\n      \"metadata\": {\n        \"section\": \"3.1 Payment Terms\",\n        \"page\": 5,\n        \"source_type\": \"official\",\n        \"created_at\": \"2026-01-15T00:00:00Z\"\n      }\n    }\n  ],\n  \"total_results\": 23,\n  \"processing_time_ms\": 45\n}\n```\n\n#### POST /context/triad\n\nRetrieve context organized by Hot/Warm/Cold tiers.\n\n**Request:**\n```json\n{\n  \"query\": \"server configuration\",\n  \"conversation_id\": \"conv_123\",\n  \"user_id\": \"user_456\"\n}\n```\n\n**Response:**\n```json\n{\n  \"hot\": {\n    \"conversation_turns\": [...],\n    \"token_count\": 1200\n  },\n  \"warm\": {\n    \"user_preferences\": {...},\n    \"recent_documents\": [...],\n    \"token_count\": 800\n  },\n  \"cold\": {\n    \"historical_context\": [...],\n    \"token_count\": 2000\n  },\n  \"total_tokens\": 4000\n}\n```\n\n### Conversations\n\n#### POST /conversations\n\nCreate a new conversation session.\n\n**Request:**\n```json\n{\n  \"user_id\": \"user_456\",\n  \"system_prompt\": \"You are a helpful assistant.\",\n  \"max_turns\": 20,\n  \"window_size\": 10\n}\n```\n\n**Response:**\n```json\n{\n  \"id\": \"conv_123\",\n  \"user_id\": \"user_456\",\n  \"created_at\": \"2026-01-20T10:30:00Z\",\n  \"turns\": [],\n  \"settings\": {\n    \"max_turns\": 20,\n    \"window_size\": 10\n  }\n}\n```\n\n#### POST /conversations/{id}/turns\n\nAdd a turn to the conversation.\n\n**Request:**\n```json\n{\n  \"role\": \"user\",\n  \"content\": \"How do I reset the server?\"\n}\n```\n\n### System\n\n#### GET /health\n\nHealth check endpoint.\n\n**Response:**\n```json\n{\n  \"status\": \"healthy\",\n  \"version\": \"1.0.0\",\n  \"uptime_seconds\": 86400,\n  \"components\": {\n    \"database\": \"healthy\",\n    \"cache\": \"healthy\",\n    \"ml_model\": \"healthy\"\n  }\n}\n```\n\n#### GET /metrics\n\nPrometheus-compatible metrics endpoint.\n\n## Rate Limits\n\n| Tier        | Requests/min | Burst |\n|-------------|--------------|-------|\n| Free        | 60           | 10    |\n| Professional| 600          | 100   |\n| Enterprise  | 6000         | 1000  |\n\n## SDKs\n\nOfficial SDKs available:\n- Python: `pip install caas-sdk`\n- JavaScript: `npm install @caas/sdk`\n- Go: `go get github.com/caas/sdk-go`\n\n## Changelog\n\n### v1.0.0 (2026-01-15)\n- Initial API release\n- Document ingestion endpoints\n- Context retrieval with time decay\n- Conversation management\n",
+    "format": "markdown",
+    "domain": "Documentation",
+    "category": "Docs",
+    "description": "REST API reference with examples",
+    "tags": [
+      "api",
+      "rest",
+      "documentation",
+      "endpoints"
+    ],
+    "num_lines": 219,
+    "num_chars": 4558,
+    "estimated_tokens": 668,
+    "sections": [
+      {
+        "level": 1,
+        "title": "Context-as-a-Service API Reference",
+        "line": 1
+      },
+      {
+        "level": 2,
+        "title": "Overview",
+        "line": 3
+      },
+      {
+        "level": 2,
+        "title": "Authentication",
+        "line": 11
+      },
+      {
+        "level": 3,
+        "title": "Obtaining a Token",
+        "line": 19
+      },
+      {
+        "level": 2,
+        "title": "Endpoints",
+        "line": 41
+      },
+      {
+        "level": 3,
+        "title": "Documents",
+        "line": 43
+      },
+      {
+        "level": 4,
+        "title": "POST /documents",
+        "line": 45
+      },
+      {
+        "level": 4,
+        "title": "GET /documents/{id}",
+        "line": 76
+      },
+      {
+        "level": 4,
+        "title": "DELETE /documents/{id}",
+        "line": 98
+      },
+      {
+        "level": 3,
+        "title": "Context Retrieval",
+        "line": 104
+      },
+      {
+        "level": 4,
+        "title": "POST /context/query",
+        "line": 106
+      },
+      {
+        "level": 4,
+        "title": "POST /context/triad",
+        "line": 153
+      },
+      {
+        "level": 3,
+        "title": "Conversations",
+        "line": 186
+      },
+      {
+        "level": 4,
+        "title": "POST /conversations",
+        "line": 188
+      },
+      {
+        "level": 4,
+        "title": "POST /conversations/{id}/turns",
+        "line": 216
+      },
+      {
+        "level": 3,
+        "title": "System",
+        "line": 228
+      },
+      {
+        "level": 4,
+        "title": "GET /health",
+        "line": 230
+      },
+      {
+        "level": 4,
+        "title": "GET /metrics",
+        "line": 248
+      },
+      {
+        "level": 2,
+        "title": "Rate Limits",
+        "line": 252
+      },
+      {
+        "level": 2,
+        "title": "SDKs",
+        "line": 260
+      },
+      {
+        "level": 2,
+        "title": "Changelog",
+        "line": 267
+      },
+      {
+        "level": 3,
+        "title": "v1.0.0 (2026-01-15)",
+        "line": 269
+      }
+    ],
+    "num_sections": 22,
+    "created_at": "2026-01-20T17:12:06.466504"
+  },
+  {
+    "id": "bc4e23944ccf",
+    "filename": "auth_module.py",
+    "content": "\"\"\"\nUser Authentication Module\n\nThis module provides secure user authentication functionality including\npassword hashing, token generation, and session management.\n\"\"\"\n\nimport hashlib\nimport secrets\nimport time\nfrom datetime import datetime, timedelta\nfrom typing import Optional, Dict, Any\n\n\nclass AuthenticationError(Exception):\n    \"\"\"Raised when authentication fails.\"\"\"\n    pass\n\n\nclass User:\n    \"\"\"\n    Represents a user in the system.\n    \n    Attributes:\n        username: Unique username\n        email: User's email address\n        created_at: Account creation timestamp\n    \"\"\"\n    \n    def __init__(self, username: str, email: str, password_hash: str):\n        self.username = username\n        self.email = email\n        self.password_hash = password_hash\n        self.created_at = datetime.now()\n        self.last_login: Optional[datetime] = None\n        self.failed_attempts = 0\n        self.is_locked = False\n    \n    def check_password(self, password: str) -> bool:\n        \"\"\"\n        Verify password against stored hash.\n        \n        Args:\n            password: Plain text password to check\n            \n        Returns:\n            True if password matches, False otherwise\n        \"\"\"\n        password_hash = hashlib.sha256(password.encode()).hexdigest()\n        return secrets.compare_digest(password_hash, self.password_hash)\n    \n    def update_last_login(self):\n        \"\"\"Update last login timestamp.\"\"\"\n        self.last_login = datetime.now()\n        self.failed_attempts = 0\n    \n    def increment_failed_attempts(self):\n        \"\"\"Track failed login attempts and lock account if necessary.\"\"\"\n        self.failed_attempts += 1\n        if self.failed_attempts >= 5:\n            self.is_locked = True\n\n\nclass AuthenticationManager:\n    \"\"\"\n    Manages user authentication and session tokens.\n    \n    This class handles:\n    - User login/logout\n    - Token generation and validation\n    - Session management\n    - Account lockout policies\n    \"\"\"\n    \n    def __init__(self, token_expiry_hours: int = 24):\n        self.users: Dict[str, User] = {}\n        self.sessions: Dict[str, Dict[str, Any]] = {}\n        self.token_expiry_hours = token_expiry_hours\n    \n    def register_user(self, username: str, email: str, password: str) -> User:\n        \"\"\"\n        Register a new user.\n        \n        Args:\n            username: Desired username\n            email: User's email address\n            password: Plain text password (will be hashed)\n            \n        Returns:\n            Newly created User object\n            \n        Raises:\n            ValueError: If username already exists\n        \"\"\"\n        if username in self.users:\n            raise ValueError(f\"Username '{username}' already exists\")\n        \n        password_hash = hashlib.sha256(password.encode()).hexdigest()\n        user = User(username, email, password_hash)\n        self.users[username] = user\n        return user\n    \n    def authenticate(self, username: str, password: str) -> str:\n        \"\"\"\n        Authenticate user and create session.\n        \n        Args:\n            username: Username to authenticate\n            password: Password to verify\n            \n        Returns:\n            Session token string\n            \n        Raises:\n            AuthenticationError: If authentication fails\n        \"\"\"\n        user = self.users.get(username)\n        \n        if user is None:\n            raise AuthenticationError(\"Invalid username or password\")\n        \n        if user.is_locked:\n            raise AuthenticationError(\"Account is locked due to too many failed attempts\")\n        \n        if not user.check_password(password):\n            user.increment_failed_attempts()\n            raise AuthenticationError(\"Invalid username or password\")\n        \n        # Generate session token\n        token = secrets.token_urlsafe(32)\n        expiry = datetime.now() + timedelta(hours=self.token_expiry_hours)\n        \n        self.sessions[token] = {\n            \"username\": username,\n            \"expiry\": expiry,\n            \"created_at\": datetime.now()\n        }\n        \n        user.update_last_login()\n        return token\n    \n    def validate_token(self, token: str) -> Optional[str]:\n        \"\"\"\n        Validate session token.\n        \n        Args:\n            token: Session token to validate\n            \n        Returns:\n            Username if token is valid, None otherwise\n        \"\"\"\n        session = self.sessions.get(token)\n        \n        if session is None:\n            return None\n        \n        if datetime.now() > session[\"expiry\"]:\n            # Token expired, remove from sessions\n            del self.sessions[token]\n            return None\n        \n        return session[\"username\"]\n    \n    def logout(self, token: str):\n        \"\"\"\n        End user session.\n        \n        Args:\n            token: Session token to invalidate\n        \"\"\"\n        if token in self.sessions:\n            del self.sessions[token]\n    \n    def cleanup_expired_sessions(self):\n        \"\"\"Remove all expired session tokens.\"\"\"\n        now = datetime.now()\n        expired_tokens = [\n            token for token, session in self.sessions.items()\n            if now > session[\"expiry\"]\n        ]\n        for token in expired_tokens:\n            del self.sessions[token]\n\n\n# Example usage\nif __name__ == \"__main__\":\n    # Initialize authentication manager\n    auth_manager = AuthenticationManager(token_expiry_hours=12)\n    \n    # Register a new user\n    user = auth_manager.register_user(\n        username=\"john_doe\",\n        email=\"john@example.com\",\n        password=\"SecurePassword123!\"\n    )\n    print(f\"Registered user: {user.username}\")\n    \n    # Authenticate user\n    try:\n        token = auth_manager.authenticate(\"john_doe\", \"SecurePassword123!\")\n        print(f\"Login successful! Token: {token[:16]}...\")\n        \n        # Validate token\n        username = auth_manager.validate_token(token)\n        print(f\"Token valid for user: {username}\")\n        \n        # Logout\n        auth_manager.logout(token)\n        print(\"User logged out\")\n    except AuthenticationError as e:\n        print(f\"Authentication failed: {e}\")\n",
+    "format": "python",
+    "domain": "Engineering",
+    "category": "Code",
+    "description": "Authentication module with security features",
+    "tags": [
+      "python",
+      "authentication",
+      "security",
+      "jwt",
+      "oauth"
+    ],
+    "num_lines": 164,
+    "num_chars": 6158,
+    "estimated_tokens": 690,
+    "sections": [
+      {
+        "level": 1,
+        "title": "class AuthenticationError",
+        "line": 15
+      },
+      {
+        "level": 1,
+        "title": "class User",
+        "line": 20
+      },
+      {
+        "level": 1,
+        "title": "class AuthenticationManager",
+        "line": 64
+      }
+    ],
+    "num_sections": 3,
+    "created_at": "2026-01-20T17:12:06.474084"
+  },
+  {
+    "id": "5023a7d7cfcc",
+    "filename": "config_example.yaml",
+    "content": "# Context-as-a-Service Configuration\n# Version: 1.0.0\n# Environment: production\n#\n# This file contains the complete configuration for a CaaS deployment.\n# Copy to config.yaml and adjust values for your environment.\n\n# ===========================================\n# SERVER CONFIGURATION\n# ===========================================\nserver:\n  host: \"0.0.0.0\"\n  port: 8000\n  workers: 4\n  timeout: 30\n  keep_alive: 5\n  \n  # CORS settings\n  cors:\n    enabled: true\n    allow_origins:\n      - \"https://app.example.com\"\n      - \"https://admin.example.com\"\n    allow_methods:\n      - \"GET\"\n      - \"POST\"\n      - \"PUT\"\n      - \"DELETE\"\n    allow_headers:\n      - \"Authorization\"\n      - \"Content-Type\"\n    max_age: 3600\n\n  # Rate limiting\n  rate_limit:\n    enabled: true\n    default_limit: 100  # requests per minute\n    burst_limit: 20\n    by_tier:\n      free: 60\n      professional: 600\n      enterprise: 6000\n\n# ===========================================\n# DATABASE CONFIGURATION\n# ===========================================\ndatabase:\n  # Primary database (PostgreSQL with pgvector)\n  primary:\n    host: \"${DB_HOST:localhost}\"\n    port: 5432\n    database: \"caas_production\"\n    username: \"${DB_USER:caas}\"\n    password: \"${DB_PASSWORD}\"  # Required, no default\n    \n    # Connection pool settings\n    pool:\n      min_size: 5\n      max_size: 20\n      max_overflow: 10\n      timeout: 30\n      recycle: 3600  # Recycle connections after 1 hour\n    \n    # SSL configuration\n    ssl:\n      enabled: true\n      mode: \"verify-full\"\n      ca_cert: \"/etc/ssl/certs/db-ca.crt\"\n\n  # Read replicas for scaling (optional)\n  replicas:\n    - host: \"replica-1.example.com\"\n      port: 5432\n      weight: 50\n    - host: \"replica-2.example.com\"\n      port: 5432\n      weight: 50\n\n  # Redis for caching and sessions\n  redis:\n    host: \"${REDIS_HOST:localhost}\"\n    port: 6379\n    password: \"${REDIS_PASSWORD}\"\n    db: 0\n    ssl: true\n    \n    # Key prefixes for namespacing\n    prefixes:\n      cache: \"caas:cache:\"\n      session: \"caas:session:\"\n      rate_limit: \"caas:ratelimit:\"\n\n# ===========================================\n# DOCUMENT PROCESSING\n# ===========================================\nprocessing:\n  # File handling\n  max_file_size_mb: 50\n  allowed_types:\n    - \"application/pdf\"\n    - \"text/html\"\n    - \"text/markdown\"\n    - \"text/plain\"\n    - \"application/x-python\"\n    - \"text/x-python\"\n    - \"application/javascript\"\n    - \"text/css\"\n    - \"application/json\"\n    - \"application/yaml\"\n    - \"text/x-sql\"\n\n  # OCR settings\n  ocr:\n    enabled: true\n    engine: \"tesseract\"\n    languages:\n      - \"eng\"\n      - \"spa\"\n      - \"fra\"\n    dpi: 300\n    timeout: 120\n\n  # Chunking configuration\n  chunking:\n    strategy: \"semantic\"  # fixed, semantic, recursive\n    \n    # For fixed strategy\n    fixed:\n      chunk_size: 512\n      chunk_overlap: 50\n    \n    # For semantic strategy\n    semantic:\n      min_chunk_size: 100\n      max_chunk_size: 1000\n      similarity_threshold: 0.85\n    \n    # For recursive strategy\n    recursive:\n      separators:\n        - \"\\n\\n\"\n        - \"\\n\"\n        - \". \"\n        - \" \"\n      chunk_size: 500\n      chunk_overlap: 100\n\n  # Structure detection\n  structure:\n    enabled: true\n    confidence_threshold: 0.7\n    supported_types:\n      - \"contract\"\n      - \"policy\"\n      - \"code\"\n      - \"documentation\"\n      - \"report\"\n      - \"email\"\n\n# ===========================================\n# EMBEDDING AND RETRIEVAL\n# ===========================================\nembedding:\n  provider: \"openai\"  # openai, cohere, huggingface, local\n  \n  # OpenAI settings\n  openai:\n    model: \"text-embedding-ada-002\"\n    api_key: \"${OPENAI_API_KEY}\"\n    dimensions: 1536\n    batch_size: 100\n    max_retries: 3\n    timeout: 30\n  \n  # Local model settings (for on-prem deployments)\n  local:\n    model_path: \"/models/sentence-transformers/all-MiniLM-L6-v2\"\n    device: \"cuda\"  # cpu, cuda\n    batch_size: 64\n\nretrieval:\n  # Vector search settings\n  vector_search:\n    index_type: \"ivfflat\"\n    lists: 100  # Number of clusters for IVF\n    probes: 10  # Number of clusters to search\n    ef_search: 128  # HNSW search parameter\n  \n  # Hybrid search (vector + keyword)\n  hybrid:\n    enabled: true\n    vector_weight: 0.7\n    keyword_weight: 0.3\n    keyword_engine: \"postgresql\"  # postgresql (full-text), elasticsearch\n\n  # Reranking\n  reranking:\n    enabled: true\n    model: \"cross-encoder/ms-marco-MiniLM-L-6-v2\"\n    top_k: 20  # Rerank top K results\n\n# ===========================================\n# CONTEXT TRIAD CONFIGURATION\n# ===========================================\ncontext_triad:\n  # Hot context (current conversation)\n  hot:\n    max_tokens: 2000\n    window_size: 10  # Number of turns to keep\n  \n  # Warm context (user preferences, recent docs)\n  warm:\n    max_tokens: 1000\n    user_preferences:\n      enabled: true\n      max_items: 50\n    recent_documents:\n      enabled: true\n      max_age_days: 7\n  \n  # Cold context (historical, archives)\n  cold:\n    max_tokens: 3000\n    cache_ttl: 3600\n    include_archives: true\n\n# ===========================================\n# TIME DECAY CONFIGURATION\n# ===========================================\ntime_decay:\n  enabled: true\n  \n  # Half-life: time for relevance to decay by 50%\n  default_half_life_days: 90\n  \n  # Per-document-type overrides\n  type_overrides:\n    code: 30  # Code changes frequently\n    policy: 365  # Policies are more stable\n    contract: 730  # Contracts are long-term\n    meeting_notes: 14  # Meeting notes decay quickly\n  \n  # Minimum score floor\n  min_score: 0.1\n\n# ===========================================\n# PRAGMATIC TRUTH CONFIGURATION\n# ===========================================\npragmatic_truth:\n  enabled: true\n  \n  # Source weights\n  source_weights:\n    official: 1.0\n    team_knowledge: 0.9\n    informal: 0.7\n    derived: 0.5\n  \n  # Conflict detection\n  conflict_detection:\n    enabled: true\n    similarity_threshold: 0.8\n    notify_on_conflict: true\n    notification_channels:\n      - email\n      - slack\n  \n  # Citation generation\n  citations:\n    format: \"inline\"  # inline, footnote, endnote\n    include_confidence: true\n    include_source_type: true\n\n# ===========================================\n# HEURISTIC ROUTER CONFIGURATION\n# ===========================================\nheuristic_router:\n  enabled: true\n  \n  # Query classification rules\n  rules:\n    - pattern: \"^(how|what|why|when|where|who)\"\n      type: \"question\"\n      priority: \"high\"\n    \n    - pattern: \"(error|bug|issue|problem|fail)\"\n      type: \"troubleshooting\"\n      priority: \"high\"\n      source_preference: \"informal\"\n    \n    - pattern: \"(policy|procedure|guideline|rule)\"\n      type: \"policy\"\n      priority: \"medium\"\n      source_preference: \"official\"\n    \n    - pattern: \"(code|function|class|method|api)\"\n      type: \"technical\"\n      priority: \"medium\"\n      source_filter: \"code\"\n\n  # Default behavior\n  default:\n    max_chunks: 10\n    include_metadata: true\n    time_decay: true\n\n# ===========================================\n# TRUST GATEWAY CONFIGURATION\n# ===========================================\ntrust_gateway:\n  enabled: true\n  \n  # Access control\n  access_control:\n    default_policy: \"deny\"\n    authentication_required: true\n    allowed_roles:\n      - \"admin\"\n      - \"analyst\"\n      - \"viewer\"\n  \n  # Data classification\n  classification:\n    enabled: true\n    levels:\n      - name: \"public\"\n        access: \"all\"\n      - name: \"internal\"\n        access: \"authenticated\"\n      - name: \"confidential\"\n        access: \"role:analyst,admin\"\n      - name: \"restricted\"\n        access: \"role:admin\"\n  \n  # Audit logging\n  audit:\n    enabled: true\n    log_queries: true\n    log_responses: false  # Don't log response content\n    retention_days: 90\n  \n  # PII detection and masking\n  pii:\n    detection_enabled: true\n    mask_in_responses: true\n    patterns:\n      - name: \"email\"\n        regex: \"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\\\.[a-zA-Z]{2,}\"\n      - name: \"ssn\"\n        regex: \"\\\\d{3}-\\\\d{2}-\\\\d{4}\"\n      - name: \"credit_card\"\n        regex: \"\\\\d{4}[- ]?\\\\d{4}[- ]?\\\\d{4}[- ]?\\\\d{4}\"\n\n# ===========================================\n# LOGGING AND MONITORING\n# ===========================================\nlogging:\n  level: \"INFO\"\n  format: \"json\"\n  \n  # Log destinations\n  handlers:\n    console:\n      enabled: true\n      level: \"INFO\"\n    \n    file:\n      enabled: true\n      path: \"/var/log/caas/app.log\"\n      max_size_mb: 100\n      backup_count: 10\n      level: \"DEBUG\"\n    \n    # External logging services\n    datadog:\n      enabled: false\n      api_key: \"${DATADOG_API_KEY}\"\n    \n    sentry:\n      enabled: false\n      dsn: \"${SENTRY_DSN}\"\n      environment: \"production\"\n\nmonitoring:\n  # Prometheus metrics\n  prometheus:\n    enabled: true\n    port: 9090\n    path: \"/metrics\"\n  \n  # Health checks\n  health:\n    enabled: true\n    path: \"/health\"\n    include_details: true\n\n# ===========================================\n# FEATURE FLAGS\n# ===========================================\nfeatures:\n  # Experimental features\n  experimental:\n    graph_rag: false\n    multi_modal: false\n    streaming_responses: true\n  \n  # Beta features\n  beta:\n    advanced_chunking: true\n    conflict_resolution_ui: false\n  \n  # Stable features (can be disabled if needed)\n  stable:\n    time_decay: true\n    context_triad: true\n    pragmatic_truth: true\n    heuristic_router: true\n    trust_gateway: true\n",
+    "format": "yaml",
+    "domain": "Engineering",
+    "category": "Engineering",
+    "description": "Configuration file example",
+    "tags": [
+      "config",
+      "yaml",
+      "settings",
+      "configuration"
+    ],
+    "num_lines": 364,
+    "num_chars": 9353,
+    "estimated_tokens": 1151,
+    "sections": [],
+    "num_sections": 0,
+    "created_at": "2026-01-20T17:12:06.512676"
+  }
+]
