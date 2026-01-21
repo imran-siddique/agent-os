@@ -301,7 +301,46 @@ class BlindSpotBenchmark:
 
 def main():
     """Run the blind spot benchmark."""
-    experiment = BlindSpotBenchmark()
+    import argparse
+    
+    parser = argparse.ArgumentParser(
+        description="Run the Blind Spot Benchmark comparing single-model vs CMVK",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Run with default 50-problem dataset
+  python experiments/blind_spot_benchmark.py
+  
+  # Run with sample dataset (5 problems - quick test)
+  python experiments/blind_spot_benchmark.py --dataset experiments/datasets/humaneval_sample.json
+  
+  # Run with full dataset (164 problems)
+  python experiments/blind_spot_benchmark.py --dataset experiments/datasets/humaneval_full.json
+        """
+    )
+    
+    parser.add_argument(
+        '--dataset',
+        default='experiments/datasets/humaneval_50.json',
+        help='Path to HumanEval dataset (default: humaneval_50.json with 50 problems)'
+    )
+    
+    parser.add_argument(
+        '--output',
+        default='experiments/results',
+        help='Output directory for results (default: experiments/results)'
+    )
+    
+    args = parser.parse_args()
+    
+    print("\n" + "="*80)
+    print("BLIND SPOT BENCHMARK")
+    print("="*80)
+    print(f"Dataset: {args.dataset}")
+    print(f"Output: {args.output}")
+    print("="*80 + "\n")
+    
+    experiment = BlindSpotBenchmark(dataset_path=args.dataset, output_dir=args.output)
     results = experiment.run_experiment()
     
     print("\n" + "="*60)

@@ -239,7 +239,43 @@ class SabotageStressTest:
 
 def main():
     """Run the sabotage stress test."""
-    experiment = SabotageStressTest()
+    import argparse
+    
+    parser = argparse.ArgumentParser(
+        description="Run the Sabotage Stress Test to evaluate verifier bug detection",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Run with default dataset
+  python experiments/sabotage_stress_test.py
+  
+  # Specify custom dataset and output directory
+  python experiments/sabotage_stress_test.py --dataset custom.json --output results/
+        """
+    )
+    
+    parser.add_argument(
+        '--dataset',
+        default='experiments/datasets/sabotage.json',
+        help='Path to sabotage dataset (default: experiments/datasets/sabotage.json)'
+    )
+    
+    parser.add_argument(
+        '--output',
+        default='experiments/results',
+        help='Output directory for results (default: experiments/results)'
+    )
+    
+    args = parser.parse_args()
+    
+    print("\n" + "="*80)
+    print("SABOTAGE STRESS TEST")
+    print("="*80)
+    print(f"Dataset: {args.dataset}")
+    print(f"Output: {args.output}")
+    print("="*80 + "\n")
+    
+    experiment = SabotageStressTest(dataset_path=args.dataset, output_dir=args.output)
     results = experiment.run_experiment()
     
     print("\n" + "="*60)

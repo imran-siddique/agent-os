@@ -57,6 +57,10 @@ logs/
 experiments/results/
 *.json.bak
 
+# Note: experiments/datasets/*.json files ARE included in git
+# These are benchmark datasets (HumanEval) that are small enough
+# to commit for convenience. See experiments/datasets/README.md
+
 # Docker
 .dockerignore
 
