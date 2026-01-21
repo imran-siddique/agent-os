@@ -41,6 +41,11 @@ data/
 # Allow example files
 !examples/*.html
 !examples/*.pdf
+# Allow benchmark sample corpus
+!benchmarks/data/sample_corpus/*.html
+!benchmarks/data/sample_corpus/*.md
+!benchmarks/data/sample_corpus/*.py
+!benchmarks/data/sample_corpus/README.md
 
 # Logs
 *.log

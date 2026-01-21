@@ -1,6 +1,6 @@
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "context-as-a-service"
@@ -73,19 +73,11 @@ Issues = "https://github.com/imran-siddique/context-as-a-service/issues"
 [project.scripts]
 caas = "caas.cli:main"
 
-[tool.hatchling.build.targets.sdist]
-include = [
-    "/caas",
-    "/tests",
-    "/docs",
-    "/examples",
-    "README.md",
-    "LICENSE",
-    "requirements.txt",
-]
-
-[tool.hatchling.build.targets.wheel]
+[tool.setuptools]
 packages = ["caas"]
+
+[tool.setuptools.package-data]
+caas = ["py.typed"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
