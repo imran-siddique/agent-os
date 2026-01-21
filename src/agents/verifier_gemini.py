@@ -106,6 +106,9 @@ class GeminiVerifier(BaseAgent):
             
             content = response.text
             
+            # Track token usage
+            self._record_token_usage(verification_prompt, content)
+            
             # Parse the verification response
             result = self._parse_verification_response(content)
             

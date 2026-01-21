@@ -30,6 +30,13 @@ class BaseAgent(ABC):
         self.model_name = model_name
         self.api_key = api_key
         self.config = kwargs
+        
+        # Token tracking for Experiment C
+        self.total_tokens_used = 0
+        self.total_input_tokens = 0
+        self.total_output_tokens = 0
+        self.call_count = 0
+        
         logger.info(f"Initialized {self.__class__.__name__} with model {model_name}")
     
     @abstractmethod
@@ -79,3 +86,52 @@ class BaseAgent(ABC):
         except FileNotFoundError:
             logger.error(f"Prompt file not found: {prompt_file}")
             return ""
+    
+    def get_token_stats(self) -> Dict[str, int]:
+        """
+        Get token usage statistics.
+        
+        Returns:
+            Dictionary with token usage stats
+        """
+        return {
+            "total_tokens": self.total_tokens_used,
+            "input_tokens": self.total_input_tokens,
+            "output_tokens": self.total_output_tokens,
+            "call_count": self.call_count,
+            "avg_tokens_per_call": self.total_tokens_used / self.call_count if self.call_count > 0 else 0
+        }
+    
+    def _estimate_tokens(self, text: str) -> int:
+        """
+        Estimate token count for a given text.
+        
+        This is a rough estimate: ~4 characters per token.
+        For more accurate counting, use tiktoken for OpenAI or the model's tokenizer.
+        
+        Args:
+            text: The text to estimate tokens for
+            
+        Returns:
+            Estimated token count
+        """
+        return len(text) // 4
+    
+    def _record_token_usage(self, input_text: str, output_text: str) -> None:
+        """
+        Record token usage for an API call.
+        
+        Args:
+            input_text: The input prompt text
+            output_text: The generated output text
+        """
+        input_tokens = self._estimate_tokens(input_text)
+        output_tokens = self._estimate_tokens(output_text)
+        total = input_tokens + output_tokens
+        
+        self.total_input_tokens += input_tokens
+        self.total_output_tokens += output_tokens
+        self.total_tokens_used += total
+        self.call_count += 1
+        
+        logger.debug(f"Token usage - Input: {input_tokens}, Output: {output_tokens}, Total: {total}")
