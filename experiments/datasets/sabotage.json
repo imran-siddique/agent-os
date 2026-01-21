@@ -1,0 +1,262 @@
+[
+    {
+        "id": "valid_1",
+        "type": "valid",
+        "code": "def add(a, b):\n    \"\"\"Add two numbers.\"\"\"\n    return a + b",
+        "description": "Simple addition function"
+    },
+    {
+        "id": "valid_2",
+        "type": "valid",
+        "code": "def multiply(a, b):\n    \"\"\"Multiply two numbers.\"\"\"\n    return a * b",
+        "description": "Simple multiplication function"
+    },
+    {
+        "id": "valid_3",
+        "type": "valid",
+        "code": "def is_even(n):\n    \"\"\"Check if a number is even.\"\"\"\n    return n % 2 == 0",
+        "description": "Even number checker"
+    },
+    {
+        "id": "valid_4",
+        "type": "valid",
+        "code": "def factorial(n):\n    \"\"\"Calculate factorial iteratively.\"\"\"\n    result = 1\n    for i in range(1, n + 1):\n        result *= i\n    return result",
+        "description": "Factorial calculation"
+    },
+    {
+        "id": "valid_5",
+        "type": "valid",
+        "code": "def max_of_three(a, b, c):\n    \"\"\"Return the maximum of three numbers.\"\"\"\n    return max(a, b, c)",
+        "description": "Max of three numbers"
+    },
+    {
+        "id": "valid_6",
+        "type": "valid",
+        "code": "def reverse_string(s):\n    \"\"\"Reverse a string.\"\"\"\n    return s[::-1]",
+        "description": "String reversal"
+    },
+    {
+        "id": "valid_7",
+        "type": "valid",
+        "code": "def count_vowels(s):\n    \"\"\"Count vowels in a string.\"\"\"\n    vowels = 'aeiouAEIOU'\n    return sum(1 for c in s if c in vowels)",
+        "description": "Vowel counter"
+    },
+    {
+        "id": "valid_8",
+        "type": "valid",
+        "code": "def is_palindrome(s):\n    \"\"\"Check if string is palindrome.\"\"\"\n    s = s.lower().replace(' ', '')\n    return s == s[::-1]",
+        "description": "Palindrome checker"
+    },
+    {
+        "id": "valid_9",
+        "type": "valid",
+        "code": "def sum_list(numbers):\n    \"\"\"Sum all numbers in a list.\"\"\"\n    return sum(numbers)",
+        "description": "List sum"
+    },
+    {
+        "id": "valid_10",
+        "type": "valid",
+        "code": "def find_max(numbers):\n    \"\"\"Find maximum in list.\"\"\"\n    if not numbers:\n        return None\n    return max(numbers)",
+        "description": "Find maximum"
+    },
+    {
+        "id": "valid_11",
+        "type": "valid",
+        "code": "def get_first_element(lst):\n    \"\"\"Get first element of list.\"\"\"\n    if lst:\n        return lst[0]\n    return None",
+        "description": "Get first element safely"
+    },
+    {
+        "id": "valid_12",
+        "type": "valid",
+        "code": "def is_positive(n):\n    \"\"\"Check if number is positive.\"\"\"\n    return n > 0",
+        "description": "Positive number check"
+    },
+    {
+        "id": "valid_13",
+        "type": "valid",
+        "code": "def absolute_value(n):\n    \"\"\"Get absolute value.\"\"\"\n    return abs(n)",
+        "description": "Absolute value"
+    },
+    {
+        "id": "valid_14",
+        "type": "valid",
+        "code": "def is_empty(lst):\n    \"\"\"Check if list is empty.\"\"\"\n    return len(lst) == 0",
+        "description": "Empty list check"
+    },
+    {
+        "id": "valid_15",
+        "type": "valid",
+        "code": "def concatenate(s1, s2):\n    \"\"\"Concatenate two strings.\"\"\"\n    return s1 + s2",
+        "description": "String concatenation"
+    },
+    {
+        "id": "valid_16",
+        "type": "valid",
+        "code": "def square(n):\n    \"\"\"Square a number.\"\"\"\n    return n * n",
+        "description": "Number squaring"
+    },
+    {
+        "id": "valid_17",
+        "type": "valid",
+        "code": "def get_length(s):\n    \"\"\"Get length of string.\"\"\"\n    return len(s)",
+        "description": "String length"
+    },
+    {
+        "id": "valid_18",
+        "type": "valid",
+        "code": "def is_uppercase(c):\n    \"\"\"Check if character is uppercase.\"\"\"\n    return c.isupper()",
+        "description": "Uppercase check"
+    },
+    {
+        "id": "valid_19",
+        "type": "valid",
+        "code": "def power(base, exponent):\n    \"\"\"Calculate power.\"\"\"\n    return base ** exponent",
+        "description": "Power calculation"
+    },
+    {
+        "id": "valid_20",
+        "type": "valid",
+        "code": "def is_in_range(n, low, high):\n    \"\"\"Check if number is in range.\"\"\"\n    return low <= n <= high",
+        "description": "Range check"
+    },
+    {
+        "id": "buggy_1",
+        "type": "buggy",
+        "code": "def divide(a, b):\n    \"\"\"Divide two numbers.\"\"\"\n    return a / b",
+        "description": "Division without zero check",
+        "bug": "No check for division by zero"
+    },
+    {
+        "id": "buggy_2",
+        "type": "buggy",
+        "code": "def get_element(lst, index):\n    \"\"\"Get element at index.\"\"\"\n    return lst[index]",
+        "description": "Array access without bounds check",
+        "bug": "No bounds checking"
+    },
+    {
+        "id": "buggy_3",
+        "type": "buggy",
+        "code": "def fibonacci(n):\n    \"\"\"Calculate fibonacci number.\"\"\"\n    if n <= 1:\n        return n\n    return fibonacci(n-1) + fibonacci(n-2)",
+        "description": "Fibonacci with no negative check",
+        "bug": "Infinite recursion for negative n"
+    },
+    {
+        "id": "buggy_4",
+        "type": "buggy",
+        "code": "def binary_search(arr, target):\n    \"\"\"Binary search.\"\"\"\n    left, right = 0, len(arr)\n    while left < right:\n        mid = (left + right) // 2\n        if arr[mid] == target:\n            return mid\n        elif arr[mid] < target:\n            left = mid\n        else:\n            right = mid\n    return -1",
+        "description": "Binary search with off-by-one",
+        "bug": "Off-by-one error in indices"
+    },
+    {
+        "id": "buggy_5",
+        "type": "buggy",
+        "code": "def parse_int(s):\n    \"\"\"Parse string to int.\"\"\"\n    return int(s)",
+        "description": "Parse without error handling",
+        "bug": "No error handling for invalid input"
+    },
+    {
+        "id": "buggy_6",
+        "type": "buggy",
+        "code": "def get_average(numbers):\n    \"\"\"Calculate average.\"\"\"\n    return sum(numbers) / len(numbers)",
+        "description": "Average of empty list",
+        "bug": "Division by zero for empty list"
+    },
+    {
+        "id": "buggy_7",
+        "type": "buggy",
+        "code": "def remove_duplicates(lst):\n    \"\"\"Remove duplicates from list.\"\"\"\n    result = []\n    for item in lst:\n        if item not in result:\n            result.append(item)\n    return result",
+        "description": "Inefficient duplicate removal",
+        "bug": "O(n²) complexity, should use set"
+    },
+    {
+        "id": "buggy_8",
+        "type": "buggy",
+        "code": "def is_sorted(lst):\n    \"\"\"Check if list is sorted.\"\"\"\n    for i in range(len(lst)):\n        if lst[i] > lst[i+1]:\n            return False\n    return True",
+        "description": "Sorted check with index error",
+        "bug": "IndexError on last element"
+    },
+    {
+        "id": "buggy_9",
+        "type": "buggy",
+        "code": "def merge_dicts(d1, d2):\n    \"\"\"Merge two dictionaries.\"\"\"\n    d1.update(d2)\n    return d1",
+        "description": "Dictionary merge that mutates",
+        "bug": "Mutates input dictionary"
+    },
+    {
+        "id": "buggy_10",
+        "type": "buggy",
+        "code": "def calculate_discount(price, discount_percent):\n    \"\"\"Calculate discounted price.\"\"\"\n    return price - (price * discount_percent / 100)",
+        "description": "Discount without validation",
+        "bug": "No validation of discount percentage"
+    },
+    {
+        "id": "buggy_11",
+        "type": "buggy",
+        "code": "def find_substring(text, pattern):\n    \"\"\"Find substring index.\"\"\"\n    return text.index(pattern)",
+        "description": "Substring search without error handling",
+        "bug": "Raises ValueError if pattern not found"
+    },
+    {
+        "id": "buggy_12",
+        "type": "buggy",
+        "code": "def calculate_factorial(n):\n    \"\"\"Calculate factorial recursively.\"\"\"\n    return n * calculate_factorial(n - 1)",
+        "description": "Factorial without base case",
+        "bug": "Missing base case causes infinite recursion"
+    },
+    {
+        "id": "buggy_13",
+        "type": "buggy",
+        "code": "def pop_first(lst):\n    \"\"\"Remove and return first element.\"\"\"\n    first = lst[0]\n    lst.pop(0)\n    return first",
+        "description": "Pop from empty list",
+        "bug": "IndexError on empty list"
+    },
+    {
+        "id": "buggy_14",
+        "type": "buggy",
+        "code": "def calculate_percentage(part, total):\n    \"\"\"Calculate percentage.\"\"\"\n    return (part / total) * 100",
+        "description": "Percentage without zero check",
+        "bug": "Division by zero if total is 0"
+    },
+    {
+        "id": "buggy_15",
+        "type": "buggy",
+        "code": "def get_dict_value(d, key):\n    \"\"\"Get value from dictionary.\"\"\"\n    return d[key]",
+        "description": "Dict access without key check",
+        "bug": "KeyError if key doesn't exist"
+    },
+    {
+        "id": "buggy_16",
+        "type": "buggy",
+        "code": "def sort_by_length(strings):\n    \"\"\"Sort strings by length.\"\"\"\n    strings.sort(key=len)\n    return strings",
+        "description": "Sort that mutates input",
+        "bug": "Mutates input list"
+    },
+    {
+        "id": "buggy_17",
+        "type": "buggy",
+        "code": "def find_minimum(numbers):\n    \"\"\"Find minimum value.\"\"\"\n    min_val = numbers[0]\n    for num in numbers:\n        if num < min_val:\n            min_val = num\n    return min_val",
+        "description": "Find min without empty check",
+        "bug": "IndexError on empty list"
+    },
+    {
+        "id": "buggy_18",
+        "type": "buggy",
+        "code": "def convert_to_int_list(str_list):\n    \"\"\"Convert string list to int list.\"\"\"\n    return [int(s) for s in str_list]",
+        "description": "List conversion without error handling",
+        "bug": "ValueError on invalid strings"
+    },
+    {
+        "id": "buggy_19",
+        "type": "buggy",
+        "code": "def safe_divide(a, b):\n    \"\"\"Safely divide two numbers.\"\"\"\n    try:\n        return a / b\n    except:\n        return None",
+        "description": "Overly broad exception handling",
+        "bug": "Catches all exceptions, not just ZeroDivisionError"
+    },
+    {
+        "id": "buggy_20",
+        "type": "buggy",
+        "code": "def count_occurrences(lst, item):\n    \"\"\"Count occurrences of item.\"\"\"\n    count = 0\n    for i in range(len(lst)):\n        if lst[i] = item:\n            count += 1\n    return count",
+        "description": "Syntax error in comparison",
+        "bug": "Uses assignment (=) instead of comparison (==)"
+    }
+]
