@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  caas-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: caas-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./examples:/app/examples
+    environment:
+      - CAAS_DATA_DIR=/app/data
+      - CAAS_STORAGE_DIR=/app/data/storage
+      - LOG_LEVEL=info
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Optional: Add a vector database service if needed in the future
+  # vector-db:
+  #   image: qdrant/qdrant:latest
+  #   container_name: caas-vector-db
+  #   ports:
+  #     - "6333:6333"
+  #   volumes:
+  #     - ./data/qdrant:/qdrant/storage
+  #   restart: unless-stopped
+
+volumes:
+  caas-data:
+    driver: local
