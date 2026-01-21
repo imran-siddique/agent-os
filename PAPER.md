@@ -197,9 +197,23 @@ We specifically designed test cases to expose correlated blind spots:
 
 ### 3.3 Results
 
-**TODO: Fill in after running `python experiments/blind_spot_benchmark.py`**
+**Instructions for Researchers:**
 
-The table below shows the comparison between baseline single-model approach and CMVK on 50 HumanEval problems:
+To fill in this table, run the following commands:
+
+```bash
+# For 50-problem dataset (recommended for statistical significance):
+python experiments/blind_spot_benchmark.py --dataset experiments/datasets/humaneval_50.json
+
+# For full dataset (164 problems, takes ~15-20 minutes):
+python experiments/blind_spot_benchmark.py --dataset experiments/datasets/humaneval_full.json
+```
+
+After the benchmark completes, check `experiments/results/blind_spot_summary_*.txt` for the results and fill in the table below.
+
+---
+
+**Benchmark Results (n=50 problems):**
 
 | Metric | Baseline (GPT-4o) | CMVK | Improvement |
 |--------|-------------------|------|-------------|
@@ -209,11 +223,37 @@ The table below shows the comparison between baseline single-model approach and 
 | Strategy Bans (avg) | 0 | **[FILL: __]** | N/A |
 | Total Runtime | **[FILL: __s]** | **[FILL: __s]** | **[FILL: +__%]** |
 
+**Instructions for filling this table:**
+1. Look at the generated `blind_spot_summary_*.txt` file
+2. Find "Baseline Success Rate" and "CMVK Success Rate"
+3. Calculate improvement as: `(CMVK - Baseline) / Baseline × 100`
+4. Count strategy bans from the detailed JSON results
+5. Record total runtime from the summary
+
 **Key Findings:**
-- **[TODO: Add 2-3 bullet points about main findings]**
-- Example: "CMVK achieved X% higher pass rate, demonstrating the effectiveness of cross-model verification"
-- Example: "The verifier caught Y critical bugs that the generator missed in self-review"
-- Example: "Strategy banning prevented Z cases of repeated failures"
+
+After running the experiments, document your findings here:
+- **[TODO: Pass rate improvement]** - Example: "CMVK achieved X% higher pass rate, demonstrating the effectiveness of cross-model verification"
+- **[TODO: Bug detection]** - Example: "The verifier caught Y critical bugs that the generator missed in self-review"
+- **[TODO: Strategy diversity]** - Example: "Strategy banning prevented Z cases of repeated failures, forcing exploration of alternative approaches"
+- **[TODO: Edge case handling]** - Example: "CMVK successfully handled A edge cases that failed with single-model approach"
+
+**Qualitative Observations:**
+
+To find interesting examples for your paper, use the visualizer:
+
+```bash
+# List all traces to find interesting cases
+python -m src.tools.visualizer --list
+
+# Replay specific traces to find moments where Gemini catches GPT-4o's mistakes
+python -m src.tools.visualizer --latest
+```
+
+Look for:
+- Cases where the Prosecutor found bugs the Generator missed
+- Examples of strategy banning forcing new approaches
+- Edge cases that required multiple iterations to solve
 
 ### 3.4 Sabotage Stress Test Results
 

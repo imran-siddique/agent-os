@@ -136,33 +136,76 @@ This visualization shows exactly how CMVK prevents blind spots through adversari
 
 ## 🔬 Running Research Experiments
 
-### Complete Benchmark Pipeline
+### Quick Start: Automated Pipeline Test
 
-Follow these steps to reproduce the research results:
+Run the complete pipeline in one command:
 
 ```bash
-# 1. Install dependencies
-pip install -r requirements.txt
+# Quick sanity check (5 problems, ~30 seconds)
+python test_full_pipeline.py
 
-# 2. Download the full HumanEval dataset (164 problems)
+# With 50-problem dataset (better statistical significance)
+python test_full_pipeline.py --dataset experiments/datasets/humaneval_50.json
+
+# Full science run (164 problems, ~15-20 minutes)
+python test_full_pipeline.py --full
+```
+
+The pipeline test automates:
+1. Running the benchmark
+2. Checking for execution traces
+3. Visualizing the adversarial debate
+
+### Manual Step-by-Step Instructions
+
+#### Step 1: Run the "Sanity Check" (Fast)
+
+Before running the full benchmark, ensure the pipeline works on the sample dataset:
+
+```bash
+# Run the benchmark on the small sample (5 problems)
+python experiments/blind_spot_benchmark.py --dataset experiments/datasets/humaneval_sample.json
+```
+
+**Success Indicator:** It should finish in ~30 seconds and save a JSON file to `experiments/results/`.
+
+#### Step 2: The "Science Run" (Full Data)
+
+To get statistically significant results for your paper, run on the full dataset:
+
+```bash
+# Option A: Download the full dataset first (if not already present)
 python -c "from src.datasets.humaneval_loader import download_full_humaneval; download_full_humaneval()"
 
-# 3. Run the Blind Spot Benchmark (50 problems for statistical significance)
-python experiments/blind_spot_benchmark.py
-
-# 4. (Optional) Run the Sabotage Stress Test
-python experiments/sabotage_stress_test.py
-
-# 5. Explore the results
-python -m src.tools.visualizer --latest
+# Option B: Use the included full dataset (164 problems)
+python experiments/blind_spot_benchmark.py --dataset experiments/datasets/humaneval_full.json
 ```
+
+**Note:** This will take ~15-20 minutes and consume ~50-100 API calls per model.
+
+#### Step 3: Watch the Debate (The Demo)
+
+Once the benchmark finishes, use the **Visualizer** to see the "Prosecutor" in action:
+
+```bash
+# List all recorded debates
+python -m src.tools.visualizer --list
+
+# Play back the latest one (Adversarial Replay)
+python -m src.tools.visualizer --latest
+
+# Or view a specific trace
+python -m src.tools.visualizer logs/traces/cmvk_HumanEval_0_*.json
+```
+
+**Look for:** A moment where Gemini says "FAIL" and GPT-4o says "I'll try a different strategy." Take a screenshot of this for your `README.md`.
 
 ### What Gets Generated
 
 After running the benchmark, you'll find:
 - **Results JSON**: `experiments/results/blind_spot_benchmark_YYYYMMDD_HHMMSS.json`
 - **Summary Report**: `experiments/results/blind_spot_summary_YYYYMMDD_HHMMSS.txt`
-- **Execution Traces**: `logs/traces/cmvk_HumanEval_*.json` (one per problem)
+- **Execution Traces**: `logs/traces/cmvk_HumanEval_*.json` (if trace logging is enabled)
 
 ### Expected Outcomes
 
@@ -175,6 +218,19 @@ Key metrics:
 - Average attempts needed per problem
 - Strategy banning frequency
 - Critical bugs caught by the verifier
+
+### Additional Experiments
+
+```bash
+# Run the Sabotage Stress Test
+python experiments/sabotage_stress_test.py
+
+# Test lateral thinking feature
+python experiments/test_lateral_thinking.py
+
+# Compare model diversity
+python examples/model_diversity_comparison.py
+```
 
 ## Project Structure
 

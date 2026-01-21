@@ -49,6 +49,9 @@ htmlcov/
 logs/
 *.log
 
+# But include sample traces for demonstration
+!logs/traces/demo_*.json
+
 # Environment variables
 .env
 .env.local

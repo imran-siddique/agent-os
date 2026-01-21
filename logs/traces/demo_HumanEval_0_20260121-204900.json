@@ -1,0 +1,36 @@
+{
+  "input_query": "Write a function to check if any two numbers in a list are closer to each other than a given threshold.\n\nfrom typing import List\n\ndef has_close_elements(numbers: List[float], threshold: float) -> bool:\n    \"\"\" Check if in given list of numbers, are any two numbers closer to each other than\n    given threshold.\n    >>> has_close_elements([1.0, 2.0, 3.0], 0.5)\n    False\n    >>> has_close_elements([1.0, 2.8, 3.0, 4.0, 5.0, 2.0], 0.3)\n    True\n    \"\"\"\n\nImplement the function above.",
+  "current_code": "from typing import List\n\ndef has_close_elements(numbers: List[float], threshold: float) -> bool:\n    for i in range(len(numbers)):\n        for j in range(i + 1, len(numbers)):\n            if abs(numbers[i] - numbers[j]) < threshold:\n                return True\n    return False",
+  "status": "verified",
+  "history": [
+    {
+      "step_id": 1,
+      "code_generated": "from typing import List\n\ndef has_close_elements(numbers: List[float], threshold: float) -> bool:\n    return any(abs(numbers[i] - numbers[j]) < threshold \n               for i in range(len(numbers)) \n               for j in range(i + 1, len(numbers)))",
+      "verifier_feedback": "The solution uses a valid approach with list comprehension. However, I need to verify edge cases:\n1. Empty list - what should happen?\n2. Single element list - should return False\n3. Large datasets - O(n²) complexity is acceptable for this problem\n\nThe logic is correct but lacks explicit edge case handling. Confidence: 0.75",
+      "status": "failed",
+      "strategy_used": "list_comprehension"
+    },
+    {
+      "step_id": 2,
+      "code_generated": "from typing import List\n\ndef has_close_elements(numbers: List[float], threshold: float) -> bool:\n    sorted_nums = sorted(numbers)\n    for i in range(len(sorted_nums) - 1):\n        if sorted_nums[i + 1] - sorted_nums[i] < threshold:\n            return True\n    return False",
+      "verifier_feedback": "OBJECTION! This solution is more efficient (O(n log n)) but violates the constraint 'WITHOUT using sorted()' if that was a requirement. Wait - checking the problem statement... no such constraint exists. This is actually a clever optimization!\n\nHowever, testing reveals an issue: this only checks adjacent elements after sorting, which is correct! The minimum difference will always be between adjacent elements in a sorted list.\n\nLet me generate hostile test cases:\n- Test 1: has_close_elements([1.0, 2.0, 3.0], 0.5) → Expected: False ✓\n- Test 2: has_close_elements([1.0, 2.8, 3.0], 0.3) → Expected: True (2.8 and 3.0 are 0.2 apart) ✓\n- Test 3: has_close_elements([1.0, 100.0, 1.5], 0.6) → Expected: True (1.0 and 1.5 are 0.5 apart) ✓\n\nAll tests pass. This is a correct and efficient solution. However, I'm concerned about the readability for edge cases. Confidence: 0.82",
+      "status": "failed",
+      "strategy_used": "sorting_optimization"
+    },
+    {
+      "step_id": 3,
+      "code_generated": "from typing import List\n\ndef has_close_elements(numbers: List[float], threshold: float) -> bool:\n    for i in range(len(numbers)):\n        for j in range(i + 1, len(numbers)):\n            if abs(numbers[i] - numbers[j]) < threshold:\n                return True\n    return False",
+      "verifier_feedback": "This is the straightforward brute-force approach:\n- Time complexity: O(n²)\n- Space complexity: O(1)\n- Easy to understand and verify\n\nLet me test edge cases:\n1. Empty list: range(0) produces no iterations → returns False ✓\n2. Single element: range(1) with range(1, 1) produces no iterations → returns False ✓\n3. Two close elements: [1.0, 1.2] with threshold 0.5 → abs(1.0 - 1.2) = 0.2 < 0.5 → returns True ✓\n4. No close elements: [1.0, 5.0, 10.0] with threshold 1.0 → all differences > 1.0 → returns False ✓\n5. Negative numbers: [-1.0, -1.5] with threshold 0.6 → abs(-1.0 - (-1.5)) = 0.5 < 0.6 → returns True ✓\n\nAll edge cases handled correctly. The code is clear, correct, and handles all cases properly.\n\n✅ VERIFICATION PASSED. Confidence: 0.95",
+      "status": "success",
+      "strategy_used": "nested_loops"
+    }
+  ],
+  "forbidden_strategies": [
+    "list_comprehension"
+  ],
+  "meta": {
+    "timestamp": "20260121-204900",
+    "total_attempts": 3,
+    "final_status": "solved"
+  }
+}
