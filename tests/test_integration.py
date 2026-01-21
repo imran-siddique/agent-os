@@ -9,7 +9,6 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from src.core.kernel import VerificationKernel
-from src.core.types import VerificationOutcome, GenerationResult, VerificationResult
 from tests.test_agents import MockGenerator, MockVerifier
 
 
