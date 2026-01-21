@@ -7,10 +7,13 @@ from src.agents.verifier_gemini import GeminiVerifier
 from src.tools.sandbox import Sandbox
 
 # 1. The Suspect: A Fibonacci function that crashes on negative numbers
+# Using restrictive conditions (== 0, == 1) instead of (<= 1) causes infinite recursion
 buggy_code = """
 def fibonacci(n):
-    if n <= 1:
-        return n
+    if n == 0:
+        return 0
+    if n == 1:
+        return 1
     return fibonacci(n-1) + fibonacci(n-2)
 """
 
@@ -32,6 +35,7 @@ result = sandbox.execute(full_script)
 print(f"\n[Sandbox Result] {result['status']}")
 if result['status'] == 'error':
     print("SUCCESS: The Prosecutor successfully caught the bug!")
-    print(f"Traceback: {result['output']}")
+    print(f"Traceback: {result['output'][:300]}")
 else:
     print("FAILURE: The buggy code survived.")
+
