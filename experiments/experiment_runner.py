@@ -106,9 +106,17 @@ class ExperimentRunner:
                 results["failed"] += 1
         
         # Calculate metrics
-        results["accuracy"] = results["successful"] / results["total_tasks"]
-        results["avg_time"] = results["total_time"] / results["total_tasks"]
-        results["avg_loops"] = sum(results["loops_used"]) / len(results["loops_used"])
+        if results["total_tasks"] > 0:
+            results["accuracy"] = results["successful"] / results["total_tasks"]
+            results["avg_time"] = results["total_time"] / results["total_tasks"]
+        else:
+            results["accuracy"] = 0.0
+            results["avg_time"] = 0.0
+
+        if results["loops_used"]:
+            results["avg_loops"] = sum(results["loops_used"]) / len(results["loops_used"])
+        else:
+            results["avg_loops"] = 0.0
         
         # Save results
         self._save_results(results, "cross_model")
