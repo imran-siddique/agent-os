@@ -67,8 +67,11 @@ class SandboxExecutor:
         Returns:
             Dictionary with execution results:
                 - status: 'success' or 'error'
-                - output: stdout + stderr
-                - error: error message if failed
+                - output: combined stdout + stderr (for complete output)
+                - error: error message if failed (stderr only)
+                
+        Note: The 'output' field intentionally combines both stdout and stderr
+        to provide complete execution context. Use 'error' field for error-specific output.
         """
         result = self.execute_python(code)
         

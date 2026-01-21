@@ -271,6 +271,11 @@ def prosecutor_check(kernel, code_snippet: str) -> bool:
         
     Returns:
         bool: True if code survived the attack, False if it was broken
+        
+    Security Note:
+        The code_snippet is executed in a sandbox with timeout and resource limits.
+        While the sandbox provides isolation, this function is intended for trusted
+        code verification workflows, not for arbitrary untrusted code execution.
     """
     from .agents.verifier_gemini import GeminiVerifier
     from .tools.sandbox import Sandbox
@@ -285,10 +290,10 @@ def prosecutor_check(kernel, code_snippet: str) -> bool:
     print(f"⚔️ Generated Hostile Test:\n{attack_script}\n")
     
     # 2. Combine Target + Attack
-    # We prepend the target code so the attack script can call it
+    # Note: Both code_snippet and attack_script are executed in the sandbox
     full_execution_script = f"{code_snippet}\n\n{attack_script}"
     
-    # 3. Run in Sandbox
+    # 3. Run in Sandbox (with timeout and resource limits)
     print("RUNNING IN SANDBOX...")
     result = sandbox.execute(full_execution_script)
     
