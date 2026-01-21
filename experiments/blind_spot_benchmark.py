@@ -36,13 +36,13 @@ class BlindSpotBenchmark:
     2. Cross-model verification (GPT-4o + Gemini)
     """
     
-    def __init__(self, dataset_path: str = "experiments/datasets/humaneval_sample.json",
+    def __init__(self, dataset_path: str = "experiments/datasets/humaneval_50.json",
                  output_dir: str = "experiments/results"):
         """
         Initialize the experiment.
         
         Args:
-            dataset_path: Path to HumanEval dataset
+            dataset_path: Path to HumanEval dataset (default: 50 problems for statistical significance)
             output_dir: Directory to save results
         """
         self.dataset_path = Path(dataset_path)

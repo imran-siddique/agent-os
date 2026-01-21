@@ -197,20 +197,43 @@ We specifically designed test cases to expose correlated blind spots:
 
 ### 3.3 Results
 
-[To be filled with experimental data]
+**TODO: Fill in after running `python experiments/blind_spot_benchmark.py`**
 
-**Expected Results Structure:**
+The table below shows the comparison between baseline single-model approach and CMVK on 50 HumanEval problems:
 
 | Metric | Baseline (GPT-4o) | CMVK | Improvement |
 |--------|-------------------|------|-------------|
-| Pass Rate (n=50) | ~85% | ~92% | +7% |
-| Avg. Attempts | 1.0 | 2.3 | N/A |
-| Strategy Bans | 0 | 3.2 | N/A |
-| Critical Bug Catches | - | 15 | N/A |
+| Pass Rate (n=50) | **[FILL: __%]** | **[FILL: __%]** | **[FILL: +__%]** |
+| Total Successes | **[FILL: __/50]** | **[FILL: __/50]** | **[FILL: +__]** |
+| Avg. Attempts | 1.0 | **[FILL: __]** | N/A |
+| Strategy Bans (avg) | 0 | **[FILL: __]** | N/A |
+| Total Runtime | **[FILL: __s]** | **[FILL: __s]** | **[FILL: +__%]** |
 
-### 3.4 Sabotage Stress Test
+**Key Findings:**
+- **[TODO: Add 2-3 bullet points about main findings]**
+- Example: "CMVK achieved X% higher pass rate, demonstrating the effectiveness of cross-model verification"
+- Example: "The verifier caught Y critical bugs that the generator missed in self-review"
+- Example: "Strategy banning prevented Z cases of repeated failures"
 
-[To be described: Testing CMVK's robustness when the Generator is explicitly prompted to produce buggy code]
+### 3.4 Sabotage Stress Test Results
+
+**TODO: Fill in after running `python experiments/sabotage_stress_test.py` (Optional)**
+
+This experiment tests the Verifier's ability to detect bugs through Prosecutor Mode:
+
+| Metric | Value |
+|--------|-------|
+| Total Test Cases | 40 |
+| Valid Code Cases | 20 |
+| Buggy Code Cases | 20 |
+| **True Positives (Bugs Caught)** | **[FILL: __]** |
+| **False Negatives (Bugs Missed)** | **[FILL: __]** |
+| **Recall (Bug Detection Rate)** | **[FILL: __%]** |
+| Precision | **[FILL: __%]** |
+| F1 Score | **[FILL: __]** |
+
+**Key Findings:**
+- **[TODO: Add findings about the verifier's bug detection capabilities]**
 
 ---
 
@@ -279,6 +302,26 @@ problems = loader.format_all_for_kernel(start=0, count=50)
 - Gemini 1.5 Pro exhibits stronger logical rigor and edge case awareness
 - The adversarial dynamic forces both models out of their comfort zones
 
+**"Money Shot" Example - When Adversarial Verification Saved the Day:**
+
+**TODO: Paste a compelling trace example after running experiments. Look for cases where:**
+- Generator proposed a solution with a bug
+- Verifier caught the bug and rejected it
+- Generator provided a corrected solution that passed
+- Bonus: Strategy was banned preventing further failures
+
+Use this command to find interesting traces:
+```bash
+python -m src.tools.visualizer --list
+# Then replay specific ones to find the best example
+python -m src.tools.visualizer logs/traces/cmvk_HumanEval_XX_*.json
+```
+
+**Example trace to include:**
+```
+[TODO: Paste the text output from the visualizer showing the adversarial debate]
+```
+
 ### 5.2 Limitations
 
 1. **Computational Cost:** Multiple model calls increase latency and API costs
@@ -335,7 +378,28 @@ Our complete implementation, including the HumanEval integration and trace visua
 
 ## Appendix B: Example Traces
 
-[To be added: 2-3 complete trace examples showing different scenarios]
+**TODO: After running experiments, add 2-3 complete trace examples**
+
+### Example 1: Successful First Attempt
+[TODO: Add trace where solution passed on first try]
+
+### Example 2: Adversarial Correction
+[TODO: Add trace where verifier caught a bug and generator fixed it]
+
+### Example 3: Strategy Banning in Action
+[TODO: Add trace where a strategy was banned after repeated failures]
+
+To generate these examples:
+```bash
+# Run the benchmark
+python experiments/blind_spot_benchmark.py
+
+# List all traces
+python -m src.tools.visualizer --list
+
+# Replay interesting ones and copy the output
+python -m src.tools.visualizer logs/traces/cmvk_HumanEval_XX_*.json --speed 0
+```
 
 ## Appendix C: Statistical Analysis
 
