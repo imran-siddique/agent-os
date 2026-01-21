@@ -256,3 +256,48 @@ class VerificationKernel:
                 print(f"     Suggestion: {issue.suggestion}")
         print(f"\n{result.blind_spot_analysis}")
         print("=" * 80)
+
+
+def prosecutor_check(kernel, code_snippet: str) -> bool:
+    """
+    Execute the Prosecutor Workflow: Generate and run hostile tests against code.
+    
+    This is a demonstration function showing how to use the Prosecutor Mode
+    to verify code by attempting to break it with adversarial tests.
+    
+    Args:
+        kernel: VerificationKernel instance (used for verifier access)
+        code_snippet: The code to test
+        
+    Returns:
+        bool: True if code survived the attack, False if it was broken
+    """
+    from .agents.verifier_gemini import GeminiVerifier
+    from .tools.sandbox import Sandbox
+    
+    verifier = GeminiVerifier()
+    sandbox = Sandbox()
+    
+    print(f"🕵️ Prosecutor (Gemini) is analyzing code...")
+    
+    # 1. Generate the Attack
+    attack_script = verifier.generate_hostile_test(code_snippet)
+    print(f"⚔️ Generated Hostile Test:\n{attack_script}\n")
+    
+    # 2. Combine Target + Attack
+    # We prepend the target code so the attack script can call it
+    full_execution_script = f"{code_snippet}\n\n{attack_script}"
+    
+    # 3. Run in Sandbox
+    print("RUNNING IN SANDBOX...")
+    result = sandbox.execute(full_execution_script)
+    
+    # 4. Judgement
+    if result['status'] == 'success':
+        # If the script ran without error, the code SURVIVED the attack
+        # (Assuming the attack was meant to assert/crash on bug)
+        print("✅ PASSED: The code survived the hostile test.")
+        return True
+    else:
+        print(f"❌ FAILED: The Prosecutor broke the code.\nError: {result['error']}")
+        return False
