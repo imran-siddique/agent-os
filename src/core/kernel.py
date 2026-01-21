@@ -14,6 +14,7 @@ from .types import (
     VerificationOutcome, NodeStatus
 )
 from .graph_memory import GraphMemory
+from .trace_logger import TraceLogger
 from ..agents.base_agent import BaseAgent
 
 logger = logging.getLogger(__name__)
@@ -36,7 +37,8 @@ class VerificationKernel:
         self,
         generator: BaseAgent,
         verifier: BaseAgent,
-        config_path: Optional[str] = None
+        config_path: Optional[str] = None,
+        enable_trace_logging: bool = False
     ):
         """
         Initialize the kernel.
@@ -45,10 +47,14 @@ class VerificationKernel:
             generator: The Generator agent (e.g., GPT-4o)
             verifier: The Verifier agent (e.g., Gemini 1.5 Pro)
             config_path: Path to configuration file
+            enable_trace_logging: Enable trace logging for research purposes (default: False)
         """
         self.generator = generator
         self.verifier = verifier
         self.graph = GraphMemory()
+        
+        # Feature 3: Optional TraceLogger for research purposes
+        self.trace_logger = TraceLogger() if enable_trace_logging else None
         
         # Load configuration
         self.config = self._load_config(config_path)
@@ -57,6 +63,8 @@ class VerificationKernel:
         
         logger.info("VerificationKernel initialized")
         logger.info(f"Max loops: {self.max_loops}, Confidence threshold: {self.confidence_threshold}")
+        if enable_trace_logging:
+            logger.info("Trace logging enabled")
     
     def execute(self, task: str, context: Optional[Dict[str, Any]] = None) -> KernelState:
         """
