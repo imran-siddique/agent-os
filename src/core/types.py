@@ -35,6 +35,9 @@ class VerificationResult:
     minor_issues: List[str] = field(default_factory=list)
     reasoning: str = ""
     timestamp: datetime = field(default_factory=datetime.now)
+    # Prosecutor Mode: Generated hostile test cases
+    hostile_tests: List[str] = field(default_factory=list)
+    hostile_test_results: Dict[str, Any] = field(default_factory=dict)
     
     def has_critical_issues(self) -> bool:
         """Check if there are any critical issues."""

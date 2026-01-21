@@ -2,7 +2,7 @@
 Graph Memory: The "Graph of Truth" implementation.
 This module manages a persistent state machine that prevents deadlocks and caches proven truths.
 """
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Optional, Set, Any
 import logging
 from datetime import datetime
 import hashlib
@@ -24,6 +24,11 @@ class GraphMemory:
         self.nodes: Dict[str, Node] = {}
         self.visited_states: Set[str] = set()
         self.verified_cache: Dict[str, str] = {}  # Problem hash -> Solution
+        
+        # Feature 2: Lateral Thinking - Track approach failures
+        self.approach_failures: Dict[str, int] = {}  # Approach hash -> failure count
+        self.forbidden_approaches: Set[str] = set()  # Approaches to avoid
+        self.conversation_trace: List[Dict[str, Any]] = []  # Feature 3: Full trace
         
     def create_node(self, content: str, parent_id: Optional[str] = None) -> Node:
         """Create a new node in the graph."""
@@ -107,6 +112,9 @@ class GraphMemory:
         self.nodes.clear()
         self.visited_states.clear()
         self.verified_cache.clear()
+        self.approach_failures.clear()
+        self.forbidden_approaches.clear()
+        self.conversation_trace.clear()
         logger.info("Cleared graph memory")
     
     @staticmethod
@@ -132,5 +140,160 @@ class GraphMemory:
             "verified_nodes": len(self.get_verified_nodes()),
             "failed_nodes": len(self.get_failed_nodes()),
             "visited_states": len(self.visited_states),
-            "cached_solutions": len(self.verified_cache)
+            "cached_solutions": len(self.verified_cache),
+            "approach_failures": len(self.approach_failures),
+            "forbidden_approaches": len(self.forbidden_approaches),
+            "conversation_entries": len(self.conversation_trace)
         }
+    
+    # Feature 2: Lateral Thinking Methods
+    
+    @staticmethod
+    def detect_approach(solution: str) -> str:
+        """
+        Detect the approach used in a solution.
+        
+        This uses simple heuristics to identify patterns like:
+        - Recursion vs Iteration
+        - Dynamic Programming
+        - Greedy algorithms
+        - Divide and Conquer
+        
+        Args:
+            solution: The solution code
+            
+        Returns:
+            A string identifying the approach
+        """
+        solution_lower = solution.lower()
+        
+        # Check for recursion
+        import re
+        function_match = re.search(r'def\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(', solution)
+        if function_match:
+            function_name = function_match.group(1)
+            # Check if function calls itself
+            if function_name in solution[function_match.end():]:
+                return "recursive"
+        
+        # Check for iteration
+        if any(keyword in solution_lower for keyword in ['for ', 'while ']):
+            # Check for dynamic programming patterns
+            if any(pattern in solution_lower for pattern in ['dp[', 'memo', 'cache', '@lru_cache']):
+                return "dynamic_programming"
+            return "iterative"
+        
+        # Check for greedy patterns
+        if any(pattern in solution_lower for pattern in ['max(', 'min(', 'sorted(', 'sort(']):
+            return "greedy"
+        
+        # Default
+        return "unknown"
+    
+    def record_approach_failure(self, solution: str, task: str) -> None:
+        """
+        Record that an approach failed for a task.
+        
+        Args:
+            solution: The failed solution
+            task: The task being attempted
+        """
+        approach = self.detect_approach(solution)
+        approach_key = f"{task[:50]}|{approach}"  # Use first 50 chars of task + approach
+        
+        self.approach_failures[approach_key] = self.approach_failures.get(approach_key, 0) + 1
+        
+        # If approach has failed twice, mark it as forbidden
+        if self.approach_failures[approach_key] >= 2:
+            self.forbidden_approaches.add(approach_key)
+            logger.info(f"Approach '{approach}' marked as forbidden after {self.approach_failures[approach_key]} failures")
+    
+    def get_forbidden_approaches(self, task: str) -> List[str]:
+        """
+        Get the list of approaches that should be forbidden for a task.
+        
+        Args:
+            task: The task being attempted
+            
+        Returns:
+            List of approach names that are forbidden
+        """
+        task_prefix = task[:50]
+        forbidden = []
+        
+        for approach_key in self.forbidden_approaches:
+            if approach_key.startswith(task_prefix):
+                # Extract approach name
+                approach = approach_key.split('|')[1]
+                forbidden.append(approach)
+        
+        return forbidden
+    
+    def should_branch(self, solution: str, task: str) -> bool:
+        """
+        Determine if we should branch to a different approach.
+        
+        Args:
+            solution: The current solution
+            task: The task being attempted
+            
+        Returns:
+            True if we should try a different approach
+        """
+        approach = self.detect_approach(solution)
+        approach_key = f"{task[:50]}|{approach}"
+        
+        return approach_key in self.forbidden_approaches
+    
+    # Feature 3: Witness (Traceability) Methods
+    
+    def add_conversation_entry(self, entry: Dict[str, Any]) -> None:
+        """
+        Add an entry to the conversation trace.
+        
+        Args:
+            entry: Dictionary containing conversation details
+        """
+        from datetime import datetime
+        entry["timestamp"] = datetime.now().isoformat()
+        self.conversation_trace.append(entry)
+        logger.debug(f"Added conversation entry: {entry.get('type', 'unknown')}")
+    
+    def export_conversation_trace(self, filepath: str) -> None:
+        """
+        Export the conversation trace to a JSON file.
+        
+        Args:
+            filepath: Path to save the trace
+        """
+        import json
+        from pathlib import Path
+        
+        output_path = Path(filepath)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        with open(output_path, 'w') as f:
+            json.dump({
+                "trace": self.conversation_trace,
+                "stats": self.get_stats(),
+                "nodes": [
+                    {
+                        "id": node.id,
+                        "content": node.content[:200],  # Truncate for readability
+                        "status": node.status.value,
+                        "verification_count": len(node.verification_results)
+                    }
+                    for node in self.nodes.values()
+                ]
+            }, f, indent=2)
+        
+        logger.info(f"Exported conversation trace to {filepath}")
+    
+    def get_conversation_trace(self) -> List[Dict[str, Any]]:
+        """
+        Get the full conversation trace.
+        
+        Returns:
+            List of conversation entries
+        """
+        return self.conversation_trace.copy()

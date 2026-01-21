@@ -4,11 +4,12 @@ This agent uses Google Gemini models to perform adversarial verification.
 """
 import os
 import logging
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from pathlib import Path
 
 from .base_agent import BaseAgent
 from ..core.types import GenerationResult, VerificationResult, VerificationOutcome
+from ..tools.sandbox import SandboxExecutor
 
 logger = logging.getLogger(__name__)
 
@@ -21,19 +22,24 @@ class GeminiVerifier(BaseAgent):
     This is the "Adversary" that tries to break the solution.
     """
     
-    def __init__(self, model_name: str = "gemini-1.5-pro", api_key: Optional[str] = None, **kwargs):
+    def __init__(self, model_name: str = "gemini-1.5-pro", api_key: Optional[str] = None, 
+                 enable_prosecutor_mode: bool = True, **kwargs):
         """
         Initialize the Gemini verifier.
         
         Args:
             model_name: Gemini model to use (default: gemini-1.5-pro)
             api_key: Google API key (if None, reads from environment)
+            enable_prosecutor_mode: Enable hostile test generation (default: True)
             **kwargs: Additional parameters (temperature, max_tokens, etc.)
         """
         if api_key is None:
             api_key = os.environ.get("GOOGLE_API_KEY", "")
         
         super().__init__(model_name, api_key, **kwargs)
+        
+        self.enable_prosecutor_mode = enable_prosecutor_mode
+        self.sandbox = SandboxExecutor() if enable_prosecutor_mode else None
         
         # Load system prompt
         prompt_path = Path(__file__).parent.parent.parent / "config" / "prompts" / "verifier_hostile.txt"
@@ -100,8 +106,32 @@ class GeminiVerifier(BaseAgent):
             
             content = response.text
             
+            # Track token usage
+            self._record_token_usage(verification_prompt, content)
+            
             # Parse the verification response
             result = self._parse_verification_response(content)
+            
+            # Prosecutor Mode: Generate and run hostile tests
+            if self.enable_prosecutor_mode:
+                hostile_tests = self._generate_hostile_tests(context, content)
+                result.hostile_tests = hostile_tests
+                
+                # Execute hostile tests in sandbox
+                if hostile_tests and self.sandbox:
+                    test_results = self._execute_hostile_tests(
+                        context.get("solution", ""), 
+                        hostile_tests
+                    )
+                    result.hostile_test_results = test_results
+                    
+                    # Update verification outcome based on hostile test results
+                    if test_results.get("failures", 0) > 0:
+                        result.outcome = VerificationOutcome.FAIL
+                        result.critical_issues.append(
+                            f"Hostile tests failed: {test_results.get('failures', 0)} out of {len(hostile_tests)} tests"
+                        )
+            
             logger.info(f"Verification complete: {result.outcome}")
             return result
             
@@ -179,3 +209,188 @@ class GeminiVerifier(BaseAgent):
             missing_edge_cases=[],
             reasoning="Mock verification - API not available"
         )
+    
+    def _generate_hostile_tests(self, context: Dict[str, Any], verification_content: str) -> List[str]:
+        """
+        Generate hostile test cases based on the verification critique.
+        
+        This is the "Prosecutor" mode - the verifier generates test cases
+        to prove its suspicions about the code.
+        
+        Args:
+            context: The verification context (task, solution, etc.)
+            verification_content: The verifier's critique
+            
+        Returns:
+            List of Python test code snippets
+        """
+        logger.info("Generating hostile test cases")
+        
+        hostile_tests = []
+        
+        # Generate tests based on missing edge cases
+        task = context.get("task", "")
+        solution = context.get("solution", "")
+        
+        # Extract function name from solution (simple heuristic)
+        function_name = self._extract_function_name(solution)
+        if not function_name:
+            logger.warning("Could not extract function name, skipping hostile test generation")
+            return hostile_tests
+        
+        # Generate edge case tests based on common patterns
+        test_templates = [
+            # Negative numbers
+            f"try:\n    result = {function_name}(-1)\n    print('PASS: Handled negative input')\nexcept Exception as e:\n    print(f'FAIL: {{e}}')",
+            # Zero
+            f"try:\n    result = {function_name}(0)\n    print('PASS: Handled zero input')\nexcept Exception as e:\n    print(f'FAIL: {{e}}')",
+            # Large numbers
+            f"try:\n    result = {function_name}(1000000)\n    print('PASS: Handled large input')\nexcept Exception as e:\n    print(f'FAIL: {{e}}')",
+            # None/null
+            f"try:\n    result = {function_name}(None)\n    print('PASS: Handled None input')\nexcept Exception as e:\n    print(f'FAIL: {{e}}')",
+        ]
+        
+        # Use LLM to generate more sophisticated hostile tests if available
+        if self.model:
+            try:
+                hostile_prompt = self._build_hostile_test_prompt(context, verification_content)
+                response = self.model.generate_content(
+                    hostile_prompt,
+                    generation_config={
+                        "temperature": 0.5,
+                        "max_output_tokens": 1000
+                    }
+                )
+                
+                generated_tests = self._parse_hostile_tests(response.text)
+                if generated_tests:
+                    hostile_tests.extend(generated_tests)
+                    logger.info(f"Generated {len(generated_tests)} hostile tests from LLM")
+            except Exception as e:
+                logger.warning(f"Failed to generate LLM-based hostile tests: {e}")
+        
+        # Fall back to template tests if no LLM-generated tests
+        if not hostile_tests:
+            hostile_tests = test_templates[:3]  # Use first 3 templates
+            logger.info(f"Using {len(hostile_tests)} template-based hostile tests")
+        
+        return hostile_tests
+    
+    def _execute_hostile_tests(self, solution_code: str, hostile_tests: List[str]) -> Dict[str, Any]:
+        """
+        Execute hostile test cases in the sandbox.
+        
+        Args:
+            solution_code: The solution code to test
+            hostile_tests: List of hostile test code snippets
+            
+        Returns:
+            Dictionary with test execution results
+        """
+        logger.info(f"Executing {len(hostile_tests)} hostile tests")
+        
+        results = {
+            "total": len(hostile_tests),
+            "passed": 0,
+            "failures": 0,
+            "errors": [],
+            "details": []
+        }
+        
+        for i, test_code in enumerate(hostile_tests):
+            logger.debug(f"Executing hostile test {i+1}/{len(hostile_tests)}")
+            
+            # Combine solution and test
+            full_code = f"{solution_code}\n\n# Hostile Test {i+1}\n{test_code}"
+            
+            # Execute in sandbox
+            exec_result = self.sandbox.execute_python(full_code)
+            
+            test_detail = {
+                "test_id": i + 1,
+                "success": exec_result["success"],
+                "output": exec_result["output"],
+                "error": exec_result["error"]
+            }
+            
+            if exec_result["success"]:
+                results["passed"] += 1
+            else:
+                results["failures"] += 1
+                results["errors"].append({
+                    "test_id": i + 1,
+                    "error": exec_result["error"]
+                })
+            
+            results["details"].append(test_detail)
+        
+        logger.info(f"Hostile tests: {results['passed']}/{results['total']} passed")
+        return results
+    
+    def _build_hostile_test_prompt(self, context: Dict[str, Any], verification_content: str) -> str:
+        """Build a prompt to generate hostile test cases."""
+        prompt = f"""Based on your verification critique, generate specific hostile test cases that will expose weaknesses in the code.
+
+Task: {context.get('task', 'N/A')}
+
+Solution Code:
+{context.get('solution', 'N/A')}
+
+Your Critique:
+{verification_content}
+
+Generate 3-5 Python test cases that:
+1. Test edge cases you identified
+2. Try to break the solution
+3. Each test should be a complete Python snippet that can be executed
+4. Include both valid edge cases and potentially invalid inputs
+5. Each test should print "PASS:" or "FAIL:" to indicate the result
+
+Format each test as:
+TEST:
+```python
+# Test description
+<test code here>
+```
+
+Generate the tests now:"""
+        
+        return prompt
+    
+    def _parse_hostile_tests(self, response: str) -> List[str]:
+        """Parse hostile tests from LLM response."""
+        tests = []
+        
+        # Look for code blocks
+        import re
+        code_blocks = re.findall(r'```python\n(.*?)```', response, re.DOTALL)
+        
+        for block in code_blocks:
+            # Clean up the test code
+            test = block.strip()
+            if test and len(test) > 10:  # Ensure it's not empty
+                tests.append(test)
+        
+        # If no code blocks found, try to extract tests by "TEST:" markers
+        if not tests:
+            test_sections = response.split('TEST:')
+            for section in test_sections[1:]:  # Skip first empty section
+                # Remove code fence markers if present
+                test = section.strip()
+                test = re.sub(r'```python\s*', '', test)
+                test = re.sub(r'```\s*', '', test)
+                if test and len(test) > 10:
+                    tests.append(test)
+        
+        return tests
+    
+    def _extract_function_name(self, solution: str) -> Optional[str]:
+        """Extract the primary function name from the solution code."""
+        import re
+        
+        # Look for function definitions
+        match = re.search(r'def\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(', solution)
+        if match:
+            return match.group(1)
+        
+        return None

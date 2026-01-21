@@ -79,6 +79,14 @@ class VerificationKernel:
             metadata=context or {}
         )
         
+        # Feature 3: Add task to conversation trace
+        self.graph.add_conversation_entry({
+            "type": "task_start",
+            "task": task,
+            "max_loops": self.max_loops,
+            "context": context or {}
+        })
+        
         # Check cache first
         problem_hash = GraphMemory.generate_state_hash(task, "", 0)
         cached_solution = self.graph.get_cached_solution(problem_hash)
@@ -108,6 +116,16 @@ class VerificationKernel:
             state.verification_history.append(verification_result)
             self.graph.add_verification_result(node.id, verification_result)
             
+            # Feature 3: Add to conversation trace
+            self.graph.add_conversation_entry({
+                "type": "verification",
+                "loop": state.current_loop,
+                "outcome": verification_result.outcome.value,
+                "confidence": verification_result.confidence,
+                "critical_issues": verification_result.critical_issues,
+                "hostile_tests_count": len(verification_result.hostile_tests) if verification_result.hostile_tests else 0
+            })
+            
             # Step 3: Check for infinite loops
             state_hash = GraphMemory.generate_state_hash(
                 task, generation_result.solution, state.current_loop
@@ -135,8 +153,19 @@ class VerificationKernel:
                 self.graph.update_node_status(node.id, NodeStatus.FAILED)
             else:
                 logger.info("Solution rejected, iterating...")
+                
+                # Feature 2: Record approach failure for lateral thinking
+                self.graph.record_approach_failure(generation_result.solution, task)
+                
                 # Provide feedback to generator for next iteration
                 state.metadata["last_verification"] = verification_result
+                
+                # Feature 2: Check if we need to branch to a different approach
+                if self.graph.should_branch(generation_result.solution, task):
+                    forbidden_approaches = self.graph.get_forbidden_approaches(task)
+                    state.metadata["forbidden_approaches"] = forbidden_approaches
+                    logger.info(f"Branching required - forbidden approaches: {forbidden_approaches}")
+                
                 self.graph.update_node_status(node.id, NodeStatus.FAILED)
         
         logger.info(f"Kernel execution complete. Success: {state.is_complete}")
@@ -170,7 +199,28 @@ class VerificationKernel:
                 "missing_edge_cases": last_verification.missing_edge_cases
             }
         
+        # Feature 2: Add forbidden approaches to context
+        if "forbidden_approaches" in state.metadata:
+            forbidden = state.metadata["forbidden_approaches"]
+            if forbidden:
+                context["forbidden_approaches"] = forbidden
+                context["branching_instruction"] = (
+                    f"IMPORTANT: The following approaches have FAILED multiple times and are FORBIDDEN: {', '.join(forbidden)}. "
+                    f"You MUST use a completely different approach. "
+                    f"For example, if 'recursive' is forbidden, use an iterative solution instead."
+                )
+        
         result = self.generator.generate(task, context)
+        
+        # Feature 3: Add generation to conversation trace
+        self.graph.add_conversation_entry({
+            "type": "generation",
+            "loop": state.current_loop,
+            "approach": self.graph.detect_approach(result.solution),
+            "solution_length": len(result.solution),
+            "forbidden_approaches": state.metadata.get("forbidden_approaches", [])
+        })
+        
         return result
     
     def _verify_solution(self, solution: GenerationResult, task: str) -> VerificationResult:
@@ -268,3 +318,13 @@ class VerificationKernel:
         """Reset the kernel state (for testing or new sessions)."""
         self.graph.clear()
         logger.info("Kernel reset complete")
+    
+    def export_conversation_trace(self, filepath: str) -> None:
+        """
+        Export the conversation trace to a JSON file.
+        
+        Args:
+            filepath: Path to save the trace
+        """
+        self.graph.export_conversation_trace(filepath)
+        logger.info(f"Exported conversation trace to {filepath}")
