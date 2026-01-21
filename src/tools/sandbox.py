@@ -107,8 +107,8 @@ class SandboxExecutor:
             # Clean up temporary file
             try:
                 os.unlink(code_file)
-            except:
-                pass
+            except (OSError, PermissionError) as e:
+                logger.warning(f"Failed to delete temporary file {code_file}: {e}")
     
     def _execute_in_docker(self, code: str, test_code: Optional[str], language: str) -> Dict[str, Any]:
         """
