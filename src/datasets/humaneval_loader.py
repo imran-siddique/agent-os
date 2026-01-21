@@ -184,7 +184,12 @@ def download_full_humaneval(output_path: str = "experiments/datasets/humaneval_f
     Args:
         output_path: Where to save the downloaded dataset
     """
-    import requests
+    try:
+        import requests
+    except ImportError:
+        print("❌ Error: 'requests' library is required to download the dataset.")
+        print("Install it with: pip install requests")
+        return None
     
     url = "https://github.com/openai/human-eval/raw/master/data/HumanEval.jsonl.gz"
     

@@ -9,7 +9,7 @@
 
 ## Abstract
 
-Current self-correcting AI agents suffer from a fundamental limitation: when a language model generates code with a bug due to a gap in its training data or reasoning, it often uses the same flawed logic to verify itself, leading to persistent errors that appear as corrections. We introduce the **Cross-Model Verification Kernel (CMVK)**, an adversarial multi-model architecture that addresses this "grading your own homework" fallacy through strategic model diversity.
+Current self-correcting AI agents suffer from a fundamental limitation: when a language model generates code with a bug due to a gap in its training data or reasoning, it often uses the same flawed logic to verify itself, leading to errors that persist despite apparent corrections. We introduce the **Cross-Model Verification Kernel (CMVK)**, an adversarial multi-model architecture that addresses this "grading your own homework" fallacy through strategic model diversity.
 
 CMVK employs three distinct components: (1) a **Generator** (System 1) optimized for high-speed code generation, (2) a **Verifier** (System 2) explicitly prompted to find flaws and generate hostile test cases, and (3) an **Arbiter** (The Kernel) implementing deterministic verification logic and strategy banning mechanisms. Unlike self-correction approaches that use the same model for both generation and verification, CMVK leverages models with different training data and architectural biases to detect correlated errors.
 

@@ -209,13 +209,18 @@ python -m src.tools.visualizer --latest
 ### Step 4: Analyze Traces
 ```python
 import json
+import glob
 
-with open('logs/traces/cmvk_HumanEval_0_*.json') as f:
-    trace = json.load(f)
-    
-print(f"Attempts: {trace['meta']['total_attempts']}")
-print(f"Status: {trace['meta']['final_status']}")
-print(f"Banned strategies: {trace['forbidden_strategies']}")
+# Find the latest trace file for HumanEval_0
+trace_files = glob.glob('logs/traces/cmvk_HumanEval_0_*.json')
+if trace_files:
+    latest_trace = max(trace_files, key=os.path.getmtime)
+    with open(latest_trace) as f:
+        trace = json.load(f)
+        
+    print(f"Attempts: {trace['meta']['total_attempts']}")
+    print(f"Status: {trace['meta']['final_status']}")
+    print(f"Banned strategies: {trace['forbidden_strategies']}")
 ```
 
 ### Step 5: Scale Up

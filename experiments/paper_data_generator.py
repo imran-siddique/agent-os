@@ -98,7 +98,7 @@ Examples:
   # Run with HumanEval problems 10-20
   python experiments/paper_data_generator.py --humaneval --start 10 --count 10
   
-  # Run with all problems in sample dataset
+  # Run with all available problems in configured dataset
   python experiments/paper_data_generator.py --humaneval
         """
     )
