@@ -269,6 +269,8 @@ last-validated: YYYY-MM-DD
 ## 📚 Resources
 
 - [Agent Specification v1.0](agent-specification.md) — Formal taxonomy for agent definitions
+- [Octane Onboarding Guide](docs/octane-onboarding.md) — How to deploy agents to the Octane platform
+- [Contributing Guidelines](docs/CONTRIBUTING.md) — How to add or update agents
 
 ---
 
