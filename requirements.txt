@@ -1,6 +1,8 @@
 pydantic>=2.0.0
 pyyaml>=6.0
 requests>=2.31.0
+networkx>=3.0  # For graph-based anomaly detection
+numpy>=1.24.0  # For vector operations
 
 # LLM Client Dependencies (optional - install as needed)
 openai>=1.0.0  # For OpenAI API integration
@@ -23,3 +25,7 @@ jupyter>=1.0.0  # For interactive notebooks
 # Observability (optional)
 # opentelemetry-api>=1.20.0  # Uncomment for OpenTelemetry integration
 # opentelemetry-sdk>=1.20.0
+
+# LangChain Integration (optional)
+langchain>=0.1.0  # For LangChain integration
+langchain-core>=0.1.0  # Core LangChain abstractions
