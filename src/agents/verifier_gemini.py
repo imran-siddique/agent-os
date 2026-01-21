@@ -203,12 +203,10 @@ GENERATE ATTACK SCRIPT NOW:
         if not function_name:
             return "# Could not extract function name\nprint('FAIL: No function found')"
         
-        return f"""# Testing edge cases
-try:
-    result = {function_name}(-1)
-    print(f'Test negative: {{result}}')
-except Exception as e:
-    print(f'FAIL on negative input: {{e}}')
+        return f"""# Hostile Test: Testing edge case that should break the code
+# Testing with negative number (common recursion bug)
+result = {function_name}(-1)
+print(f'Result: {{result}}')
 """
     
     def _build_verification_prompt(self, context: Dict[str, Any]) -> str:
