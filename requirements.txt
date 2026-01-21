@@ -1,0 +1,20 @@
+# Requirements
+
+## Core Dependencies
+None required for mock implementation - uses only Python standard library.
+
+## For Real Model Integration (Optional)
+```
+openai>=1.0.0          # For GPT-4o and other OpenAI models
+google-generativeai    # For Gemini 1.5 Pro
+anthropic              # For Claude models
+```
+
+## Development Dependencies
+```
+pytest>=7.0.0         # For testing
+pytest-cov            # For coverage reports
+```
+
+## Python Version
+- Python 3.8 or higher
