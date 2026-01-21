@@ -1,306 +1,193 @@
-# Cross-Model Verification Kernel
+# Cross-Model Verification Kernel (CMVK)
 
-An **adversarial architecture** for code generation and verification that uses **model diversity** to mathematically reduce the probability of shared blind spots.
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## 🎯 Problem Statement
+**Core Philosophy**: *"Trust, but Verify (with a different brain)."*
 
-Traditional code generation systems suffer from a critical flaw: when the same model (or model family) generates and verifies code, it often misses its own blind spots. This creates a false sense of security - the code looks correct to the model that created it, but may contain serious bugs, security vulnerabilities, or logic errors.
+## Overview
 
-## 💡 Solution: Adversarial Architecture with Model Diversity
+The Cross-Model Verification Kernel (CMVK) is a research framework that addresses the "Grading Your Own Homework" fallacy in self-correcting AI agents. Instead of having a single LLM verify its own work, CMVK uses **adversarial multi-model verification** where different models with different training data and architectures verify each other's output.
 
-We propose an **Adversarial Architecture** where:
+### The Problem: Correlated Error Blindness
 
-1. **Generator and Verifier are Decoupled** - Two completely separate components
-2. **Model Diversity is Enforced** - Generator uses one model (e.g., GPT-4o), Verifier uses a DIFFERENT model (e.g., Gemini 1.5 Pro)
-3. **Hostile Code Review** - Verification is treated as adversarial "Code Review" rather than cooperative "Self-Refinement"
-4. **Mathematical Framework** - Provably reduces the probability of shared blind spots
+Current "self-correcting" agents suffer from a fundamental flaw: when an LLM generates a solution with a bug due to a gap in its training data or reasoning, it often uses the same flawed logic to "verify" itself. This leads to hallucinations that look like corrections.
 
-## 📊 Mathematical Foundation
+### The Solution: Adversarial Architecture
 
-### Blind Spot Probability Reduction
+CMVK implements a three-component system:
 
-Using probability theory, we can show that model diversity reduces error probability:
+1. **Generator (System 1)**: High creativity, high speed builder (e.g., GPT-4o)
+2. **Verifier (System 2)**: High logic, cynical adversary (e.g., Gemini 1.5 Pro)
+3. **Arbiter (The Kernel)**: Deterministic logic managing the verification loop
 
-- **Single Model**: P(error) = p (e.g., 15% chance of missing a bug)
-- **Same Model for Both**: Still ~P(error) = p (correlated errors)
-- **Different Models**: P(both_miss) = p² + ρ·p·(1-p)
+## Key Features
 
-Where ρ is the **correlation coefficient** between models:
-- Different providers (GPT ↔ Gemini): ρ ≈ 0.2 (low correlation)
-- Same provider (GPT-4o ↔ GPT-4): ρ ≈ 0.5 (higher correlation)
+- **Adversarial Engineering**: The Verifier is explicitly prompted to break the solution, not fix it
+- **Runtime Unit Testing**: No action is taken without proof via executable tests
+- **Graph of Truth**: A persistent state machine that prevents deadlocks and caches proven solutions
+- **Model Agnostic**: Easily swap OpenAI, Google, Anthropic, or open-source models
 
-**Result**: With p=0.15 and ρ=0.2 (different providers):
-- Single model error probability: 15%
-- Diverse models error probability: ~3.8%
-- **Risk reduction: ~4x improvement**
-
-## 🏗️ Architecture
+## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                  Verification Kernel                        │
-│  (Orchestrates adversarial verification with model diversity)│
-└─────────────────────────────────────────────────────────────┘
-                    │                    │
-                    ▼                    ▼
-        ┌──────────────────┐    ┌──────────────────┐
-        │    Generator     │    │    Verifier      │
-        │   (e.g., GPT-4o) │    │ (e.g., Gemini)   │
-        │                  │    │  Adversarial/    │
-        │  - Generates code│    │  Hostile Review  │
-        │  - Temp: 0.7     │    │  - Temp: 0.2     │
-        └──────────────────┘    └──────────────────┘
-                    │                    │
-                    └────────┬───────────┘
-                             │
-                    Different Models!
-                    (Enforced by kernel)
+┌─────────────────────────────────────────────────────────┐
+│                  Verification Kernel                     │
+│                     (The Arbiter)                        │
+└───────────┬─────────────────────────────┬───────────────┘
+            │                             │
+    ┌───────▼────────┐          ┌────────▼────────┐
+    │   Generator    │          │    Verifier     │
+    │   (System 1)   │◄────────►│   (System 2)    │
+    │   GPT-4o/o1    │  Hostile │  Gemini 1.5 Pro │
+    └────────────────┘  Review  └─────────────────┘
+            │                             │
+            └──────────┬──────────────────┘
+                       │
+              ┌────────▼─────────┐
+              │  Graph of Truth  │
+              │  (State Machine) │
+              └──────────────────┘
 ```
 
-### Key Components
-
-1. **Generator** (`src/generator.py`)
-   - Uses one LLM model to generate code
-   - Configurable temperature, tokens, instructions
-   - Focused on creating functional code
-
-2. **Verifier** (`src/verifier.py`)
-   - Uses a DIFFERENT LLM model for verification
-   - Operates in adversarial/hostile mode
-   - Looks for bugs, vulnerabilities, edge cases
-   - Provides structured issue reports with severity levels
-
-3. **Verification Kernel** (`src/kernel.py`)
-   - Orchestrates the entire pipeline
-   - **Enforces model diversity** (raises error if same model used)
-   - Calculates blind spot reduction metrics
-   - Provides comprehensive reporting
-
-4. **Model Interface** (`src/models.py`)
-   - Abstract interface for different LLM providers
-   - Support for GPT-4o, Gemini 1.5 Pro, Claude, etc.
-   - Mock implementation for testing and demonstration
-
-## 🚀 Quick Start
-
-### Installation
+## Installation
 
 ```bash
+# Clone the repository
 git clone https://github.com/imran-siddique/cross-model-verification-kernel.git
 cd cross-model-verification-kernel
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Set up API keys
+export OPENAI_API_KEY="your-openai-key"
+export GOOGLE_API_KEY="your-google-key"
 ```
 
-### Basic Usage
+## Quick Start
 
 ```python
-from src.generator import GeneratorConfig
-from src.verifier import VerifierConfig
-from src.kernel import VerificationKernel
-from src.models import ModelProvider
+from src import VerificationKernel, OpenAIGenerator, GeminiVerifier
 
-# Configure Generator with GPT-4o
-generator_config = GeneratorConfig(
-    model=ModelProvider.GPT4O,
-    temperature=0.7
-)
+# Initialize agents
+generator = OpenAIGenerator(model_name="gpt-4o")
+verifier = GeminiVerifier(model_name="gemini-1.5-pro")
 
-# Configure Verifier with Gemini 1.5 Pro (DIFFERENT model!)
-verifier_config = VerifierConfig(
-    model=ModelProvider.GEMINI_15_PRO,
-    temperature=0.2,
-    adversarial_mode=True  # Hostile code review
-)
-
-# Create Verification Kernel (enforces model diversity)
+# Create kernel
 kernel = VerificationKernel(
-    generator_config=generator_config,
-    verifier_config=verifier_config
+    generator=generator,
+    verifier=verifier,
+    config_path="config/settings.yaml"
 )
 
-# Run adversarial verification
-result = kernel.verify_task(
-    task_description="Create a function to calculate Fibonacci numbers",
-    language="python"
-)
+# Execute verification loop
+task = "Write a function to find the longest palindromic substring"
+result = kernel.execute(task)
 
-# Print results
-kernel.print_verification_summary(result)
-
-# Access components
-print(f"Generated Code: {result.generated_code.code}")
-print(f"Verification Status: {result.verification_report.passed}")
-print(f"Issues Found: {len(result.verification_report.issues)}")
-print(f"Risk Reduction: {result.blind_spot_analysis.risk_reduction_factor:.2f}x")
+print(f"Success: {result.is_complete}")
+print(f"Solution: {result.final_result}")
+print(f"Loops: {result.current_loop}")
 ```
 
-### Running Examples
+## Project Structure
 
+```
+cross-model-verification-kernel/
+├── config/                    # Configuration and prompts
+│   ├── settings.yaml         # API keys, model settings
+│   └── prompts/              # System prompts by role
+├── src/                      # Core source code
+│   ├── core/                 # Kernel logic
+│   │   ├── kernel.py        # Main verification loop
+│   │   ├── graph_memory.py  # Graph of Truth
+│   │   └── types.py         # Data classes
+│   ├── agents/               # LLM interfaces
+│   │   ├── generator_openai.py
+│   │   └── verifier_gemini.py
+│   └── tools/                # Utilities
+│       ├── sandbox.py       # Code execution
+│       └── web_search.py    # Fact-checking
+├── experiments/              # Research experiments
+│   ├── datasets/            # Test datasets
+│   ├── baseline_runner.py   # Single-model baseline
+│   └── experiment_runner.py # CMVK experiments
+├── tests/                    # Unit tests
+├── notebooks/                # Analysis notebooks
+└── requirements.txt
+```
+
+## Running Experiments
+
+### Baseline (Single Model)
 ```bash
-# Basic adversarial verification example
-python examples/basic_example.py
-
-# Model diversity comparison (shows mathematical benefits)
-python examples/model_diversity_comparison.py
+python experiments/baseline_runner.py
 ```
 
-### Running Tests
+### Cross-Model Verification
+```bash
+python experiments/experiment_runner.py
+```
+
+## Running Tests
 
 ```bash
 # Run all tests
-python -m pytest tests/
+pytest tests/ -v
 
-# Run specific test
-python tests/test_kernel.py
+# Run with coverage
+pytest tests/ --cov=src --cov-report=html
 ```
 
-## 📈 Results & Benefits
+## Configuration
 
-### Adversarial Verification Catches More Issues
+Edit `config/settings.yaml` to customize:
 
-Traditional self-refinement (same model):
-- ✗ Often misses edge cases in its own code
-- ✗ Blind to vulnerabilities it created
-- ✗ Confirms its own biases
+- Model providers and names
+- Temperature and token limits
+- Max verification loops
+- Confidence thresholds
+- Sandbox settings
 
-Adversarial verification (different models):
-- ✓ Different model questions every assumption
-- ✓ Finds edge cases and vulnerabilities
-- ✓ Reduces correlated errors by ~4x
+## Research Metrics
 
-### Example Output
+CMVK tracks the following success metrics:
 
-```
-================================================================================
-ADVERSARIAL VERIFICATION REPORT
-================================================================================
+1. **Reliability Score**: % of tasks solved correctly vs. single-model baseline
+2. **Verification Accuracy**: Ability to detect subtle bugs (False Positive Rate)
+3. **Efficiency**: Cost comparison with large Chain-of-Thought loops
 
-Generator Model: gpt-4o
-Verifier Model: gemini-1.5-pro
+## Contributing
 
-Task: Create a function to calculate the nth Fibonacci number
+This is a research project. Contributions are welcome! Areas of interest:
 
-Generated Code (python):
---------------------------------------------------------------------------------
-def fibonacci(n):
-    if n <= 1:
-        return n
-    return fibonacci(n-1) + fibonacci(n-2)
---------------------------------------------------------------------------------
+- Additional model providers (Anthropic Claude, LLaMA, etc.)
+- Enhanced prompt engineering for adversarial verification
+- New test datasets (HumanEval, LogicGrids, etc.)
+- Improved graph memory algorithms
+- Better response parsing
 
-Verification Status: ✗ FAILED
-Summary: Verification FAILED. Found 5 total issues: 1 critical, 2 high, 1 medium, 1 low severity.
+## License
 
-Issues Found: 5
+MIT License - see LICENSE file for details
 
-  1. [CRITICAL] security
-     No input validation - negative numbers will cause stack overflow
+## Citation
 
-  2. [HIGH] performance
-     Exponential time complexity O(2^n) - inefficient
+If you use this work in your research, please cite:
 
-  3. [HIGH] error-handling
-     Missing edge case handling for n=0
-
-  ... [additional issues] ...
-
-Blind Spot Analysis:
-- Single model error probability: 0.1500
-- Independent error probability: 0.0225
-- Model correlation coefficient: 0.2000
-- Combined error probability: 0.0378
-- Risk reduction factor: 3.97x
-================================================================================
+```bibtex
+@software{cmvk2024,
+  author = {Siddique, Imran},
+  title = {Cross-Model Verification Kernel: Adversarial Multi-Model Verification},
+  year = {2024},
+  url = {https://github.com/imran-siddique/cross-model-verification-kernel}
+}
 ```
 
-## 🔒 Security Benefits
+## Acknowledgments
 
-The adversarial architecture is particularly effective at catching security issues:
-
-- **Input Validation**: Different model questions all inputs
-- **Edge Cases**: Fresh perspective finds corner cases
-- **Vulnerability Patterns**: Each model has different security training
-- **Attack Surface**: Hostile review simulates attacker mindset
-
-## 🎓 Supported Models
-
-- **OpenAI**: GPT-4o, GPT-4 Turbo
-- **Google**: Gemini 1.5 Pro, Gemini 1.5 Flash
-- **Anthropic**: Claude 3.5 Sonnet, Claude 3 Opus
-
-**Note**: Current implementation uses mock models for demonstration. To use real models, implement the `BaseModelInterface` with actual API calls.
-
-## 📚 API Reference
-
-### GeneratorConfig
-
-```python
-GeneratorConfig(
-    model: ModelProvider,           # LLM model to use
-    temperature: float = 0.7,       # Generation temperature
-    max_tokens: int = 2000,         # Max tokens to generate
-    api_key: Optional[str] = None,  # API key (if needed)
-    custom_instructions: Optional[str] = None  # Custom system prompt
-)
-```
-
-### VerifierConfig
-
-```python
-VerifierConfig(
-    model: ModelProvider,           # LLM model to use (MUST differ from generator)
-    temperature: float = 0.2,       # Verification temperature (lower)
-    max_tokens: int = 3000,         # Max tokens for analysis
-    api_key: Optional[str] = None,  # API key (if needed)
-    adversarial_mode: bool = True   # Enable hostile code review
-)
-```
-
-### VerificationKernel
-
-```python
-kernel = VerificationKernel(generator_config, verifier_config)
-
-# Run verification
-result = kernel.verify_task(
-    task_description: str,    # What the code should do
-    language: str = "python", # Programming language
-    **kwargs                  # Additional parameters
-)
-
-# Get statistics
-stats = kernel.get_statistics()
-```
-
-## 🤝 Contributing
-
-Contributions are welcome! Areas for improvement:
-
-1. **Real Model Implementations**: Add actual API integrations
-2. **More Model Providers**: Add support for additional LLMs
-3. **Enhanced Parsing**: Better structured output parsing
-4. **Calibration**: Empirical measurement of error correlation
-5. **Multi-Round Verification**: Iterative refinement with adversarial feedback
-
-## 📄 License
-
-MIT License - see LICENSE file for details.
-
-## 📖 Citation
-
-If you use this work, please cite:
-
-```
-Cross-Model Verification Kernel: An Adversarial Architecture for Code Generation
-Using Model Diversity to Reduce Shared Blind Spots
-```
-
-## 🔗 Related Work
-
-- Adversarial Machine Learning
-- Model Ensemble Methods
-- Code Review Automation
-- LLM Safety and Alignment
+This research is inspired by the observation that diverse models have different blind spots, and adversarial verification can catch errors that self-verification misses.
 
 ---
 
-**Key Insight**: When two different models must agree on code correctness, the probability of shared errors drops dramatically. This adversarial architecture harnesses model diversity to create more reliable code generation systems
+**Core Philosophy**: *"Trust, but Verify (with a different brain)."*
