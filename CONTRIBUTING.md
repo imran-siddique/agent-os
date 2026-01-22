@@ -104,9 +104,9 @@ def test_kernel_initialization():
     """Test that kernel initializes with valid configuration."""
     generator = MagicMock()
     verifier = MagicMock()
-    
+
     kernel = VerificationKernel(generator=generator, verifier=verifier)
-    
+
     assert kernel.generator == generator
     assert kernel.verifier == verifier
 ```

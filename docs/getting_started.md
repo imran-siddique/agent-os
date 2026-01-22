@@ -154,7 +154,7 @@ python experiments/blind_spot_benchmark.py
 
 This runs a comprehensive benchmark comparing baseline GPT-4o vs. CMVK across 50 HumanEval problems.
 
-**Expected Runtime:** 20-40 minutes  
+**Expected Runtime:** 20-40 minutes
 **Expected Improvement:** +7-9% accuracy
 
 ### Visualize Execution Traces

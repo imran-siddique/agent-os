@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "cross-model-verification-kernel"
-version = "1.0.0"
+version = "1.1.0"
 description = "Adversarial multi-model verification framework for AI code generation - addressing the 'grading your own homework' problem"
 readme = "README.md"
 license = { text = "MIT" }

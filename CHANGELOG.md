@@ -5,6 +5,37 @@ All notable changes to the Cross-Model Verification Kernel (CMVK) will be docume
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-01-21
+
+### Changed
+- **BREAKING**: Renamed package from `src` to `cross_model_verification_kernel`
+  - All imports must now use `from cross_model_verification_kernel import ...`
+  - CLI entry point updated to `cross_model_verification_kernel.cli:app`
+- Reorganized documentation into `docs/` directory
+  - `ARCHITECTURE.md` → `docs/architecture.md`
+  - `SAFETY.md` → `docs/safety.md`
+  - `NEW_FEATURES.md` → `docs/features.md`
+  - `INNOVATION_LAYER.md` → `docs/innovation_layer.md`
+  - `FEATURE_3_TRACEABILITY.md` → `docs/traceability.md`
+- Reorganized tests into `tests/unit/` and `tests/integration/`
+- Moved example scripts to `examples/` directory
+- Moved paper-related files to `paper/` directory
+- Updated `.pre-commit-config.yaml` to v5.0.0 hooks
+- Modernized `.gitignore` with comprehensive patterns
+
+### Added
+- `src/cross_model_verification_kernel/__main__.py` for `python -m` support
+- `CONTRIBUTING.md` with development guidelines
+- `requirements-dev.txt` for contributors
+- `tests/conftest.py` with shared pytest fixtures
+- Merged `docs/getting_started.md` (combined GETTING_STARTED + QUICKSTART)
+- Professional README.md with badges, benchmarks, and quick start guide
+
+### Removed
+- Redundant files: `IMPLEMENTATION_COMPLETE.md`, `IMPLEMENTATION_SUMMARY.md`,
+  `PROJECT_COMPLETE.md`, `NEXT_STEPS.md`, `LAUNCH_CHECKLIST.md`, `hf_readme.md`
+- Old `sys.path` hacks in example files (now uses proper package imports)
+
 ## [Unreleased]
 
 ### Added

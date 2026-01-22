@@ -1,8 +1,8 @@
 # Cross-Model Verification Kernel (CMVK): Adversarial Multi-Model Code Generation
 
-**Authors:** [To be filled]  
-**Affiliation:** [To be filled]  
-**Date:** January 2026  
+**Authors:** [To be filled]
+**Affiliation:** [To be filled]
+**Date:** January 2026
 **Status:** Draft
 
 ---
@@ -112,13 +112,13 @@ CMVK implements a three-component architecture:
 for attempt in range(max_retries):
     # 1. Generate solution (respecting forbidden strategies)
     code = Generator.generate(query, forbidden_strategies)
-    
+
     # 2. Verify solution
     result = Verifier.verify(code, query)
-    
+
     # 3. Detect strategy used
     strategy = detect_strategy(code)
-    
+
     # 4. Record in trace
     trace.append({
         'step': attempt,
@@ -127,7 +127,7 @@ for attempt in range(max_retries):
         'status': result.status,
         'strategy': strategy
     })
-    
+
     # 5. Decision logic
     if result.status == PASS:
         return code  # Success
@@ -311,7 +311,7 @@ python -m src.tools.visualizer --list
 >>> GPT-4o (The Builder): I'll solve this using Built-In Sort...
     [Generated Code]
 
->>> Gemini (The Prosecutor): OBJECTION! The solution violates 
+>>> Gemini (The Prosecutor): OBJECTION! The solution violates
     the constraint 'WITHOUT using sorted()'.
 
 >>> Kernel (The Arbiter): ⚖️ Objection Sustained. Solution REJECTED.

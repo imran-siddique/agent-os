@@ -2,11 +2,16 @@
 Core module for the Cross-Model Verification Kernel.
 Contains the kernel logic, graph memory, and type definitions.
 """
-from .kernel import VerificationKernel
+
 from .graph_memory import GraphMemory
+from .kernel import VerificationKernel
 from .types import (
-    Node, NodeStatus, VerificationResult, VerificationOutcome,
-    GenerationResult, KernelState
+    GenerationResult,
+    KernelState,
+    Node,
+    NodeStatus,
+    VerificationOutcome,
+    VerificationResult,
 )
 
 __all__ = [

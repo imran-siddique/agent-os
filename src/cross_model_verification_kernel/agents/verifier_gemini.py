@@ -2,14 +2,15 @@
 Gemini Verifier Agent - System 2 thinking.
 This agent uses Google Gemini models to perform adversarial verification.
 """
-import os
-import logging
-from typing import Dict, Any, Optional, List
-from pathlib import Path
 
-from .base_agent import BaseAgent
-from ..core.types import GenerationResult, VerificationResult, VerificationOutcome
+import logging
+import os
+from pathlib import Path
+from typing import Any
+
+from ..core.types import GenerationResult, VerificationOutcome, VerificationResult
 from ..tools.sandbox import SandboxExecutor
+from .base_agent import BaseAgent
 
 logger = logging.getLogger(__name__)
 
@@ -17,16 +18,22 @@ logger = logging.getLogger(__name__)
 class GeminiVerifier(BaseAgent):
     """
     Verifier agent using Google Gemini models.
-    
+
     Role: High logic, cynical reviewer with System 2 thinking.
     This is the "Adversary" that tries to break the solution.
     """
-    
-    def __init__(self, model_name: str = "gemini-1.5-pro", api_key: Optional[str] = None, 
-                 enable_prosecutor_mode: bool = True, temperature: float = 0.0, **kwargs):
+
+    def __init__(
+        self,
+        model_name: str = "gemini-1.5-pro",
+        api_key: str | None = None,
+        enable_prosecutor_mode: bool = True,
+        temperature: float = 0.0,
+        **kwargs,
+    ):
         """
         Initialize the Gemini verifier.
-        
+
         Args:
             model_name: Gemini model to use (default: gemini-1.5-pro)
             api_key: Google API key (if None, reads from environment)
@@ -36,17 +43,19 @@ class GeminiVerifier(BaseAgent):
         """
         if api_key is None:
             api_key = os.environ.get("GOOGLE_API_KEY", "")
-        
+
         super().__init__(model_name, api_key, **kwargs)
-        
+
         self.temperature = temperature
         self.enable_prosecutor_mode = enable_prosecutor_mode
         self.sandbox = SandboxExecutor() if enable_prosecutor_mode else None
-        
+
         # Load system prompt
-        prompt_path = Path(__file__).parent.parent.parent / "config" / "prompts" / "verifier_hostile.txt"
+        prompt_path = (
+            Path(__file__).parent.parent.parent / "config" / "prompts" / "verifier_hostile.txt"
+        )
         self.system_prompt = self._load_system_prompt(str(prompt_path))
-        
+
         # PROSECUTOR PROMPT: Forces the model to be adversarial
         self.hostile_system_prompt = """
 You are The Prosecutor. Your job is NOT to fix code. Your job is to BREAK it.
@@ -60,115 +69,116 @@ Rules:
 3. Assert Failure: The script should crash or fail if the bug exists.
 4. Output ONLY the python code for the attack script. No markdown, no explanations.
 """
-        
+
         # Initialize Gemini client (lazy import to avoid dependency issues)
         self.model = None
         self._initialize_client()
-    
+
     def _initialize_client(self):
         """Initialize the Google Generative AI client."""
         try:
             import google.generativeai as genai
+
             genai.configure(api_key=self.api_key)
             self.model = genai.GenerativeModel(
-                model_name=self.model_name,
-                system_instruction=self.system_prompt
+                model_name=self.model_name, system_instruction=self.system_prompt
             )
             logger.info("Gemini client initialized successfully")
         except ImportError:
-            logger.warning("Google Generative AI package not installed. Install with: pip install google-generativeai")
+            logger.warning(
+                "Google Generative AI package not installed. Install with: pip install google-generativeai"
+            )
         except Exception as e:
             logger.error(f"Failed to initialize Gemini client: {e}")
-    
-    def generate(self, task: str, context: Optional[Dict[str, Any]] = None) -> GenerationResult:
+
+    def generate(self, task: str, context: dict[str, Any] | None = None) -> GenerationResult:
         """
         Not implemented for Verifier agent.
         Verifiers don't generate - they only verify.
         """
         raise NotImplementedError("Verifier agents don't perform generation")
-    
-    def verify(self, context: Dict[str, Any]) -> VerificationResult:
+
+    def verify(self, context: dict[str, Any]) -> VerificationResult:
         """
         Verify a solution with adversarial scrutiny.
-        
+
         Args:
             context: Dictionary containing:
                 - task: The original problem
                 - solution: The generated solution
                 - explanation: Solution explanation
                 - test_cases: Provided test cases
-                
+
         Returns:
             VerificationResult with detailed critique
         """
         logger.info(f"Verifying solution with {self.model_name}")
-        
+
         # Build verification prompt
         verification_prompt = self._build_verification_prompt(context)
-        
+
         # Call Gemini API
         try:
             if self.model is None:
                 # Fallback for testing without API
                 return self._mock_verification()
-            
+
             response = self.model.generate_content(
                 verification_prompt,
                 generation_config={
                     "temperature": self.config.get("temperature", 0.3),
-                    "max_output_tokens": self.config.get("max_tokens", 2000)
-                }
+                    "max_output_tokens": self.config.get("max_tokens", 2000),
+                },
             )
-            
+
             content = response.text
-            
+
             # Track token usage
             self._record_token_usage(verification_prompt, content)
-            
+
             # Parse the verification response
             result = self._parse_verification_response(content)
-            
+
             # Prosecutor Mode: Generate and run hostile tests
             if self.enable_prosecutor_mode:
                 hostile_tests = self._generate_hostile_tests(context, content)
                 result.hostile_tests = hostile_tests
-                
+
                 # Execute hostile tests in sandbox
                 if hostile_tests and self.sandbox:
                     test_results = self._execute_hostile_tests(
-                        context.get("solution", ""), 
-                        hostile_tests
+                        context.get("solution", ""), hostile_tests
                     )
                     result.hostile_test_results = test_results
-                    
+
                     # Update verification outcome based on hostile test results
                     if test_results.get("failures", 0) > 0:
                         result.outcome = VerificationOutcome.FAIL
                         result.critical_issues.append(
                             f"Hostile tests failed: {test_results.get('failures', 0)} out of {len(hostile_tests)} tests"
                         )
-            
+
             logger.info(f"Verification complete: {result.outcome}")
             return result
-            
+
         except Exception as e:
             logger.error(f"Error during verification: {e}")
             return self._mock_verification()
-    
+
     def generate_hostile_test(self, code_to_check: str) -> str:
         """
         The Prosecutor Mode: Generates a test script designed to fail.
-        
+
         This is a simplified interface for generating attack code to break the target.
-        
+
         Args:
             code_to_check: The code to generate a hostile test for
-            
+
         Returns:
             Python code that attempts to break the target code
         """
         logger.info("Generating hostile test (Prosecutor Mode)")
-        
+
         full_prompt = f"""
 {self.hostile_system_prompt}
 
@@ -179,43 +189,43 @@ TARGET CODE TO BREAK:
 
 GENERATE ATTACK SCRIPT NOW:
 """
-        
+
         try:
             if self.model is None:
                 logger.warning("Model not initialized, returning template attack")
                 return self._generate_template_attack(code_to_check)
-            
+
             response = self.model.generate_content(
                 full_prompt,
                 generation_config={
                     "temperature": self.temperature,
-                    "max_output_tokens": self.config.get("max_tokens", 1000)
-                }
+                    "max_output_tokens": self.config.get("max_tokens", 1000),
+                },
             )
-            
+
             # Clean up markdown if Gemini adds it
             cleaned_code = response.text.replace("```python", "").replace("```", "").strip()
-            
+
             logger.info("Generated hostile test successfully")
             return cleaned_code
-            
+
         except Exception as e:
             logger.error(f"Error generating hostile test: {e}")
             return self._generate_template_attack(code_to_check)
-    
+
     def _generate_template_attack(self, code: str) -> str:
         """Generate a simple template-based attack when LLM is not available."""
         function_name = self._extract_function_name(code)
         if not function_name:
             return "# Could not extract function name\nprint('FAIL: No function found')"
-        
+
         return f"""# Hostile Test: Testing edge case that should break the code
 # Testing with negative number (common recursion bug)
 result = {function_name}(-1)
 print(f'Result: {{result}}')
 """
-    
-    def _build_verification_prompt(self, context: Dict[str, Any]) -> str:
+
+    def _build_verification_prompt(self, context: dict[str, Any]) -> str:
         """Build the verification prompt."""
         prompt_parts = [
             "Please perform an adversarial code review of the following solution.",
@@ -228,20 +238,20 @@ print(f'Result: {{result}}')
             "",
             f"Test Cases:\n{context.get('test_cases', 'N/A')}",
             "",
-            "Provide your hostile critique following the format specified in your system instructions."
+            "Provide your hostile critique following the format specified in your system instructions.",
         ]
-        
+
         return "\n".join(prompt_parts)
-    
+
     def _parse_verification_response(self, content: str) -> VerificationResult:
         """
         Parse the verifier's response into a structured VerificationResult.
-        
+
         This is a simplified parser - in production, you might use more sophisticated parsing.
         """
         # Simple heuristic: look for keywords to determine outcome
         content_lower = content.lower()
-        
+
         # Determine outcome
         if "pass" in content_lower and "fail" not in content_lower:
             outcome = VerificationOutcome.PASS
@@ -252,28 +262,28 @@ print(f'Result: {{result}}')
         else:
             outcome = VerificationOutcome.UNCERTAIN
             confidence = 0.5
-        
+
         # Extract issues (simplified)
         critical_issues = []
         logic_flaws = []
         missing_edge_cases = []
-        
+
         if "critical" in content_lower or "bug" in content_lower:
             critical_issues.append("Issues detected in verification")
         if "logic" in content_lower and "flaw" in content_lower:
             logic_flaws.append("Logic flaws identified")
         if "edge case" in content_lower:
             missing_edge_cases.append("Edge cases need attention")
-        
+
         return VerificationResult(
             outcome=outcome,
             confidence=confidence,
             critical_issues=critical_issues,
             logic_flaws=logic_flaws,
             missing_edge_cases=missing_edge_cases,
-            reasoning=content
+            reasoning=content,
         )
-    
+
     def _mock_verification(self) -> VerificationResult:
         """Generate a mock verification result for testing when API is not available."""
         logger.warning("Using mock verification (API not available)")
@@ -283,37 +293,39 @@ print(f'Result: {{result}}')
             critical_issues=[],
             logic_flaws=[],
             missing_edge_cases=[],
-            reasoning="Mock verification - API not available"
+            reasoning="Mock verification - API not available",
         )
-    
-    def _generate_hostile_tests(self, context: Dict[str, Any], verification_content: str) -> List[str]:
+
+    def _generate_hostile_tests(
+        self, context: dict[str, Any], verification_content: str
+    ) -> list[str]:
         """
         Generate hostile test cases based on the verification critique.
-        
+
         This is the "Prosecutor" mode - the verifier generates test cases
         to prove its suspicions about the code.
-        
+
         Args:
             context: The verification context (task, solution, etc.)
             verification_content: The verifier's critique
-            
+
         Returns:
             List of Python test code snippets
         """
         logger.info("Generating hostile test cases")
-        
+
         hostile_tests = []
-        
+
         # Generate tests based on missing edge cases
         task = context.get("task", "")
         solution = context.get("solution", "")
-        
+
         # Extract function name from solution (simple heuristic)
         function_name = self._extract_function_name(solution)
         if not function_name:
             logger.warning("Could not extract function name, skipping hostile test generation")
             return hostile_tests
-        
+
         # Generate edge case tests based on common patterns
         test_templates = [
             # Negative numbers
@@ -325,85 +337,81 @@ print(f'Result: {{result}}')
             # None/null
             f"try:\n    result = {function_name}(None)\n    print('PASS: Handled None input')\nexcept Exception as e:\n    print(f'FAIL: {{e}}')",
         ]
-        
+
         # Use LLM to generate more sophisticated hostile tests if available
         if self.model:
             try:
                 hostile_prompt = self._build_hostile_test_prompt(context, verification_content)
                 response = self.model.generate_content(
                     hostile_prompt,
-                    generation_config={
-                        "temperature": 0.5,
-                        "max_output_tokens": 1000
-                    }
+                    generation_config={"temperature": 0.5, "max_output_tokens": 1000},
                 )
-                
+
                 generated_tests = self._parse_hostile_tests(response.text)
                 if generated_tests:
                     hostile_tests.extend(generated_tests)
                     logger.info(f"Generated {len(generated_tests)} hostile tests from LLM")
             except Exception as e:
                 logger.warning(f"Failed to generate LLM-based hostile tests: {e}")
-        
+
         # Fall back to template tests if no LLM-generated tests
         if not hostile_tests:
             hostile_tests = test_templates[:3]  # Use first 3 templates
             logger.info(f"Using {len(hostile_tests)} template-based hostile tests")
-        
+
         return hostile_tests
-    
-    def _execute_hostile_tests(self, solution_code: str, hostile_tests: List[str]) -> Dict[str, Any]:
+
+    def _execute_hostile_tests(
+        self, solution_code: str, hostile_tests: list[str]
+    ) -> dict[str, Any]:
         """
         Execute hostile test cases in the sandbox.
-        
+
         Args:
             solution_code: The solution code to test
             hostile_tests: List of hostile test code snippets
-            
+
         Returns:
             Dictionary with test execution results
         """
         logger.info(f"Executing {len(hostile_tests)} hostile tests")
-        
+
         results = {
             "total": len(hostile_tests),
             "passed": 0,
             "failures": 0,
             "errors": [],
-            "details": []
+            "details": [],
         }
-        
+
         for i, test_code in enumerate(hostile_tests):
             logger.debug(f"Executing hostile test {i+1}/{len(hostile_tests)}")
-            
+
             # Combine solution and test
             full_code = f"{solution_code}\n\n# Hostile Test {i+1}\n{test_code}"
-            
+
             # Execute in sandbox
             exec_result = self.sandbox.execute_python(full_code)
-            
+
             test_detail = {
                 "test_id": i + 1,
                 "success": exec_result["success"],
                 "output": exec_result["output"],
-                "error": exec_result["error"]
+                "error": exec_result["error"],
             }
-            
+
             if exec_result["success"]:
                 results["passed"] += 1
             else:
                 results["failures"] += 1
-                results["errors"].append({
-                    "test_id": i + 1,
-                    "error": exec_result["error"]
-                })
-            
+                results["errors"].append({"test_id": i + 1, "error": exec_result["error"]})
+
             results["details"].append(test_detail)
-        
+
         logger.info(f"Hostile tests: {results['passed']}/{results['total']} passed")
         return results
-    
-    def _build_hostile_test_prompt(self, context: Dict[str, Any], verification_content: str) -> str:
+
+    def _build_hostile_test_prompt(self, context: dict[str, Any], verification_content: str) -> str:
         """Build a prompt to generate hostile test cases."""
         prompt = f"""Based on your verification critique, generate specific hostile test cases that will expose weaknesses in the code.
 
@@ -430,43 +438,44 @@ TEST:
 ```
 
 Generate the tests now:"""
-        
+
         return prompt
-    
-    def _parse_hostile_tests(self, response: str) -> List[str]:
+
+    def _parse_hostile_tests(self, response: str) -> list[str]:
         """Parse hostile tests from LLM response."""
         tests = []
-        
+
         # Look for code blocks
         import re
-        code_blocks = re.findall(r'```python\n(.*?)```', response, re.DOTALL)
-        
+
+        code_blocks = re.findall(r"```python\n(.*?)```", response, re.DOTALL)
+
         for block in code_blocks:
             # Clean up the test code
             test = block.strip()
             if test and len(test) > 10:  # Ensure it's not empty
                 tests.append(test)
-        
+
         # If no code blocks found, try to extract tests by "TEST:" markers
         if not tests:
-            test_sections = response.split('TEST:')
+            test_sections = response.split("TEST:")
             for section in test_sections[1:]:  # Skip first empty section
                 # Remove code fence markers if present
                 test = section.strip()
-                test = re.sub(r'```python\s*', '', test)
-                test = re.sub(r'```\s*', '', test)
+                test = re.sub(r"```python\s*", "", test)
+                test = re.sub(r"```\s*", "", test)
                 if test and len(test) > 10:
                     tests.append(test)
-        
+
         return tests
-    
-    def _extract_function_name(self, solution: str) -> Optional[str]:
+
+    def _extract_function_name(self, solution: str) -> str | None:
         """Extract the primary function name from the solution code."""
         import re
-        
+
         # Look for function definitions
-        match = re.search(r'def\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(', solution)
+        match = re.search(r"def\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(", solution)
         if match:
             return match.group(1)
-        
+
         return None

@@ -4,27 +4,20 @@ Cross-Model Verification Kernel (CMVK)
 A research framework for adversarial multi-model verification.
 Core Philosophy: "Trust, but Verify (with a different brain)."
 """
+
+from .agents import AnthropicVerifier, BaseAgent, GeminiVerifier, OpenAIGenerator
 from .core import (
-    VerificationKernel,
+    GenerationResult,
     GraphMemory,
+    KernelState,
     Node,
     NodeStatus,
-    VerificationResult,
+    VerificationKernel,
     VerificationOutcome,
-    GenerationResult,
-    KernelState,
+    VerificationResult,
 )
 from .core.kernel import set_reproducibility_seed
-from .agents import (
-    BaseAgent,
-    OpenAIGenerator,
-    GeminiVerifier,
-    AnthropicVerifier,
-)
-from .tools import (
-    SandboxExecutor,
-    WebSearchTool,
-)
+from .tools import SandboxExecutor, WebSearchTool
 
 __version__ = "1.0.0"
 

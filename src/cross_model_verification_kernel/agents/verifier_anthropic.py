@@ -2,14 +2,15 @@
 Anthropic Verifier Agent - System 2 thinking with Claude.
 This agent uses Anthropic Claude models to perform adversarial verification.
 """
-import os
-import logging
-from typing import Dict, Any, Optional, List
-from pathlib import Path
 
-from .base_agent import BaseAgent
-from ..core.types import GenerationResult, VerificationResult, VerificationOutcome
+import logging
+import os
+from pathlib import Path
+from typing import Any
+
+from ..core.types import GenerationResult, VerificationOutcome, VerificationResult
 from ..tools.sandbox import SandboxExecutor
+from .base_agent import BaseAgent
 
 logger = logging.getLogger(__name__)
 
@@ -17,25 +18,25 @@ logger = logging.getLogger(__name__)
 class AnthropicVerifier(BaseAgent):
     """
     Verifier agent using Anthropic Claude models.
-    
+
     Role: High logic, cynical reviewer with System 2 thinking.
     This is the "Adversary" that tries to break the solution.
-    
+
     Claude models are known for their strong reasoning and safety-oriented
     analysis, making them excellent adversarial verifiers.
     """
-    
+
     def __init__(
         self,
         model_name: str = "claude-3-5-sonnet-20241022",
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         enable_prosecutor_mode: bool = True,
         temperature: float = 0.0,
-        **kwargs
+        **kwargs,
     ):
         """
         Initialize the Anthropic verifier.
-        
+
         Args:
             model_name: Claude model to use (default: claude-3-5-sonnet-20241022)
             api_key: Anthropic API key (if None, reads from environment)
@@ -45,21 +46,23 @@ class AnthropicVerifier(BaseAgent):
         """
         if api_key is None:
             api_key = os.environ.get("ANTHROPIC_API_KEY", "")
-        
+
         super().__init__(model_name, api_key, **kwargs)
-        
+
         self.temperature = temperature
         self.enable_prosecutor_mode = enable_prosecutor_mode
         self.sandbox = SandboxExecutor() if enable_prosecutor_mode else None
-        
+
         # Load system prompt
-        prompt_path = Path(__file__).parent.parent.parent / "config" / "prompts" / "verifier_hostile.txt"
+        prompt_path = (
+            Path(__file__).parent.parent.parent / "config" / "prompts" / "verifier_hostile.txt"
+        )
         self.system_prompt = self._load_system_prompt(str(prompt_path))
-        
+
         # If no custom prompt, use default adversarial prompt
         if not self.system_prompt:
             self.system_prompt = self._get_default_system_prompt()
-        
+
         # PROSECUTOR PROMPT: Forces the model to be adversarial
         self.hostile_system_prompt = """
 You are The Prosecutor. Your job is NOT to fix code. Your job is to BREAK it.
@@ -73,11 +76,11 @@ Rules:
 3. Assert Failure: The script should crash or fail if the bug exists.
 4. Output ONLY the python code for the attack script. No markdown, no explanations.
 """
-        
+
         # Initialize Anthropic client (lazy import)
         self.client = None
         self._initialize_client()
-    
+
     def _get_default_system_prompt(self) -> str:
         """Return default adversarial verification prompt."""
         return """You are an adversarial code reviewer, the "Verifier" in a multi-model verification system.
@@ -102,111 +105,107 @@ MISSING_EDGE_CASES:
 REASONING:
 [Your detailed analysis]
 """
-    
+
     def _initialize_client(self) -> None:
         """Initialize the Anthropic client."""
         try:
             import anthropic
+
             self.client = anthropic.Anthropic(api_key=self.api_key)
             logger.info(f"Anthropic client initialized successfully with model: {self.model_name}")
         except ImportError:
-            logger.warning(
-                "Anthropic package not installed. Install with: pip install anthropic"
-            )
+            logger.warning("Anthropic package not installed. Install with: pip install anthropic")
         except Exception as e:
             logger.error(f"Failed to initialize Anthropic client: {e}")
-    
-    def generate(self, task: str, context: Optional[Dict[str, Any]] = None) -> GenerationResult:
+
+    def generate(self, task: str, context: dict[str, Any] | None = None) -> GenerationResult:
         """
         Not implemented for Verifier agent.
         Verifiers don't generate - they only verify.
         """
         raise NotImplementedError("Verifier agents don't perform generation")
-    
-    def verify(self, context: Dict[str, Any]) -> VerificationResult:
+
+    def verify(self, context: dict[str, Any]) -> VerificationResult:
         """
         Verify a solution with adversarial scrutiny.
-        
+
         Args:
             context: Dictionary containing:
                 - task: The original problem
                 - solution: The generated solution
                 - explanation: Solution explanation
                 - test_cases: Provided test cases
-                
+
         Returns:
             VerificationResult with detailed critique
         """
         logger.info(f"Verifying solution with {self.model_name}")
-        
+
         # Build verification prompt
         verification_prompt = self._build_verification_prompt(context)
-        
+
         # Call Anthropic API
         try:
             if self.client is None:
                 # Fallback for testing without API
                 return self._mock_verification()
-            
+
             response = self.client.messages.create(
                 model=self.model_name,
                 max_tokens=self.config.get("max_tokens", 2000),
                 temperature=self.temperature,
                 system=self.system_prompt,
-                messages=[
-                    {"role": "user", "content": verification_prompt}
-                ]
+                messages=[{"role": "user", "content": verification_prompt}],
             )
-            
+
             content = response.content[0].text
-            
+
             # Track token usage
             self._record_token_usage_anthropic(response)
-            
+
             # Parse the verification response
             result = self._parse_verification_response(content)
-            
+
             # Prosecutor Mode: Generate and run hostile tests
             if self.enable_prosecutor_mode:
                 hostile_tests = self._generate_hostile_tests(context, content)
                 result.hostile_tests = hostile_tests
-                
+
                 # Execute hostile tests in sandbox
                 if hostile_tests and self.sandbox:
                     test_results = self._execute_hostile_tests(
-                        context.get("solution", ""),
-                        hostile_tests
+                        context.get("solution", ""), hostile_tests
                     )
                     result.hostile_test_results = test_results
-                    
+
                     # Update verification outcome based on hostile test results
                     if test_results.get("failures", 0) > 0:
                         result.outcome = VerificationOutcome.FAIL
                         result.critical_issues.append(
                             f"Hostile tests failed: {test_results.get('failures', 0)} out of {len(hostile_tests)} tests"
                         )
-            
+
             logger.info(f"Verification complete: {result.outcome}")
             return result
-            
+
         except Exception as e:
             logger.error(f"Error during verification: {e}")
             return self._mock_verification()
-    
+
     def generate_hostile_test(self, code_to_check: str) -> str:
         """
         The Prosecutor Mode: Generates a test script designed to fail.
-        
+
         This is a simplified interface for generating attack code to break the target.
-        
+
         Args:
             code_to_check: The code to generate a hostile test for
-            
+
         Returns:
             Python code that attempts to break the target code
         """
         logger.info("Generating hostile test (Prosecutor Mode)")
-        
+
         full_prompt = f"""
 TARGET CODE TO BREAK:
 ```python
@@ -215,52 +214,51 @@ TARGET CODE TO BREAK:
 
 GENERATE ATTACK SCRIPT NOW:
 """
-        
+
         try:
             if self.client is None:
                 logger.warning("Client not initialized, returning template attack")
                 return self._generate_template_attack(code_to_check)
-            
+
             response = self.client.messages.create(
                 model=self.model_name,
                 max_tokens=self.config.get("max_tokens", 1000),
                 temperature=self.temperature,
                 system=self.hostile_system_prompt,
-                messages=[
-                    {"role": "user", "content": full_prompt}
-                ]
+                messages=[{"role": "user", "content": full_prompt}],
             )
-            
+
             # Clean up markdown if Claude adds it
             cleaned_code = response.content[0].text
             cleaned_code = cleaned_code.replace("```python", "").replace("```", "").strip()
-            
+
             logger.info("Generated hostile test successfully")
             return cleaned_code
-            
+
         except Exception as e:
             logger.error(f"Error generating hostile test: {e}")
             return self._generate_template_attack(code_to_check)
-    
+
     def _generate_template_attack(self, code: str) -> str:
         """Generate a simple template-based attack when LLM is not available."""
         function_name = self._extract_function_name(code)
         if not function_name:
             return "# Could not extract function name\nprint('FAIL: No function found')"
-        
+
         return f"""# Hostile Test: Testing edge case that should break the code
 # Testing with negative number (common recursion bug)
 result = {function_name}(-1)
 print(f'Result: {{result}}')
 """
-    
-    def _extract_function_name(self, code: str) -> Optional[str]:
+
+    def _extract_function_name(self, code: str) -> str | None:
         """Extract the main function name from code."""
         import re
-        match = re.search(r'def\s+(\w+)\s*\(', code)
+
+        match = re.search(r"def\s+(\w+)\s*\(", code)
         return match.group(1) if match else None
-    
-    def _build_verification_prompt(self, context: Dict[str, Any]) -> str:
+
+    def _build_verification_prompt(self, context: dict[str, Any]) -> str:
         """Build the verification prompt."""
         prompt_parts = [
             "Please perform an adversarial code review of the following solution.",
@@ -273,17 +271,17 @@ print(f'Result: {{result}}')
             "",
             f"Test Cases:\n{context.get('test_cases', 'N/A')}",
             "",
-            "Provide your hostile critique following the format specified in your system instructions."
+            "Provide your hostile critique following the format specified in your system instructions.",
         ]
-        
+
         return "\n".join(prompt_parts)
-    
+
     def _parse_verification_response(self, content: str) -> VerificationResult:
         """
         Parse the verifier's response into a structured VerificationResult.
         """
         content_lower = content.lower()
-        
+
         # Determine outcome - look for explicit verdicts first
         if "verdict: pass" in content_lower or "verdict:pass" in content_lower:
             outcome = VerificationOutcome.PASS
@@ -304,55 +302,56 @@ print(f'Result: {{result}}')
         else:
             outcome = VerificationOutcome.UNCERTAIN
             confidence = 0.5
-        
+
         # Try to extract confidence score
         import re
-        confidence_match = re.search(r'confidence:\s*([\d.]+)', content_lower)
+
+        confidence_match = re.search(r"confidence:\s*([\d.]+)", content_lower)
         if confidence_match:
             try:
                 confidence = float(confidence_match.group(1))
                 confidence = min(1.0, max(0.0, confidence))  # Clamp to [0, 1]
             except ValueError:
                 pass
-        
+
         # Extract issues
         critical_issues = self._extract_section(content, "CRITICAL_ISSUES")
         logic_flaws = self._extract_section(content, "LOGIC_FLAWS")
         missing_edge_cases = self._extract_section(content, "MISSING_EDGE_CASES")
-        
+
         return VerificationResult(
             outcome=outcome,
             confidence=confidence,
             critical_issues=critical_issues,
             logic_flaws=logic_flaws,
             missing_edge_cases=missing_edge_cases,
-            reasoning=content
+            reasoning=content,
         )
-    
-    def _extract_section(self, content: str, section_name: str) -> List[str]:
+
+    def _extract_section(self, content: str, section_name: str) -> list[str]:
         """Extract bullet points from a section in the response."""
         import re
-        
+
         # Look for section header and extract content until next section
-        pattern = rf'{section_name}[:\s]*\n(.*?)(?=\n[A-Z_]+:|$)'
+        pattern = rf"{section_name}[:\s]*\n(.*?)(?=\n[A-Z_]+:|$)"
         match = re.search(pattern, content, re.IGNORECASE | re.DOTALL)
-        
+
         if not match:
             return []
-        
+
         section_content = match.group(1)
-        
+
         # Extract bullet points
         items = []
-        for line in section_content.split('\n'):
+        for line in section_content.split("\n"):
             line = line.strip()
-            if line.startswith('-') or line.startswith('•') or line.startswith('*'):
-                item = line.lstrip('-•* ').strip()
+            if line.startswith("-") or line.startswith("•") or line.startswith("*"):
+                item = line.lstrip("-•* ").strip()
                 if item:
                     items.append(item)
-        
+
         return items
-    
+
     def _mock_verification(self) -> VerificationResult:
         """Generate a mock verification result for testing when API is not available."""
         logger.warning("Using mock verification (API not available)")
@@ -362,91 +361,85 @@ print(f'Result: {{result}}')
             critical_issues=[],
             logic_flaws=[],
             missing_edge_cases=[],
-            reasoning="Mock verification - API not available"
+            reasoning="Mock verification - API not available",
         )
-    
+
     def _generate_hostile_tests(
-        self, context: Dict[str, Any], verification_content: str
-    ) -> List[str]:
+        self, context: dict[str, Any], verification_content: str
+    ) -> list[str]:
         """
         Generate hostile test cases based on the verification critique.
-        
+
         Args:
             context: The verification context (task, solution, etc.)
             verification_content: The verifier's critique
-            
+
         Returns:
             List of hostile test code strings
         """
         solution = context.get("solution", "")
         if not solution:
             return []
-        
+
         # Generate a hostile test
         hostile_test = self.generate_hostile_test(solution)
-        
+
         return [hostile_test] if hostile_test else []
-    
-    def _execute_hostile_tests(
-        self, solution: str, hostile_tests: List[str]
-    ) -> Dict[str, Any]:
+
+    def _execute_hostile_tests(self, solution: str, hostile_tests: list[str]) -> dict[str, Any]:
         """
         Execute hostile tests in the sandbox.
-        
+
         Args:
             solution: The code to test
             hostile_tests: List of test scripts
-            
+
         Returns:
             Dictionary with test execution results
         """
         if not self.sandbox:
             return {"error": "Sandbox not available", "failures": 0}
-        
+
         results = {
             "total": len(hostile_tests),
             "passed": 0,
             "failures": 0,
             "errors": [],
         }
-        
+
         for i, test in enumerate(hostile_tests):
             # Combine solution and test
             full_code = f"{solution}\n\n# --- Hostile Test ---\n{test}"
-            
+
             try:
                 # Execute in sandbox
                 exec_result = self.sandbox.execute(full_code)
-                
+
                 if exec_result.get("success", False):
                     results["passed"] += 1
                 else:
                     results["failures"] += 1
-                    results["errors"].append({
-                        "test_index": i,
-                        "error": exec_result.get("error", "Unknown error")
-                    })
+                    results["errors"].append(
+                        {"test_index": i, "error": exec_result.get("error", "Unknown error")}
+                    )
             except Exception as e:
                 results["failures"] += 1
-                results["errors"].append({
-                    "test_index": i,
-                    "error": str(e)
-                })
-        
+                results["errors"].append({"test_index": i, "error": str(e)})
+
         return results
-    
+
     def _record_token_usage_anthropic(self, response: Any) -> None:
         """Record token usage from Anthropic API response."""
         try:
             usage = response.usage
             input_tokens = usage.input_tokens
             output_tokens = usage.output_tokens
-            
+
             self.total_input_tokens += input_tokens
             self.total_output_tokens += output_tokens
             self.total_tokens_used += input_tokens + output_tokens
             self.call_count += 1
-            
+
             logger.debug(
                 f"Token usage - Input: {input_tokens}, Output: {output_tokens}, "
                 f"Total: {self.total_tokens_used}"

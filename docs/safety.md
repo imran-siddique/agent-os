@@ -145,15 +145,15 @@ def validate_code(code: str) -> bool:
     """Check for obviously dangerous patterns."""
     dangerous_imports = ["os", "subprocess", "socket", "shutil", "sys"]
     dangerous_calls = ["eval", "exec", "compile", "__import__", "open"]
-    
+
     for imp in dangerous_imports:
         if f"import {imp}" in code or f"from {imp}" in code:
             return False
-    
+
     for call in dangerous_calls:
         if f"{call}(" in code:
             return False
-    
+
     return True
 ```
 

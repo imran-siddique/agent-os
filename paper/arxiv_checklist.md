@@ -27,7 +27,7 @@ This checklist ensures the CMVK paper meets venue requirements for top ML confer
 **Sample disclosure text:**
 ```
 This work studies cross-model verification using large language models.
-Specifically, we use GPT-4o (gpt-4o-2024-05-13) as Generator, and 
+Specifically, we use GPT-4o (gpt-4o-2024-05-13) as Generator, and
 Gemini 1.5 Pro (gemini-1.5-pro-latest) or Claude 3.5 Sonnet as Verifier.
 All prompts are provided in Appendix A. The code is MIT-licensed and
 available at [anonymized for review].
@@ -129,7 +129,7 @@ See Appendix B for detailed safety considerations.
 ### 10. Final Checks
 
 - [ ] Spell check completed
-- [ ] Grammar check completed  
+- [ ] Grammar check completed
 - [ ] All figures referenced in text
 - [ ] All tables referenced in text
 - [ ] All citations in bibliography

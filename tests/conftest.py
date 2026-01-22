@@ -1,8 +1,10 @@
 """
 Shared pytest fixtures for CMVK tests.
 """
+
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
-from unittest.mock import MagicMock, AsyncMock
 
 
 @pytest.fixture
@@ -10,11 +12,13 @@ def mock_generator():
     """Create a mock generator agent."""
     generator = MagicMock()
     generator.model_name = "gpt-4o"
-    generator.generate = AsyncMock(return_value={
-        "code": "def hello(): return 'Hello, World!'",
-        "language": "python",
-        "strategy": "simple",
-    })
+    generator.generate = AsyncMock(
+        return_value={
+            "code": "def hello(): return 'Hello, World!'",
+            "language": "python",
+            "strategy": "simple",
+        }
+    )
     return generator
 
 
@@ -23,11 +27,13 @@ def mock_verifier():
     """Create a mock verifier agent."""
     verifier = MagicMock()
     verifier.model_name = "gemini-1.5-pro"
-    verifier.verify = AsyncMock(return_value={
-        "passed": True,
-        "issues": [],
-        "confidence": 0.95,
-    })
+    verifier.verify = AsyncMock(
+        return_value={
+            "passed": True,
+            "issues": [],
+            "confidence": 0.95,
+        }
+    )
     return verifier
 
 

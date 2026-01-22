@@ -32,7 +32,7 @@ python -m src.tools.visualizer --latest --no-code
 >>> GPT-4o (The Builder): I'll solve this using Built In Sort...
     [Generated Code]
 
->>> Gemini (The Prosecutor): OBJECTION! The solution violates 
+>>> Gemini (The Prosecutor): OBJECTION! The solution violates
     the constraint 'WITHOUT using sorted()'.
 
 >>> Kernel (The Arbiter): ⚖️ Objection Sustained. Solution REJECTED.
@@ -217,7 +217,7 @@ if trace_files:
     latest_trace = max(trace_files, key=os.path.getmtime)
     with open(latest_trace) as f:
         trace = json.load(f)
-        
+
     print(f"Attempts: {trace['meta']['total_attempts']}")
     print(f"Status: {trace['meta']['final_status']}")
     print(f"Banned strategies: {trace['forbidden_strategies']}")
