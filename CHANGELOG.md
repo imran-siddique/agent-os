@@ -18,14 +18,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Reproducibility controls with seed configuration
 - `pyproject.toml` for modern Python packaging
 - GitHub Actions CI/CD pipeline
-- Docker support with improved documentation
+- Docker multi-stage build with production/sandbox/development targets
 - Per-agent temperature controls
 - Benchmark results table in README
+- HuggingFace Hub integration (`src/tools/huggingface_upload.py`)
+  - Upload datasets, traces, and results
+  - Auto-generate dataset cards
+- Statistical analysis utilities (`src/tools/statistics.py`)
+  - Welch's t-test, Wilcoxon signed-rank test
+  - Confidence intervals, bootstrap CI
+  - Effect size (Cohen's d)
+  - Results table formatting
+- Reproducible experiment runner (`experiments/reproducible_runner.py`)
+  - Hardware/runtime stats collection
+  - Deterministic execution with seeds
+  - Complete experiment logging
+- Safety and ethics documentation (`SAFETY.md`)
+  - Sandbox security guidelines
+  - Prompt injection defenses
+  - Dual-use considerations
+  - Responsible disclosure policy
+- Comprehensive test suite for new components
+  - `test_anthropic_verifier.py` - Anthropic adapter tests
+  - `test_cli.py` - CLI tests
+  - `test_reproducibility.py` - Seed/reproducibility tests
+- Pre-commit configuration (`.pre-commit-config.yaml`)
 
 ### Changed
 - Pinned all dependency versions in `requirements.txt`
 - Updated README with installation via pip, CLI usage, and Docker instructions
 - Improved configuration handling with seed support
+- Dockerfile now uses multi-stage build with separate targets
 
 ### Fixed
 - N/A
