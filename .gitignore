@@ -75,3 +75,4 @@ experiments/results/
 # Model outputs (optional)
 outputs/
 checkpoints/
+.pypirc
