@@ -1,4 +1,4 @@
-\begin{thebibliography}{11}
+\begin{thebibliography}{16}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -19,9 +19,26 @@ John~R Boyd.
 \newblock \emph{A Discourse on Winning and Losing}.
 \newblock Air University Press, 1987.
 
-\bibitem[Hong et~al.(2023)Hong, Zheng, Chen, et~al.]{hong2023metagpt}
-Sirui Hong, Xiawu Zheng, Jonathan Chen, et~al.
-\newblock Metagpt: Meta programming for multi-agent collaborative framework.
+\bibitem[{European Parliament}(2024)]{euai2024}
+{European Parliament}.
+\newblock Regulation (eu) 2024/1689 - artificial intelligence act.
+\newblock Official Journal of the European Union, 2024.
+
+\bibitem[Han et~al.(2024)Han, Rao, Ettinger, Jiang, Lin, Lambert, Choi, and
+  Dziri]{han2024wildguard}
+Seungju Han, Kavel Rao, Allyson Ettinger, Liwei Jiang, Bill~Yuchen Lin, Nathan
+  Lambert, Yejin Choi, and Nouha Dziri.
+\newblock Wildguard: Open one-stop moderation tools for safety risks,
+  jailbreaks, and refusals of llms.
+\newblock \emph{Advances in Neural Information Processing Systems (NeurIPS)},
+  2024.
+\newblock URL \url{https://arxiv.org/abs/2406.18495}.
+
+\bibitem[Hong et~al.(2023)Hong, Zhuge, Chen, Zheng, Cheng, Zhang,
+  et~al.]{hong2023metagpt}
+Sirui Hong, Mingchen Zhuge, Jiaqi Chen, Xiawu Zheng, Yuheng Cheng, Ceyao Zhang,
+  et~al.
+\newblock Metagpt: Meta programming for a multi-agent collaborative framework.
 \newblock 2023.
 \newblock URL \url{https://arxiv.org/abs/2308.00352}.
 
@@ -45,6 +62,12 @@ Aman Madaan, Niket Tandon, Prakhar Gupta, et~al.
   2023.
 \newblock URL \url{https://arxiv.org/abs/2303.17651}.
 
+\bibitem[{Meta AI}(2024)]{meta2024llamaguard2}
+{Meta AI}.
+\newblock Llamaguard 2: Safety classification for llm interactions.
+\newblock Meta Research Blog, 2024.
+\newblock Technical report on improved safety classification.
+
 \bibitem[Mohtashami and Jaggi(2023)]{mohtashami2023landmark}
 Amirkeivan Mohtashami and Martin Jaggi.
 \newblock Landmark attention: Random-access infinite context length for
@@ -52,10 +75,19 @@ Amirkeivan Mohtashami and Martin Jaggi.
 \newblock 2023.
 \newblock URL \url{https://arxiv.org/abs/2305.16300}.
 
-\bibitem[Shinn et~al.(2023)Shinn, Cassano, Gopinath, Narasimhan, and
+\bibitem[{Self-Correcting Agent Team}(2026)]{scak2026}
+{Self-Correcting Agent Team}.
+\newblock Self-correcting agent kernel: Automated alignment via differential
+  auditing and semantic memory hygiene, 2026.
+\newblock URL
+  \url{https://github.com/imran-siddique/self-correcting-agent-kernel}.
+\newblock Research foundations: Reflexion (NeurIPS 2023), Constitutional AI
+  (Anthropic 2022), Voyager (arXiv:2305.16291).
+
+\bibitem[Shinn et~al.(2023)Shinn, Cassano, Berman, Gopinath, Narasimhan, and
   Yao]{shinn2023reflexion}
-Noah Shinn, Federico Cassano, Ashwin Gopinath, Karthik Narasimhan, and Shunyu
-  Yao.
+Noah Shinn, Federico Cassano, Edward Berman, Ashwin Gopinath, Karthik
+  Narasimhan, and Shunyu Yao.
 \newblock Reflexion: Language agents with verbal reinforcement learning.
 \newblock In \emph{Advances in Neural Information Processing Systems
   (NeurIPS)}, 2023.
@@ -66,6 +98,11 @@ Guanzhi Wang, Yuqi Xie, Yunfan Jiang, et~al.
 \newblock Voyager: An open-ended embodied agent with large language models.
 \newblock 2023.
 \newblock URL \url{https://arxiv.org/abs/2305.16291}.
+
+\bibitem[{World Economic Forum}(2025)]{wef2025governance}
+{World Economic Forum}.
+\newblock Ai agents in the workplace: Governance framework and risk mitigation.
+\newblock WEF Whitepaper, January 2025.
 
 \bibitem[Wu et~al.(2023)Wu, Bansal, Zhang, et~al.]{wu2023autogen}
 Qingyun Wu, Gagan Bansal, Jieyu Zhang, et~al.

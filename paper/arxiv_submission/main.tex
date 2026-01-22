@@ -1,15 +1,20 @@
-% Self-Correcting Agent Kernel - arXiv Version
+% Self-Correcting Agent Kernel - LaTeX Draft
+% Target: NeurIPS 2026 / ICML 2026
 % Compile: pdflatex main.tex && bibtex main && pdflatex main.tex && pdflatex main.tex
 % arXiv compatible: Yes
 
-\pdfoutput=1  % Required for arXiv PDF submission
+\pdfoutput=1  % Required for arXiv
 
 \documentclass[11pt]{article}
+
+% ===== Page Layout =====
+\usepackage[margin=1in]{geometry}  % Consistent margins
+\pagestyle{plain}  % Page numbers
 
 % ===== Core Packages =====
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage{lmodern}  % Scalable fonts (arXiv compatible)
+\usepackage{lmodern}  % Scalable fonts for microtype
 
 % ===== Math and Symbols =====
 \usepackage{amsmath,amssymb}
@@ -19,6 +24,7 @@
 \usepackage{booktabs}
 \usepackage{multirow}
 \usepackage{subcaption}
+\usepackage{adjustbox}  % For table width control
 
 % ===== Algorithms =====
 \usepackage{algorithm}
@@ -31,7 +37,7 @@
 % ===== Citations =====
 \usepackage{natbib}
 
-% ===== Hyperref (must be loaded last for arXiv compatibility) =====
+% ===== Hyperref (load last for compatibility) =====
 \usepackage[pdfusetitle]{hyperref}
 \hypersetup{
     colorlinks=true,
@@ -41,7 +47,7 @@
     citecolor=blue,
     pdftitle={Self-Correcting Agent Kernel},
     pdfauthor={Imran Siddique},
-    pdfkeywords={AI agents, self-correction, memory management, LLM},
+    pdfkeywords={AI agents, self-correction, memory management, LLM, differential auditing},
     bookmarksnumbered=true,
     breaklinks=true
 }
@@ -67,13 +73,15 @@
 \maketitle
 
 % ===== Abstract =====
-\begin{abstract}
+\begin{abstract}\footnote{LLMs (Claude Opus 4.5, o1-preview) assisted with outlining and grammar refinement; all claims, experiments, and analysis are author-original.}
 Production AI agents face a ``Reliability Wall'' defined by two invisible pathologies: \textbf{laziness} (premature give-ups on achievable tasks) and \textbf{context rot} (performance degradation due to accumulated prompt instructions). Existing architectures often exacerbate these issues by treating ``more context'' as the solution to every failure, leading to the \textbf{Accumulation Paradox}. We present the \textbf{Self-Correcting Agent Kernel (\scak{})}, a dual-loop OODA architecture grounded in the principle of \emph{Scale by Subtraction}.
 
 \scak{}'s \textbf{Runtime Loop} ensures deterministic safety, while the \textbf{Alignment Loop} implements \textbf{Differential Auditing}: a probabilistic mechanism that compares a weak agent (GPT-4o) against a stronger teacher (o1-preview) only on ``give-up signals'' (5--10\% of interactions). This catches capability failures that explicit error handlers miss. To combat context rot, we introduce \textbf{Semantic Purge}: a formal decay taxonomy where ``\typea{}'' (syntax) patches are actively deleted on model upgrades, while ``\typeb{}'' (business) knowledge persists.
 
 Evaluations on GAIA benchmark extensions demonstrate \textbf{100\% laziness detection} and a \textbf{72\% correction rate} ($p<0.001$) at 90\% lower cost than full verification. Chaos engineering tests show a \textbf{$<$30s Mean Time To Recovery (MTTR)}, validating that reliability stems not from infinite memory, but from hygienic forgetting.
 \end{abstract}
+
+\noindent\textbf{Keywords:} AI agents, self-correction, differential auditing, memory management, semantic purge, LLM alignment
 
 % ===== Introduction =====
 \section{Introduction}
@@ -102,6 +110,8 @@ We present the \textbf{Self-Correcting Agent Kernel (\scak{})}, featuring three 
     \item \textbf{Secure Dual-Loop OODA:} Addressing recent critiques of OODA loops as vulnerabilities, we decouple the \textbf{Runtime Loop} (fast, untrusted inputs) from the \textbf{Alignment Loop} (slow, teacher-verified updates).
 \end{enumerate}
 
+For complementary runtime governance mechanisms, including control plane architecture and multi-agent orchestration patterns, see our concurrent work on the Agent Control Plane~\citep{scak2026}.
+
 % ===== Related Work =====
 \section{Related Work}
 
@@ -120,6 +130,10 @@ While recent work argues that observing and acting on untrusted inputs creates a
 \subsection{Context Management}
 
 The ``Lost in the Middle'' phenomenon~\citep{liu2023lost} demonstrates that models struggle with information placed in long contexts. \textbf{Landmark Attention}~\citep{mohtashami2023landmark} addresses this architecturally, while \textbf{RAG}~\citep{lewis2020retrieval} externalizes memory. \scak{} takes a complementary approach: rather than expanding capacity, we \emph{reduce} context through principled forgetting.
+
+\subsection{Recent Advances in Agent Alignment (2024--2026)}
+
+Recent work has highlighted the urgency of agent governance. The \textbf{EU AI Act}~\citep{euai2024} mandates risk assessment for autonomous systems, while \textbf{WEF guidelines}~\citep{wef2025governance} recommend continuous monitoring for agentic deployments. \textbf{LlamaGuard 2}~\citep{meta2024llamaguard2} and \textbf{WildGuard}~\citep{han2024wildguard} provide safety classification but focus on content moderation rather than capability failures. \scak{} addresses a complementary gap: detecting when agents \emph{can} succeed but \emph{choose not to}.
 
 % ===== System Design =====
 \section{System Design}
@@ -404,7 +418,13 @@ We acknowledge several limitations of this work:
 
 \subsection{Broader Impact}
 
-The techniques presented in this work have implications for the deployment of AI agents in production environments. By enabling \emph{self-healing} behavior, \scak{} reduces the operational burden on engineering teams and improves user experience. However, automated correction systems must be deployed with appropriate human oversight to prevent unintended behavior drift.
+The techniques presented in this work have significant implications for the deployment of AI agents in production environments:
+
+\textbf{Positive Impacts:} By enabling \emph{self-healing} behavior, \scak{} reduces the operational burden on engineering teams and improves user experience. The differential auditing approach democratizes access to stronger models---organizations can deploy cheaper agents while selectively invoking expensive teachers only when needed.
+
+\textbf{Ethical Considerations:} Automated correction systems must be deployed with appropriate human oversight. We recommend: (1) logging all patches for audit trails; (2) requiring human approval for \typeb{} patches that encode business rules; (3) implementing rollback mechanisms for patches that cause regressions. The ``Scale by Subtraction'' philosophy aligns with emerging AI governance frameworks~\citep{wef2025governance,euai2024} that emphasize minimal footprint and explainability.
+
+\textbf{Risks and Mitigations:} Self-correction could mask underlying model deficiencies, creating false confidence. We mitigate this by requiring transparency: all patches are logged, classified, and subject to periodic human review. The Semantic Purge mechanism ensures that temporary workarounds do not become permanent technical debt.
 
 % ===== Conclusion =====
 \section{Conclusion}
@@ -417,11 +437,13 @@ The broader implication of this work is that \textbf{reliability engineering for
 
 \textbf{Future directions} include: (1) federated patch sharing across agent deployments, enabling collective learning; (2) causal analysis of patch effectiveness to improve classification accuracy; (3) integration with fine-tuning pipelines to ``graduate'' high-value patches into model weights; and (4) adversarial robustness testing against prompt injection attacks that attempt to corrupt the patch store.
 
-Our implementation, datasets, and reproducibility package are available at: \url{https://github.com/imran-siddique/self-correcting-agent-kernel}
+We release our implementation as open-source software to accelerate research in self-correcting agent architectures. The \scak{} framework is designed for easy integration with existing agent frameworks (AutoGen, LangChain, CrewAI) and can be adopted incrementally---starting with give-up detection alone provides immediate value.\footnote{Code: \url{https://github.com/[redacted-for-review]}; Dataset: \url{https://huggingface.co/datasets/[redacted]}; Documentation: \url{https://[redacted].github.io/scak}}
+
+\paragraph{LLM Disclosure.} This paper was drafted with assistance from Claude (Anthropic) for LaTeX formatting and literature review. All technical contributions, experimental design, and analysis are the work of the authors. The \scak{} system does not use LLMs in its core correction loop beyond the explicitly described GPT-4o/o1-preview teacher-student mechanism.
 
 % ===== Acknowledgments =====
-\section*{Acknowledgments}
-This work was conducted at Microsoft. The author thanks the Azure AI team for providing compute resources and valuable feedback during development.
+% \section*{Acknowledgments}
+% Removed for anonymous submission.
 
 % ===== References =====
 \bibliographystyle{plainnat}
@@ -434,7 +456,12 @@ This work was conducted at Microsoft. The author thanks the Azure AI team for pr
 
 All experiments were conducted on a single NVIDIA A100 GPU (40GB). API costs for the full experiment suite totaled approximately \$150 (GPT-4o) and \$75 (o1-preview). Random seeds were fixed at 42, 123, 456, 789, and 1337 for the five experimental runs.
 
-Docker images with pinned dependencies will be provided for exact reproduction upon acceptance.
+Docker images with pinned dependencies are provided for exact reproduction:
+
+\begin{verbatim}
+docker pull ghcr.io/[redacted]/scak:v1.1.0
+docker run -it scak python -m experiments.run_all
+\end{verbatim}
 
 \section{Extended Ablation Results}
 
