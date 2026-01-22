@@ -97,6 +97,44 @@ Context-as-a-Service builds upon and addresses limitations in existing research 
     - **Relevance**: Inspired CaaS's conflict detection between sources
     - **Paper**: https://arxiv.org/abs/1806.07687
 
+## The Accumulation Paradox and Long-Context Degradation
+
+A growing body of work reveals a counterintuitive phenomenon we term the **Accumulation Paradox**: adding more context to LLMs can paradoxically *degrade* rather than improve performance.
+
+### Lost in the Middle Phenomenon
+
+34. **Liu, N. F., Lin, K., Hewitt, J., Paranjape, A., Bevilacqua, M., Petroni, F., & Liang, P. (2023).** "Lost in the Middle: How Language Models Use Long Contexts." *Transactions of the Association for Computational Linguistics (TACL)*.
+    - **Contribution**: Landmark study showing U-shaped performance curve where models ignore information in the middle of long contexts
+    - **Relevance**: Directly motivates CaaS's context prioritization and decay mechanisms
+    - **Key Finding**: "Performance can degrade significantly when changing the position of relevant information"
+    - **Paper**: https://arxiv.org/abs/2307.03172
+
+### Streaming and Attention Degradation
+
+35. **Xiao, G., Tian, Y., Chen, B., Han, S., & Lewis, M. (2024).** "Efficient Streaming Language Models with Attention Sinks." *ICLR 2024*.
+    - **Contribution**: Showed window attention fails when context exceeds cache size; introduced "attention sink" phenomenon
+    - **Relevance**: Motivates CaaS's sliding window and context decay approach for streaming/agentic settings
+    - **Key Finding**: Disproportionate attention to initial tokens regardless of semantic relevance
+    - **Paper**: https://arxiv.org/abs/2309.17453
+
+### Long In-Context Learning Struggles
+
+36. **Li, T., Zhang, G., Do, Q. D., Yue, X., & Chen, W. (2024).** "Long-context LLMs Struggle with Long In-context Learning." *arXiv preprint*.
+    - **Contribution**: Demonstrated that even purpose-built long-context LLMs degrade with accumulated context
+    - **Relevance**: Validates CaaS's position that more context is not always better
+    - **Key Finding**: Bias toward later-presented labels and degraded reasoning over multiple context pieces
+    - **Paper**: https://arxiv.org/abs/2404.02060
+
+### Agentic Memory Management
+
+37. **Packer, C., Wooders, S., Lin, K., Fang, V., Patil, S. G., Stoica, I., & Gonzalez, J. E. (2023).** "MemGPT: Towards LLMs as Operating Systems." *arXiv preprint*.
+    - **Contribution**: Showed raw context accumulation cannot sustain long-running agents; proposed OS-inspired memory management
+    - **Relevance**: Directly motivates CaaS's hierarchical context management for multi-turn and agentic settings
+    - **Key Finding**: Virtual context management enables stable operation with millions of tokens
+    - **Paper**: https://arxiv.org/abs/2310.08560
+
+**CaaS addresses the Accumulation Paradox through**: (1) time-based decay that deprioritizes older context, (2) the Context Triad ensuring relevant context occupies attention-friendly positions, and (3) structure-aware indexing preventing low-value content from diluting the context window.
+
 ## Context Window Management
 
 ### Conversation History Management
@@ -257,7 +295,7 @@ If you use CaaS in your research or extend it with novel techniques, we encourag
 ```bibtex
 @software{context_as_a_service_2026,
   title = {Context-as-a-Service: A Managed Pipeline for Intelligent Context Extraction and Serving},
-  author = {{Context-as-a-Service Team}},
+  author = {Siddique, Imran},
   year = {2026},
   url = {https://github.com/imran-siddique/context-as-a-service},
   version = {0.1.0}

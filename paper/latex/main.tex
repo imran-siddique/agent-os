@@ -54,9 +54,9 @@
 \title{Context-as-a-Service: A Principled Architecture for Enterprise RAG Systems}
 
 \author{
-    Anonymous Author(s)\\
-    \textit{Anonymous Institution}\\
-    \texttt{anonymous@email.com}
+    Imran Siddique\\
+    Microsoft\\
+    \texttt{imran.siddique@microsoft.com}
 }
 
 \date{}
@@ -132,6 +132,9 @@ We present \textbf{Context-as-a-Service (\caas{})}, an open-source framework tha
 
 \paragraph{Retrieval-Augmented Generation}
 The foundation of modern RAG traces to Lewis et al.~\cite{lewis2020rag}, who introduced the paradigm of combining retrieval with generation. Subsequent work by Guu et al.~\cite{guu2020realm} demonstrated retrieval-augmented pre-training benefits. \caas{} differs by focusing on \textbf{serving-time context management} rather than the retrieval mechanism itself.
+
+\paragraph{The Accumulation Paradox}
+A growing body of work reveals a counterintuitive phenomenon we term the \textbf{Accumulation Paradox}: adding more context can paradoxically \emph{degrade} rather than improve performance. Liu et al.~\cite{liu2023lost} demonstrated this in their ``Lost in the Middle'' study, showing U-shaped performance curves where models ignore information in long context middles. Xiao et al.~\cite{xiao2024streaming} showed window attention fails when context exceeds cache size, introducing the ``attention sink'' phenomenon. Li et al.~\cite{li2024longcontext} demonstrated that even purpose-built long-context LLMs struggle with accumulated context. For agentic AI, Packer et al.~\cite{packer2023memgpt} (MemGPT) showed raw context accumulation cannot sustain long-running agents. \caas{} addresses this through time-based decay and the Context Triad.
 
 \paragraph{Document Structure}
 Hierarchical document understanding has been explored in summarization~\cite{cohan2018hierarchical} and document-level NLP. \caas{} applies this through our three-tier value hierarchy using \textbf{deterministic heuristics} rather than learned representations.

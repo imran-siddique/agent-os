@@ -243,7 +243,7 @@ If you use CaaS in your research, please cite:
 ```bibtex
 @software{caas2026,
   title = {Context-as-a-Service: Solving Seven Fallacies in Production RAG Systems},
-  author = {Context-as-a-Service Team},
+  author = {Siddique, Imran},
   year = {2026},
   url = {https://github.com/imran-siddique/context-as-a-service}
 }

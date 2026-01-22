@@ -30,7 +30,7 @@ Traditional retrieval optimizes for semantic similarity: "How to restart the ser
 
 ### 4. The Flat Context Fallacy (Priority Problem)
 
-Most systems stuff context into the LLM's window until it's full, treating the user's last message, their stated preferences, and historical archives from two years ago with equal priority. But the question asked 30 seconds ago is categorically more important than background context from last month.
+Most systems stuff context into the LLM's window until it's full, treating the user's last message, their stated preferences, and historical archives from two years ago with equal priority. But the question asked 30 seconds ago is categorically more important than background context from last month. This leads to what we term the **Accumulation Paradox**: more context can paradoxically *degrade* performance, as demonstrated empirically by Liu et al. [2023] who showed that LLMs systematically ignore information in the middle of long contexts.
 
 **The Reality**: Context has intimacy levels. Proximity in conversation ≠ proximity in relevance.
 

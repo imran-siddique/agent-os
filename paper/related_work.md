@@ -26,6 +26,16 @@ Recent work on attribution [12, 13, 14] addresses the challenge of tracing gener
 
 CaaS's **Pragmatic Truth** module extends attribution by explicitly tracking **conflicts between sources**—surfacing when official documentation disagrees with informal sources (Slack, tickets, incident reports). This addresses a gap in current attribution systems that assume source consistency.
 
+## The Accumulation Paradox and Long-Context Degradation
+
+A growing body of work reveals a counterintuitive phenomenon we term the **Accumulation Paradox**: adding more context to LLMs can paradoxically *degrade* rather than improve performance. Liu et al. [21] demonstrated this empirically in their landmark "Lost in the Middle" study, showing that model performance follows a U-shaped curve where information in the middle of long contexts is systematically ignored. They found that "performance can degrade significantly when changing the position of relevant information, indicating that current language models do not robustly make use of information in long input contexts."
+
+This degradation extends to streaming and agentic settings. Xiao et al. [22] showed that window attention mechanisms fail entirely when context length exceeds cache size, introducing the "attention sink" phenomenon where initial tokens receive disproportionate attention regardless of semantic relevance. Li et al. [23] further demonstrated that even purpose-built long-context LLMs struggle with accumulated context, revealing biases toward later-presented information and degraded reasoning over multiple context pieces.
+
+For agentic AI systems with extended interactions, Packer et al. [24] (MemGPT) showed that raw context accumulation cannot sustain long-running agents, proposing virtual context management inspired by operating system memory hierarchies. This work directly motivates CaaS's approach: rather than assuming more context is better, we implement **intelligent context decay and prioritization** that acknowledges the Accumulation Paradox.
+
+CaaS addresses these challenges through: (1) **time-based decay** that naturally deprioritizes older context before it causes degradation, (2) **the Context Triad** (Hot/Warm/Cold) that ensures the most relevant context occupies attention-friendly positions, and (3) **structure-aware indexing** that prevents low-value content from diluting the context window.
+
 ## Context Window Management
 
 Managing long conversations and context windows is a growing challenge as LLMs are deployed in production [15, 16]. Common approaches include summarization [17] and compression [18], but these introduce lossy transformations that can discard critical details.
@@ -81,3 +91,11 @@ CaaS's **Trust Gateway** addresses this through an on-premises deployment model.
 [19] Wang, L., et al. (2023). "Self-RAG: Learning to Retrieve, Generate, and Critique through Self-Reflection." *arXiv*. https://arxiv.org/abs/2310.11511
 
 [20] Khattab, O., et al. (2021). "Baleen: Robust Multi-Hop Reasoning at Scale via Condensed Retrieval." *NeurIPS 2021*. https://arxiv.org/abs/2101.00436
+
+[21] Liu, N. F., Lin, K., Hewitt, J., Paranjape, A., Bevilacqua, M., Petroni, F., & Liang, P. (2023). "Lost in the Middle: How Language Models Use Long Contexts." *Transactions of the Association for Computational Linguistics (TACL)*. https://arxiv.org/abs/2307.03172
+
+[22] Xiao, G., Tian, Y., Chen, B., Han, S., & Lewis, M. (2024). "Efficient Streaming Language Models with Attention Sinks." *ICLR 2024*. https://arxiv.org/abs/2309.17453
+
+[23] Li, T., Zhang, G., Do, Q. D., Yue, X., & Chen, W. (2024). "Long-context LLMs Struggle with Long In-context Learning." *arXiv*. https://arxiv.org/abs/2404.02060
+
+[24] Packer, C., Wooders, S., Lin, K., Fang, V., Patil, S. G., Stoica, I., & Gonzalez, J. E. (2023). "MemGPT: Towards LLMs as Operating Systems." *arXiv*. https://arxiv.org/abs/2310.08560
