@@ -12,8 +12,8 @@ import tempfile
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.core.types import NodeState, ExecutionTrace
-from src.core.trace_logger import TraceLogger
+from cross_model_verification_kernel.core.types import NodeState, ExecutionTrace
+from cross_model_verification_kernel.core.trace_logger import TraceLogger
 
 
 def test_trace_logger_basic():

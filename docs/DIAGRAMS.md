@@ -12,36 +12,36 @@ flowchart TB
     subgraph User["👤 User"]
         Task[Task/Problem]
     end
-    
+
     subgraph Kernel["⚖️ Verification Kernel (Arbiter)"]
         direction TB
         Orchestrator[Orchestrator]
         LoopControl[Loop Controller]
         DecisionEngine[Decision Engine]
     end
-    
+
     subgraph Generator["🔨 Generator (System 1)"]
         GenModel[GPT-4o / o1]
         GenPrompt[Creative Prompt]
     end
-    
+
     subgraph Verifier["🔍 Verifier (System 2)"]
         VerModel[Gemini / Claude]
         VerPrompt[Adversarial Prompt]
         Prosecutor[Prosecutor Mode]
     end
-    
+
     subgraph Graph["📊 Graph of Truth"]
         StateCache[State Cache]
         StrategyBan[Strategy Ban List]
         SolutionCache[Solution Cache]
     end
-    
+
     subgraph Sandbox["🔒 Sandbox"]
         CodeExec[Code Executor]
         TestRunner[Test Runner]
     end
-    
+
     Task --> Orchestrator
     Orchestrator --> GenModel
     GenModel --> |Solution| Orchestrator
@@ -103,11 +103,11 @@ sequenceDiagram
     participant V as Verifier
     participant S as Sandbox
     participant GoT as Graph of Truth
-    
+
     U->>K: Submit Task
     K->>GoT: Check Cache
     GoT-->>K: Cache Miss
-    
+
     loop Verification Loop (max 5)
         K->>G: Generate Solution
         G-->>K: Solution + Explanation
@@ -116,7 +116,7 @@ sequenceDiagram
         V->>S: Run Hostile Tests
         S-->>V: Test Results
         V-->>K: Verdict + Confidence
-        
+
         alt Verdict: PASS & Confidence > 0.85
             K->>GoT: Cache Solution
             K-->>U: Return Solution ✓
@@ -168,25 +168,25 @@ User          Kernel        Generator      Verifier       Sandbox        Graph
 ```mermaid
 stateDiagram-v2
     [*] --> Pending: New Solution
-    
+
     Pending --> Verified: PASS + Confidence ≥ 0.85
     Pending --> Failed: FAIL or Tests Fail
     Pending --> Uncertain: Low Confidence
-    
+
     Uncertain --> Verified: Re-verify PASS
     Uncertain --> Failed: Re-verify FAIL
-    
+
     Failed --> Banned: Same strategy fails 2x
-    
+
     Verified --> [*]: Return to User
     Failed --> Pending: Generate New (Different Strategy)
     Banned --> Pending: Force New Approach
-    
+
     note right of Verified
         Solution cached
         for future use
     end note
-    
+
     note right of Banned
         Strategy added to
         forbidden list

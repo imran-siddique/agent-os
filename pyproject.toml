@@ -88,7 +88,7 @@ all = [
 ]
 
 [project.scripts]
-cmvk = "src.cli:app"
+cmvk = "cross_model_verification_kernel.cli:app"
 
 [project.urls]
 Homepage = "https://github.com/imran-siddique/cross-model-verification-kernel"
@@ -99,7 +99,7 @@ Changelog = "https://github.com/imran-siddique/cross-model-verification-kernel/b
 
 [tool.hatch.build.targets.sdist]
 include = [
-    "/src",
+    "/src/cross_model_verification_kernel",
     "/config",
     "/experiments/datasets",
 ]
@@ -112,7 +112,7 @@ exclude = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src"]
+packages = ["src/cross_model_verification_kernel"]
 
 [tool.pytest.ini_options]
 minversion = "8.0"
@@ -120,11 +120,11 @@ addopts = [
     "-ra",
     "-q",
     "--strict-markers",
-    "--cov=src",
+    "--cov=src/cross_model_verification_kernel",
     "--cov-report=term-missing",
     "--cov-report=html:coverage_html",
 ]
-testpaths = ["tests"]
+testpaths = ["tests/unit", "tests/integration"]
 asyncio_mode = "auto"
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
@@ -133,7 +133,7 @@ markers = [
 ]
 
 [tool.coverage.run]
-source = ["src"]
+source = ["src/cross_model_verification_kernel"]
 branch = true
 omit = [
     "*/tests/*",
@@ -173,7 +173,7 @@ exclude = '''
 profile = "black"
 line_length = 100
 skip_gitignore = true
-known_first_party = ["src"]
+known_first_party = ["cross_model_verification_kernel"]
 
 [tool.ruff]
 line-length = 100

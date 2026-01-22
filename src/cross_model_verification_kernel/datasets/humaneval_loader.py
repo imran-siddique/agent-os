@@ -34,7 +34,8 @@ class HumanEvalLoader:
         """
         if dataset_path is None:
             # Use default sample dataset
-            base_dir = Path(__file__).parent.parent.parent
+            # Go up from datasets -> cross_model_verification_kernel -> src -> repo_root
+            base_dir = Path(__file__).parent.parent.parent.parent
             dataset_path = base_dir / "experiments" / "datasets" / "humaneval_sample.json"
         
         self.dataset_path = Path(dataset_path)
@@ -261,5 +262,5 @@ if __name__ == "__main__":
     
     print("\n" + "="*80)
     print("To download the full HumanEval dataset:")
-    print("  python -c 'from src.datasets.humaneval_loader import download_full_humaneval; download_full_humaneval()'")
+    print("  python -c 'from cross_model_verification_kernel.datasets.humaneval_loader import download_full_humaneval; download_full_humaneval()'")
     print("="*80)

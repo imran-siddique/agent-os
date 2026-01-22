@@ -38,7 +38,7 @@ class NodeState:
     status: str = "pending"  # pending, verified, rejected
     history: List[ExecutionTrace] = field(default_factory=list)
     forbidden_strategies: List[str] = field(default_factory=list)
-    
+
     @property
     def fail_count(self) -> int:
         return len([t for t in self.history if t.status == "failed"])
@@ -50,14 +50,14 @@ Added `generate_solution()` method that accepts forbidden strategies:
 
 ```python
 def generate_solution(
-    self, 
-    query: str, 
-    context: Optional[str] = None, 
+    self,
+    query: str,
+    context: Optional[str] = None,
     forbidden_strategies: Optional[List[str]] = None
 ) -> str:
     """
     Generate a solution with optional constraints.
-    
+
     If forbidden_strategies is provided, the generator is explicitly told:
     "DO NOT USE: [recursive, brute_force, ...]"
     "You MUST choose a fundamentally different algorithmic approach."

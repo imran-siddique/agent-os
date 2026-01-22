@@ -10,7 +10,7 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from src.cli import app, GeneratorModel, VerifierModel, OutputFormat, set_seed
+from cross_model_verification_kernel.cli import app, GeneratorModel, VerifierModel, OutputFormat, set_seed
 
 
 runner = CliRunner()
@@ -92,10 +92,10 @@ class TestCLIRun:
             ])
             assert result.exit_code == 1
             assert "OPENAI_API_KEY" in result.stdout
-    
-    @patch('src.cli.OpenAIGenerator')
-    @patch('src.cli.GeminiVerifier')
-    @patch('src.cli.VerificationKernel')
+
+    @patch('cross_model_verification_kernel.cli.OpenAIGenerator')
+    @patch('cross_model_verification_kernel.cli.GeminiVerifier')
+    @patch('cross_model_verification_kernel.cli.VerificationKernel')
     def test_run_with_mocked_kernel(self, mock_kernel_class, mock_verifier, mock_generator):
         """Test run command with mocked components."""
         # Setup mocks

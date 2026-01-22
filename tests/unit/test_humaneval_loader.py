@@ -12,7 +12,7 @@ import tempfile
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.datasets.humaneval_loader import HumanEvalLoader
+from cross_model_verification_kernel.datasets.humaneval_loader import HumanEvalLoader
 
 
 def test_loader_initialization():

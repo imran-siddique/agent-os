@@ -1,10 +1,11 @@
 # experiments/test_prosecutor.py
-import sys
 import os
+import sys
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.agents.verifier_gemini import GeminiVerifier
-from src.tools.sandbox import Sandbox
+from cross_model_verification_kernel.agents.verifier_gemini import GeminiVerifier
+from cross_model_verification_kernel.tools.sandbox import Sandbox
 
 # 1. The Suspect: A Fibonacci function that crashes on negative numbers
 # Using restrictive conditions (== 0, == 1) instead of (<= 1) causes infinite recursion
@@ -33,9 +34,8 @@ full_script = f"{buggy_code}\n{attack_code}"
 result = sandbox.execute(full_script)
 
 print(f"\n[Sandbox Result] {result['status']}")
-if result['status'] == 'error':
+if result["status"] == "error":
     print("SUCCESS: The Prosecutor successfully caught the bug!")
     print(f"Traceback: {result['output'][:300]}")
 else:
     print("FAILURE: The buggy code survived.")
-

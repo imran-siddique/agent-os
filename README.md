@@ -2,89 +2,55 @@
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Status: Research Complete](https://img.shields.io/badge/Status-Research%20Ready-green.svg)](https://github.com/imran-siddique/cross-model-verification-kernel)
 [![CI](https://github.com/imran-siddique/cross-model-verification-kernel/actions/workflows/ci.yml/badge.svg)](https://github.com/imran-siddique/cross-model-verification-kernel/actions)
 [![PyPI version](https://badge.fury.io/py/cross-model-verification-kernel.svg)](https://badge.fury.io/py/cross-model-verification-kernel)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
-**Core Philosophy**: *"Trust, but Verify (with a different brain)."*
+**Adversarial multi-model verification for more reliable LLM code generation.**
 
-## Overview
+> *"Trust, but Verify (with a different brain)."*
 
-The Cross-Model Verification Kernel (CMVK) is a research framework that addresses the "Grading Your Own Homework" fallacy in self-correcting AI agents. Instead of having a single LLM verify its own work, CMVK uses **adversarial multi-model verification** where different models with different training data and architectures verify each other's output.
+## Quick Start
 
-### The Problem: Correlated Error Blindness
+```bash
+# Install
+pip install cross-model-verification-kernel
 
-Current "self-correcting" agents suffer from a fundamental flaw: when an LLM generates a solution with a bug due to a gap in its training data or reasoning, it often uses the same flawed logic to "verify" itself. This leads to hallucinations that look like corrections.
+# Set API keys
+export OPENAI_API_KEY=sk-...
+export GOOGLE_API_KEY=...
 
-### The Solution: Adversarial Architecture
+# Run
+cmvk run --task "Write a fast Fibonacci function" \
+         --generator gpt-4o \
+         --verifier gemini-1.5-pro \
+         --max-loops 5
+```
 
-CMVK implements a three-component system:
+See [docs/getting_started.md](docs/getting_started.md) for detailed setup instructions.
 
-1. **Generator (System 1)**: High creativity, high speed builder (e.g., GPT-4o)
-2. **Verifier (System 2)**: High logic, cynical adversary (e.g., Gemini 1.5 Pro, Claude 3.5)
-3. **Arbiter (The Kernel)**: Deterministic logic managing the verification loop
+## The Problem
 
-## 📊 Benchmark Results
-
-### Main Results (HumanEval, n=164, 5 runs)
-
-| Method | Pass@1 | Δ vs Baseline | Avg Loops | Time (s) |
-|--------|--------|---------------|-----------|----------|
-| GPT-4o (baseline) | 84.1% ± 1.2 | — | 1.0 | 2.1 |
-| GPT-4o self-verify | 85.2% ± 1.4 | +1.1 | 1.6 | 3.4 |
-| Claude 3.5 Sonnet | 85.8% ± 1.1 | +1.7 | 1.0 | 2.3 |
-| **CMVK (GPT-4o → Gemini)** | **92.4% ± 0.9** | **+8.3** | 1.8 | 4.2 |
-| **CMVK (GPT-4o → Claude)** | **91.8% ± 1.0** | **+7.7** | 1.7 | 4.5 |
-| **CMVK (o1 → Gemini)** | **93.1% ± 0.8** | **+9.0** | 1.5 | 8.1 |
-
-*Statistical significance: all CMVK results p < 0.01 vs baseline (Welch's t-test)*
-
-### Sabotage Detection (Prosecutor Mode)
-
-| Method | Recall | Precision | F1 Score |
-|--------|--------|-----------|----------|
-| GPT-4o self-review | 61% | 72% | 0.66 |
-| Gemini self-review | 58% | 69% | 0.63 |
-| **CMVK Prosecutor** | **89%** | 84% | **0.86** |
-
-*40 test cases: 20 correct, 20 with intentional bugs*
-
-### Ablation Study
-
-| Configuration | Pass@1 | Δ vs Full |
-|---------------|--------|-----------|
-| Full CMVK | 92.4% | — |
-| − Cross-model (self-verify) | 85.2% | −7.2 |
-| − Prosecutor Mode | 89.6% | −2.8 |
-| − Strategy Banning | 90.1% | −2.3 |
-| − Graph of Truth | 91.2% | −1.2 |
-| Single loop (k=1) | 87.3% | −5.1 |
-
-*See [PAPER.md](PAPER.md) and [paper/cmvk_neurips.tex](paper/cmvk_neurips.tex) for full methodology and analysis.*
-
-## Key Features
-
-- **Adversarial Engineering**: The Verifier is explicitly prompted to break the solution, not fix it
-- **Runtime Unit Testing**: No action is taken without proof via executable tests
-- **Graph of Truth**: A persistent state machine that prevents deadlocks and caches proven solutions
-- **Model Agnostic**: Easily swap OpenAI, Google, Anthropic, or open-source models
-- **Reproducibility**: Seed control for deterministic experiments
-
-## Architecture
+Traditional "self-correcting" AI agents suffer from **correlated error blindness**: when an LLM generates buggy code, it often uses the same flawed logic to "verify" itself—missing its own mistakes.
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                  Verification Kernel                     │
-│                     (The Arbiter)                        │
-└───────────┬─────────────────────────────┬───────────────┘
-            │                             │
-    ┌───────▼────────┐          ┌────────▼────────┐
-    │   Generator    │          │    Verifier     │
-    │   (System 1)   │◄────────►│   (System 2)    │
-    │   GPT-4o/o1    │  Hostile │  Gemini/Claude  │
-    └────────────────┘  Review  └─────────────────┘
-            │                             │
-            └──────────┬──────────────────┘
+┌─────────┐      ┌─────────┐
+│ GPT-4o  │ ───→ │ GPT-4o  │
+│Generate │      │ Verify  │
+└─────────┘      └─────────┘
+    Same Model = Shared Blind Spots
+```
+
+## The Solution
+
+CMVK uses **adversarial multi-model verification** where different models with different training data verify each other's work:
+
+```
+┌─────────┐      ┌─────────────┐      ┌─────────┐
+│ GPT-4o  │ ───→ │   Kernel    │ ───→ │ Gemini  │
+│Generator│      │  (Arbiter)  │      │Verifier │
+└─────────┘      └─────────────┘      └─────────┘
                        │
               ┌────────▼─────────┐
               │  Graph of Truth  │
@@ -92,392 +58,212 @@ CMVK implements a three-component system:
               └──────────────────┘
 ```
 
+**Key insight**: Different models have *different* blind spots. By using an adversarial verifier from a different provider, we dramatically reduce the probability of shared errors.
+
+## Benchmark Results
+
+### HumanEval (n=164, 5 runs)
+
+| Method | Pass@1 | Δ vs Baseline | Avg Loops |
+|--------|--------|---------------|-----------|
+| GPT-4o (baseline) | 84.1% ± 1.2 | — | 1.0 |
+| GPT-4o self-verify | 85.2% ± 1.4 | +1.1 | 1.6 |
+| **CMVK (GPT-4o → Gemini)** | **92.4% ± 0.9** | **+8.3** | 1.8 |
+| **CMVK (GPT-4o → Claude)** | **91.8% ± 1.0** | **+7.7** | 1.7 |
+
+*All CMVK results statistically significant (p < 0.01, Welch's t-test)*
+
+### Sabotage Detection (Prosecutor Mode)
+
+| Method | Recall | Precision | F1 Score |
+|--------|--------|-----------|----------|
+| GPT-4o self-review | 61% | 72% | 0.66 |
+| **CMVK Prosecutor** | **89%** | 84% | **0.86** |
+
+## Usage
+
+### CLI
+
+```bash
+# Basic verification
+cmvk run --task "Implement binary search"
+
+# Specify models
+cmvk run --task "Sort without built-in functions" \
+         --generator gpt-4o \
+         --verifier claude-3-5-sonnet-20241022
+
+# Reproducible experiments
+cmvk run --task "Check if prime" --seed 42 --output json
+
+# List available models
+cmvk models
+```
+
+### Python API
+
+```python
+from cross_model_verification_kernel import (
+    VerificationKernel,
+    OpenAIGenerator,
+    GeminiVerifier,
+)
+
+# Create agents
+generator = OpenAIGenerator(model="gpt-4o")
+verifier = GeminiVerifier(model="gemini-1.5-pro")
+
+# Create kernel
+kernel = VerificationKernel(generator=generator, verifier=verifier)
+
+# Run verification
+result = kernel.run(
+    task="Write a function to find the longest palindrome",
+    max_loops=5,
+)
+
+print(f"Success: {result.success}")
+print(f"Solution:\n{result.final_code}")
+```
+
+### Watch the Adversarial Debate
+
+```bash
+# Replay execution traces
+cmvk trace --latest
+
+# Example output:
+# >>> GPT-4o: I'll solve this using built-in sort...
+# >>> Gemini: OBJECTION! Violates constraint 'without sorted()'
+# >>> Kernel: ⚖️ Objection sustained. Strategy 'Built-In Sort' BANNED.
+# >>> GPT-4o: I'll try iterative sorting instead...
+# >>> Gemini: Verification PASSED. All tests successful.
+# >>> Kernel: ✅ Solution ACCEPTED.
+```
+
 ## Installation
 
-### Via pip (Recommended)
+### From PyPI
 
 ```bash
 pip install cross-model-verification-kernel
 ```
 
-### From Source
+### From Source (Development)
 
 ```bash
-# Clone the repository
 git clone https://github.com/imran-siddique/cross-model-verification-kernel.git
 cd cross-model-verification-kernel
 
-# Install in editable mode with all dependencies
+# Install with all dependencies
 pip install -e ".[all]"
 
-# Or minimal installation
-pip install -e .
+# Or install dev dependencies separately
+pip install -e ".[dev]"
 ```
 
-### Environment Variables
+### Docker
 
 ```bash
-# Required: Set your API keys
-export OPENAI_API_KEY="your-openai-key"
-export GOOGLE_API_KEY="your-google-key"
-export ANTHROPIC_API_KEY="your-anthropic-key"  # Optional
-```
-
-## Quick Start
-
-### Using the CLI
-
-```bash
-# Basic usage
-cmvk run --task "Write a function to find the longest palindromic substring"
-
-# Specify models
-cmvk run --task "Implement binary search" --generator gpt-4o --verifier gemini-1.5-pro
-
-# With reproducibility seed
-cmvk run --task "Sort a list without using built-in sort" --seed 42
-
-# JSON output for scripting
-cmvk run --task "Reverse a linked list" --output json
-
-# List available models
-cmvk models
-
-# Show version
-cmvk --version
-```
-
-### Using Python API
-
-```python
-from src import VerificationKernel, OpenAIGenerator, GeminiVerifier
-
-# Initialize agents
-generator = OpenAIGenerator(model_name="gpt-4o")
-verifier = GeminiVerifier(model_name="gemini-1.5-pro")
-
-# Create kernel with reproducibility seed
-kernel = VerificationKernel(
-    generator=generator,
-    verifier=verifier,
-    config_path="config/settings.yaml",
-    seed=42  # For reproducible experiments
-)
-
-# Execute verification loop
-task = "Write a function to find the longest palindromic substring"
-result = kernel.execute(task)
-
-print(f"Success: {result.is_complete}")
-print(f"Solution: {result.final_result}")
-print(f"Loops: {result.current_loop}")
-```
-
-### Using Claude as Verifier
-
-```python
-from src import VerificationKernel, OpenAIGenerator
-from src.agents import AnthropicVerifier
-
-generator = OpenAIGenerator(model_name="gpt-4o")
-verifier = AnthropicVerifier(model_name="claude-3-5-sonnet-20241022")
-
-kernel = VerificationKernel(generator=generator, verifier=verifier)
-result = kernel.execute("Implement a trie data structure")
-```
-
-## 🐳 Docker
-
-### Build and Run
-
-```bash
-# Build the image
 docker build -t cmvk:latest .
-
-# Run with API keys
 docker run -it --rm \
   -e OPENAI_API_KEY="$OPENAI_API_KEY" \
   -e GOOGLE_API_KEY="$GOOGLE_API_KEY" \
   cmvk:latest cmvk run --task "Implement quicksort"
-
-# Run interactively
-docker run -it --rm \
-  -e OPENAI_API_KEY="$OPENAI_API_KEY" \
-  -e GOOGLE_API_KEY="$GOOGLE_API_KEY" \
-  -v $(pwd)/logs:/app/logs \
-  cmvk:latest bash
-
-# Run tests inside container
-docker run --rm cmvk:latest pytest tests/ -v
-```
-
-### Docker Compose
-
-```yaml
-version: '3.8'
-services:
-  cmvk:
-    build: .
-    environment:
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
-    volumes:
-      - ./logs:/app/logs
-      - ./experiments/results:/app/experiments/results
-    command: cmvk run --task "Your task here"
-```
-
-## 🎬 See It In Action
-
-### Watch the Adversarial Debate
-
-CMVK provides a powerful visualization tool that lets you watch the "debate" between the Generator and Verifier in real-time:
-
-```bash
-# Replay the most recent execution trace
-python -m src.tools.visualizer --latest
-
-# List all available traces
-python -m src.tools.visualizer --list
-
-# Replay a specific trace
-python -m src.tools.visualizer logs/traces/cmvk_HumanEval_0_*.json
-
-# Speed up playback (0 = instant, default = 0.5 seconds between messages)
-python -m src.tools.visualizer --latest --speed 0
-```
-
-**Example Output:**
-```
-🎭 ADVERSARIAL KERNEL REPLAY 🎭
-================================================================================
-
->>> GPT-4o (The Builder): I'll solve this using Built-In Sort...
-    [Generated Code]
-
->>> Gemini (The Prosecutor): OBJECTION! The solution violates 
-    the constraint 'WITHOUT using sorted()'.
-
->>> Kernel (The Arbiter): ⚖️  Objection Sustained. Solution REJECTED.
->>> Kernel (The Arbiter): 🚫 Strategy 'Built-In Sort' is now BANNED.
-
->>> GPT-4o (The Builder): I'll solve this using Iterative Sorting...
-    [New Solution]
-
->>> Gemini (The Prosecutor): Verification PASSED. All tests successful.
->>> Kernel (The Arbiter): ✅ Solution ACCEPTED.
-```
-
-This visualization shows exactly how CMVK prevents blind spots through adversarial verification!
-
-## 🔬 Running Research Experiments
-
-### Quick Start: Automated Pipeline Test
-
-Run the complete pipeline in one command:
-
-```bash
-# Quick sanity check (5 problems, ~30 seconds)
-python test_full_pipeline.py
-
-# With 50-problem dataset (better statistical significance)
-python test_full_pipeline.py --dataset experiments/datasets/humaneval_50.json
-
-# Full science run (164 problems, ~15-20 minutes)
-python test_full_pipeline.py --full
-```
-
-The pipeline test automates:
-1. Running the benchmark
-2. Checking for execution traces
-3. Visualizing the adversarial debate
-
-### Manual Step-by-Step Instructions
-
-#### Step 1: Run the "Sanity Check" (Fast)
-
-Before running the full benchmark, ensure the pipeline works on the sample dataset:
-
-```bash
-# Run the benchmark on the small sample (5 problems)
-python experiments/blind_spot_benchmark.py --dataset experiments/datasets/humaneval_sample.json
-```
-
-**Success Indicator:** It should finish in ~30 seconds and save a JSON file to `experiments/results/`.
-
-#### Step 2: The "Science Run" (Full Data)
-
-To get statistically significant results for your paper, run on the full dataset:
-
-```bash
-# Option A: Download the full dataset first (if not already present)
-python -c "from src.datasets.humaneval_loader import download_full_humaneval; download_full_humaneval()"
-
-# Option B: Use the included full dataset (164 problems)
-python experiments/blind_spot_benchmark.py --dataset experiments/datasets/humaneval_full.json
-```
-
-**Note:** This will take ~15-20 minutes and consume ~50-100 API calls per model.
-
-#### Step 3: Watch the Debate (The Demo)
-
-Once the benchmark finishes, use the **Visualizer** to see the "Prosecutor" in action:
-
-```bash
-# List all recorded debates
-python -m src.tools.visualizer --list
-
-# Play back the latest one (Adversarial Replay)
-python -m src.tools.visualizer --latest
-
-# Or view a specific trace
-python -m src.tools.visualizer logs/traces/cmvk_HumanEval_0_*.json
-```
-
-**Look for:** A moment where Gemini says "FAIL" and GPT-4o says "I'll try a different strategy." Take a screenshot of this for your `README.md`.
-
-### What Gets Generated
-
-After running the benchmark, you'll find:
-- **Results JSON**: `experiments/results/blind_spot_benchmark_YYYYMMDD_HHMMSS.json`
-- **Summary Report**: `experiments/results/blind_spot_summary_YYYYMMDD_HHMMSS.txt`
-- **Execution Traces**: `logs/traces/cmvk_HumanEval_*.json` (if trace logging is enabled)
-
-### Expected Outcomes
-
-The benchmark compares:
-- **Baseline**: Single-model GPT-4o (no verification loop)
-- **CMVK**: GPT-4o + Gemini with adversarial verification
-
-Key metrics:
-- Pass rate (% of problems solved correctly)
-- Average attempts needed per problem
-- Strategy banning frequency
-- Critical bugs caught by the verifier
-
-### Additional Experiments
-
-```bash
-# Run the Sabotage Stress Test
-python experiments/sabotage_stress_test.py
-
-# Test lateral thinking feature
-python experiments/test_lateral_thinking.py
-
-# Compare model diversity
-python examples/model_diversity_comparison.py
 ```
 
 ## Project Structure
 
 ```
 cross-model-verification-kernel/
-├── config/                       # Configuration and prompts
-│   ├── settings.yaml            # API keys, model settings
-│   └── prompts/                 # System prompts by role
-├── src/                         # Core source code
-│   ├── core/                    # Kernel logic
-│   │   ├── kernel.py           # Main verification loop
-│   │   ├── graph_memory.py     # Graph of Truth
-│   │   └── types.py            # Data classes
-│   ├── agents/                  # LLM interfaces
-│   │   ├── generator_openai.py
-│   │   └── verifier_gemini.py
-│   ├── datasets/                # Dataset loaders
-│   │   └── humaneval_loader.py # HumanEval integration
-│   └── tools/                   # Utilities
-│       ├── sandbox.py          # Code execution
-│       ├── visualizer.py       # Trace replay tool
-│       └── web_search.py       # Fact-checking
-├── experiments/                 # Research experiments
-│   ├── datasets/               # Test datasets
-│   │   ├── humaneval_50.json  # 50-problem benchmark set
-│   │   ├── humaneval_full.json # Complete 164 problems
-│   │   └── sabotage.json      # Bug detection test cases
-│   ├── blind_spot_benchmark.py # Main benchmark script
-│   ├── sabotage_stress_test.py # Verifier evaluation
-│   ├── baseline_runner.py      # Single-model baseline
-│   └── results/                # Generated results
-├── logs/
-│   └── traces/                 # Execution traces for visualization
-├── tests/                       # Unit tests
-├── notebooks/                   # Analysis notebooks
-├── PAPER.md                     # Research paper draft
-└── requirements.txt
+├── src/cross_model_verification_kernel/  # Main package
+│   ├── core/                # Kernel logic & graph memory
+│   ├── agents/              # LLM interfaces (OpenAI, Gemini, Claude)
+│   ├── tools/               # Sandbox execution, visualization
+│   └── datasets/            # Dataset loaders
+├── tests/                   # Unit & integration tests
+├── experiments/             # Research benchmarks
+│   ├── datasets/           # HumanEval, sabotage tests
+│   └── scripts/            # Experiment runners
+├── docs/                    # Documentation
+├── paper/                   # Research paper & figures
+└── config/                  # Configuration files
 ```
 
-## Running Tests
+## Key Features
+
+- **Adversarial Verification**: Verifier actively tries to break solutions
+- **Model Diversity**: Enforces different models for generator/verifier
+- **Prosecutor Mode**: Hostile testing catches 89% of bugs
+- **Graph of Truth**: Prevents infinite loops, caches proven solutions
+- **Strategy Banning**: Automatically avoids failing approaches
+- **Full Traceability**: Replay any execution step-by-step
+
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [Getting Started](docs/getting_started.md) | Installation and first steps |
+| [Architecture](docs/architecture.md) | System design deep-dive |
+| [Safety](docs/safety.md) | Responsible use guidelines |
+| [Paper](paper/PAPER.md) | Full research paper |
+
+## Running Experiments
 
 ```bash
-# Run all tests
-pytest tests/ -v
+# Quick sanity check (5 problems)
+python experiments/blind_spot_benchmark.py --dataset experiments/datasets/humaneval_sample.json
 
-# Run with coverage
-pytest tests/ --cov=src --cov-report=html
+# Full benchmark (164 problems)
+python experiments/blind_spot_benchmark.py --dataset experiments/datasets/humaneval_full.json
+
+# Sabotage stress test
+python experiments/sabotage_stress_test.py
 ```
 
-## Configuration
+## Development
 
-Edit `config/settings.yaml` to customize:
+```bash
+# Install dev dependencies
+pip install -e ".[dev]"
 
-- Model providers and names (OpenAI, Google, Anthropic)
-- Temperature and token limits
-- Max verification loops (default: 5)
-- Confidence thresholds (default: 0.85)
-- Sandbox execution settings
-- Prosecutor Mode (hostile testing)
+# Run tests
+pytest tests/ -v
 
-## 📊 Research Metrics
+# Run linting
+pre-commit run --all-files
 
-CMVK tracks the following metrics for evaluation:
-
-1. **Pass Rate**: Percentage of problems solved correctly
-2. **Blind Spot Detection**: Cases where Verifier caught errors missed by Generator
-3. **Strategy Diversity**: Number of unique approaches explored via banning
-4. **Verification Accuracy**: True positive rate for bug detection
-5. **Efficiency**: Average attempts needed to reach solution
-
-## 📖 Documentation
-
-- **[PAPER.md](PAPER.md)**: Complete research paper draft with methodology, experiments, and results
-- **[ARCHITECTURE.md](ARCHITECTURE.md)**: Detailed system architecture
-- **[GETTING_STARTED.md](GETTING_STARTED.md)**: Step-by-step tutorial
-- **[FEATURE_3_TRACEABILITY.md](FEATURE_3_TRACEABILITY.md)**: Trace logging and visualization guide
-- **[SAFETY.md](SAFETY.md)**: Safety, ethics, and responsible use guidelines
-- **[CHANGELOG.md](CHANGELOG.md)**: Version history and changes
+# Type checking
+mypy src/
+```
 
 ## Contributing
 
-This is a research project. Contributions are welcome! Areas of interest:
+Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
+Areas of interest:
 - Additional model providers (LLaMA, Mistral, etc.)
-- Enhanced prompt engineering for adversarial verification
-- New test datasets (HumanEval, LogicGrids, etc.)
+- Enhanced adversarial prompts
+- New benchmark datasets
 - Improved graph memory algorithms
-- Better response parsing
-
-## License
-
-MIT License - see LICENSE file for details
 
 ## Citation
 
-If you use this work in your research, please cite:
-
 ```bibtex
-@software{cmvk2024,
+@software{cmvk2026,
   author = {Siddique, Imran},
   title = {Cross-Model Verification Kernel: Adversarial Multi-Model Verification},
-  year = {2024},
+  year = {2026},
   url = {https://github.com/imran-siddique/cross-model-verification-kernel}
 }
 ```
 
-## Acknowledgments
+## License
 
-This research is inspired by the observation that diverse models have different blind spots, and adversarial verification can catch errors that self-verification misses.
+MIT License - see [LICENSE](LICENSE) for details.
 
 ---
 
-**Core Philosophy**: *"Trust, but Verify (with a different brain)."*
+<p align="center">
+  <strong>Core Philosophy</strong>: <em>"Trust, but Verify (with a different brain)."</em>
+</p>

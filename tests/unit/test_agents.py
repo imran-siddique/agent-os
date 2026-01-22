@@ -8,8 +8,8 @@ from pathlib import Path
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from src.agents.base_agent import BaseAgent
-from src.core.types import GenerationResult, VerificationResult
+from cross_model_verification_kernel.agents.base_agent import BaseAgent
+from cross_model_verification_kernel.core.types import GenerationResult, VerificationResult
 
 
 class MockGenerator(BaseAgent):
@@ -33,7 +33,7 @@ class MockVerifier(BaseAgent):
         raise NotImplementedError()
     
     def verify(self, context):
-        from src.core.types import VerificationOutcome
+        from cross_model_verification_kernel.core.types import VerificationOutcome
         return VerificationResult(
             outcome=VerificationOutcome.PASS,
             confidence=0.9,

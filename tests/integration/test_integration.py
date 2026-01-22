@@ -2,14 +2,9 @@
 Integration tests for the full verification kernel.
 """
 import pytest
-import sys
-from pathlib import Path
 
-# Add src to path
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-
-from src.core.kernel import VerificationKernel
-from tests.test_agents import MockGenerator, MockVerifier
+from cross_model_verification_kernel.core.kernel import VerificationKernel
+from tests.unit.test_agents import MockGenerator, MockVerifier
 
 
 class TestVerificationKernel:

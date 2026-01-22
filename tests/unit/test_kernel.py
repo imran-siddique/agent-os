@@ -7,10 +7,10 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 import unittest
-from src.generator import Generator, GeneratorConfig
-from src.verifier import Verifier, VerifierConfig, Severity
-from src.kernel import VerificationKernel
-from src.models import ModelProvider, MockModelInterface
+from cross_model_verification_kernel.generator import Generator, GeneratorConfig
+from cross_model_verification_kernel.verifier import Verifier, VerifierConfig, Severity
+from cross_model_verification_kernel.kernel import VerificationKernel
+from cross_model_verification_kernel.models import ModelProvider, MockModelInterface
 
 
 class TestModelProvider(unittest.TestCase):

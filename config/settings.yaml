@@ -14,7 +14,7 @@ models:
     model_name: "gpt-4o"
     temperature: 0.7
     max_tokens: 2000
-    
+
   verifier:
     provider: "google"
     model_name: "gemini-1.5-pro"

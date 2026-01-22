@@ -9,7 +9,7 @@ from unittest.mock import patch, MagicMock
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from src.core.kernel import VerificationKernel, set_reproducibility_seed
+from cross_model_verification_kernel.core.kernel import VerificationKernel, set_reproducibility_seed
 
 
 class TestReproducibilitySeed:

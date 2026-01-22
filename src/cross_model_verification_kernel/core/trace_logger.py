@@ -10,7 +10,7 @@ import os
 import time
 from dataclasses import asdict
 from typing import Any
-from src.core.types import NodeState
+from cross_model_verification_kernel.core.types import NodeState
 
 
 class TraceLogger:

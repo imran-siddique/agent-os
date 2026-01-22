@@ -8,8 +8,8 @@ from pathlib import Path
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.agents.verifier_gemini import GeminiVerifier
-from src.core.types import VerificationResult, VerificationOutcome
+from cross_model_verification_kernel.agents.verifier_gemini import GeminiVerifier
+from cross_model_verification_kernel.core.types import VerificationResult, VerificationOutcome
 
 
 class TestProsecutorMode:

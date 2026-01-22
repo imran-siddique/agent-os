@@ -5,10 +5,10 @@ This module provides a simplified kernel interface that uses NodeState
 for tracking and integrates with the TraceLogger for research purposes.
 """
 from typing import Optional
-from src.core.types import NodeState, ExecutionTrace
-from src.core.trace_logger import TraceLogger
-from src.agents.generator_openai import OpenAIGenerator
-from src.agents.verifier_gemini import GeminiVerifier
+from cross_model_verification_kernel.core.types import NodeState, ExecutionTrace
+from cross_model_verification_kernel.core.trace_logger import TraceLogger
+from cross_model_verification_kernel.agents.generator_openai import OpenAIGenerator
+from cross_model_verification_kernel.agents.verifier_gemini import GeminiVerifier
 
 
 class SimpleVerificationKernel:
@@ -138,7 +138,7 @@ class SimpleVerificationKernel:
             result = self.verifier.verify(context)
             
             # Check if verification passed
-            from src.core.types import VerificationOutcome
+            from cross_model_verification_kernel.core.types import VerificationOutcome
             passed = (result.outcome == VerificationOutcome.PASS and 
                      not result.has_critical_issues())
             

@@ -1,0 +1,31 @@
+# Development Dependencies for CMVK
+# Install with: pip install -r requirements-dev.txt
+
+# Testing
+pytest>=8.3.0
+pytest-asyncio>=0.25.0
+pytest-cov>=6.0.0
+pytest-mock>=3.14.0
+pytest-xdist>=3.5.0  # Parallel test execution
+
+# Code Quality
+black>=24.10.0
+ruff>=0.9.0
+mypy>=1.14.0
+isort>=5.13.0
+
+# Type stubs
+types-PyYAML>=6.0.0
+types-requests>=2.31.0
+
+# Pre-commit hooks
+pre-commit>=4.0.0
+
+# Documentation (optional)
+mkdocs>=1.6.0
+mkdocs-material>=9.5.0
+mkdocstrings[python]>=0.24.0
+
+# Development utilities
+ipython>=8.20.0
+rich>=13.9.0

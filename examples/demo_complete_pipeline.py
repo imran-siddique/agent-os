@@ -13,9 +13,9 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.datasets.humaneval_loader import HumanEvalLoader
-from src.core.types import NodeState, ExecutionTrace
-from src.core.trace_logger import TraceLogger
+from cross_model_verification_kernel.datasets.humaneval_loader import HumanEvalLoader
+from cross_model_verification_kernel.core.types import NodeState, ExecutionTrace
+from cross_model_verification_kernel.core.trace_logger import TraceLogger
 
 
 def print_header(title):

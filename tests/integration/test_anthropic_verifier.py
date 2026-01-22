@@ -8,8 +8,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from src.agents.verifier_anthropic import AnthropicVerifier
-from src.core.types import VerificationResult, VerificationOutcome
+from cross_model_verification_kernel.agents.verifier_anthropic import AnthropicVerifier
+from cross_model_verification_kernel.core.types import VerificationResult, VerificationOutcome
 
 
 class TestAnthropicVerifier:
