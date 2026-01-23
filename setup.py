@@ -6,7 +6,7 @@ setup(
     description="Inter-Agent Trust Protocol - Zero-Config Sidecar for Agent Communication",
     packages=find_packages(),
     install_requires=[
-        "fastapi>=0.109.0",
+        "fastapi>=0.109.1",
         "uvicorn>=0.27.0",
         "pydantic>=2.5.3",
         "httpx>=0.26.0",
