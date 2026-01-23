@@ -15,12 +15,27 @@ Research Foundations:
     - Inspired by NULL semantics in type systems and databases
 
 See docs/RESEARCH_FOUNDATION.md for complete references.
+
+DEPRECATION NOTICE:
+    This module is being refactored to use the plugin interface pattern.
+    New code should use CapabilityValidatorInterface from 
+    agent_control_plane.interfaces instead of directly importing this module.
+    
+    The MuteAgentValidator class now implements CapabilityValidatorInterface
+    and can be registered with the PluginRegistry for dependency injection.
 """
 
+import warnings
 from typing import Any, Dict, Optional, List, Callable, Tuple
 from dataclasses import dataclass, field
 from datetime import datetime
 from .agent_kernel import ActionType, ExecutionRequest
+from .interfaces.plugin_interface import (
+    CapabilityValidatorInterface,
+    ValidationResult,
+    PluginMetadata,
+    PluginCapability,
+)
 
 
 @dataclass
@@ -43,52 +58,131 @@ class MuteAgentConfig:
     enable_explanation: bool = False  # If True, explain why request was rejected
 
 
-class MuteAgentValidator:
+class MuteAgentValidator(CapabilityValidatorInterface):
     """
     Validates requests against agent capabilities.
     
     The Mute Agent knows when to shut up. If a request doesn't map to a
     defined capability, it returns NULL instead of hallucinating or trying
     to be helpful in creative ways.
+    
+    This class implements CapabilityValidatorInterface for use with the
+    PluginRegistry and dependency injection pattern.
+    
+    DEPRECATION NOTICE:
+        Direct instantiation of MuteAgentValidator is deprecated.
+        Instead, use the PluginRegistry to register validators:
+        
+        ```python
+        from agent_control_plane import PluginRegistry
+        
+        registry = PluginRegistry()
+        validator = MuteAgentValidator(config)
+        registry.register_validator(validator)
+        ```
     """
     
     def __init__(self, config: MuteAgentConfig):
         self.config = config
         self.rejection_log: List[Dict[str, Any]] = []
+        self._agent_capabilities: Dict[str, List[AgentCapability]] = {
+            config.agent_id: config.capabilities
+        }
     
-    def validate_request(self, request: ExecutionRequest) -> Tuple[bool, Optional[str]]:
+    @property
+    def metadata(self) -> PluginMetadata:
+        """Return metadata about this validator plugin"""
+        return PluginMetadata(
+            name=f"mute_agent_validator_{self.config.agent_id}",
+            version="1.1.0",
+            description="Capability-based validator implementing Scale by Subtraction philosophy",
+            plugin_type="validator",
+            capabilities=[
+                PluginCapability.REQUEST_VALIDATION,
+                PluginCapability.CAPABILITY_CHECKING,
+                PluginCapability.PARAMETER_VALIDATION,
+            ]
+        )
+    
+    def validate_request(
+        self, 
+        request: Any, 
+        context: Optional[Dict[str, Any]] = None
+    ) -> ValidationResult:
         """
         Validate if request maps to a defined capability.
         
+        Implements CapabilityValidatorInterface.validate_request()
+        
+        Args:
+            request: ExecutionRequest to validate
+            context: Optional additional context
+            
         Returns:
-            (is_valid, reason_if_invalid)
+            ValidationResult with approval/denial and details
         """
+        # Support both ExecutionRequest and dict-based requests
+        if hasattr(request, 'action_type'):
+            action_type = request.action_type
+            request_id = getattr(request, 'request_id', 'unknown')
+            timestamp = getattr(request, 'timestamp', datetime.now())
+        else:
+            action_type = request.get('action_type')
+            request_id = request.get('request_id', 'unknown')
+            timestamp = request.get('timestamp', datetime.now())
+        
         # Check if action type is within any capability
         matching_capabilities = [
             cap for cap in self.config.capabilities
-            if request.action_type in cap.action_types
+            if action_type in cap.action_types
         ]
         
         if not matching_capabilities:
             reason = self._format_rejection_reason(
-                request.action_type,
+                action_type,
                 "Action type not in agent capabilities"
             )
-            self._log_rejection(request.request_id, request.action_type, reason, request.timestamp)
-            return False, reason
+            self._log_rejection(request_id, action_type, reason, timestamp)
+            return ValidationResult(
+                is_valid=False,
+                reason=reason,
+                details={"action_type": str(action_type), "available_capabilities": [c.name for c in self.config.capabilities]}
+            )
         
         # Validate parameters against capability schema
         for capability in matching_capabilities:
-            if capability.validator:
+            if capability.validator and hasattr(request, 'action_type'):
                 if not capability.validator(request):
                     reason = self._format_rejection_reason(
-                        request.action_type,
+                        action_type,
                         f"Parameters do not match capability: {capability.name}"
                     )
-                    self._log_rejection(request.request_id, request.action_type, reason, request.timestamp)
-                    return False, reason
+                    self._log_rejection(request_id, action_type, reason, timestamp)
+                    return ValidationResult(
+                        is_valid=False,
+                        reason=reason,
+                        details={"capability": capability.name}
+                    )
         
-        return True, None
+        return ValidationResult(is_valid=True)
+    
+    # Legacy method for backward compatibility
+    def validate_request_legacy(self, request: ExecutionRequest) -> Tuple[bool, Optional[str]]:
+        """
+        Legacy validation method for backward compatibility.
+        
+        DEPRECATED: Use validate_request() instead which returns ValidationResult.
+        
+        Returns:
+            (is_valid, reason_if_invalid)
+        """
+        warnings.warn(
+            "validate_request_legacy is deprecated, use validate_request() instead",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        result = self.validate_request(request)
+        return result.is_valid, result.reason
     
     def validate_action(
         self, 
@@ -118,6 +212,76 @@ class MuteAgentValidator:
         # This is a tradeoff for performance - full validation requires ExecutionRequest
         return True, None
     
+    # =========================================================================
+    # CapabilityValidatorInterface implementation
+    # =========================================================================
+    
+    def define_capability(
+        self, 
+        agent_id: str,
+        capability_name: str,
+        allowed_actions: List[str],
+        parameter_schema: Dict[str, Any],
+        validator: Optional[Callable[[Any], bool]] = None
+    ) -> None:
+        """
+        Define a capability for an agent.
+        
+        Implements CapabilityValidatorInterface.define_capability()
+        """
+        # Convert string action types to ActionType enums
+        action_types = []
+        for action in allowed_actions:
+            try:
+                action_types.append(ActionType(action))
+            except ValueError:
+                # Skip unknown action types
+                pass
+        
+        capability = AgentCapability(
+            name=capability_name,
+            description=f"Capability {capability_name} for agent {agent_id}",
+            action_types=action_types,
+            parameter_schema=parameter_schema,
+            validator=validator
+        )
+        
+        if agent_id not in self._agent_capabilities:
+            self._agent_capabilities[agent_id] = []
+        self._agent_capabilities[agent_id].append(capability)
+        
+        # Also add to config if this is for the configured agent
+        if agent_id == self.config.agent_id:
+            self.config.capabilities.append(capability)
+    
+    def get_agent_capabilities(self, agent_id: str) -> List[Dict[str, Any]]:
+        """Get all capabilities defined for an agent"""
+        capabilities = self._agent_capabilities.get(agent_id, [])
+        return [
+            {
+                "name": cap.name,
+                "description": cap.description,
+                "action_types": [at.value for at in cap.action_types],
+                "parameter_schema": cap.parameter_schema,
+                "has_validator": cap.validator is not None
+            }
+            for cap in capabilities
+        ]
+    
+    def get_null_response(self) -> str:
+        """Get the NULL response message for out-of-scope requests"""
+        return self.config.null_response_message
+    
+    def get_rejection_log(self, agent_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Get log of rejected (out-of-scope) requests"""
+        if agent_id:
+            return [r for r in self.rejection_log if r.get("agent_id") == agent_id]
+        return self.rejection_log.copy()
+    
+    # =========================================================================
+    # Internal methods
+    # =========================================================================
+    
     def _format_rejection_reason(self, action_type: ActionType, reason: str) -> str:
         """Format rejection reason based on agent configuration"""
         if self.config.enable_explanation:
@@ -130,14 +294,10 @@ class MuteAgentValidator:
         self.rejection_log.append({
             "request_id": request_id,
             "agent_id": self.config.agent_id,
-            "action_type": action_type.value,
+            "action_type": action_type.value if hasattr(action_type, 'value') else str(action_type),
             "reason": reason,
-            "timestamp": timestamp.isoformat()
+            "timestamp": timestamp.isoformat() if hasattr(timestamp, 'isoformat') else str(timestamp)
         })
-    
-    def get_rejection_log(self) -> List[Dict[str, Any]]:
-        """Get log of all rejected requests"""
-        return self.rejection_log.copy()
 
 
 def create_sql_agent_capabilities() -> List[AgentCapability]:

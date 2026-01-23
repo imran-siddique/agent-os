@@ -5,14 +5,14 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "agent-control-plane"
 version = "1.1.0"
-description = "A governance and management layer for autonomous AI agents"
+description = "Layer 3: The Framework - A governance and management layer for autonomous AI agents"
 readme = "README.md"
 requires-python = ">=3.8"
 license = "MIT"
 authors = [
     {name = "Agent Control Plane Contributors"},
 ]
-keywords = ["ai", "agents", "governance", "control-plane", "safety", "policy"]
+keywords = ["ai", "agents", "governance", "control-plane", "safety", "policy", "framework"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -33,6 +33,7 @@ Repository = "https://github.com/imran-siddique/agent-control-plane"
 "Bug Tracker" = "https://github.com/imran-siddique/agent-control-plane/issues"
 
 [project.optional-dependencies]
+# Development dependencies
 dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
@@ -40,6 +41,29 @@ dev = [
     "flake8>=6.0.0",
     "mypy>=1.0.0",
 ]
+
+# Allowed Layer 2 protocol dependencies (optional integrations)
+# These are the ONLY external agent-related dependencies allowed
+protocols = [
+    # iatp: Inter-Agent Transport Protocol (for message security)
+    # "iatp>=1.0.0",
+    # cmvk: Cryptographic Message Verification Kit (for verification)
+    # "cmvk>=1.0.0",
+    # caas: Context-as-a-Service (for context routing)
+    # "caas>=1.0.0",
+]
+
+# Full installation with all protocol integrations
+full = [
+    # "iatp>=1.0.0",
+    # "cmvk>=1.0.0",
+    # "caas>=1.0.0",
+]
+
+# NOTE: The following dependencies are STRICTLY FORBIDDEN as hard imports:
+# - scak (Self-Correcting Agent Kernel) - should implement KernelInterface
+# - mute-agent - should use ValidatorInterface
+# These packages may depend on agent-control-plane, but NOT vice versa.
 
 [tool.setuptools]
 package-dir = {"" = "src"}
