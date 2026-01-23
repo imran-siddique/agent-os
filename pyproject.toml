@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "agent-control-plane"
-version = "1.1.0"
+version = "1.2.0"
 description = "Layer 3: The Framework - A governance and management layer for autonomous AI agents"
 readme = "README.md"
 requires-python = ">=3.8"

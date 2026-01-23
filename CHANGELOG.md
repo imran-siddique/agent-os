@@ -5,6 +5,65 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-01-23
+
+### Added
+
+#### Layer 3: The Framework - Dependency Injection Architecture
+- **KernelInterface**: Abstract interface for custom kernel implementations
+  - `KernelInterface` - Base interface for all kernels (SCAK can now implement this)
+  - `SelfCorrectingKernelInterface` - Extended interface for self-correcting kernels
+  - `CapabilityRestrictedKernelInterface` - For Mute Agent pattern implementations
+  - `KernelCapability` enum for declaring kernel capabilities
+  - `KernelMetadata` dataclass for kernel information
+
+- **Plugin Interfaces**: Extensible component architecture
+  - `ValidatorInterface` - For custom request validators
+  - `CapabilityValidatorInterface` - For capability-based validation (Mute Agent pattern)
+  - `ExecutorInterface` - For custom action executors
+  - `ContextRouterInterface` - For context routing plugins
+  - `PolicyProviderInterface` - For custom policy sources
+  - `SupervisorInterface` - For supervisor agent plugins
+  - `PluginCapability` and `PluginMetadata` for plugin information
+
+- **Protocol Interfaces**: Integration points for Layer 2 protocols
+  - `MessageSecurityInterface` - For iatp (Inter-Agent Transport Protocol) integration
+  - `VerificationInterface` - For cmvk (Cryptographic Message Verification Kit) integration
+  - `ContextRoutingInterface` - For caas (Context-as-a-Service) integration
+
+- **PluginRegistry**: Central dependency injection system
+  - Singleton pattern for global plugin management
+  - Runtime registration of kernels, validators, executors, routers
+  - Forbidden dependency enforcement (scak, mute-agent cannot be hard-imported)
+  - Plugin discovery and loading from paths
+  - Health check and lifecycle management
+
+### Changed
+
+- **AgentControlPlane**: Now supports dependency injection
+  - New `use_plugin_registry` parameter for plugin-based architecture
+  - New `kernel` parameter for injecting custom KernelInterface implementations
+  - New `validators` parameter for injecting ValidatorInterface implementations
+  - New `context_router` parameter for caas integration
+  - New `message_security` parameter for iatp integration
+  - New `verifier` parameter for cmvk integration
+  - New methods: `register_validator()`, `register_kernel()`, `register_context_router()`, etc.
+
+- **MuteAgentValidator**: Refactored to implement CapabilityValidatorInterface
+  - Now implements `CapabilityValidatorInterface` for plugin compatibility
+  - Returns `ValidationResult` instead of tuple for new interface
+  - Backward compatible with legacy usage
+  - Added deprecation notice for direct imports
+
+### Documentation
+
+- Added `docs/LAYER3_FRAMEWORK.md` - Comprehensive architecture guide for Layer 3
+
+### Dependency Policy
+
+- **Allowed Dependencies**: iatp, cmvk, caas (optional protocol integrations)
+- **Forbidden Dependencies**: scak, mute-agent (must implement interfaces instead)
+
 ## [1.1.0] - 2026-01-18
 
 ### Added
