@@ -1,0 +1,124 @@
+name: Docker Build and Push
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+      - develop
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: imran-siddique/iatp
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    strategy:
+      matrix:
+        include:
+          - dockerfile: docker/Dockerfile.sidecar-python
+            image-name: sidecar-python
+            context: .
+          - dockerfile: docker/Dockerfile.agent
+            image-name: agent
+            context: .
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.image-name }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Image digest
+        run: echo ${{ steps.meta.outputs.digest }}
+
+  test-compose:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Compose
+        run: |
+          docker compose version
+
+      - name: Build services
+        run: |
+          docker compose build bank-agent iatp-sidecar-python honeypot-agent honeypot-sidecar
+
+      - name: Start services
+        run: |
+          docker compose up -d bank-agent iatp-sidecar-python honeypot-agent honeypot-sidecar
+
+      - name: Wait for services
+        run: |
+          sleep 30
+
+      - name: Check service health
+        run: |
+          docker compose ps
+          docker compose logs bank-agent
+          docker compose logs iatp-sidecar-python
+          docker compose logs honeypot-agent
+          docker compose logs honeypot-sidecar
+
+      - name: Test secure bank agent
+        run: |
+          curl -f http://localhost:8000/health || exit 1
+
+      - name: Test sidecar health
+        run: |
+          curl -f http://localhost:8001/health || exit 1
+
+      - name: Stop services
+        if: always()
+        run: |
+          docker compose down -v

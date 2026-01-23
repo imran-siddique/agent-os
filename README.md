@@ -113,8 +113,44 @@ pip install -e .
 # Clone and start with Docker Compose
 git clone https://github.com/imran-siddique/inter-agent-trust-protocol.git
 cd inter-agent-trust-protocol
-docker-compose up
+docker compose up
 ```
+
+This starts:
+- Secure Bank Agent (verified partner)
+- IATP Sidecar (Python & Go versions)
+- Honeypot Agent (for testing untrusted scenarios)
+
+See [Docker Deployment Guide](docs/DOCKER_DEPLOYMENT.md) for detailed instructions.
+
+### IATP CLI Tools
+
+Validate manifests and scan agents with the IATP CLI:
+
+```bash
+# Validate a capability manifest
+iatp verify examples/manifests/secure_bank.json
+
+# Scan a running agent for trust score
+iatp scan http://localhost:8001
+
+# Get detailed output
+iatp verify examples/manifests/secure_bank.json --verbose
+iatp scan http://localhost:8001 --verbose
+```
+
+**Trust Score Output:**
+```
+✅ Trust Score: 100/100 (🟢 LOW RISK)
+
+📊 Agent Profile:
+   Agent ID: secure-bank-agent
+   Trust Level: verified_partner
+   Reversibility: full
+   Data Retention: ephemeral
+```
+
+See [CLI Guide](docs/CLI_GUIDE.md) for complete documentation.
 
 ### 5-Minute Demo: High-Trust Agent
 

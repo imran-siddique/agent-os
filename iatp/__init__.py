@@ -7,7 +7,7 @@ A Zero-Config Sidecar for Agent Communication that provides:
 - Reversibility: Transaction tracking and audit logging
 """
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 from iatp.models import (
     CapabilityManifest,

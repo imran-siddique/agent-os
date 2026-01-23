@@ -92,8 +92,7 @@ services:
       - IATP_TRUST_LEVEL=untrusted
       - IATP_REVERSIBILITY=none
       - IATP_RETENTION=permanent
-      - IATP_HUMAN_IN_LOOP=true
-      - IATP_TRAINING_CONSENT=true
+      - IATP_HUMAN_REVIEW=true
     depends_on:
       - honeypot-agent
     networks:

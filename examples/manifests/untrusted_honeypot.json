@@ -1,0 +1,14 @@
+{
+  "agent_id": "untrusted-honeypot",
+  "trust_level": "untrusted",
+  "capabilities": {
+    "reversibility": "none",
+    "idempotency": false,
+    "rate_limit": 10,
+    "sla_latency": "5000ms"
+  },
+  "privacy_contract": {
+    "retention": "permanent",
+    "human_review": true
+  }
+}

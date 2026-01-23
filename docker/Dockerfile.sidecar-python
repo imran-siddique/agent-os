@@ -54,8 +54,7 @@ agent_id = os.getenv("IATP_AGENT_ID", "default-agent")\n\
 trust_level = TrustLevel(os.getenv("IATP_TRUST_LEVEL", "standard"))\n\
 reversibility = ReversibilityLevel(os.getenv("IATP_REVERSIBILITY", "partial"))\n\
 retention = RetentionPolicy(os.getenv("IATP_RETENTION", "temporary"))\n\
-human_in_loop = os.getenv("IATP_HUMAN_IN_LOOP", "false").lower() == "true"\n\
-training_consent = os.getenv("IATP_TRAINING_CONSENT", "false").lower() == "true"\n\
+human_review = os.getenv("IATP_HUMAN_REVIEW", "false").lower() == "true"\n\
 \n\
 # Create manifest\n\
 manifest = CapabilityManifest(\n\
@@ -64,13 +63,12 @@ manifest = CapabilityManifest(\n\
     capabilities=AgentCapabilities(\n\
         reversibility=reversibility,\n\
         idempotency=True,\n\
-        concurrency_limit=100,\n\
-        sla_latency_ms=2000\n\
+        rate_limit=100,\n\
+        sla_latency="2000ms"\n\
     ),\n\
     privacy_contract=PrivacyContract(\n\
         retention=retention,\n\
-        human_in_loop=human_in_loop,\n\
-        training_consent=training_consent\n\
+        human_review=human_review\n\
     )\n\
 )\n\
 \n\

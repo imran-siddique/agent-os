@@ -41,6 +41,7 @@ setup(
         "python-dateutil>=2.8.2",
         "agent-control-plane>=1.1.0",
         "scak>=1.1.0",
+        "click>=8.0.0",
     ],
     extras_require={
         "dev": [
@@ -52,4 +53,9 @@ setup(
     python_requires=">=3.8",
     keywords="agent ai llm trust security sidecar mesh governance policy",
     include_package_data=True,
+    entry_points={
+        "console_scripts": [
+            "iatp=iatp.cli:cli",
+        ],
+    },
 )
