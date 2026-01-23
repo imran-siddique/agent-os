@@ -1,0 +1,61 @@
+{
+  "emk_version": "0.1.0",
+  "python_version": "3.13.9 (tags/v3.13.9:8183fa5, Oct 14 2025, 14:09:13) [MSC v.1944 64 bit (AMD64)]",
+  "timestamp": "2026-01-23T21:51:06.854645+00:00",
+  "seed": 42,
+  "num_episodes": 1000,
+  "benchmarks": {
+    "episode_creation": {
+      "name": "episode_creation",
+      "iterations": 1000,
+      "total_time_ms": 36.10900032799691,
+      "mean_time_ms": 0.03610900032799691,
+      "std_dev_ms": 0.06939174911134689,
+      "min_time_ms": 0.022699940018355846,
+      "max_time_ms": 1.7884999979287386,
+      "ops_per_second": 27693.926470311493
+    },
+    "storage_write": {
+      "name": "storage_write",
+      "iterations": 1000,
+      "total_time_ms": 1532.8358000842854,
+      "mean_time_ms": 1.5328358000842854,
+      "std_dev_ms": 1.0054405171192116,
+      "min_time_ms": 0.7393000414595008,
+      "max_time_ms": 17.72730005905032,
+      "ops_per_second": 652.3855979518572
+    },
+    "retrieval": {
+      "name": "retrieval",
+      "iterations": 100,
+      "total_time_ms": 2582.0334993768483,
+      "mean_time_ms": 25.820334993768483,
+      "std_dev_ms": 9.16790242562883,
+      "min_time_ms": 15.371900051832199,
+      "max_time_ms": 74.2763999151066,
+      "ops_per_second": 38.729164445052376
+    },
+    "indexer": {
+      "name": "indexer",
+      "iterations": 100,
+      "total_time_ms": 8.813700173050165,
+      "mean_time_ms": 0.08813700173050165,
+      "std_dev_ms": 0.08362704825779105,
+      "min_time_ms": 0.05600007716566324,
+      "max_time_ms": 0.6065999623388052,
+      "ops_per_second": 11345.97252420409
+    }
+  },
+  "system_info": {
+    "platform": "Windows",
+    "platform_release": "11",
+    "platform_version": "10.0.26200",
+    "architecture": "AMD64",
+    "processor": "Intel64 Family 6 Model 154 Stepping 4, GenuineIntel",
+    "python_implementation": "CPython",
+    "python_build": [
+      "tags/v3.13.9:8183fa5",
+      "Oct 14 2025 14:09:13"
+    ]
+  }
+}
