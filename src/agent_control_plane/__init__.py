@@ -1,7 +1,23 @@
 """
 Agent Control Plane
 
-A governance and management layer for autonomous AI agents.
+Layer 3: The Framework - A governance and management layer for autonomous AI agents.
+
+The governance layer that defines Agent, Supervisor, Tool, and Policy.
+This is the chassis that connects the primitives (caas, cmvk) to the protocols (iatp).
+
+Publication Target: PyPI (pip install agent-control-plane)
+
+Allowed Dependencies:
+    - iatp: Inter-Agent Transport Protocol (for message security)
+    - cmvk: Cryptographic Message Verification Kit (for verification)
+    - caas: Context-as-a-Service (for context routing)
+
+Forbidden Dependencies:
+    - scak: Self-Correcting Agent Kernel (should implement KernelInterface instead)
+    - mute-agent: Should use ValidatorInterface instead of hard imports
+
+Pattern: Components are injected at runtime via PluginRegistry.
 """
 
 from .agent_kernel import (
@@ -40,6 +56,36 @@ from .control_plane import (
     create_read_only_agent,
     create_standard_agent,
     create_admin_agent,
+)
+
+# Interfaces for dependency injection (Layer 3 pattern)
+from .interfaces import (
+    # Kernel Interface (for custom kernel implementations like SCAK)
+    KernelInterface,
+    KernelCapability,
+    KernelMetadata,
+    
+    # Plugin Interfaces (for extensibility)
+    ValidatorInterface,
+    ExecutorInterface,
+    ContextRouterInterface,
+    PolicyProviderInterface,
+    PluginCapability,
+    PluginMetadata,
+    
+    # Protocol Interfaces (for iatp, cmvk, caas integration)
+    MessageSecurityInterface,
+    VerificationInterface,
+    ContextRoutingInterface,
+)
+
+# Plugin Registry for dependency injection
+from .plugin_registry import (
+    PluginRegistry,
+    PluginType,
+    PluginRegistration,
+    RegistryConfiguration,
+    get_registry,
 )
 
 from .adapter import (
@@ -152,6 +198,35 @@ __all__ = [
     "create_read_only_agent",
     "create_standard_agent",
     "create_admin_agent",
+    
+    # ===== Layer 3: Interfaces for Dependency Injection =====
+    
+    # Kernel Interface (for custom kernel implementations like SCAK)
+    "KernelInterface",
+    "KernelCapability",
+    "KernelMetadata",
+    
+    # Plugin Interfaces (for extensibility)
+    "ValidatorInterface",
+    "ExecutorInterface",
+    "ContextRouterInterface",
+    "PolicyProviderInterface",
+    "PluginCapability",
+    "PluginMetadata",
+    
+    # Protocol Interfaces (for iatp, cmvk, caas integration)
+    "MessageSecurityInterface",
+    "VerificationInterface",
+    "ContextRoutingInterface",
+    
+    # Plugin Registry (for dependency injection)
+    "PluginRegistry",
+    "PluginType",
+    "PluginRegistration",
+    "RegistryConfiguration",
+    "get_registry",
+    
+    # ===== Adapters =====
     
     # OpenAI Adapter (Drop-in Middleware)
     "ControlPlaneAdapter",

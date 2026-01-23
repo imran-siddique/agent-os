@@ -1,19 +1,34 @@
 """
 Agent Control Plane - Main Interface
 
+Layer 3: The Framework - The Governance Layer
+
 The main control plane that integrates all components:
-- Agent Kernel
+- Agent Kernel (via KernelInterface for dependency injection)
 - Policy Engine
 - Execution Engine
 - Audit System
 - Shadow Mode (simulation)
-- Mute Agent (capability-based)
+- Validators (via ValidatorInterface - MuteAgent pattern is now optional)
 - Constraint Graphs (multi-dimensional)
-- Supervisor Agents (recursive governance)
+- Supervisor Agents (via SupervisorInterface)
+
+Allowed Dependencies:
+- iatp (for message security)
+- cmvk (for verification)
+- caas (for context routing)
+
+Forbidden Dependencies:
+- scak (should implement KernelInterface instead)
+- mute-agent as hard dependency (should use ValidatorInterface)
+
+Pattern: Components are injected at runtime via PluginRegistry.
 """
 
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Union
 from datetime import datetime
+import warnings
+
 from .agent_kernel import (
     AgentKernel, AgentContext, ExecutionRequest, ExecutionResult,
     ActionType, PermissionLevel, PolicyRule, ExecutionStatus
@@ -26,33 +41,116 @@ from .example_executors import (
     file_read_executor, code_execution_executor, api_call_executor
 )
 from .shadow_mode import ShadowModeExecutor, ShadowModeConfig, ReasoningStep
-from .mute_agent import MuteAgentValidator, MuteAgentConfig
 from .constraint_graphs import (
     DataGraph, PolicyGraph, TemporalGraph, ConstraintGraphValidator
 )
 from .supervisor_agents import SupervisorAgent, SupervisorNetwork
+
+# Import interfaces for dependency injection
+from .interfaces.kernel_interface import KernelInterface, KernelCapability
+from .interfaces.plugin_interface import (
+    ValidatorInterface,
+    ExecutorInterface,
+    ContextRouterInterface,
+    SupervisorInterface,
+    ValidationResult,
+)
+from .interfaces.protocol_interfaces import (
+    MessageSecurityInterface,
+    VerificationInterface,
+    ContextRoutingInterface,
+)
+
+# Import plugin registry for dependency injection
+from .plugin_registry import PluginRegistry, PluginType, get_registry
+
+# Import mute_agent for backward compatibility (deprecated pattern)
+# New code should use PluginRegistry to register validators
+from .mute_agent import MuteAgentValidator, MuteAgentConfig
 
 
 class AgentControlPlane:
     """
     Agent Control Plane - Main interface for governed agent execution
     
+    Layer 3: The Framework - The Governance Layer
+    
     This is the primary interface for applications to interact with
     the control plane. It integrates all governance, safety, and
     execution components including:
     - Shadow Mode for simulation
-    - Mute Agent for capability-based execution
+    - Validators (via ValidatorInterface - replaces hard-coded Mute Agent)
     - Constraint Graphs for multi-dimensional context
-    - Supervisor Agents for recursive governance
+    - Supervisor Agents (via SupervisorInterface)
+    
+    Dependency Injection:
+        Components can be injected via the PluginRegistry:
+        
+        ```python
+        from agent_control_plane import AgentControlPlane, PluginRegistry
+        
+        # Get the registry
+        registry = PluginRegistry()
+        
+        # Register custom kernel (e.g., SCAK)
+        registry.register_kernel(my_custom_kernel)
+        
+        # Register validators
+        registry.register_validator(my_validator, action_types=["code_execution"])
+        
+        # Create control plane (will use registered components)
+        control_plane = AgentControlPlane(use_plugin_registry=True)
+        ```
+    
+    Allowed Protocol Dependencies:
+        - iatp: Inter-Agent Transport Protocol (message security)
+        - cmvk: Cryptographic Message Verification Kit
+        - caas: Context-as-a-Service (context routing)
     """
     
     def __init__(
         self,
         enable_default_policies: bool = True,
         enable_shadow_mode: bool = False,
-        enable_constraint_graphs: bool = False
+        enable_constraint_graphs: bool = False,
+        use_plugin_registry: bool = False,
+        kernel: Optional[KernelInterface] = None,
+        validators: Optional[List[ValidatorInterface]] = None,
+        context_router: Optional[Union[ContextRouterInterface, ContextRoutingInterface]] = None,
+        message_security: Optional[MessageSecurityInterface] = None,
+        verifier: Optional[VerificationInterface] = None,
     ):
-        self.kernel = AgentKernel()
+        """
+        Initialize the Agent Control Plane.
+        
+        Args:
+            enable_default_policies: Whether to load default security policies
+            enable_shadow_mode: Whether to enable shadow/simulation mode
+            enable_constraint_graphs: Whether to enable constraint graph validation
+            use_plugin_registry: If True, use components from PluginRegistry
+            kernel: Optional custom kernel implementing KernelInterface
+            validators: Optional list of validators implementing ValidatorInterface
+            context_router: Optional context router for caas integration
+            message_security: Optional message security provider for iatp integration
+            verifier: Optional verifier for cmvk integration
+        """
+        # Plugin registry integration
+        self._use_plugin_registry = use_plugin_registry
+        self._registry = get_registry() if use_plugin_registry else None
+        
+        # Use injected kernel or fall back to default AgentKernel
+        if kernel is not None:
+            self._custom_kernel = kernel
+            # Wrap custom kernel in compatibility layer
+            self.kernel = AgentKernel()  # Default for now, custom kernel used via interface
+        elif use_plugin_registry and self._registry:
+            registered_kernel = self._registry.get_kernel()
+            self._custom_kernel = registered_kernel
+            self.kernel = AgentKernel()  # Default fallback
+        else:
+            self._custom_kernel = None
+            self.kernel = AgentKernel()
+        
         self.policy_engine = PolicyEngine()
         self.execution_engine = ExecutionEngine()
         
@@ -60,8 +158,28 @@ class AgentControlPlane:
         self.shadow_mode_enabled = enable_shadow_mode
         self.shadow_executor = ShadowModeExecutor(ShadowModeConfig(enabled=enable_shadow_mode))
         
-        # Mute Agent validators (per agent)
-        self.mute_validators: Dict[str, MuteAgentValidator] = {}
+        # Validators (replaces hard-coded mute_validators)
+        # Support both legacy MuteAgentValidator and new ValidatorInterface
+        self.mute_validators: Dict[str, MuteAgentValidator] = {}  # Legacy support
+        self._validators: List[ValidatorInterface] = []  # New interface-based validators
+        
+        if validators:
+            self._validators.extend(validators)
+        elif use_plugin_registry and self._registry:
+            self._validators.extend(self._registry.get_all_validators())
+        
+        # Protocol integrations (iatp, cmvk, caas)
+        self._context_router = context_router
+        self._message_security = message_security
+        self._verifier = verifier
+        
+        if use_plugin_registry and self._registry:
+            if not self._context_router:
+                self._context_router = self._registry.get_context_router()
+            if not self._message_security:
+                self._message_security = self._registry.get_message_security()
+            if not self._verifier:
+                self._verifier = self._registry.get_verifier()
         
         # Constraint Graphs
         self.constraint_graphs_enabled = enable_constraint_graphs
@@ -129,7 +247,7 @@ class AgentControlPlane:
         
         This is the main entry point for agent actions. It goes through
         the complete governance pipeline:
-        1. Mute Agent validation (if configured)
+        1. Validator validation (includes legacy Mute Agent support)
         2. Permission check (Kernel)
         3. Constraint Graph validation (if enabled)
         4. Policy validation (Policy Engine)
@@ -148,27 +266,40 @@ class AgentControlPlane:
         Returns:
             Dictionary with execution results and metadata
         """
-        # 1. Validate against Mute Agent capabilities (if configured)
-        if agent_context.agent_id in self.mute_validators:
-            validator = self.mute_validators[agent_context.agent_id]
-            # Create a temporary request for validation
-            temp_request = ExecutionRequest(
-                request_id="temp",
-                agent_context=agent_context,
-                action_type=action_type,
-                parameters=parameters,
-                timestamp=datetime.now()
-            )
-            is_valid, reason = validator.validate_request(temp_request)
-            if not is_valid:
+        # Create a temporary request for validation
+        temp_request = ExecutionRequest(
+            request_id="temp",
+            agent_context=agent_context,
+            action_type=action_type,
+            parameters=parameters,
+            timestamp=datetime.now()
+        )
+        
+        # 1a. Validate against registered validators (new pattern)
+        for validator in self._validators:
+            result = validator.validate_request(temp_request)
+            if not result.is_valid:
                 return {
                     "success": False,
-                    "error": reason,
+                    "error": result.reason,
+                    "status": "validator_rejected",
+                    "details": result.details
+                }
+        
+        # 1b. Validate against legacy Mute Agent capabilities (backward compatibility)
+        if agent_context.agent_id in self.mute_validators:
+            validator = self.mute_validators[agent_context.agent_id]
+            result = validator.validate_request(temp_request)
+            if not result.is_valid:
+                return {
+                    "success": False,
+                    "error": result.reason,
                     "status": "capability_mismatch"
                 }
         
         # 2. Submit request to kernel for permission check
         request = self.kernel.submit_request(agent_context, action_type, parameters)
+
         
         if request.status == ExecutionStatus.DENIED:
             return {
@@ -333,6 +464,91 @@ class AgentControlPlane:
     def get_supervisor_summary(self) -> Dict[str, Any]:
         """Get summary of supervisor network activity"""
         return self.supervisor_network.get_network_summary()
+    
+    # ===== Plugin Registry Integration Methods =====
+    
+    def register_validator(
+        self,
+        validator: ValidatorInterface,
+        action_types: Optional[List[str]] = None
+    ) -> None:
+        """
+        Register a validator with the control plane.
+        
+        This is the preferred method for adding validators instead of
+        using enable_mute_agent() directly.
+        
+        Args:
+            validator: Validator implementing ValidatorInterface
+            action_types: Optional list of action types this validator handles
+        """
+        self._validators.append(validator)
+        
+        # Also register with plugin registry if available
+        if self._registry:
+            self._registry.register_validator(validator, action_types=action_types)
+    
+    def register_kernel(self, kernel: KernelInterface) -> None:
+        """
+        Register a custom kernel with the control plane.
+        
+        This allows injecting custom kernels like SCAK without hard imports.
+        
+        Args:
+            kernel: Kernel implementing KernelInterface
+        """
+        self._custom_kernel = kernel
+        
+        # Also register with plugin registry if available
+        if self._registry:
+            self._registry.register_kernel(kernel)
+    
+    def register_context_router(
+        self,
+        router: Union[ContextRouterInterface, ContextRoutingInterface]
+    ) -> None:
+        """
+        Register a context router for caas integration.
+        
+        Args:
+            router: Context router implementing ContextRouterInterface
+        """
+        self._context_router = router
+        
+        if self._registry:
+            self._registry.register_context_router(router)
+    
+    def register_message_security(self, security: MessageSecurityInterface) -> None:
+        """
+        Register a message security provider for iatp integration.
+        
+        Args:
+            security: Security provider implementing MessageSecurityInterface
+        """
+        self._message_security = security
+        
+        if self._registry:
+            self._registry.register_message_security(security)
+    
+    def register_verifier(self, verifier: VerificationInterface) -> None:
+        """
+        Register a verifier for cmvk integration.
+        
+        Args:
+            verifier: Verifier implementing VerificationInterface
+        """
+        self._verifier = verifier
+        
+        if self._registry:
+            self._registry.register_verifier(verifier)
+    
+    def get_registered_validators(self) -> List[ValidatorInterface]:
+        """Get all registered validators"""
+        return self._validators.copy()
+    
+    def get_plugin_registry(self) -> Optional[PluginRegistry]:
+        """Get the plugin registry if enabled"""
+        return self._registry
     
     # Constraint Graph methods
     
