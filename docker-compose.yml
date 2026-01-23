@@ -1,0 +1,104 @@
+version: '3.8'
+
+services:
+  # Secure Bank Agent (Backend)
+  bank-agent:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.agent
+    ports:
+      - "8000:8000"
+    environment:
+      - AGENT_TYPE=secure_bank
+    networks:
+      - iatp-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # IATP Sidecar (Python version)
+  iatp-sidecar-python:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.sidecar-python
+    ports:
+      - "8001:8001"
+    environment:
+      - IATP_AGENT_URL=http://bank-agent:8000
+      - IATP_PORT=8001
+      - IATP_AGENT_ID=secure-bank-agent
+      - IATP_TRUST_LEVEL=verified_partner
+      - IATP_REVERSIBILITY=full
+      - IATP_RETENTION=ephemeral
+    depends_on:
+      - bank-agent
+    networks:
+      - iatp-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # IATP Sidecar (Go version - production)
+  iatp-sidecar-go:
+    build:
+      context: ./sidecar/go
+      dockerfile: Dockerfile
+    ports:
+      - "8002:8001"
+    environment:
+      - IATP_AGENT_URL=http://bank-agent:8000
+      - IATP_PORT=8001
+      - IATP_AGENT_ID=secure-bank-agent-go
+      - IATP_TRUST_LEVEL=verified_partner
+      - IATP_REVERSIBILITY=full
+      - IATP_RETENTION=ephemeral
+    depends_on:
+      - bank-agent
+    networks:
+      - iatp-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Untrusted Agent (Honeypot for testing)
+  honeypot-agent:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.agent
+    ports:
+      - "8100:8000"
+    environment:
+      - AGENT_TYPE=untrusted
+    networks:
+      - iatp-network
+
+  # IATP Sidecar for Honeypot
+  honeypot-sidecar:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.sidecar-python
+    ports:
+      - "8101:8001"
+    environment:
+      - IATP_AGENT_URL=http://honeypot-agent:8000
+      - IATP_PORT=8001
+      - IATP_AGENT_ID=honeypot-agent
+      - IATP_TRUST_LEVEL=untrusted
+      - IATP_REVERSIBILITY=none
+      - IATP_RETENTION=permanent
+      - IATP_HUMAN_IN_LOOP=true
+      - IATP_TRAINING_CONSENT=true
+    depends_on:
+      - honeypot-agent
+    networks:
+      - iatp-network
+
+networks:
+  iatp-network:
+    driver: bridge

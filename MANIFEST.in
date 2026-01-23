@@ -1,0 +1,9 @@
+include README.md
+include LICENSE
+include requirements.txt
+include requirements-dev.txt
+recursive-include iatp *.py
+recursive-include spec *.md *.json
+recursive-exclude iatp/tests *
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]

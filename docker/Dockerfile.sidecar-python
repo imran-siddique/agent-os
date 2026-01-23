@@ -1,0 +1,88 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy IATP library
+COPY iatp/ /app/iatp/
+COPY setup.py /app/
+
+# Install IATP as package
+RUN pip install -e .
+
+# Set Python path
+ENV PYTHONPATH=/app
+
+# Default environment variables
+ENV IATP_AGENT_URL=http://localhost:8000
+ENV IATP_PORT=8001
+ENV IATP_AGENT_ID=default-agent
+ENV IATP_TRUST_LEVEL=standard
+ENV IATP_REVERSIBILITY=partial
+ENV IATP_RETENTION=temporary
+
+# Expose sidecar port
+EXPOSE 8001
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD python -c "import httpx; httpx.get('http://localhost:8001/health')"
+
+# Create a startup script
+RUN echo '#!/usr/bin/env python3\n\
+import sys\n\
+import os\n\
+sys.path.insert(0, "/app")\n\
+\n\
+from iatp.models import (\n\
+    CapabilityManifest,\n\
+    TrustLevel,\n\
+    AgentCapabilities,\n\
+    ReversibilityLevel,\n\
+    PrivacyContract,\n\
+    RetentionPolicy\n\
+)\n\
+from iatp.sidecar import create_sidecar\n\
+\n\
+# Get configuration from environment\n\
+agent_url = os.getenv("IATP_AGENT_URL", "http://localhost:8000")\n\
+port = int(os.getenv("IATP_PORT", "8001"))\n\
+agent_id = os.getenv("IATP_AGENT_ID", "default-agent")\n\
+trust_level = TrustLevel(os.getenv("IATP_TRUST_LEVEL", "standard"))\n\
+reversibility = ReversibilityLevel(os.getenv("IATP_REVERSIBILITY", "partial"))\n\
+retention = RetentionPolicy(os.getenv("IATP_RETENTION", "temporary"))\n\
+human_in_loop = os.getenv("IATP_HUMAN_IN_LOOP", "false").lower() == "true"\n\
+training_consent = os.getenv("IATP_TRAINING_CONSENT", "false").lower() == "true"\n\
+\n\
+# Create manifest\n\
+manifest = CapabilityManifest(\n\
+    agent_id=agent_id,\n\
+    trust_level=trust_level,\n\
+    capabilities=AgentCapabilities(\n\
+        reversibility=reversibility,\n\
+        idempotency=True,\n\
+        concurrency_limit=100,\n\
+        sla_latency_ms=2000\n\
+    ),\n\
+    privacy_contract=PrivacyContract(\n\
+        retention=retention,\n\
+        human_in_loop=human_in_loop,\n\
+        training_consent=training_consent\n\
+    )\n\
+)\n\
+\n\
+print(f"Starting IATP Sidecar...")\n\
+print(f"  Agent URL: {agent_url}")\n\
+print(f"  Port: {port}")\n\
+print(f"  Agent ID: {agent_id}")\n\
+print(f"  Trust Level: {trust_level}")\n\
+\n\
+# Create and run sidecar\n\
+sidecar = create_sidecar(agent_url=agent_url, manifest=manifest, port=port)\n\
+sidecar.run()\n\
+' > /app/run_sidecar.py && chmod +x /app/run_sidecar.py
+
+CMD ["python", "/app/run_sidecar.py"]

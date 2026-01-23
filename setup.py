@@ -1,10 +1,38 @@
 from setuptools import setup, find_packages
 
+with open("README.md", "r", encoding="utf-8") as fh:
+    long_description = fh.read()
+
 setup(
     name="iatp",
-    version="0.1.0",
-    description="Inter-Agent Trust Protocol - Zero-Config Sidecar for Agent Communication",
-    packages=find_packages(),
+    version="0.2.0",
+    author="Imran Siddique",
+    author_email="",
+    description="Inter-Agent Trust Protocol - Envoy for Agents",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    url="https://github.com/imran-siddique/inter-agent-trust-protocol",
+    project_urls={
+        "Bug Tracker": "https://github.com/imran-siddique/inter-agent-trust-protocol/issues",
+        "Documentation": "https://github.com/imran-siddique/inter-agent-trust-protocol",
+        "Source Code": "https://github.com/imran-siddique/inter-agent-trust-protocol",
+    },
+    packages=find_packages(exclude=["tests", "tests.*", "examples", "examples.*", "experiments", "experiments.*"]),
+    classifiers=[
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Developers",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Topic :: System :: Distributed Computing",
+        "Topic :: Security",
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Operating System :: OS Independent",
+    ],
     install_requires=[
         "fastapi>=0.109.1",
         "uvicorn>=0.27.0",
@@ -14,5 +42,14 @@ setup(
         "agent-control-plane>=1.1.0",
         "scak>=1.1.0",
     ],
+    extras_require={
+        "dev": [
+            "pytest>=7.4.0",
+            "pytest-asyncio>=0.21.0",
+            "pytest-cov>=4.1.0",
+        ],
+    },
     python_requires=">=3.8",
+    keywords="agent ai llm trust security sidecar mesh governance policy",
+    include_package_data=True,
 )
