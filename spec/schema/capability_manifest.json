@@ -1,0 +1,266 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://inter-agent-trust.org/v1/schema",
+  "title": "IATP Capability Manifest",
+  "description": "Schema for Inter-Agent Trust Protocol capability manifests",
+  "type": "object",
+  "required": ["identity", "trust_level", "protocol_version"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Reference to this schema"
+    },
+    "identity": {
+      "type": "object",
+      "required": ["agent_id", "owner"],
+      "properties": {
+        "agent_id": {
+          "type": "string",
+          "description": "Unique identifier for this agent (e.g., 'expedia-booking-bot-v2.1.0')",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "verification_key": {
+          "type": "string",
+          "description": "Public key for verifying manifest signatures (e.g., 'ed25519:abc123...')"
+        },
+        "owner": {
+          "type": "string",
+          "description": "Organization or individual that owns this agent",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "contact": {
+          "type": "string",
+          "format": "email",
+          "description": "Security contact email address"
+        }
+      }
+    },
+    "trust_level": {
+      "type": "string",
+      "enum": ["verified_partner", "trusted", "standard", "unknown", "untrusted"],
+      "description": "Trust classification of this agent"
+    },
+    "capabilities": {
+      "type": "object",
+      "properties": {
+        "idempotency": {
+          "type": "boolean",
+          "description": "Whether this agent supports idempotent operations",
+          "default": false
+        },
+        "idempotency_duration_seconds": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "How long idempotency keys are valid (0 = no expiration)"
+        },
+        "concurrency_limit": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Maximum number of concurrent requests supported"
+        },
+        "sla_latency_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Maximum expected response time in milliseconds"
+        },
+        "sla_availability": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Uptime SLA as a decimal (e.g., 0.999 = 99.9%)"
+        }
+      }
+    },
+    "reversibility": {
+      "type": "object",
+      "required": ["level"],
+      "properties": {
+        "level": {
+          "type": "string",
+          "enum": ["full", "partial", "none"],
+          "description": "Extent to which operations can be undone"
+        },
+        "undo_window_seconds": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Time window for undo operations (0 = no time limit)"
+        },
+        "compensation_method": {
+          "type": ["string", "null"],
+          "description": "How undo is implemented (e.g., 'rollback', 'refund', 'refund_minus_fee', null for irreversible)"
+        },
+        "compensation_sla_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Maximum time to complete compensation in milliseconds"
+        },
+        "compensation_notes": {
+          "type": "string",
+          "description": "Human-readable explanation of compensation behavior",
+          "maxLength": 1000
+        },
+        "compensation_endpoint": {
+          "type": "string",
+          "format": "uri-reference",
+          "description": "Endpoint for custom compensation logic (e.g., 'POST /compensate/{transaction_id}')"
+        },
+        "undo_conditions": {
+          "type": "object",
+          "properties": {
+            "until_state": {
+              "type": "string",
+              "description": "State after which undo is impossible (e.g., 'shipped')"
+            },
+            "check_endpoint": {
+              "type": "string",
+              "format": "uri-reference",
+              "description": "Endpoint to check current state (e.g., 'GET /orders/{order_id}/status')"
+            }
+          }
+        }
+      }
+    },
+    "privacy": {
+      "type": "object",
+      "properties": {
+        "retention_policy": {
+          "type": "string",
+          "enum": ["ephemeral", "temporary", "permanent", "forever"],
+          "description": "How long data is retained",
+          "default": "temporary"
+        },
+        "retention_duration_seconds": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Specific retention duration (for 'temporary' policy)"
+        },
+        "storage_location": {
+          "type": "string",
+          "description": "Where data is stored (e.g., 'us-west-2', 'eu-central-1', 'on-premises')"
+        },
+        "human_in_loop": {
+          "type": "boolean",
+          "description": "Whether humans review or process the data",
+          "default": false
+        },
+        "training_consent": {
+          "type": "boolean",
+          "description": "Whether data may be used for ML training",
+          "default": false
+        },
+        "encryption_at_rest": {
+          "type": "boolean",
+          "description": "Whether data is encrypted when stored",
+          "default": false
+        },
+        "encryption_in_transit": {
+          "type": "boolean",
+          "description": "Whether data is encrypted during transmission",
+          "default": true
+        },
+        "data_processing_addendum": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL to Data Processing Addendum (DPA) for GDPR compliance"
+        }
+      }
+    },
+    "authentication": {
+      "type": "object",
+      "properties": {
+        "methods": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["none", "api_key", "oauth2", "mutual_tls", "jwt"]
+          },
+          "description": "Supported authentication methods"
+        },
+        "required": {
+          "type": "boolean",
+          "description": "Whether authentication is required",
+          "default": false
+        }
+      }
+    },
+    "rate_limiting": {
+      "type": "object",
+      "properties": {
+        "requests_per_second": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Maximum requests per second"
+        },
+        "requests_per_minute": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Maximum requests per minute"
+        },
+        "requests_per_hour": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Maximum requests per hour"
+        },
+        "burst_limit": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Maximum burst size for token bucket"
+        }
+      }
+    },
+    "protocol_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+$",
+      "description": "IATP protocol version (e.g., '1.0')"
+    },
+    "manifest_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Version of this manifest document (semver)"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of last manifest update"
+    }
+  },
+  "examples": [
+    {
+      "$schema": "http://inter-agent-trust.org/v1/schema",
+      "identity": {
+        "agent_id": "expedia-booking-bot-v2.1.0",
+        "verification_key": "ed25519:abc123def456",
+        "owner": "Expedia Group",
+        "contact": "security@expedia.com"
+      },
+      "trust_level": "verified_partner",
+      "capabilities": {
+        "idempotency": true,
+        "idempotency_duration_seconds": 86400,
+        "concurrency_limit": 10,
+        "sla_latency_ms": 2000,
+        "sla_availability": 0.999
+      },
+      "reversibility": {
+        "level": "partial",
+        "undo_window_seconds": 3600,
+        "compensation_method": "refund_minus_fee",
+        "compensation_sla_ms": 5000,
+        "compensation_notes": "24-hour cancellation window. $50 fee applies after 1 hour."
+      },
+      "privacy": {
+        "retention_policy": "ephemeral",
+        "storage_location": "us-west-2",
+        "human_in_loop": false,
+        "training_consent": false,
+        "encryption_at_rest": true,
+        "encryption_in_transit": true
+      },
+      "protocol_version": "1.0",
+      "manifest_version": "1.0.0",
+      "updated_at": "2026-01-23T00:00:00Z"
+    }
+  ]
+}
