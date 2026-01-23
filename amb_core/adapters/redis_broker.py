@@ -3,6 +3,7 @@
 import json
 import uuid
 import asyncio
+import time
 from typing import Dict, List, Optional
 from amb_core.broker import BrokerAdapter, MessageHandler
 from amb_core.models import Message
@@ -197,17 +198,22 @@ class RedisBroker(BrokerAdapter):
         
         # Wait for response
         try:
-            start_time = asyncio.get_event_loop().time()
+            start_time = time.monotonic()
             while True:
                 # Check for timeout
-                if asyncio.get_event_loop().time() - start_time > timeout:
+                elapsed = time.monotonic() - start_time
+                if elapsed > timeout:
                     raise TimeoutError(f"No response received within {timeout} seconds")
+                
+                # Calculate remaining time for blocking
+                remaining_time = timeout - elapsed
+                block_ms = max(int(remaining_time * 1000), 100)  # At least 100ms
                 
                 # Read from response stream
                 messages = await self._client.xread(
                     {response_key: '0'},
                     count=1,
-                    block=int(timeout * 1000)
+                    block=block_ms
                 )
                 
                 if messages:
