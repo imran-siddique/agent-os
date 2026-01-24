@@ -1,0 +1,48 @@
+# CITATION.cff - Citation File Format for academic citations
+# https://citation-file-format.github.io/
+# This file enables "Cite this repository" on GitHub
+
+cff-version: 1.2.0
+title: "Cross-Model Verification Kernel (CMVK)"
+message: "If you use this software in your research, please cite it as below."
+type: software
+authors:
+  - family-names: "Siddique"
+    given-names: "Imran"
+    orcid: "https://orcid.org/0000-0000-0000-0000"  # Update with your ORCID
+repository-code: "https://github.com/imran-siddique/cross-model-verification-kernel"
+url: "https://github.com/imran-siddique/cross-model-verification-kernel"
+license: MIT
+version: "0.1.0"
+date-released: "2026-01-01"
+keywords:
+  - verification
+  - ai-safety
+  - hallucination-detection
+  - drift-detection
+  - adversarial
+  - multi-model
+  - code-generation
+  - llm
+abstract: >-
+  CMVK is an adversarial multi-model verification framework that addresses
+  the "grading your own homework" fallacy in AI systems. By employing
+  strategic model diversity with separate Generator and Verifier roles,
+  CMVK reduces correlated blind spots and detects hallucinations that
+  self-verification would miss.
+
+# Preferred citation for the paper (update when published)
+preferred-citation:
+  type: conference-paper
+  authors:
+    - family-names: "Siddique"
+      given-names: "Imran"
+  title: "Cross-Model Verification Kernel: Adversarial Multi-Model Code Generation with Blind Spot Reduction"
+  year: 2026
+  collection-title: "Advances in Neural Information Processing Systems"
+  collection-type: proceedings
+  conference:
+    name: "NeurIPS 2026"
+  # Update these fields when the paper is accepted/published:
+  # url: "https://proceedings.neurips.cc/paper/..."
+  # doi: "10.xxxx/..."
