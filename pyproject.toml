@@ -65,6 +65,10 @@ Repository = "https://github.com/imran-siddique/cmvk.git"
 Issues = "https://github.com/imran-siddique/cmvk/issues"
 Changelog = "https://github.com/imran-siddique/cmvk/blob/main/CHANGELOG.md"
 
+[project.scripts]
+# CLI entry point for reproduction (research users)
+cmvk-reproduce = "cross_model_verification_kernel.cli:app"
+
 [tool.hatch.build.targets.sdist]
 include = [
     "/src/cmvk",

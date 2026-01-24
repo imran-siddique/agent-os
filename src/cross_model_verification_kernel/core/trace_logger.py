@@ -5,12 +5,16 @@ The Witness: Serializes the entire debate into a JSON evidence file.
 This module provides traceability for research purposes, allowing us to log
 the exact moment one model catches another's error and how it was fixed.
 """
+from __future__ import annotations
+
 import json
 import os
 import time
 from dataclasses import asdict
+from typing import TYPE_CHECKING
 
-from cross_model_verification_kernel.core.types import NodeState
+if TYPE_CHECKING:
+    from .types import NodeState
 
 
 class TraceLogger:
@@ -40,8 +44,14 @@ class TraceLogger:
             state: The NodeState containing the complete history
 
         Returns:
-            str: Path to the saved trace file
+            Path to the saved trace file.
+
+        Raises:
+            OSError: If the trace file cannot be written.
         """
+        # Import here to avoid circular dependency at module load time
+        from .types import NodeState as NodeStateType  # noqa: F401
+
         timestamp = time.strftime("%Y%m%d-%H%M%S")
         filename = f"{filename_prefix}_{timestamp}.json"
         filepath = os.path.join(self.log_dir, filename)
