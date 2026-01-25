@@ -358,3 +358,69 @@ class FlightRecorder:
     def close(self):
         """Clean up resources"""
         pass  # SQLite connections are opened/closed per operation
+    
+    # ===== Time-Travel Debugging Support =====
+    
+    def get_log(self) -> list:
+        """
+        Get the complete audit log for time-travel debugging.
+        
+        Returns:
+            List of all audit log entries
+        """
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        cursor.execute(
+            """
+            SELECT * FROM audit_log 
+            ORDER BY timestamp ASC
+            """
+        )
+        results = [dict(row) for row in cursor.fetchall()]
+        
+        conn.close()
+        
+        return results
+    
+    def get_events_in_time_range(
+        self,
+        start_time: datetime,
+        end_time: datetime,
+        agent_id: Optional[str] = None
+    ) -> list:
+        """
+        Get events within a specific time range for time-travel replay.
+        
+        Args:
+            start_time: Start of time range
+            end_time: End of time range
+            agent_id: Optional agent ID filter
+            
+        Returns:
+            List of audit log entries in the time range
+        """
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        query = """
+            SELECT * FROM audit_log 
+            WHERE timestamp >= ? AND timestamp <= ?
+        """
+        params = [start_time.isoformat(), end_time.isoformat()]
+        
+        if agent_id:
+            query += " AND agent_id = ?"
+            params.append(agent_id)
+        
+        query += " ORDER BY timestamp ASC"
+        
+        cursor.execute(query, params)
+        results = [dict(row) for row in cursor.fetchall()]
+        
+        conn.close()
+        
+        return results
+
