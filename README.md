@@ -90,6 +90,39 @@ for agent_id in range(100):
 
 **Scale by Subtraction:** No external load balancer needed. The bus handles flow control automatically.
 
+### 🔍 OpenTelemetry Tracing (The "X-Ray")
+Built-in distributed tracing for debugging multi-agent workflows. When an SDLC agent fails, trace the flow: `Thought` → `Message` → `Tool Call` → `Error` across all agents.
+
+```python
+from amb_core import MessageBus, get_tracer, initialize_tracing
+
+# Initialize tracing (usually done once at startup)
+initialize_tracing("my-agent-system")
+
+# Get a tracer for creating spans
+tracer = get_tracer("agent-workflow")
+
+async with MessageBus() as bus:
+    # Messages published within a span automatically get the trace_id
+    with tracer.start_as_current_span("agent-thinking"):
+        await bus.publish("agent.thoughts", {"thought": "Processing data"})
+    
+    # Or explicitly set trace_id for cross-system tracing
+    await bus.publish(
+        "agent.action",
+        {"action": "execute"},
+        trace_id="custom-trace-id-from-upstream"
+    )
+```
+
+**Key Features:**
+- **Automatic Injection:** `trace_id` automatically injected from active OpenTelemetry span
+- **Cross-Agent Tracing:** Same `trace_id` flows through request-response patterns
+- **Explicit Control:** Can manually set `trace_id` for integration with external systems
+- **Zero Config:** Works out of the box with InMemoryBroker, scales to production backends
+
+See `examples/tracing_demo.py` for a complete multi-agent tracing example.
+
 ## Architecture
 
 `amb` sits in **Layer 2 (Infrastructure)** of the Agent OS stack. It transports message envelopes without inspecting content or enforcing policy.
