@@ -53,6 +53,8 @@ from src.integrations.control_plane_adapter import (
     SCAKExtension,
     create_control_plane,
 )
+from src.kernel.circuit_breaker import CircuitBreakerRegistry, LoopDetectedError
+from src.kernel.lazy_evaluator import LazyEvaluatorRegistry
 
 logger = logging.getLogger(__name__)
 
@@ -148,6 +150,22 @@ class SelfCorrectingKernel(AbstractCorrectionEngine, AbstractLazinessDetector):
         # Model version tracking for semantic purge
         self._current_model_version = self.config.get("model_version", "gpt-4o")
         
+        # Initialize Circuit Breaker (Loop Detection)
+        self._enable_circuit_breaker = self.config.get("enable_circuit_breaker", True)
+        self._circuit_breaker_registry = CircuitBreakerRegistry(
+            default_repetition_threshold=self.config.get("loop_threshold", 3),
+            default_history_window=self.config.get("loop_history_window", 10),
+            telemetry=self.telemetry
+        )
+        
+        # Initialize Lazy Evaluator (Deferred Computation)
+        self._enable_lazy_eval = self.config.get("enable_lazy_eval", True)
+        self._lazy_evaluator_registry = LazyEvaluatorRegistry(
+            enable_lazy_eval=self._enable_lazy_eval,
+            max_deferred_tasks=self.config.get("max_deferred_tasks", 100),
+            telemetry=self.telemetry
+        )
+        
         self.telemetry.emit_event(
             event_type=EventType.AGENT_EXECUTION,
             data={
@@ -155,6 +173,8 @@ class SelfCorrectingKernel(AbstractCorrectionEngine, AbstractLazinessDetector):
                 "model_version": self._current_model_version,
                 "auto_patch": self._auto_patch,
                 "verification_threshold": self._verification_threshold,
+                "circuit_breaker_enabled": self._enable_circuit_breaker,
+                "lazy_eval_enabled": self._enable_lazy_eval,
             }
         )
         
@@ -164,6 +184,8 @@ class SelfCorrectingKernel(AbstractCorrectionEngine, AbstractLazinessDetector):
         logger.info(f"  Model Version: {self._current_model_version}")
         logger.info(f"  CMVK Verifier: {type(self._verifier).__name__}")
         logger.info(f"  Control Plane: {type(self._control_plane).__name__}")
+        logger.info(f"  Circuit Breaker: {'Enabled' if self._enable_circuit_breaker else 'Disabled'}")
+        logger.info(f"  Lazy Evaluation: {'Enabled' if self._enable_lazy_eval else 'Disabled'}")
         logger.info("=" * 80)
     
     # =========================================================================
@@ -355,6 +377,10 @@ class SelfCorrectingKernel(AbstractCorrectionEngine, AbstractLazinessDetector):
         
         This is the main entry point for processing agent outputs.
         
+        Enhanced with:
+        - Circuit Breaker: Detect and break loops (3x same action → same result)
+        - Lazy Evaluation: Defer non-critical computations
+        
         Args:
             agent_id: Identifier of the agent
             user_prompt: Original user request
@@ -363,9 +389,54 @@ class SelfCorrectingKernel(AbstractCorrectionEngine, AbstractLazinessDetector):
             
         Returns:
             CorrectionResult with outcome analysis
+            
+        Raises:
+            LoopDetectedError: If circuit breaker detects a loop
         """
         self._outcomes_processed += 1
         context = context or {}
+        
+        # Circuit Breaker: Record action-result pair and check for loops
+        if self._enable_circuit_breaker:
+            try:
+                breaker = self._circuit_breaker_registry.get_or_create(agent_id)
+                action = context.get("action", "unknown_action")
+                action_params = context.get("action_params", {})
+                result_summary = agent_response[:200]  # Truncate for comparison
+                
+                loop_detected = breaker.record_action_result(
+                    action=action,
+                    action_params=action_params,
+                    result=result_summary
+                )
+                
+                if loop_detected:
+                    # Loop detected - this will raise LoopDetectedError if strategy is STOP_ITERATION
+                    # Otherwise it returns True and we handle it here
+                    logger.warning(f"Loop detected for agent {agent_id} - switching strategy")
+                    
+                    # Record loop event
+                    self.telemetry.emit_event(
+                        event_type=EventType.FAILURE_DETECTED,
+                        data={
+                            "agent_id": agent_id,
+                            "loop_detected": True,
+                            "action": action,
+                            "message": "Agent stuck in loop - circuit breaker triggered"
+                        }
+                    )
+                    
+                    return CorrectionResult(
+                        success=False,
+                        agent_id=agent_id,
+                        laziness_detected=False,
+                        message="Loop detected - agent repeating same action with same result. "
+                                "Circuit breaker triggered to prevent wasted computation.",
+                    )
+            except LoopDetectedError as e:
+                # Loop detected with STOP_ITERATION strategy - re-raise
+                logger.error(f"Circuit breaker stopped agent {agent_id}: {e}")
+                raise
         
         # Create AgentOutcome
         outcome = AgentOutcome(
@@ -396,6 +467,39 @@ class SelfCorrectingKernel(AbstractCorrectionEngine, AbstractLazinessDetector):
                 laziness_detected=False,
                 message="Agent output verified - no correction needed",
             )
+        
+        # Lazy Evaluation: Check if correction can be deferred
+        if self._enable_lazy_eval:
+            evaluator = self._lazy_evaluator_registry.get_or_create(agent_id)
+            decision = evaluator.should_defer(
+                description=f"Correction analysis for: {user_prompt[:100]}",
+                context=context,
+                estimated_cost_ms=context.get("estimated_correction_cost_ms", 1000)
+            )
+            
+            if decision.should_defer:
+                # Defer the correction - create TODO token
+                todo_token = evaluator.defer(
+                    description=f"Analyze and correct: {user_prompt[:100]}",
+                    reason=decision.reason,
+                    context={
+                        "prompt": user_prompt,
+                        "response": agent_response,
+                        "agent_id": agent_id
+                    },
+                    priority=context.get("priority", 5),
+                    estimated_cost_ms=decision.estimated_savings_ms
+                )
+                
+                logger.info(f"Correction deferred for agent {agent_id}: {decision.explanation}")
+                
+                return CorrectionResult(
+                    success=True,
+                    agent_id=agent_id,
+                    laziness_detected=False,
+                    message=f"Correction deferred: {decision.explanation}. "
+                            f"TODO token created: {todo_token.token_id}",
+                )
         
         # Verify with CMVK for confidence score
         verification = await self._verifier.verify(
@@ -540,8 +644,8 @@ class SelfCorrectingKernel(AbstractCorrectionEngine, AbstractLazinessDetector):
         }
     
     def get_statistics(self) -> Dict[str, Any]:
-        """Get kernel statistics."""
-        return {
+        """Get kernel statistics including circuit breaker and lazy evaluation metrics."""
+        stats = {
             "agent_id": self._agent_id,
             "model_version": self._current_model_version,
             "outcomes_processed": self._outcomes_processed,
@@ -550,6 +654,23 @@ class SelfCorrectingKernel(AbstractCorrectionEngine, AbstractLazinessDetector):
             "laziness_rate": self._laziness_count / max(self._outcomes_processed, 1),
             "extension_stats": self._extension.get_statistics(),
         }
+        
+        # Add circuit breaker statistics
+        if self._enable_circuit_breaker:
+            stats["circuit_breaker"] = {
+                "enabled": True,
+                "agents": self._circuit_breaker_registry.get_all_statistics()
+            }
+        
+        # Add lazy evaluation statistics
+        if self._enable_lazy_eval:
+            stats["lazy_evaluation"] = {
+                "enabled": True,
+                "agents": self._lazy_evaluator_registry.get_all_statistics(),
+                "global": self._lazy_evaluator_registry.get_global_statistics()
+            }
+        
+        return stats
     
     # =========================================================================
     # Private Helper Methods
