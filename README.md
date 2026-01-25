@@ -41,6 +41,45 @@ That's it. Five lines. Your agent's experience is now permanently recorded.
 
 ---
 
+## Memory Management Features 🆕
+
+`emk` now includes powerful memory management features to address the challenge: **Infinite memory leads to infinite retrieval costs and confusing context.**
+
+### Memory Decay & Compression (Sleep Cycle)
+
+Automatically summarize old episodes into semantic rules:
+
+```python
+from emk import MemoryCompressor
+
+compressor = MemoryCompressor(store, age_threshold_days=30)
+result = compressor.compress_old_episodes()
+# Compress 1000 episodes → 20 semantic rules
+```
+
+**Benefits:** 50-100x storage reduction, faster retrieval, preserved knowledge without overwhelming detail.
+
+### Negative Memory (Anti-Patterns)
+
+Explicitly track failures to avoid repeating mistakes:
+
+```python
+# Mark failures
+failed = episode.mark_as_failure(reason="Connection timeout")
+store.store(failed)
+
+# Query both successes AND failures
+patterns = store.retrieve_with_anti_patterns()
+print(f"What works: {len(patterns['successes'])}")
+print(f"What to avoid: {len(patterns['failures'])}")
+```
+
+**Benefits:** Prune search space instantly, learn from both successes and failures, "DO NOT TOUCH" vectors.
+
+📖 **Full documentation:** See [docs/MEMORY_MANAGEMENT.md](docs/MEMORY_MANAGEMENT.md) and [examples/memory_features_demo.py](examples/memory_features_demo.py)
+
+---
+
 ## Architecture
 
 `emk` sits at **Layer 1 (Primitives)** of the Agent OS stack. It provides the foundational storage abstraction that higher layers depend on:

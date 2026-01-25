@@ -1,6 +1,5 @@
 """Tests for negative memory (failure tracking) functionality."""
 
-import pytest
 from emk.schema import Episode
 
 

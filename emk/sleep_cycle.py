@@ -8,7 +8,6 @@ where old episodes are summarized into semantic rules and raw logs are archived.
 from datetime import datetime, timezone, timedelta
 from typing import List, Optional, Dict, Any, Callable
 from pathlib import Path
-import json
 
 from emk.schema import Episode, SemanticRule
 from emk.store import VectorStoreAdapter
