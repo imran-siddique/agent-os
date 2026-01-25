@@ -46,6 +46,50 @@ async def main():
 asyncio.run(main())
 ```
 
+## Features
+
+### 🚦 Priority Lanes
+Tag messages as `CRITICAL` (Security/Governance) vs `BACKGROUND` (Memory consolidation). Critical messages jump the queue.
+
+```python
+# Critical security alert - jumps ahead
+await bus.publish(
+    "agent.alerts", 
+    {"alert": "Security anomaly detected"},
+    priority=MessagePriority.CRITICAL
+)
+
+# Background task - processed when system is idle
+await bus.publish(
+    "agent.tasks",
+    {"task": "Memory consolidation"},
+    priority=MessagePriority.BACKGROUND
+)
+```
+
+**Priority Levels:** `CRITICAL` > `URGENT` > `HIGH` > `NORMAL` > `LOW` > `BACKGROUND`
+
+### 🌊 Backpressure Protocols
+Implements Reactive Streams-style flow control. If a consumer is slow, the producer automatically slows down.
+
+```python
+# Configure backpressure parameters
+broker = InMemoryBroker(
+    max_queue_size=1000,           # Max messages per topic
+    backpressure_threshold=0.8,    # Activate at 80% capacity
+    backpressure_delay=0.01        # 10ms delay when active
+)
+
+bus = MessageBus(adapter=broker)
+
+# If 100 agents spam the bus, backpressure prevents crashes
+for agent_id in range(100):
+    await bus.publish("agent.events", {"agent": agent_id})
+# Producer automatically throttles when consumer is overwhelmed
+```
+
+**Scale by Subtraction:** No external load balancer needed. The bus handles flow control automatically.
+
 ## Architecture
 
 `amb` sits in **Layer 2 (Infrastructure)** of the Agent OS stack. It transports message envelopes without inspecting content or enforcing policy.

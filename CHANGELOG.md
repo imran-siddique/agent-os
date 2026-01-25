@@ -8,6 +8,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Backpressure Protocols**: Reactive Streams-style flow control to prevent overwhelming consumers
+  - Configurable queue size limits per topic
+  - Automatic producer throttling when backpressure is detected
+  - Backpressure statistics and monitoring
+- **Priority Lanes**: Message prioritization system
+  - New priority levels: `CRITICAL` and `BACKGROUND`
+  - CRITICAL messages (security/governance) jump ahead of BACKGROUND tasks (memory consolidation)
+  - Priority-based message delivery using heap queues
+  - Maintains FIFO order within same priority level
+- Enhanced `InMemoryBroker` with:
+  - Configurable `max_queue_size`, `backpressure_threshold`, and `backpressure_delay`
+  - Background worker for priority-based message delivery
+  - Automatic dropping of BACKGROUND messages when queue is full
+  - Queue size monitoring via `get_queue_size()`
+  - Backpressure statistics via `get_backpressure_stats()`
+- Extended `MessagePriority` enum with `CRITICAL` and `BACKGROUND` levels
+- Comprehensive test suite for backpressure and priority features
+- Example demonstrating backpressure and priority lanes (`examples/backpressure_demo.py`)
 - Hugging Face Hub integration (`hf_utils.py`) for uploading experiment results
 - Reproducible benchmark suite in `experiments/`
 - Research paper templates in `paper/`
@@ -18,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced `pyproject.toml` with full metadata and tool configurations
 - Improved `__init__.py` with better docstrings and exports
 - Updated adapters `__init__.py` with lazy imports
+- Updated README with documentation for backpressure and priority lanes
 
 ## [0.1.0] - 2024-XX-XX
 
