@@ -71,7 +71,7 @@ class TestTimeTravelDebugger:
     
     def test_create_replay_session(self):
         """Test creating a replay session"""
-        flight_recorder = FlightRecorder(db_path=tempfile.mktemp(suffix=".db"))
+        flight_recorder = FlightRecorder(db_path=tempfile.NamedTemporaryFile(suffix=".db", delete=False).name)
         debugger = TimeTravelDebugger(flight_recorder=flight_recorder)
         
         # Add some test data to flight recorder
@@ -100,7 +100,7 @@ class TestTimeTravelDebugger:
     
     def test_replay_time_window(self):
         """Test replaying a time window"""
-        flight_recorder = FlightRecorder(db_path=tempfile.mktemp(suffix=".db"))
+        flight_recorder = FlightRecorder(db_path=tempfile.NamedTemporaryFile(suffix=".db", delete=False).name)
         debugger = TimeTravelDebugger(flight_recorder=flight_recorder)
         
         # Add test data
@@ -120,7 +120,7 @@ class TestTimeTravelDebugger:
     
     def test_step_by_step_replay(self):
         """Test step-by-step replay mode"""
-        flight_recorder = FlightRecorder(db_path=tempfile.mktemp(suffix=".db"))
+        flight_recorder = FlightRecorder(db_path=tempfile.NamedTemporaryFile(suffix=".db", delete=False).name)
         debugger = TimeTravelDebugger(flight_recorder=flight_recorder)
         
         # Add test data
@@ -155,7 +155,7 @@ class TestTimeTravelDebugger:
     
     def test_get_session_progress(self):
         """Test getting replay session progress"""
-        flight_recorder = FlightRecorder(db_path=tempfile.mktemp(suffix=".db"))
+        flight_recorder = FlightRecorder(db_path=tempfile.NamedTemporaryFile(suffix=".db", delete=False).name)
         debugger = TimeTravelDebugger(flight_recorder=flight_recorder)
         
         end_time = datetime.now()
@@ -177,7 +177,7 @@ class TestTimeTravelDebugger:
     
     def test_get_replay_summary(self):
         """Test getting replay summary"""
-        flight_recorder = FlightRecorder(db_path=tempfile.mktemp(suffix=".db"))
+        flight_recorder = FlightRecorder(db_path=tempfile.NamedTemporaryFile(suffix=".db", delete=False).name)
         debugger = TimeTravelDebugger(flight_recorder=flight_recorder)
         
         # Add test data
@@ -199,7 +199,7 @@ class TestTimeTravelDebugger:
     
     def test_export_replay_session(self):
         """Test exporting replay session"""
-        flight_recorder = FlightRecorder(db_path=tempfile.mktemp(suffix=".db"))
+        flight_recorder = FlightRecorder(db_path=tempfile.NamedTemporaryFile(suffix=".db", delete=False).name)
         debugger = TimeTravelDebugger(flight_recorder=flight_recorder)
         
         end_time = datetime.now()
@@ -246,7 +246,7 @@ class TestControlPlaneTimeTravel:
     
     def test_replay_agent_history(self):
         """Test replaying agent history through control plane"""
-        flight_recorder = FlightRecorder(db_path=tempfile.mktemp(suffix=".db"))
+        flight_recorder = FlightRecorder(db_path=tempfile.NamedTemporaryFile(suffix=".db", delete=False).name)
         
         cp = AgentControlPlane(
             enable_time_travel=True,
@@ -317,7 +317,7 @@ class TestControlPlaneTimeTravel:
     
     def test_replay_with_callback(self):
         """Test replaying with a callback function"""
-        flight_recorder = FlightRecorder(db_path=tempfile.mktemp(suffix=".db"))
+        flight_recorder = FlightRecorder(db_path=tempfile.NamedTemporaryFile(suffix=".db", delete=False).name)
         
         cp = AgentControlPlane(
             enable_time_travel=True,
@@ -349,7 +349,7 @@ class TestFlightRecorderTimeTravel:
     
     def test_get_log(self):
         """Test getting complete audit log"""
-        fr = FlightRecorder(db_path=tempfile.mktemp(suffix=".db"))
+        fr = FlightRecorder(db_path=tempfile.NamedTemporaryFile(suffix=".db", delete=False).name)
         
         # Add some events
         trace_id1 = fr.start_trace("agent-1", "tool-1", {})
@@ -366,7 +366,7 @@ class TestFlightRecorderTimeTravel:
     
     def test_get_events_in_time_range(self):
         """Test getting events in time range"""
-        fr = FlightRecorder(db_path=tempfile.mktemp(suffix=".db"))
+        fr = FlightRecorder(db_path=tempfile.NamedTemporaryFile(suffix=".db", delete=False).name)
         
         start_time = datetime.now()
         
