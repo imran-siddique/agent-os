@@ -8,10 +8,12 @@ from pydantic import BaseModel, Field, ConfigDict
 
 class MessagePriority(str, Enum):
     """Message priority levels."""
+    BACKGROUND = "background"  # Low-priority background tasks (e.g., memory consolidation)
     LOW = "low"
     NORMAL = "normal"
     HIGH = "high"
     URGENT = "urgent"
+    CRITICAL = "critical"  # Highest priority (e.g., security, governance)
 
 
 class Message(BaseModel):

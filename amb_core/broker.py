@@ -112,3 +112,31 @@ class BrokerAdapter(ABC):
             List of pending messages
         """
         pass
+    
+    def get_backpressure_stats(self, topic: Optional[str] = None):
+        """
+        Get backpressure statistics (if supported by broker).
+        
+        Optional method - brokers may choose not to implement this.
+        
+        Args:
+            topic: Optional topic to get stats for
+            
+        Returns:
+            Statistics about backpressure events
+        """
+        return {}
+    
+    def get_queue_size(self, topic: str) -> int:
+        """
+        Get current queue size for a topic (if supported by broker).
+        
+        Optional method - brokers may choose not to implement this.
+        
+        Args:
+            topic: The topic to check
+            
+        Returns:
+            Number of messages in the queue, or 0 if not supported
+        """
+        return 0
