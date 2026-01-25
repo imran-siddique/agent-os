@@ -404,10 +404,11 @@ class TimeTravelDebugger:
         # Replay based on mode
         if session.mode == ReplayMode.STEP_BY_STEP:
             # Return events one at a time (user must call next_step)
-            if callback:
-                callback(session.events[session.current_index])
-            replayed_events.append(session.events[session.current_index])
-            session.current_index += 1
+            if session.current_index < len(session.events):
+                if callback:
+                    callback(session.events[session.current_index])
+                replayed_events.append(session.events[session.current_index])
+                session.current_index += 1
         else:
             # Continuous or fast-forward: replay all events
             for event in session.events:

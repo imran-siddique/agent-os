@@ -3,6 +3,8 @@ Tests for Time-Travel Debugging feature
 """
 
 import pytest
+import json
+import time
 import tempfile
 from datetime import datetime, timedelta
 
@@ -54,7 +56,6 @@ class TestTimeTravelDebugger:
         debugger.capture_state_snapshot("test-agent", state1)
         
         # Wait a bit
-        import time
         time.sleep(0.1)
         
         state2 = {"version": 2}
@@ -210,7 +211,6 @@ class TestTimeTravelDebugger:
         
         assert isinstance(export, str)
         assert "test-agent" in export
-        import json
         data = json.loads(export)
         assert data["agent_id"] == "test-agent"
     
