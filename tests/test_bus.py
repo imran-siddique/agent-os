@@ -96,8 +96,8 @@ async def test_multiple_subscribers():
             received_2.append(msg)
 
         # Subscribe both handlers
-        sub1 = await bus.subscribe("test.topic", handler1)
-        sub2 = await bus.subscribe("test.topic", handler2)
+        await bus.subscribe("test.topic", handler1)
+        await bus.subscribe("test.topic", handler2)
 
         # Publish message
         await bus.publish("test.topic", {"data": "broadcast"})

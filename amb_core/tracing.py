@@ -10,7 +10,7 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExport
 def get_trace_id() -> Optional[str]:
     """
     Get the current trace ID from the active span context.
-    
+
     Returns:
         Trace ID as hex string if available, None otherwise
     """
@@ -20,16 +20,16 @@ def get_trace_id() -> Optional[str]:
     return None
 
 
-def initialize_tracing(service_name: str = "amb-core") -> None:
+def initialize_tracing(_service_name: str = "amb-core") -> None:
     """
     Initialize OpenTelemetry tracing for the message bus.
-    
+
     This sets up a basic tracer with console export for development.
     In production, you would configure this to export to your preferred backend
     (e.g., Jaeger, Zipkin, or a cloud provider's tracing service).
-    
+
     Args:
-        service_name: Name of the service for tracing
+        _service_name: Name of the service for tracing (reserved for future use)
     """
     provider = TracerProvider()
     processor = BatchSpanProcessor(ConsoleSpanExporter())
@@ -40,10 +40,10 @@ def initialize_tracing(service_name: str = "amb-core") -> None:
 def get_tracer(name: str = "amb-core") -> trace.Tracer:
     """
     Get a tracer instance for creating spans.
-    
+
     Args:
         name: Name for the tracer
-    
+
     Returns:
         OpenTelemetry Tracer instance
     """
