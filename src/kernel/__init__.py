@@ -36,6 +36,18 @@ from .skill_mapper import SkillMapper, ToolSignature
 # Lesson Rubric
 from .rubric import LessonRubric
 
+# Circuit Breaker (Loop Detection)
+from .circuit_breaker import (
+    CircuitBreaker, CircuitBreakerRegistry, LoopDetectedError,
+    LoopDetectionStrategy, ActionResultPair, CircuitBreakerState
+)
+
+# Lazy Evaluation Hooks
+from .lazy_evaluator import (
+    LazyEvaluator, LazyEvaluatorRegistry, TODOToken, DeferredTask,
+    DeferralReason, LazyEvaluationDecision
+)
+
 # Backward compatibility: auditor and patcher from agent_kernel
 from agent_kernel.completeness_auditor import CompletenessAuditor
 from agent_kernel.patcher import AgentPatcher
@@ -65,6 +77,22 @@ __all__ = [
     
     # Rubric
     "LessonRubric",
+    
+    # Circuit Breaker
+    "CircuitBreaker",
+    "CircuitBreakerRegistry",
+    "LoopDetectedError",
+    "LoopDetectionStrategy",
+    "ActionResultPair",
+    "CircuitBreakerState",
+    
+    # Lazy Evaluation
+    "LazyEvaluator",
+    "LazyEvaluatorRegistry",
+    "TODOToken",
+    "DeferredTask",
+    "DeferralReason",
+    "LazyEvaluationDecision",
     
     # Legacy (backward compat)
     "CompletenessAuditor",

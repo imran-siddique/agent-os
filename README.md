@@ -87,11 +87,23 @@ graph TD
    - Routes failures: SYNC_JIT (critical) vs ASYNC_BATCH (non-critical)
    - Decision based on: operation type, user tier, prompt complexity
 
-2. **Failure Analyzer** (`src/kernel/patcher.py`)
+2. **Circuit Breaker** (`src/kernel/circuit_breaker.py`) 🆕
+   - Detects and prevents agent loops ("I'm sorry, I can't" repetitions)
+   - Triggers after 3x same action with same result
+   - Strategies: STOP_ITERATION, SWITCH_STRATEGY, ESCALATE
+   - Saves tokens by breaking infinite loops
+
+3. **Lazy Evaluator** (`src/kernel/lazy_evaluator.py`) 🆕
+   - Defers expensive/speculative computations
+   - Creates TODO tokens for later resolution
+   - Heuristics: expensive ops (>2s), speculative queries, archive access
+   - Tracks time savings and resolution rates
+
+4. **Failure Analyzer** (`src/kernel/patcher.py`)
    - Root cause analysis with cognitive diagnosis
    - Shadow agent verification
 
-3. **Agent Patcher** (`src/kernel/patcher.py`)
+5. **Agent Patcher** (`src/kernel/patcher.py`)
    - Applies corrections automatically
    - Rollback support
 
@@ -650,6 +662,9 @@ self-correcting-agent-kernel/
 # 🎯 NEW: Production Features Demo (recommended starting point)
 python examples/production_features_demo.py
 
+# 🆕 Circuit Breaker & Lazy Evaluation Demo
+python examples/circuit_breaker_lazy_eval_demo.py
+
 # Partner-level demo (all three experiments)
 python examples/partner_level_demo.py
 
@@ -671,12 +686,14 @@ python examples/phase3_memory_lifecycle_demo.py
 ## **13. Running Tests**
 
 ```bash
-# Run all tests (183 tests)
+# Run all tests (235+ tests)
 python -m pytest tests/ -v
 
 # Run specific test suites
 python -m pytest tests/test_kernel.py -v          # Core functionality
 python -m pytest tests/test_triage.py -v          # Triage routing
+python -m pytest tests/test_circuit_breaker.py -v # Circuit breaker (loop detection)
+python -m pytest tests/test_lazy_evaluator.py -v  # Lazy evaluation (deferred computation)
 python -m pytest tests/test_memory_controller.py -v  # Memory management
 python -m pytest tests/test_skill_mapper.py -v    # Skill mapping
 python -m pytest tests/test_rubric.py -v          # Lesson scoring
