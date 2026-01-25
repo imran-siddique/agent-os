@@ -219,8 +219,10 @@ class CircuitBreaker:
                         history=list(self.history)
                     )
                 elif self.strategy == LoopDetectionStrategy.SWITCH_STRATEGY:
-                    # Reset state for strategy switch
-                    self._reset_detection_state()
+                    # Reset consecutive counter but keep loop_detected flag
+                    # This allows detection of new loops while remembering we detected one
+                    self.consecutive_repetitions = 0
+                    self.last_signature = None
                     return True
                 elif self.strategy == LoopDetectionStrategy.ESCALATE:
                     # Just flag and continue - caller handles escalation
