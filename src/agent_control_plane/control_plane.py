@@ -45,6 +45,8 @@ from .constraint_graphs import (
     DataGraph, PolicyGraph, TemporalGraph, ConstraintGraphValidator
 )
 from .supervisor_agents import SupervisorAgent, SupervisorNetwork
+from .agent_hibernation import HibernationManager, HibernationConfig
+from .time_travel_debugger import TimeTravelDebugger, TimeTravelConfig
 
 # Import interfaces for dependency injection
 from .interfaces.kernel_interface import KernelInterface, KernelCapability
@@ -113,12 +115,16 @@ class AgentControlPlane:
         enable_default_policies: bool = True,
         enable_shadow_mode: bool = False,
         enable_constraint_graphs: bool = False,
+        enable_hibernation: bool = False,
+        enable_time_travel: bool = False,
         use_plugin_registry: bool = False,
         kernel: Optional[KernelInterface] = None,
         validators: Optional[List[ValidatorInterface]] = None,
         context_router: Optional[Union[ContextRouterInterface, ContextRoutingInterface]] = None,
         message_security: Optional[MessageSecurityInterface] = None,
         verifier: Optional[VerificationInterface] = None,
+        hibernation_config: Optional[HibernationConfig] = None,
+        time_travel_config: Optional[TimeTravelConfig] = None,
     ):
         """
         Initialize the Agent Control Plane.
@@ -127,12 +133,16 @@ class AgentControlPlane:
             enable_default_policies: Whether to load default security policies
             enable_shadow_mode: Whether to enable shadow/simulation mode
             enable_constraint_graphs: Whether to enable constraint graph validation
+            enable_hibernation: Whether to enable agent hibernation (serverless agents)
+            enable_time_travel: Whether to enable time-travel debugging
             use_plugin_registry: If True, use components from PluginRegistry
             kernel: Optional custom kernel implementing KernelInterface
             validators: Optional list of validators implementing ValidatorInterface
             context_router: Optional context router for caas integration
             message_security: Optional message security provider for iatp integration
             verifier: Optional verifier for cmvk integration
+            hibernation_config: Optional configuration for hibernation
+            time_travel_config: Optional configuration for time-travel debugging
         """
         # Plugin registry integration
         self._use_plugin_registry = use_plugin_registry
@@ -200,6 +210,25 @@ class AgentControlPlane:
         
         # Supervisor Network
         self.supervisor_network = SupervisorNetwork()
+        
+        # Agent Hibernation (Serverless Agents)
+        self.hibernation_enabled = enable_hibernation
+        if enable_hibernation:
+            self.hibernation_manager = HibernationManager(hibernation_config or HibernationConfig())
+        else:
+            self.hibernation_manager = None
+        
+        # Time-Travel Debugging
+        self.time_travel_enabled = enable_time_travel
+        if enable_time_travel:
+            # Pass FlightRecorder if kernel has audit_logger
+            flight_recorder = getattr(self.kernel, 'audit_logger', None)
+            self.time_travel_debugger = TimeTravelDebugger(
+                flight_recorder=flight_recorder,
+                config=time_travel_config or TimeTravelConfig()
+            )
+        else:
+            self.time_travel_debugger = None
         
         # Register default executors
         self._register_default_executors()
@@ -577,6 +606,184 @@ class AgentControlPlane:
         if self.constraint_validator:
             return self.constraint_validator.get_validation_log()
         return []
+    
+    # ===== Agent Hibernation Methods (Serverless Agents) =====
+    
+    def hibernate_agent(
+        self,
+        agent_id: str,
+        agent_context: AgentContext,
+        caas_pointer: Optional[str] = None,
+        additional_state: Optional[Dict[str, Any]] = None
+    ):
+        """
+        Hibernate an agent by serializing its state to disk.
+        
+        This implements the "Serverless Agents" pattern - agents sitting idle
+        in memory are hibernated to disk, removing the need for "always-on" servers.
+        
+        Args:
+            agent_id: Agent identifier
+            agent_context: Agent context to hibernate
+            caas_pointer: Optional pointer to context in caas (Context-as-a-Service)
+            additional_state: Optional additional state to serialize
+            
+        Returns:
+            Metadata about the hibernated agent
+        """
+        if not self.hibernation_enabled or not self.hibernation_manager:
+            raise RuntimeError("Hibernation is not enabled")
+        
+        return self.hibernation_manager.hibernate_agent(
+            agent_id, agent_context, caas_pointer, additional_state
+        )
+    
+    def wake_agent(self, agent_id: str) -> Dict[str, Any]:
+        """
+        Wake up a hibernated agent and restore its state.
+        
+        Args:
+            agent_id: Agent identifier to wake
+            
+        Returns:
+            Restored agent state
+        """
+        if not self.hibernation_enabled or not self.hibernation_manager:
+            raise RuntimeError("Hibernation is not enabled")
+        
+        return self.hibernation_manager.wake_agent(agent_id)
+    
+    def is_agent_hibernated(self, agent_id: str) -> bool:
+        """Check if an agent is currently hibernated"""
+        if not self.hibernation_enabled or not self.hibernation_manager:
+            return False
+        
+        return self.hibernation_manager.is_agent_hibernated(agent_id)
+    
+    def record_agent_activity(self, agent_id: str):
+        """Record activity for an agent (resets idle timer)"""
+        if self.hibernation_enabled and self.hibernation_manager:
+            self.hibernation_manager.record_agent_activity(agent_id)
+    
+    def hibernate_idle_agents(self, min_idle_seconds: Optional[int] = None) -> List[str]:
+        """
+        Automatically hibernate agents that have been idle.
+        
+        Args:
+            min_idle_seconds: Minimum idle time (uses config default if None)
+            
+        Returns:
+            List of agent IDs that were hibernated
+        """
+        if not self.hibernation_enabled or not self.hibernation_manager:
+            return []
+        
+        idle_agents = self.hibernation_manager.get_idle_agents(min_idle_seconds)
+        hibernated = []
+        
+        for agent_id in idle_agents:
+            # Get agent context from active sessions
+            if agent_id in self.kernel.active_sessions:
+                session_id = None
+                for sid, ctx in self.kernel.active_sessions.items():
+                    if ctx.agent_id == agent_id:
+                        session_id = sid
+                        break
+                
+                if session_id:
+                    agent_context = self.kernel.active_sessions[session_id]
+                    try:
+                        self.hibernate_agent(agent_id, agent_context)
+                        hibernated.append(agent_id)
+                        # Remove from active sessions
+                        del self.kernel.active_sessions[session_id]
+                    except Exception as e:
+                        self.kernel.logger.error(f"Failed to hibernate idle agent {agent_id}: {e}")
+        
+        return hibernated
+    
+    def get_hibernation_statistics(self) -> Dict[str, Any]:
+        """Get statistics about agent hibernation"""
+        if not self.hibernation_enabled or not self.hibernation_manager:
+            return {"enabled": False}
+        
+        return self.hibernation_manager.get_statistics()
+    
+    # ===== Time-Travel Debugging Methods =====
+    
+    def replay_agent_history(
+        self,
+        agent_id: str,
+        minutes: int,
+        callback: Optional[callable] = None
+    ):
+        """
+        Replay the last N minutes of an agent's life exactly as it happened.
+        
+        This implements "Time-Travel Debugging" - re-run agent actions from history
+        for debugging and analysis.
+        
+        Args:
+            agent_id: Agent identifier
+            minutes: Number of minutes to replay
+            callback: Optional callback for each replayed event
+            
+        Returns:
+            ReplaySession for the replay
+        """
+        if not self.time_travel_enabled or not self.time_travel_debugger:
+            raise RuntimeError("Time-travel debugging is not enabled")
+        
+        session = self.time_travel_debugger.replay_time_window(agent_id, minutes)
+        
+        if callback:
+            self.time_travel_debugger.replay_agent_history(
+                agent_id, session.session_id, callback
+            )
+        
+        return session
+    
+    def capture_agent_state_snapshot(
+        self,
+        agent_id: str,
+        agent_context: AgentContext,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """
+        Capture a point-in-time snapshot of agent state for time-travel debugging.
+        
+        Args:
+            agent_id: Agent identifier
+            agent_context: Agent context to snapshot
+            metadata: Optional metadata
+        """
+        if not self.time_travel_enabled or not self.time_travel_debugger:
+            return
+        
+        # Convert agent context to serializable state
+        state = {
+            "session_id": agent_context.session_id,
+            "created_at": agent_context.created_at.isoformat(),
+            "permissions": {str(k): v.value for k, v in agent_context.permissions.items()},
+            "metadata": agent_context.metadata
+        }
+        
+        self.time_travel_debugger.capture_state_snapshot(agent_id, state, metadata)
+    
+    def get_replay_summary(self, session_id: str) -> Dict[str, Any]:
+        """Get summary of a replay session"""
+        if not self.time_travel_enabled or not self.time_travel_debugger:
+            raise RuntimeError("Time-travel debugging is not enabled")
+        
+        return self.time_travel_debugger.get_replay_summary(session_id)
+    
+    def get_time_travel_statistics(self) -> Dict[str, Any]:
+        """Get statistics about time-travel debugging"""
+        if not self.time_travel_enabled or not self.time_travel_debugger:
+            return {"enabled": False}
+        
+        return self.time_travel_debugger.get_statistics()
+
 
 
 # Convenience functions for common operations

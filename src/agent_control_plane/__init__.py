@@ -189,6 +189,25 @@ from .observability import (
     create_observability_suite,
 )
 
+# Agent Hibernation - Serverless Agents
+from .agent_hibernation import (
+    HibernationManager,
+    HibernationConfig,
+    HibernationFormat,
+    AgentState,
+    HibernatedAgentMetadata,
+)
+
+# Time-Travel Debugging
+from .time_travel_debugger import (
+    TimeTravelDebugger,
+    TimeTravelConfig,
+    ReplayMode,
+    ReplayEvent,
+    ReplayEventType,
+    ReplaySession,
+)
+
 # Hugging Face Hub utilities (optional - requires huggingface_hub)
 try:
     from .hf_utils import (
@@ -361,6 +380,21 @@ __all__ = [
     "ExecutionEngine",
     "ExecutionContext",
     "ExecutionMetrics",
+    
+    # Agent Hibernation (Serverless Agents)
+    "HibernationManager",
+    "HibernationConfig",
+    "HibernationFormat",
+    "AgentState",
+    "HibernatedAgentMetadata",
+    
+    # Time-Travel Debugging
+    "TimeTravelDebugger",
+    "TimeTravelConfig",
+    "ReplayMode",
+    "ReplayEvent",
+    "ReplayEventType",
+    "ReplaySession",
     
     # Hugging Face Hub utilities (optional)
     "HFConfig",
