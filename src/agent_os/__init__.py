@@ -16,13 +16,21 @@ Quick Start:
     >>> ctx = kernel.create_agent_context("agent-001")
     >>> await ctx.write("/mem/working/task.txt", "Hello World")
 
+Stateless API (MCP June 2026):
+    >>> from agent_os import stateless_execute
+    >>> result = await stateless_execute(
+    ...     action="database_query",
+    ...     params={"query": "SELECT * FROM users"},
+    ...     agent_id="analyst-001",
+    ...     policies=["read_only"]
+    ... )
+
 Installation:
-    pip install agent-os[full]    # Everything
-    pip install agent-os[core]    # Primitives + Control Plane
-    pip install agent-os          # Minimal (just base)
+    pip install agent-os-kernel[full]  # Everything
+    pip install agent-os-kernel        # Core
 """
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 __author__ = "Imran Siddique"
 __license__ = "MIT"
 
@@ -194,6 +202,28 @@ except ImportError:
     _MUTE_AGENT_AVAILABLE = False
 
 # ============================================================================
+# Local Components (Always Available)
+# ============================================================================
+
+# Stateless Kernel (MCP June 2026)
+from agent_os.stateless import (
+    StatelessKernel,
+    ExecutionContext,
+    ExecutionRequest,
+    ExecutionResult,
+    MemoryBackend as StatelessMemoryBackend,
+    stateless_execute,
+)
+
+# AGENTS.md Compatibility
+from agent_os.agents_compat import (
+    AgentsParser,
+    AgentConfig,
+    AgentSkill,
+    discover_agents,
+)
+
+# ============================================================================
 # Availability Flags
 # ============================================================================
 
@@ -300,4 +330,18 @@ __all__ = [
     "MuteAgent",
     "ReasoningAgent",
     "ExecutionAgent",
+    
+    # Stateless API (MCP June 2026)
+    "StatelessKernel",
+    "ExecutionContext",
+    "ExecutionRequest",
+    "ExecutionResult",
+    "StatelessMemoryBackend",
+    "stateless_execute",
+    
+    # AGENTS.md Compatibility
+    "AgentsParser",
+    "AgentConfig",
+    "AgentSkill",
+    "discover_agents",
 ]

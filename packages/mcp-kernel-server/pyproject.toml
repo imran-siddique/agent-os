@@ -1,0 +1,58 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mcp-kernel-server"
+version = "0.1.0"
+description = "MCP Server exposing Agent OS kernel primitives - CMVK verification, IATP trust, VFS filesystem"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [
+    {name = "Imran Siddique", email = "imran.siddique@microsoft.com"}
+]
+keywords = [
+    "mcp",
+    "model-context-protocol",
+    "agent-os",
+    "ai-safety",
+    "kernel"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "mcp>=1.0.0",
+    "pydantic>=2.0.0",
+    "httpx>=0.25.0",
+]
+
+[project.optional-dependencies]
+full = [
+    "agent-control-plane>=0.4.0",
+    "cmvk>=0.3.0",
+    "inter-agent-trust-protocol>=0.5.0",
+]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+]
+
+[project.scripts]
+mcp-kernel-server = "mcp_kernel_server.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/imran-siddique/agent-os"
+Documentation = "https://github.com/imran-siddique/agent-os/tree/main/packages/mcp-kernel-server"
+Repository = "https://github.com/imran-siddique/agent-os"
+
+[tool.setuptools.packages.find]
+where = ["src"]
