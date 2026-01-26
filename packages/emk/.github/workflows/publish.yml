@@ -1,0 +1,144 @@
+# GitHub Actions workflow for publishing emk to PyPI
+# Uses Trusted Publishing (OIDC) - no API tokens needed
+#
+# Setup instructions:
+# 1. Go to PyPI.org → Your Project → Settings → Publishing
+# 2. Add a new "trusted publisher" with:
+#    - Owner: imran-siddique
+#    - Repository: emk
+#    - Workflow name: publish.yml
+#    - Environment: pypi
+
+name: Publish to PyPI
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      test_pypi:
+        description: 'Publish to TestPyPI instead of PyPI'
+        required: false
+        default: 'false'
+        type: boolean
+
+jobs:
+  build:
+    name: Build distribution 📦
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for setuptools_scm
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+      
+      - name: Build package
+        run: python -m build
+      
+      - name: Check distribution
+        run: twine check dist/*
+      
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  test:
+    name: Test package 🧪
+    runs-on: ubuntu-latest
+    needs: build
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      
+      - name: Install from wheel
+        run: |
+          pip install dist/*.whl
+          pip install pytest
+      
+      - name: Run tests
+        run: pytest tests/ -v
+
+  publish-testpypi:
+    name: Publish to TestPyPI 🧪📦
+    runs-on: ubuntu-latest
+    needs: [build, test]
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.test_pypi == 'true'
+    
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/project/emk/
+    
+    permissions:
+      id-token: write  # Required for OIDC trusted publishing
+    
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      
+      - name: Publish to TestPyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+
+  publish-pypi:
+    name: Publish to PyPI 🚀📦
+    runs-on: ubuntu-latest
+    needs: [build, test]
+    if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && github.event.inputs.test_pypi == 'false')
+    
+    environment:
+      name: pypi
+      url: https://pypi.org/project/emk/
+    
+    permissions:
+      id-token: write  # Required for OIDC trusted publishing
+    
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      
+      # Option 1: Trusted Publishing (OIDC) - preferred
+      # Configure at: https://pypi.org/manage/account/publishing/
+      - name: Publish to PyPI (Trusted Publishing)
+        if: ${{ !secrets.PYPI_API_TOKEN }}
+        uses: pypa/gh-action-pypi-publish@release/v1
+      
+      # Option 2: API Token fallback
+      # Create token at: https://pypi.org/manage/account/token/
+      # Add as secret: PYPI_API_TOKEN
+      - name: Publish to PyPI (API Token)
+        if: ${{ secrets.PYPI_API_TOKEN }}
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}

@@ -1,0 +1,91 @@
+[build-system]
+requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "emk"
+version = "0.1.0"
+description = "Episodic Memory Kernel - An immutable, append-only ledger of agent experiences for AI systems"
+authors = [
+    {name = "Imran Siddique", email = "imran-siddique@users.noreply.github.com"}
+]
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+keywords = [
+    "ai",
+    "agents",
+    "memory",
+    "episodic-memory",
+    "llm",
+    "autonomous-agents",
+    "vector-store",
+    "append-only",
+    "immutable",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
+dependencies = [
+    "pydantic>=2.0.0",
+    "numpy>=1.20.0",
+]
+
+[project.optional-dependencies]
+chromadb = [
+    "chromadb>=0.4.0",
+]
+huggingface = [
+    "huggingface_hub>=0.19.0",
+]
+all = [
+    "chromadb>=0.4.0",
+    "huggingface_hub>=0.19.0",
+]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0.0",
+    "pre-commit>=3.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/imran-siddique/emk"
+Repository = "https://github.com/imran-siddique/emk"
+Documentation = "https://github.com/imran-siddique/emk#readme"
+Issues = "https://github.com/imran-siddique/emk/issues"
+Changelog = "https://github.com/imran-siddique/emk/releases"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["emk*"]
+exclude = ["tests*", "experiments*", "paper*"]
+
+[tool.black]
+line-length = 100
+target-version = ['py38']
+
+[tool.ruff]
+line-length = 100
+target-version = "py38"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
