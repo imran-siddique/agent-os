@@ -1,5 +1,17 @@
 # Agent OS Architecture
 
+> High-level architecture overview. For implementation details, see [Kernel Internals](kernel-internals.md).
+
+## Documentation Index
+
+| Document | Description |
+|----------|-------------|
+| [Architecture](architecture.md) | This file - layer overview, package descriptions |
+| [Kernel Internals](kernel-internals.md) | Deep dive - execution model, policy engine, signals |
+| [Security Spec](security-spec.md) | `.agents/security.md` format specification |
+| [AAIF Proposal](AAIF_PROPOSAL.md) | Foundation membership proposal |
+| [AIOS Comparison](AIOS_COMPARISON.md) | Competitive differentiation |
+
 ## Overview
 
 Agent OS is a safety-first kernel for autonomous AI agents, providing POSIX-inspired primitives with a 0% policy violation guarantee.
