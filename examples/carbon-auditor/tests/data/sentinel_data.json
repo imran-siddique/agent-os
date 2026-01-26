@@ -1,0 +1,54 @@
+{
+  "type": "mock_sentinel_data",
+  "description": "Mock Sentinel-2 data showing deforestation (bare soil/cleared areas)",
+  "metadata": {
+    "product_type": "S2MSI2A",
+    "tile_id": "T20MQA",
+    "acquisition_date": "2024-06-15",
+    "processing_level": "Level-2A",
+    "cloud_cover_percentage": 8.5,
+    "spatial_resolution_m": 10,
+    "coordinate_reference_system": "EPSG:32720"
+  },
+  "bands": {
+    "B02_BLUE": {
+      "description": "Blue band (490nm)",
+      "values": "mock_data_high_reflectance_bare_soil"
+    },
+    "B03_GREEN": {
+      "description": "Green band (560nm)",
+      "values": "mock_data_high_reflectance_bare_soil"
+    },
+    "B04_RED": {
+      "description": "Red band (665nm)",
+      "values": "mock_data_high_reflectance_bare_soil",
+      "note": "High reflectance indicates bare soil, not vegetation"
+    },
+    "B08_NIR": {
+      "description": "Near Infrared band (842nm)",
+      "values": "mock_data_low_reflectance_no_vegetation",
+      "note": "Low NIR reflectance indicates lack of healthy vegetation"
+    }
+  },
+  "analysis": {
+    "ndvi_calculation": "NDVI = (B08 - B04) / (B08 + B04)",
+    "expected_ndvi_range": {
+      "healthy_forest": [0.6, 0.9],
+      "degraded_forest": [0.3, 0.6],
+      "bare_soil": [-0.1, 0.3],
+      "water": [-1.0, 0.0]
+    },
+    "observed_conditions": {
+      "primary_classification": "bare_soil_with_sparse_vegetation",
+      "estimated_ndvi_mean": 0.35,
+      "vegetation_coverage_percent": 42,
+      "deforestation_indicator_percent": 35
+    }
+  },
+  "provenance": {
+    "source": "copernicus.eu/sentinel-2",
+    "download_timestamp": "2024-06-20T14:30:00Z",
+    "checksum_sha256": "mock_checksum_abc123def456"
+  },
+  "simulation_note": "This mock data represents a DEFORESTATION scenario where the claimed healthy forest (NDVI 0.82) has actually been significantly degraded, showing bare soil and sparse vegetation (NDVI ~0.35). This creates a fraud detection scenario for the Carbon Auditor system."
+}
