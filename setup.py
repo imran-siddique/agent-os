@@ -38,6 +38,7 @@ setup(
     install_requires=[
         "pydantic>=2.0.0",
         "pyyaml>=6.0",
+        "agent-primitives>=0.1.0",  # Layer 1: Shared failure models
     ],
     extras_require={
         # Layer 3: Control Plane integration
