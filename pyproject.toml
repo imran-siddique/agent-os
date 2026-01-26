@@ -45,6 +45,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+sandbox = [
+    "docker>=7.0.0",
+]
 dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
@@ -63,7 +66,7 @@ hf = [
     "datasets>=2.14.0",
 ]
 all = [
-    "agent-tool-registry[dev,docs,hf]",
+    "agent-tool-registry[dev,docs,hf,sandbox]",
 ]
 
 [project.urls]

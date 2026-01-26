@@ -26,6 +26,12 @@ This is **Scale by Subtraction** applied to the agent capability layer.
 pip install agent-tool-registry
 ```
 
+For sandboxed execution with Docker:
+
+```bash
+pip install agent-tool-registry[sandbox]
+```
+
 ---
 
 ## Quick Start
@@ -48,7 +54,62 @@ tool = atr.get_tool("calculator")
 schema = tool.to_openai_function_schema()  # OpenAI-compatible
 func = atr.get_callable("calculator")
 result = func(a=5, b=3)  # Returns 8
+
+# Or use sandboxed execution (recommended for untrusted code)
+from atr import DockerExecutor
+docker_exec = DockerExecutor()
+result = atr.execute_tool("calculator", {"a": 5, "b": 3}, executor=docker_exec)
 ```
+
+---
+
+## Sandboxed Execution
+
+**NEW:** ATR now supports sandboxed execution using Docker containers. This is essential for running untrusted or agent-generated code safely.
+
+### Why Sandboxed Execution?
+
+SDLC agents and LLMs may generate Python or Bash scripts that you cannot safely run directly on your host machine. Sandboxed execution provides:
+
+- **Isolation**: Code runs in ephemeral containers, completely isolated from your host
+- **Security**: No network access, memory limits, automatic cleanup
+- **Safety**: Protects against malicious code, resource exhaustion, and unintended side effects
+
+### Usage
+
+```python
+import atr
+from atr import DockerExecutor
+
+# Register a tool
+@atr.register(name="processor", tags=["data"])
+def process_data(numbers: list) -> int:
+    """Process data safely in a sandbox."""
+    return sum(numbers)
+
+# Option 1: Direct execution (NOT sandboxed - trusted code only)
+result = atr.execute_tool("processor", {"numbers": [1, 2, 3, 4]})
+
+# Option 2: Sandboxed execution (RECOMMENDED for untrusted code)
+docker_exec = DockerExecutor()
+result = atr.execute_tool(
+    "processor",
+    {"numbers": [1, 2, 3, 4]},
+    executor=docker_exec,
+    timeout=30
+)
+```
+
+### Execution Modes
+
+| Feature | LocalExecutor | DockerExecutor |
+|---------|---------------|----------------|
+| Speed | Fast | Slower |
+| Security | No isolation | Full isolation |
+| Network | Full access | Disabled |
+| Use Case | Trusted code | Untrusted code |
+
+See `examples/sandbox_demo.py` for complete examples.
 
 ---
 

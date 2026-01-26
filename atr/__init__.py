@@ -42,6 +42,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Callable, List, Optional
 
 from atr.decorator import register as register_decorator
+from atr.executor import (
+    DockerExecutor,
+    Executor,
+    ExecutorError,
+    ExecutionTimeoutError,
+    LocalExecutor,
+)
 from atr.registry import Registry, RegistryError, ToolAlreadyExistsError, ToolNotFoundError
 from atr.schema import (
     CostLevel,
@@ -72,12 +79,19 @@ __all__ = [
     "RegistryError",
     "ToolNotFoundError",
     "ToolAlreadyExistsError",
+    # Executors
+    "Executor",
+    "LocalExecutor",
+    "DockerExecutor",
+    "ExecutorError",
+    "ExecutionTimeoutError",
     # Functions
     "register",
     "get_tool",
     "list_tools",
     "search_tools",
     "get_callable",
+    "execute_tool",
     # Module info
     "__version__",
     "__author__",
@@ -228,3 +242,56 @@ def get_callable(name: str) -> Callable[..., Any]:
         >>> result = func(a=1, b=2)  # Caller executes
     """
     return _global_registry.get_callable(name)
+
+
+def execute_tool(
+    name: str,
+    args: Optional[dict] = None,
+    executor: Optional[Executor] = None,
+    timeout: Optional[int] = None,
+) -> Any:
+    """Execute a registered tool with optional sandboxing.
+
+    This is a convenience function that retrieves a tool and executes it
+    using the specified executor. If no executor is provided, uses LocalExecutor
+    (direct execution on host - not sandboxed).
+
+    For production use with untrusted code, always provide a DockerExecutor
+    to ensure sandboxed execution.
+
+    Args:
+        name: The unique tool identifier.
+        args: Dictionary of arguments to pass to the tool.
+        executor: Executor instance to use. Defaults to LocalExecutor if None.
+        timeout: Execution timeout in seconds (only applicable for DockerExecutor).
+
+    Returns:
+        The result of the tool execution.
+
+    Raises:
+        ToolNotFoundError: If no tool with the given name exists.
+        ValueError: If the tool has no associated callable.
+        ExecutorError: If execution fails.
+        ExecutionTimeoutError: If execution exceeds timeout.
+
+    Example:
+        >>> # Direct execution (not sandboxed - use only with trusted code)
+        >>> result = execute_tool("calculator", {"a": 5, "b": 3})
+        
+        >>> # Sandboxed execution (recommended for untrusted code)
+        >>> from atr import DockerExecutor
+        >>> docker_exec = DockerExecutor()
+        >>> result = execute_tool("calculator", {"a": 5, "b": 3}, executor=docker_exec)
+    """
+    if args is None:
+        args = {}
+    
+    # Get the callable function
+    func = get_callable(name)
+    
+    # Use LocalExecutor if no executor provided
+    if executor is None:
+        executor = LocalExecutor()
+    
+    # Execute with the specified executor
+    return executor.execute(func, args=args, timeout=timeout)
