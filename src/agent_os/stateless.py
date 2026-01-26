@@ -10,7 +10,7 @@ Key principles:
 
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Protocol
-from datetime import datetime
+from datetime import datetime, timezone
 from abc import ABC, abstractmethod
 import hashlib
 import json
@@ -118,7 +118,7 @@ class ExecutionRequest:
     def __post_init__(self):
         if self.request_id is None:
             self.request_id = hashlib.sha256(
-                f"{self.context.agent_id}:{self.action}:{datetime.utcnow().isoformat()}".encode()
+                f"{self.context.agent_id}:{self.action}:{datetime.now(timezone.utc).isoformat()}".encode()
             ).hexdigest()[:16]
 
 
@@ -217,7 +217,7 @@ class StatelessKernel:
                 metadata={
                     "request_id": request.request_id,
                     "violation": policy_result["reason"],
-                    "timestamp": datetime.utcnow().isoformat()
+                    "timestamp": datetime.now(timezone.utc).isoformat()
                 }
             )
         
@@ -246,7 +246,7 @@ class StatelessKernel:
             policies=context.policies,
             history=context.history + [{
                 "action": action,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "success": True
             }],
             state_ref=new_state_ref,
@@ -259,7 +259,7 @@ class StatelessKernel:
             updated_context=updated_context,
             metadata={
                 "request_id": request.request_id,
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
         )
     
