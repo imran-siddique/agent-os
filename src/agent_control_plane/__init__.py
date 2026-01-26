@@ -276,6 +276,51 @@ from .lifecycle import (
     AgentRegistration,
 )
 
+# ========== Kernel Architecture (v0.3.0) ==========
+
+# Signal Handling - POSIX-style signals for agents
+from .signals import (
+    AgentSignal,
+    SignalDisposition,
+    SignalInfo,
+    SignalMask,
+    SignalDispatcher,
+    AgentKernelPanic,
+    SignalAwareAgent,
+    kill_agent,
+    pause_agent,
+    resume_agent,
+    policy_violation,
+)
+
+# Agent Virtual File System
+from .vfs import (
+    AgentVFS,
+    VFSBackend,
+    MemoryBackend,
+    VectorBackend,
+    FileMode,
+    FileType,
+    INode,
+    FileDescriptor,
+    MountPoint,
+    create_agent_vfs,
+)
+
+# Kernel/User Space Separation
+from .kernel_space import (
+    KernelSpace,
+    AgentContext,
+    ProtectionRing,
+    SyscallType,
+    SyscallRequest,
+    SyscallResult,
+    KernelState,
+    KernelMetrics,
+    user_space_execution,
+    create_kernel,
+)
+
 # Hugging Face Hub utilities (optional - requires huggingface_hub)
 try:
     from .hf_utils import (
@@ -291,7 +336,7 @@ try:
 except ImportError:
     _HF_AVAILABLE = False
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"  # Bump for kernel architecture features
 __author__ = "Imran Siddique"
 
 __all__ = [
@@ -530,6 +575,45 @@ __all__ = [
     "ExecutionEngine",
     "ExecutionContext",
     "ExecutionMetrics",
+    
+    # ========== Kernel Architecture (v0.3.0) ==========
+    
+    # Signal Handling
+    "AgentSignal",
+    "SignalDisposition",
+    "SignalInfo",
+    "SignalMask",
+    "SignalDispatcher",
+    "AgentKernelPanic",
+    "SignalAwareAgent",
+    "kill_agent",
+    "pause_agent",
+    "resume_agent",
+    "policy_violation",
+    
+    # Agent VFS
+    "AgentVFS",
+    "VFSBackend",
+    "MemoryBackend",
+    "VectorBackend",
+    "FileMode",
+    "FileType",
+    "INode",
+    "FileDescriptor",
+    "MountPoint",
+    "create_agent_vfs",
+    
+    # Kernel/User Space
+    "KernelSpace",
+    "AgentContext",  # Note: Also exported from agent_kernel
+    "ProtectionRing",
+    "SyscallType",
+    "SyscallRequest",
+    "SyscallResult",
+    "KernelState",
+    "KernelMetrics",
+    "user_space_execution",
+    "create_kernel",
     
     # Hugging Face Hub utilities (optional)
     "HFConfig",
