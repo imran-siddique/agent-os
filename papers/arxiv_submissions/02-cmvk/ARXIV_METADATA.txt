@@ -1,0 +1,37 @@
+arXiv Submission Metadata
+========================
+Generated: 2026-01-26 13:18:46
+Paper: 02-cmvk
+
+TITLE (use initial caps, no LaTeX):
+Cross-Model Verification Kernel: Adversarial Multi-Model Code Generation with Blind Spot Reduction
+
+AUTHORS (comma-separated, no "and"):
+Imran Siddique
+
+ABSTRACT (plain text, no LaTeX, no line breaks):
+Large Language Models exhibit systematic blind spots in code generation that persist across model families and prompt engineering techniques. We present the Cross-Model Verification Kernel (CMVK), an adversarial multi-model architecture that reduces blind spot occurrence from 23.7% to 8.2% through structured model disagreement. CMVK introduces three key innovations: (1) Blind Spot Detection via Cross-Entropy Divergence, where statistically significant output disagreement between models signals potential errors; (2) Adversarial Refinement Cycles, where models critique and improve each other's outputs; (3) Confidence-Weighted Aggregation that combines outputs based on per-model reliability scores. Evaluated on HumanEval, MBPP, and a novel BlindSpotBench dataset, CMVK achieves 91.2% pass rate compared to 76.8% for single-model baselines while reducing hallucinated API calls by 67%. The kernel integrates as a drop-in replacement for existing LLM code generation pipelines.
+
+PRIMARY CATEGORY:
+cs.SE
+
+CROSS-LIST CATEGORIES:
+cs.AI, cs.LG
+
+COMMENTS:
+Part of the Agent OS project: https://github.com/imran-siddique/agent-os
+
+LICENSE:
+CC BY 4.0
+
+---
+Submission Checklist:
+[ ] Upload submission.tar
+[ ] Verify all files extracted correctly
+[ ] Check compiled PDF for errors
+[ ] Copy title exactly as above
+[ ] Copy authors exactly as above  
+[ ] Copy abstract (remove any remaining line breaks)
+[ ] Select primary category: cs.SE
+[ ] Add cross-list categories
+[ ] Add comments field

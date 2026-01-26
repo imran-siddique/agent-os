@@ -1,0 +1,37 @@
+arXiv Submission Metadata
+========================
+Generated: 2026-01-26 13:18:46
+Paper: 05-control-plane
+
+TITLE (use initial caps, no LaTeX):
+Agent Control Plane: A Deterministic Kernel for Zero-Violation Governance in Agentic AI
+
+AUTHORS (comma-separated, no "and"):
+Imran Siddique
+
+ABSTRACT (plain text, no LaTeX, no line breaks):
+Current AI agent frameworks lack deterministic safety guarantees, relying on probabilistic prompt-based approaches that fail under adversarial conditions. We present the Agent Control Plane, a kernel architecture that provides POSIX-style governance primitives for autonomous agents. The system introduces three key abstractions: (1) Agent Signals (SIGSTOP, SIGKILL, SIGINT) for deterministic control flow; (2) Agent Virtual File System (VFS) for structured memory management; and (3) Kernel/User Space separation isolating policy enforcement from LLM execution. Evaluated against 60+ adversarial jailbreak attempts, the Control Plane achieves 0% policy violations compared to 26.67% for prompt-based baselines. The architecture enables enterprise deployment of autonomous agents in regulated industries including finance, healthcare, and energy.
+
+PRIMARY CATEGORY:
+cs.AI
+
+CROSS-LIST CATEGORIES:
+cs.SE, cs.OS
+
+COMMENTS:
+Part of the Agent OS project: https://github.com/imran-siddique/agent-os
+
+LICENSE:
+CC BY 4.0
+
+---
+Submission Checklist:
+[ ] Upload submission.tar
+[ ] Verify all files extracted correctly
+[ ] Check compiled PDF for errors
+[ ] Copy title exactly as above
+[ ] Copy authors exactly as above  
+[ ] Copy abstract (remove any remaining line breaks)
+[ ] Select primary category: cs.AI
+[ ] Add cross-list categories
+[ ] Add comments field

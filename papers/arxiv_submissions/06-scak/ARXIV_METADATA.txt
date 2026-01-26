@@ -1,0 +1,37 @@
+arXiv Submission Metadata
+========================
+Generated: 2026-01-26 13:18:46
+Paper: 06-scak
+
+TITLE (use initial caps, no LaTeX):
+Self-Correcting Agent Kernel: Automated Alignment via Differential Auditing and Semantic Memory Hygiene
+
+AUTHORS (comma-separated, no "and"):
+Imran Siddique
+
+ABSTRACT (plain text, no LaTeX, no line breaks):
+Production AI agents face a Reliability Wall defined by two invisible pathologies: laziness (premature give-ups on achievable tasks) and context rot (performance degradation due to accumulated prompt instructions). Existing architectures often exacerbate these issues by treating more context as the solution to every failure. We present the Self-Correcting Agent Kernel (SCAK), a dual-loop OODA architecture grounded in the principle of Scale by Subtraction. SCAK's Runtime Loop ensures deterministic safety, while the Alignment Loop implements Differential Auditing: a probabilistic mechanism that compares a weak agent against a stronger teacher only on give-up signals (5-10% of interactions). To combat context rot, we introduce Semantic Purge: a formal decay taxonomy where Type-A (syntax) patches are actively deleted on model upgrades, while Type-B (business) knowledge persists. Evaluations on GAIA benchmark extensions demonstrate 100% laziness detection and a 72% correction rate at 90% lower cost than full verification.
+
+PRIMARY CATEGORY:
+cs.AI
+
+CROSS-LIST CATEGORIES:
+cs.LG, cs.SE
+
+COMMENTS:
+Part of the Agent OS project: https://github.com/imran-siddique/agent-os
+
+LICENSE:
+CC BY 4.0
+
+---
+Submission Checklist:
+[ ] Upload submission.tar
+[ ] Verify all files extracted correctly
+[ ] Check compiled PDF for errors
+[ ] Copy title exactly as above
+[ ] Copy authors exactly as above  
+[ ] Copy abstract (remove any remaining line breaks)
+[ ] Select primary category: cs.AI
+[ ] Add cross-list categories
+[ ] Add comments field

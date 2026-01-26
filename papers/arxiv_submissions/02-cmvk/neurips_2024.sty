@@ -1,0 +1,101 @@
+% neurips_2024.sty - Style file for NeurIPS 2024
+% Simplified version for compilation
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{neurips_2024}[2024/01/01 NeurIPS 2024 Style]
+
+% Options
+\newif\if@preprint\@preprintfalse
+\newif\if@final\@finalfalse
+\newif\if@nonatbib\@nonatbibfalse
+
+\DeclareOption{preprint}{\@preprinttrue}
+\DeclareOption{final}{\@finaltrue}
+\DeclareOption{nonatbib}{\@nonatbibtrue}
+\ProcessOptions\relax
+
+% Page layout
+\RequirePackage[verbose=true,letterpaper]{geometry}
+\AtBeginDocument{
+  \newgeometry{
+    textheight=9in,
+    textwidth=5.5in,
+    top=1in,
+    headheight=12pt,
+    headsep=25pt,
+    footskip=30pt
+  }
+}
+
+% Fonts and typography
+\RequirePackage{times}
+\RequirePackage{latexsym}
+
+% Math
+\RequirePackage{amsmath}
+\RequirePackage{amssymb}
+
+% Natbib for citations
+\if@nonatbib\else
+  \RequirePackage[numbers,sort&compress]{natbib}
+\fi
+
+% Hyperref
+\RequirePackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  citecolor=blue,
+  urlcolor=blue
+}
+
+% Title formatting
+\def\@maketitle{%
+  \newpage
+  \null
+  \vskip 2em%
+  \begin{center}%
+    \let \footnote \thanks
+    {\LARGE \@title \par}%
+    \vskip 1.5em%
+    {\large
+      \lineskip .5em%
+      \begin{tabular}[t]{c}%
+        \@author
+      \end{tabular}\par}%
+    \vskip 1em%
+  \end{center}%
+  \par
+  \vskip 1.5em}
+
+% Abstract
+\renewenvironment{abstract}{%
+  \centerline{\large\bfseries Abstract}%
+  \vspace{0.5ex}%
+  \begin{quote}%
+}{%
+  \end{quote}%
+}
+
+% Section formatting
+\renewcommand\section{\@startsection {section}{1}{\z@}%
+  {-3.5ex \@plus -1ex \@minus -.2ex}%
+  {2.3ex \@plus.2ex}%
+  {\normalfont\Large\bfseries}}
+\renewcommand\subsection{\@startsection{subsection}{2}{\z@}%
+  {-3.25ex\@plus -1ex \@minus -.2ex}%
+  {1.5ex \@plus .2ex}%
+  {\normalfont\large\bfseries}}
+\renewcommand\subsubsection{\@startsection{subsubsection}{3}{\z@}%
+  {-3.25ex\@plus -1ex \@minus -.2ex}%
+  {1.5ex \@plus .2ex}%
+  {\normalfont\normalsize\bfseries}}
+\renewcommand\paragraph{\@startsection{paragraph}{4}{\z@}%
+  {3.25ex \@plus1ex \@minus.2ex}%
+  {-1em}%
+  {\normalfont\normalsize\bfseries}}
+
+% For algorithms
+\newcommand{\theHalgorithm}{\arabic{algorithm}}
+
+\endinput

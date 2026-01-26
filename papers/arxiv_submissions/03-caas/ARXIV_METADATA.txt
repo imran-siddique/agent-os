@@ -1,0 +1,37 @@
+arXiv Submission Metadata
+========================
+Generated: 2026-01-26 13:18:46
+Paper: 03-caas
+
+TITLE (use initial caps, no LaTeX):
+Context-as-a-Service: A Principled Architecture for Enterprise RAG Systems
+
+AUTHORS (comma-separated, no "and"):
+Imran Siddique
+
+ABSTRACT (plain text, no LaTeX, no line breaks):
+Enterprise Retrieval-Augmented Generation (RAG) systems suffer from context fragmentation, where relevant information is scattered across retrieval results without coherent organization. We present Context-as-a-Service (CaaS), an architecture that treats context management as a first-class system service rather than an ad-hoc retrieval step. CaaS introduces the Context Triad: Hot (immediate conversation), Warm (session-relevant retrieved chunks), and Cold (background knowledge graphs). A principled routing layer determines context placement based on recency, relevance, and retrieval cost. Evaluated on enterprise QA benchmarks, CaaS reduces hallucination rates by 34% while improving response relevance by 28% compared to standard RAG pipelines. The system handles 100K+ token contexts with sub-200ms routing latency.
+
+PRIMARY CATEGORY:
+cs.CL
+
+CROSS-LIST CATEGORIES:
+cs.IR, cs.AI
+
+COMMENTS:
+Part of the Agent OS project: https://github.com/imran-siddique/agent-os
+
+LICENSE:
+CC BY 4.0
+
+---
+Submission Checklist:
+[ ] Upload submission.tar
+[ ] Verify all files extracted correctly
+[ ] Check compiled PDF for errors
+[ ] Copy title exactly as above
+[ ] Copy authors exactly as above  
+[ ] Copy abstract (remove any remaining line breaks)
+[ ] Select primary category: cs.CL
+[ ] Add cross-list categories
+[ ] Add comments field

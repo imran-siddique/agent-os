@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400">
+<style>
+  .title { font: bold 16px Arial, sans-serif; }
+  .label { font: 10px Arial, sans-serif; }
+  .value { font: bold 11px Arial, sans-serif; }
+</style>
+<rect width="600" height="400" fill="white"/>
+<text x="300.0" y="30" class="title" text-anchor="middle">Ablation Study (HumanEval-50)</text>
+<line x1="70" y1="60" x2="70" y2="320" stroke="#333"/>
+<line x1="70" y1="320" x2="570" y2="320" stroke="#333"/>
+<text x="62" y="324.0" class="label" text-anchor="end">80%</text>
+<line x1="70" y1="320.0" x2="570" y2="320.0" stroke="#eee"/>
+<text x="62" y="258.99999999999994" class="label" text-anchor="end">85%</text>
+<line x1="70" y1="254.99999999999994" x2="570" y2="254.99999999999994" stroke="#eee"/>
+<text x="62" y="194.00000000000003" class="label" text-anchor="end">90%</text>
+<line x1="70" y1="190.00000000000003" x2="570" y2="190.00000000000003" stroke="#eee"/>
+<text x="62" y="128.99999999999997" class="label" text-anchor="end">95%</text>
+<line x1="70" y1="124.99999999999997" x2="570" y2="124.99999999999997" stroke="#eee"/>
+<text x="62" y="64.00000000000006" class="label" text-anchor="end">100%</text>
+<line x1="70" y1="60.00000000000006" x2="570" y2="60.00000000000006" stroke="#eee"/>
+<rect x="82.5" y="158.8" width="58.33333333333333" height="161.2" fill="#4CAF50" rx="2"/>
+<text x="111.66666666666666" y="153.8" class="value" text-anchor="middle">92.4%</text>
+<text x="111.66666666666666" y="335" class="label" text-anchor="middle" transform="rotate(-25, 111.66666666666666, 335)">Full CMVK</text>
+<rect x="165.83333333333331" y="252.4000000000001" width="58.33333333333333" height="67.59999999999991" fill="#FF9800" rx="2"/>
+<text x="194.99999999999997" y="247.4000000000001" class="value" text-anchor="middle">85.2%</text>
+<text x="194.99999999999997" y="335" class="label" text-anchor="middle" transform="rotate(-25, 194.99999999999997, 335)">− Cross-model</text>
+<rect x="249.16666666666666" y="195.20000000000005" width="58.33333333333333" height="124.79999999999997" fill="#FF9800" rx="2"/>
+<text x="278.3333333333333" y="190.20000000000005" class="value" text-anchor="middle">89.6%</text>
+<text x="278.3333333333333" y="335" class="label" text-anchor="middle" transform="rotate(-25, 278.3333333333333, 335)">− Prosecutor</text>
+<rect x="332.5" y="188.70000000000002" width="58.33333333333333" height="131.29999999999998" fill="#FF9800" rx="2"/>
+<text x="361.6666666666667" y="183.70000000000002" class="value" text-anchor="middle">90.1%</text>
+<text x="361.6666666666667" y="335" class="label" text-anchor="middle" transform="rotate(-25, 361.6666666666667, 335)">− Banning</text>
+<rect x="415.8333333333333" y="174.4" width="58.33333333333333" height="145.6" fill="#FF9800" rx="2"/>
+<text x="445.0" y="169.4" class="value" text-anchor="middle">91.2%</text>
+<text x="445.0" y="335" class="label" text-anchor="middle" transform="rotate(-25, 445.0, 335)">− Graph</text>
+<rect x="499.16666666666663" y="225.10000000000008" width="58.33333333333333" height="94.89999999999993" fill="#FF9800" rx="2"/>
+<text x="528.3333333333333" y="220.10000000000008" class="value" text-anchor="middle">87.3%</text>
+<text x="528.3333333333333" y="335" class="label" text-anchor="middle" transform="rotate(-25, 528.3333333333333, 335)">k=1 loop</text>
+</svg>

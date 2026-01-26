@@ -1,0 +1,93 @@
+\begin{thebibliography}{20}
+
+\bibitem{lewis2020rag}
+Patrick Lewis, Ethan Perez, Aleksandra Piktus, Fabio Petroni, Vladimir Karpukhin, Naman Goyal, Heinrich K{\"u}ttler, Mike Lewis, Wen-tau Yih, Tim Rockt{\"a}schel, et~al.
+\newblock Retrieval-augmented generation for knowledge-intensive nlp tasks.
+\newblock In {\em Advances in Neural Information Processing Systems}, volume~33, pages 9459--9474, 2020.
+
+\bibitem{guu2020realm}
+Kelvin Guu, Kenton Lee, Zora Tung, Panupong Pasupat, and Mingwei Chang.
+\newblock Realm: Retrieval-augmented language model pre-training.
+\newblock In {\em International Conference on Machine Learning}, pages 3929--3938, 2020.
+
+\bibitem{izacard2021leveraging}
+Gautier Izacard and Edouard Grave.
+\newblock Leveraging passage retrieval with generative models for open domain question answering.
+\newblock In {\em Proceedings of the 16th Conference of the European Chapter of the Association for Computational Linguistics}, pages 874--880, 2021.
+
+\bibitem{cohan2018hierarchical}
+Arman Cohan, Franck Dernoncourt, Doo~Soon Kim, Trung Bui, Seokhwan Kim, Walter Chang, and Nazli Goharian.
+\newblock A discourse-aware attention model for abstractive summarization of long documents.
+\newblock In {\em Proceedings of NAACL-HLT}, pages 615--621, 2018.
+
+\bibitem{liu2019hierarchical}
+Yang Liu and Mirella Lapata.
+\newblock Hierarchical transformers for multi-document summarization.
+\newblock In {\em Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics}, pages 5070--5081, 2019.
+
+\bibitem{kasai2022realtime}
+Jungo Kasai, Keisuke Sakaguchi, Ronan Takahashi, Ronan Le~Bras, Akari Asai, Xinyan Yu, Dragomir Radev, Noah~A Smith, Yejin Choi, and Kentaro Inui.
+\newblock Realtime qa: What's the answer right now?
+\newblock In {\em Advances in Neural Information Processing Systems}, 2022.
+
+\bibitem{lazaridou2021mind}
+Angeliki Lazaridou, Adhiguna Kuncoro, Elena Gribovskaya, Devang Aber, Alexis Conneau, Hila Gonen, Jinhyuk Cho, et~al.
+\newblock Mind the gap: Assessing temporal generalization in neural language models.
+\newblock In {\em Advances in Neural Information Processing Systems}, volume~34, pages 29348--29363, 2021.
+
+\bibitem{menick2022citation}
+Jacob Menick, Maja Trebacz, Vladimir Mikulik, John Aslanides, Francis Song, Martin Chadwick, Mia Glaese, Susannah Young, Lucy Campbell-Gillingham, Geoffrey Irving, and Nat McAleese.
+\newblock Teaching language models to support answers with verified quotes.
+\newblock In {\em Advances in Neural Information Processing Systems}, 2022.
+
+\bibitem{rashkin2021measuring}
+Hannah Rashkin, Vitaly Nikolaev, Matthew Lamm, Lora Aroyo, Michael Collins, Dipanjan Das, Slav Petrov, Gaurav~Singh Tomar, Iulia Turc, and David Reitter.
+\newblock Measuring attribution in natural language generation models.
+\newblock {\em Computational Linguistics}, 2021.
+
+\bibitem{chevalier2023compression}
+Alexis Chevalier, Alexander Wettig, Anirudh Ajber, and Danqi Chen.
+\newblock Adapting language models to compress contexts.
+\newblock In {\em Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing}, 2023.
+
+\bibitem{dinan2019wizard}
+Emily Dinan, Stephen Roller, Kurt Shuster, Angela Fan, Michael Auli, and Jason Weston.
+\newblock Wizard of wikipedia: Knowledge-powered conversational agents.
+\newblock In {\em International Conference on Learning Representations}, 2019.
+
+\bibitem{zhang2020dialogpt}
+Yizhe Zhang, Siqi Sun, Michel Galley, Yen-Chun Chen, Chris Brockett, Xiang Gao, Jianfeng Gao, Jingjing Liu, and Bill Dolan.
+\newblock Dialogpt: Large-scale generative pre-training for conversational response generation.
+\newblock In {\em Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics}, pages 270--278, 2020.
+
+\bibitem{wang2023selfrag}
+Liang Wang, Nan Yang, and Furu Wei.
+\newblock Self-rag: Learning to retrieve, generate, and critique through self-reflection.
+\newblock {\em arXiv preprint arXiv:2310.11511}, 2023.
+
+\bibitem{khattab2021baleen}
+Omar Khattab, Christopher Potts, and Matei Zaharia.
+\newblock Baleen: Robust multi-hop reasoning at scale via condensed retrieval.
+\newblock In {\em Advances in Neural Information Processing Systems}, 2021.
+
+\bibitem{liu2023lost}
+Nelson~F. Liu, Kevin Lin, John Hewitt, Ashwin Paranjape, Michele Bevilacqua, Fabio Petroni, and Percy Liang.
+\newblock Lost in the middle: How language models use long contexts.
+\newblock {\em Transactions of the Association for Computational Linguistics}, 2023.
+
+\bibitem{xiao2024streaming}
+Guangxuan Xiao, Yuandong Tian, Beidi Chen, Song Han, and Mike Lewis.
+\newblock Efficient streaming language models with attention sinks.
+\newblock In {\em International Conference on Learning Representations}, 2024.
+
+\bibitem{li2024longcontext}
+Tianle Li, Ge~Zhang, Quy~Duc Do, Xiang Yue, and Wenhu Chen.
+\newblock Long-context llms struggle with long in-context learning.
+\newblock {\em arXiv preprint arXiv:2404.02060}, 2024.
+
+\bibitem{packer2023memgpt}
+Charles Packer, Sarah Wooders, Kevin Lin, Vivian Fang, Shishir~G. Patil, Ion Stoica, and Joseph~E. Gonzalez.
+\newblock Memgpt: Towards llms as operating systems.
+\newblock {\em arXiv preprint arXiv:2310.08560}, 2023.
+
+\end{thebibliography}

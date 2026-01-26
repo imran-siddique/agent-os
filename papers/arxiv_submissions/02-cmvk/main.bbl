@@ -1,0 +1,81 @@
+\begin{thebibliography}{10}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Bai et~al.(2022)Bai, Kadavath, Kundu, Askell, Kernion, Jones, Chen,
+  Goldie, Mirhoseini, McKinnon, et~al.]{bai2022constitutional}
+Yuntao Bai, Saurav Kadavath, Sandipan Kundu, Amanda Askell, Jackson Kernion,
+  Andy Jones, Anna Chen, Anna Goldie, Azalia Mirhoseini, Cameron McKinnon,
+  et~al.
+\newblock Constitutional ai: Harmlessness from ai feedback.
+\newblock \emph{arXiv preprint arXiv:2212.08073}, 2022.
+
+\bibitem[Chen et~al.(2022)Chen, Zhang, Nguyen, Zan, Lin, Lou, and
+  Chen]{chen2022codet}
+Bei Chen, Fengji Zhang, Anh Nguyen, Daoguang Zan, Zeqi Lin, Jian-Guang Lou, and
+  Weizhu Chen.
+\newblock Codet: Code generation with generated tests.
+\newblock \emph{arXiv preprint arXiv:2207.10397}, 2022.
+
+\bibitem[Chen et~al.(2021)Chen, Tworek, Jun, Yuan, Pinto, Kaplan, Edwards,
+  Burda, Joseph, Brockman, et~al.]{chen2021evaluating}
+Mark Chen, Jerry Tworek, Heewoo Jun, Qiming Yuan, Henrique Ponde de~Oliveira
+  Pinto, Jared Kaplan, Harri Edwards, Yuri Burda, Nicholas Joseph, Greg
+  Brockman, et~al.
+\newblock Evaluating large language models trained on code.
+\newblock \emph{arXiv preprint arXiv:2107.03374}, 2021.
+
+\bibitem[Chen et~al.(2023)Chen, Lin, Sch{\"a}rli, and Zhou]{chen2023teaching}
+Xinyun Chen, Maxwell Lin, Nathanael Sch{\"a}rli, and Denny Zhou.
+\newblock Teaching large language models to self-debug.
+\newblock \emph{arXiv preprint arXiv:2304.05128}, 2023.
+
+\bibitem[Dhuliawala et~al.(2023)Dhuliawala, Komeili, Xu, Raber, Li,
+  Celikyilmaz, and Weston]{dhuliawala2023chain}
+Shehzaad Dhuliawala, Mojtaba Komeili, Jing Xu, Roberta Raber, Xian Li, Asli
+  Celikyilmaz, and Jason Weston.
+\newblock Chain-of-verification reduces hallucination in large language models.
+\newblock \emph{arXiv preprint arXiv:2309.11495}, 2023.
+
+\bibitem[Du et~al.(2023)Du, Li, Torralba, Tenenbaum, and
+  Mordatch]{du2023improving}
+Yilun Du, Shuang Li, Antonio Torralba, Joshua~B Tenenbaum, and Igor Mordatch.
+\newblock Improving factuality and reasoning in language models through
+  multiagent debate.
+\newblock \emph{arXiv preprint arXiv:2305.14325}, 2023.
+
+\bibitem[Li et~al.(2023)Li, Hammoud, Itani, Khizbullin, and
+  Ghanem]{li2023camel}
+Guohao Li, Hasan Abed Al~Kader Hammoud, Hani Itani, Dmitrii Khizbullin, and
+  Bernard Ghanem.
+\newblock Camel: Communicative agents for "mind" exploration of large language
+  model society.
+\newblock \emph{arXiv preprint arXiv:2303.17760}, 2023.
+
+\bibitem[Li et~al.(2022)Li, Choi, Chung, Kushman, Schrittwieser, Leblond,
+  Eccles, Keeling, Gimeno, Dal~Lago, et~al.]{li2022competition}
+Yujia Li, David Choi, Junyoung Chung, Nate Kushman, Julian Schrittwieser,
+  R{\'e}mi Leblond, Tom Eccles, James Keeling, Felix Gimeno, Agustin Dal~Lago,
+  et~al.
+\newblock Competition-level code generation with alphacode.
+\newblock \emph{Science}, 378\penalty0 (6624):\penalty0 1092--1097, 2022.
+
+\bibitem[Madaan et~al.(2023)Madaan, Tandon, Gupta, Hallinan, Gao, Wiegreffe,
+  Alon, Dziri, Prabhumoye, Yang, et~al.]{madaan2023selfrefine}
+Aman Madaan, Niket Tandon, Prakhar Gupta, Skyler Hallinan, Luyu Gao, Sarah
+  Wiegreffe, Uri Alon, Nouha Dziri, Shrimai Prabhumoye, Yiming Yang, et~al.
+\newblock Self-refine: Iterative refinement with self-feedback.
+\newblock \emph{arXiv preprint arXiv:2303.17651}, 2023.
+
+\bibitem[Wu et~al.(2023)Wu, Bansal, Zhang, Wu, Li, Zhu, Jiang, Zhang, Zhang,
+  Liu, et~al.]{wu2023autogen}
+Qingyun Wu, Gagan Bansal, Jieyu Zhang, Yiran Wu, Beibin Li, Erkang Zhu,
+  Li~Jiang, Xiaoyun Zhang, Shaokun Zhang, Jiale Liu, et~al.
+\newblock Autogen: Enabling next-gen llm applications via multi-agent
+  conversation.
+\newblock \emph{arXiv preprint arXiv:2308.08155}, 2023.
+
+\end{thebibliography}

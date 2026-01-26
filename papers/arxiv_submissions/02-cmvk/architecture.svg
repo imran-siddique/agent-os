@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#333"/>
+    </marker>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.2"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="500" fill="#fafafa"/>
+
+  <!-- Title -->
+  <text x="400" y="35" font-family="Arial, sans-serif" font-size="20" font-weight="bold" text-anchor="middle" fill="#333">
+    Cross-Model Verification Kernel (CMVK) Architecture
+  </text>
+
+  <!-- Kernel Box -->
+  <rect x="200" y="60" width="400" height="100" rx="10" fill="#E8F5E9" stroke="#4CAF50" stroke-width="2" filter="url(#shadow)"/>
+  <text x="400" y="90" font-family="Arial, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="#2E7D32">
+    Verification Kernel (Arbiter)
+  </text>
+  <text x="400" y="115" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#555">
+    Loop Control • Strategy Banning • Decision Logic
+  </text>
+  <text x="400" y="135" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#555">
+    Deterministic Python Implementation
+  </text>
+
+  <!-- Generator Box -->
+  <rect x="50" y="220" width="200" height="120" rx="10" fill="#E3F2FD" stroke="#2196F3" stroke-width="2" filter="url(#shadow)"/>
+  <text x="150" y="255" font-family="Arial, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="#1565C0">
+    Generator (System 1)
+  </text>
+  <text x="150" y="280" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#555">
+    GPT-4o / o1 / Claude
+  </text>
+  <text x="150" y="300" font-family="Arial, sans-serif" font-size="11" text-anchor="middle" fill="#777">
+    High creativity
+  </text>
+  <text x="150" y="318" font-family="Arial, sans-serif" font-size="11" text-anchor="middle" fill="#777">
+    Fast code synthesis
+  </text>
+
+  <!-- Verifier Box -->
+  <rect x="550" y="220" width="200" height="120" rx="10" fill="#FFEBEE" stroke="#F44336" stroke-width="2" filter="url(#shadow)"/>
+  <text x="650" y="255" font-family="Arial, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="#C62828">
+    Verifier (System 2)
+  </text>
+  <text x="650" y="280" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#555">
+    Gemini / Claude / GPT-4o
+  </text>
+  <text x="650" y="300" font-family="Arial, sans-serif" font-size="11" text-anchor="middle" fill="#777">
+    Adversarial review
+  </text>
+  <text x="650" y="318" font-family="Arial, sans-serif" font-size="11" text-anchor="middle" fill="#777">
+    Prosecutor Mode
+  </text>
+
+  <!-- Graph of Truth Box -->
+  <rect x="300" y="390" width="200" height="90" rx="10" fill="#F3E5F5" stroke="#9C27B0" stroke-width="2" filter="url(#shadow)"/>
+  <text x="400" y="420" font-family="Arial, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="#6A1B9A">
+    Graph of Truth
+  </text>
+  <text x="400" y="445" font-family="Arial, sans-serif" font-size="11" text-anchor="middle" fill="#555">
+    State Cache • Strategy Bans
+  </text>
+  <text x="400" y="463" font-family="Arial, sans-serif" font-size="11" text-anchor="middle" fill="#555">
+    Solution History
+  </text>
+
+  <!-- Arrows -->
+  <!-- Kernel to Generator -->
+  <path d="M 250 160 L 150 220" stroke="#333" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+  <text x="180" y="185" font-family="Arial, sans-serif" font-size="10" fill="#555">Task +</text>
+  <text x="180" y="197" font-family="Arial, sans-serif" font-size="10" fill="#555">Banned</text>
+
+  <!-- Generator to Kernel -->
+  <path d="M 200 220 L 300 160" stroke="#333" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+  <text x="230" y="175" font-family="Arial, sans-serif" font-size="10" fill="#555">Solution</text>
+
+  <!-- Kernel to Verifier -->
+  <path d="M 550 160 L 650 220" stroke="#333" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+  <text x="620" y="185" font-family="Arial, sans-serif" font-size="10" fill="#555">Code +</text>
+  <text x="620" y="197" font-family="Arial, sans-serif" font-size="10" fill="#555">Tests</text>
+
+  <!-- Verifier to Kernel -->
+  <path d="M 600 220 L 500 160" stroke="#333" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+  <text x="530" y="175" font-family="Arial, sans-serif" font-size="10" fill="#555">Verdict</text>
+
+  <!-- Generator-Verifier bidirectional -->
+  <path d="M 250 280 L 550 280" stroke="#E91E63" stroke-width="2" stroke-dasharray="5,5" fill="none"/>
+  <text x="400" y="270" font-family="Arial, sans-serif" font-size="11" font-style="italic" text-anchor="middle" fill="#C2185B">
+    Adversarial Dialogue
+  </text>
+
+  <!-- To Graph of Truth -->
+  <path d="M 400 160 L 400 390" stroke="#9C27B0" stroke-width="2" stroke-dasharray="3,3" fill="none" marker-end="url(#arrowhead)"/>
+  <text x="415" y="300" font-family="Arial, sans-serif" font-size="10" fill="#7B1FA2">State Updates</text>
+
+  <!-- Legend -->
+  <rect x="30" y="440" width="15" height="15" fill="#E3F2FD" stroke="#2196F3"/>
+  <text x="50" y="452" font-family="Arial, sans-serif" font-size="10" fill="#333">Generator</text>
+
+  <rect x="120" y="440" width="15" height="15" fill="#FFEBEE" stroke="#F44336"/>
+  <text x="140" y="452" font-family="Arial, sans-serif" font-size="10" fill="#333">Verifier</text>
+
+  <rect x="200" y="440" width="15" height="15" fill="#E8F5E9" stroke="#4CAF50"/>
+  <text x="220" y="452" font-family="Arial, sans-serif" font-size="10" fill="#333">Kernel</text>
+
+  <rect x="280" y="440" width="15" height="15" fill="#F3E5F5" stroke="#9C27B0"/>
+  <text x="300" y="452" font-family="Arial, sans-serif" font-size="10" fill="#333">State</text>
+</svg>
