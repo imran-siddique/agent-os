@@ -1,0 +1,2336 @@
+{
+  "config": {
+    "seed": 42,
+    "num_runs": 10,
+    "timestamp": "2026-01-23T23:24:37.544187+00:00",
+    "iatp_version": "0.3.1",
+    "python_version": "3.13.9 (tags/v3.13.9:8183fa5, Oct 14 2025, 14:09:13) [MSC v.1944 64 bit (AMD64)]"
+  },
+  "metrics": [
+    {
+      "name": "cascading_failure_prevention_rate",
+      "value": 100.0,
+      "unit": "%",
+      "description": "Percentage of malicious requests blocked or warned"
+    },
+    {
+      "name": "total_experiments",
+      "value": 250,
+      "unit": "count",
+      "description": "Total number of experiment runs"
+    },
+    {
+      "name": "requests_blocked",
+      "value": 40,
+      "unit": "count",
+      "description": "Number of requests blocked by IATP"
+    },
+    {
+      "name": "requests_warned",
+      "value": 80,
+      "unit": "count",
+      "description": "Number of requests that triggered warnings"
+    },
+    {
+      "name": "requests_allowed",
+      "value": 130,
+      "unit": "count",
+      "description": "Number of requests allowed through"
+    },
+    {
+      "name": "control_group_failures",
+      "value": 100,
+      "unit": "count",
+      "description": "Failures that would occur without IATP"
+    },
+    {
+      "name": "avg_latency",
+      "value": 0.0236,
+      "unit": "ms",
+      "description": "Average validation latency"
+    },
+    {
+      "name": "max_latency",
+      "value": 0.1042,
+      "unit": "ms",
+      "description": "Maximum validation latency"
+    },
+    {
+      "name": "min_latency",
+      "value": 0.0142,
+      "unit": "ms",
+      "description": "Minimum validation latency"
+    }
+  ],
+  "summary": {
+    "headline": "IATP prevents 100.0% of cascading failures",
+    "key_findings": [
+      "Blocked 40 malicious requests",
+      "Warned on 80 risky requests",
+      "Average latency overhead: 0.02ms",
+      "Control group would have 100 failures"
+    ],
+    "comparison": {
+      "control_group": {
+        "cascading_failures": 100,
+        "protection": "0%"
+      },
+      "iatp_protected": {
+        "cascading_failures": 0,
+        "protection": "100.0%"
+      }
+    }
+  },
+  "raw_results": [
+    {
+      "run_id": 0,
+      "scenario": "verified_secure_safe_read",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.10419997852295637,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 1,
+      "scenario": "verified_secure_safe_write",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.041599967516958714,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 2,
+      "scenario": "verified_secure_destructive",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.024499953724443913,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 3,
+      "scenario": "verified_secure_sensitive_pii",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.0868999632075429,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 4,
+      "scenario": "verified_secure_poisoned_injection",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.029099988751113415,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 5,
+      "scenario": "trusted_partial_safe_read",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.03290001768618822,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 6,
+      "scenario": "trusted_partial_safe_write",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.02289994154125452,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 7,
+      "scenario": "trusted_partial_destructive",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.018300022929906845,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 8,
+      "scenario": "trusted_partial_sensitive_pii",
+      "control_outcome": "success",
+      "iatp_outcome": "blocked",
+      "trust_score": 10,
+      "latency_ms": 0.043199979700148106,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 9,
+      "scenario": "trusted_partial_poisoned_injection",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.026499968953430653,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 10,
+      "scenario": "standard_unknown_safe_read",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 1,
+      "latency_ms": 0.04099996294826269,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 11,
+      "scenario": "standard_unknown_safe_write",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 1,
+      "latency_ms": 0.029999995604157448,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 12,
+      "scenario": "standard_unknown_destructive",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 1,
+      "latency_ms": 0.021000043489038944,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 13,
+      "scenario": "standard_unknown_sensitive_pii",
+      "control_outcome": "failure",
+      "iatp_outcome": "blocked",
+      "trust_score": 1,
+      "latency_ms": 0.03720005042850971,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 14,
+      "scenario": "standard_unknown_poisoned_injection",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 1,
+      "latency_ms": 0.026600086130201817,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 15,
+      "scenario": "untrusted_malicious_safe_read",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 0,
+      "latency_ms": 0.026999972760677338,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 16,
+      "scenario": "untrusted_malicious_safe_write",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 0,
+      "latency_ms": 0.02329994458705187,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 17,
+      "scenario": "untrusted_malicious_destructive",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 0,
+      "latency_ms": 0.018700025975704193,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 18,
+      "scenario": "untrusted_malicious_sensitive_pii",
+      "control_outcome": "failure",
+      "iatp_outcome": "blocked",
+      "trust_score": 0,
+      "latency_ms": 0.03300001844763756,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 19,
+      "scenario": "untrusted_malicious_poisoned_injection",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 0,
+      "latency_ms": 0.028399983420968056,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 20,
+      "scenario": "trusted_bad_privacy_safe_read",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 7,
+      "latency_ms": 0.02259993925690651,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 21,
+      "scenario": "trusted_bad_privacy_safe_write",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 7,
+      "latency_ms": 0.02220005262643099,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 22,
+      "scenario": "trusted_bad_privacy_destructive",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 7,
+      "latency_ms": 0.017400016076862812,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 23,
+      "scenario": "trusted_bad_privacy_sensitive_pii",
+      "control_outcome": "success",
+      "iatp_outcome": "blocked",
+      "trust_score": 7,
+      "latency_ms": 0.030800001695752144,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 24,
+      "scenario": "trusted_bad_privacy_poisoned_injection",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 7,
+      "latency_ms": 0.024399952962994576,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 25,
+      "scenario": "verified_secure_safe_read",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.020700041204690933,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 26,
+      "scenario": "verified_secure_safe_write",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.021699932403862476,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 27,
+      "scenario": "verified_secure_destructive",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.017700018361210823,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 28,
+      "scenario": "verified_secure_sensitive_pii",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.031000003218650818,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 29,
+      "scenario": "verified_secure_poisoned_injection",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.024099950678646564,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 30,
+      "scenario": "trusted_partial_safe_read",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.02110004425048828,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 31,
+      "scenario": "trusted_partial_safe_write",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.021400046534836292,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 32,
+      "scenario": "trusted_partial_destructive",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.018600025214254856,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 33,
+      "scenario": "trusted_partial_sensitive_pii",
+      "control_outcome": "success",
+      "iatp_outcome": "blocked",
+      "trust_score": 10,
+      "latency_ms": 0.03250001464039087,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 34,
+      "scenario": "trusted_partial_poisoned_injection",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.023400061763823032,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 35,
+      "scenario": "standard_unknown_safe_read",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 1,
+      "latency_ms": 0.023499946109950542,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 36,
+      "scenario": "standard_unknown_safe_write",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 1,
+      "latency_ms": 0.02359994687139988,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 37,
+      "scenario": "standard_unknown_destructive",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 1,
+      "latency_ms": 0.019000028260052204,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 38,
+      "scenario": "standard_unknown_sensitive_pii",
+      "control_outcome": "failure",
+      "iatp_outcome": "blocked",
+      "trust_score": 1,
+      "latency_ms": 0.031400006264448166,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 39,
+      "scenario": "standard_unknown_poisoned_injection",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 1,
+      "latency_ms": 0.02629996743053198,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 40,
+      "scenario": "untrusted_malicious_safe_read",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 0,
+      "latency_ms": 0.02189993392676115,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 41,
+      "scenario": "untrusted_malicious_safe_write",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 0,
+      "latency_ms": 0.02320006024092436,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 42,
+      "scenario": "untrusted_malicious_destructive",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 0,
+      "latency_ms": 0.018399907276034355,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 43,
+      "scenario": "untrusted_malicious_sensitive_pii",
+      "control_outcome": "failure",
+      "iatp_outcome": "blocked",
+      "trust_score": 0,
+      "latency_ms": 0.030700000934302807,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 44,
+      "scenario": "untrusted_malicious_poisoned_injection",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 0,
+      "latency_ms": 0.024699955247342587,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 45,
+      "scenario": "trusted_bad_privacy_safe_read",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 7,
+      "latency_ms": 0.022500054910779,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 46,
+      "scenario": "trusted_bad_privacy_safe_write",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 7,
+      "latency_ms": 0.021799933165311813,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 47,
+      "scenario": "trusted_bad_privacy_destructive",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 7,
+      "latency_ms": 0.03890006337314844,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 48,
+      "scenario": "trusted_bad_privacy_sensitive_pii",
+      "control_outcome": "success",
+      "iatp_outcome": "blocked",
+      "trust_score": 7,
+      "latency_ms": 0.031100003980100155,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 49,
+      "scenario": "trusted_bad_privacy_poisoned_injection",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 7,
+      "latency_ms": 0.02420006785541773,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 50,
+      "scenario": "verified_secure_safe_read",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.01950003206729889,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 51,
+      "scenario": "verified_secure_safe_write",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.021200045011937618,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 52,
+      "scenario": "verified_secure_destructive",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.016399892047047615,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 53,
+      "scenario": "verified_secure_sensitive_pii",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.0295999925583601,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 54,
+      "scenario": "verified_secure_poisoned_injection",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.023700064048171043,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 55,
+      "scenario": "trusted_partial_safe_read",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.02059992402791977,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 56,
+      "scenario": "trusted_partial_safe_write",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.021600048057734966,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 57,
+      "scenario": "trusted_partial_destructive",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.01989991869777441,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 58,
+      "scenario": "trusted_partial_sensitive_pii",
+      "control_outcome": "success",
+      "iatp_outcome": "blocked",
+      "trust_score": 10,
+      "latency_ms": 0.0295999925583601,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 59,
+      "scenario": "trusted_partial_poisoned_injection",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.024000066332519054,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 60,
+      "scenario": "standard_unknown_safe_read",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 1,
+      "latency_ms": 0.024700071662664413,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 61,
+      "scenario": "standard_unknown_safe_write",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 1,
+      "latency_ms": 0.024000066332519054,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 62,
+      "scenario": "standard_unknown_destructive",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 1,
+      "latency_ms": 0.019099912606179714,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 63,
+      "scenario": "standard_unknown_sensitive_pii",
+      "control_outcome": "failure",
+      "iatp_outcome": "blocked",
+      "trust_score": 1,
+      "latency_ms": 0.031400006264448166,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 64,
+      "scenario": "standard_unknown_poisoned_injection",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 1,
+      "latency_ms": 0.025499961338937283,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 65,
+      "scenario": "untrusted_malicious_safe_read",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 0,
+      "latency_ms": 0.021900050342082977,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 66,
+      "scenario": "untrusted_malicious_safe_write",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 0,
+      "latency_ms": 0.026999972760677338,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 67,
+      "scenario": "untrusted_malicious_destructive",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 0,
+      "latency_ms": 0.018000020645558834,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 68,
+      "scenario": "untrusted_malicious_sensitive_pii",
+      "control_outcome": "failure",
+      "iatp_outcome": "blocked",
+      "trust_score": 0,
+      "latency_ms": 0.030399998649954796,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 69,
+      "scenario": "untrusted_malicious_poisoned_injection",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 0,
+      "latency_ms": 0.02680008765310049,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 70,
+      "scenario": "trusted_bad_privacy_safe_read",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 7,
+      "latency_ms": 0.020300038158893585,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 71,
+      "scenario": "trusted_bad_privacy_safe_write",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 7,
+      "latency_ms": 0.02110004425048828,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 72,
+      "scenario": "trusted_bad_privacy_destructive",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 7,
+      "latency_ms": 0.016999896615743637,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 73,
+      "scenario": "trusted_bad_privacy_sensitive_pii",
+      "control_outcome": "success",
+      "iatp_outcome": "blocked",
+      "trust_score": 7,
+      "latency_ms": 0.028699985705316067,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 74,
+      "scenario": "trusted_bad_privacy_poisoned_injection",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 7,
+      "latency_ms": 0.023000058718025684,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 75,
+      "scenario": "verified_secure_safe_read",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.0195999164134264,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 76,
+      "scenario": "verified_secure_safe_write",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.021000043489038944,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 77,
+      "scenario": "verified_secure_destructive",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.0168998958542943,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 78,
+      "scenario": "verified_secure_sensitive_pii",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.02819998189806938,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 79,
+      "scenario": "verified_secure_poisoned_injection",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.02320006024092436,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 80,
+      "scenario": "trusted_partial_safe_read",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.02089992631226778,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 81,
+      "scenario": "trusted_partial_safe_write",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.021400046534836292,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 82,
+      "scenario": "trusted_partial_destructive",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.018499908037483692,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 83,
+      "scenario": "trusted_partial_sensitive_pii",
+      "control_outcome": "success",
+      "iatp_outcome": "blocked",
+      "trust_score": 10,
+      "latency_ms": 0.0295999925583601,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 84,
+      "scenario": "trusted_partial_poisoned_injection",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.023400061763823032,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 85,
+      "scenario": "standard_unknown_safe_read",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 1,
+      "latency_ms": 0.022999942302703857,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 86,
+      "scenario": "standard_unknown_safe_write",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 1,
+      "latency_ms": 0.023099943064153194,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 87,
+      "scenario": "standard_unknown_destructive",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 1,
+      "latency_ms": 0.019300030544400215,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 88,
+      "scenario": "standard_unknown_sensitive_pii",
+      "control_outcome": "failure",
+      "iatp_outcome": "blocked",
+      "trust_score": 1,
+      "latency_ms": 0.03029999788850546,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 89,
+      "scenario": "standard_unknown_poisoned_injection",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 1,
+      "latency_ms": 0.025499961338937283,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 90,
+      "scenario": "untrusted_malicious_safe_read",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 0,
+      "latency_ms": 0.021499930880963802,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 91,
+      "scenario": "untrusted_malicious_safe_write",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 0,
+      "latency_ms": 0.02280005719512701,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 92,
+      "scenario": "untrusted_malicious_destructive",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 0,
+      "latency_ms": 0.021399930119514465,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 93,
+      "scenario": "untrusted_malicious_sensitive_pii",
+      "control_outcome": "failure",
+      "iatp_outcome": "blocked",
+      "trust_score": 0,
+      "latency_ms": 0.030800001695752144,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 94,
+      "scenario": "untrusted_malicious_poisoned_injection",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 0,
+      "latency_ms": 0.025799963623285294,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 95,
+      "scenario": "trusted_bad_privacy_safe_read",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 7,
+      "latency_ms": 0.02080004196614027,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 96,
+      "scenario": "trusted_bad_privacy_safe_write",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 7,
+      "latency_ms": 0.021099927835166454,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 97,
+      "scenario": "trusted_bad_privacy_destructive",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 7,
+      "latency_ms": 0.0171000137925148,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 98,
+      "scenario": "trusted_bad_privacy_sensitive_pii",
+      "control_outcome": "success",
+      "iatp_outcome": "blocked",
+      "trust_score": 7,
+      "latency_ms": 0.031400006264448166,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 99,
+      "scenario": "trusted_bad_privacy_poisoned_injection",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 7,
+      "latency_ms": 0.023699947632849216,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 100,
+      "scenario": "verified_secure_safe_read",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.019200029782950878,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 101,
+      "scenario": "verified_secure_safe_write",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.02089992631226778,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 102,
+      "scenario": "verified_secure_destructive",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.01650000922381878,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 103,
+      "scenario": "verified_secure_sensitive_pii",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.028699985705316067,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 104,
+      "scenario": "verified_secure_poisoned_injection",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.022699940018355846,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 105,
+      "scenario": "trusted_partial_safe_read",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.020200037397444248,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 106,
+      "scenario": "trusted_partial_safe_write",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.022699940018355846,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 107,
+      "scenario": "trusted_partial_destructive",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.016700010746717453,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 108,
+      "scenario": "trusted_partial_sensitive_pii",
+      "control_outcome": "success",
+      "iatp_outcome": "blocked",
+      "trust_score": 10,
+      "latency_ms": 0.028999987989664078,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 109,
+      "scenario": "trusted_partial_poisoned_injection",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.0241999514400959,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 110,
+      "scenario": "standard_unknown_safe_read",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 1,
+      "latency_ms": 0.02219993621110916,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 111,
+      "scenario": "standard_unknown_safe_write",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 1,
+      "latency_ms": 0.024000066332519054,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 112,
+      "scenario": "standard_unknown_destructive",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 1,
+      "latency_ms": 0.018799910321831703,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 113,
+      "scenario": "standard_unknown_sensitive_pii",
+      "control_outcome": "failure",
+      "iatp_outcome": "blocked",
+      "trust_score": 1,
+      "latency_ms": 0.03060000017285347,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 114,
+      "scenario": "standard_unknown_poisoned_injection",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 1,
+      "latency_ms": 0.024799956008791924,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 115,
+      "scenario": "untrusted_malicious_safe_read",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 0,
+      "latency_ms": 0.021600048057734966,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 116,
+      "scenario": "untrusted_malicious_safe_write",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 0,
+      "latency_ms": 0.022099935449659824,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 117,
+      "scenario": "untrusted_malicious_destructive",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 0,
+      "latency_ms": 0.01910002902150154,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 118,
+      "scenario": "untrusted_malicious_sensitive_pii",
+      "control_outcome": "failure",
+      "iatp_outcome": "blocked",
+      "trust_score": 0,
+      "latency_ms": 0.03090000245720148,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 119,
+      "scenario": "untrusted_malicious_poisoned_injection",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 0,
+      "latency_ms": 0.029699993319809437,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 120,
+      "scenario": "trusted_bad_privacy_safe_read",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 7,
+      "latency_ms": 0.021000043489038944,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 121,
+      "scenario": "trusted_bad_privacy_safe_write",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 7,
+      "latency_ms": 0.021499930880963802,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 122,
+      "scenario": "trusted_bad_privacy_destructive",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 7,
+      "latency_ms": 0.01650000922381878,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 123,
+      "scenario": "trusted_bad_privacy_sensitive_pii",
+      "control_outcome": "success",
+      "iatp_outcome": "blocked",
+      "trust_score": 7,
+      "latency_ms": 0.0295999925583601,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 124,
+      "scenario": "trusted_bad_privacy_poisoned_injection",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 7,
+      "latency_ms": 0.023300061002373695,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 125,
+      "scenario": "verified_secure_safe_read",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.03170000854879618,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 126,
+      "scenario": "verified_secure_safe_write",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.022000051103532314,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 127,
+      "scenario": "verified_secure_destructive",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.01650000922381878,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 128,
+      "scenario": "verified_secure_sensitive_pii",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.034800032153725624,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 129,
+      "scenario": "verified_secure_poisoned_injection",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.02319994382560253,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 130,
+      "scenario": "trusted_partial_safe_read",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.019300030544400215,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 131,
+      "scenario": "trusted_partial_safe_write",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.021499930880963802,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 132,
+      "scenario": "trusted_partial_destructive",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.015700003132224083,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 133,
+      "scenario": "trusted_partial_sensitive_pii",
+      "control_outcome": "success",
+      "iatp_outcome": "blocked",
+      "trust_score": 10,
+      "latency_ms": 0.02829998265951872,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 134,
+      "scenario": "trusted_partial_poisoned_injection",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.02210005186498165,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 135,
+      "scenario": "standard_unknown_safe_read",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 1,
+      "latency_ms": 0.022799940779805183,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 136,
+      "scenario": "standard_unknown_safe_write",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 1,
+      "latency_ms": 0.022400054149329662,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 137,
+      "scenario": "standard_unknown_destructive",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 1,
+      "latency_ms": 0.01780001912266016,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 138,
+      "scenario": "standard_unknown_sensitive_pii",
+      "control_outcome": "failure",
+      "iatp_outcome": "blocked",
+      "trust_score": 1,
+      "latency_ms": 0.029199989512562752,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 139,
+      "scenario": "standard_unknown_poisoned_injection",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 1,
+      "latency_ms": 0.023999949917197227,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 140,
+      "scenario": "untrusted_malicious_safe_read",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 0,
+      "latency_ms": 0.02010003663599491,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 141,
+      "scenario": "untrusted_malicious_safe_write",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 0,
+      "latency_ms": 0.02189993392676115,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 142,
+      "scenario": "untrusted_malicious_destructive",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 0,
+      "latency_ms": 0.017300015315413475,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 143,
+      "scenario": "untrusted_malicious_sensitive_pii",
+      "control_outcome": "failure",
+      "iatp_outcome": "blocked",
+      "trust_score": 0,
+      "latency_ms": 0.029799994081258774,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 144,
+      "scenario": "untrusted_malicious_poisoned_injection",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 0,
+      "latency_ms": 0.02289994154125452,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 145,
+      "scenario": "trusted_bad_privacy_safe_read",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 7,
+      "latency_ms": 0.01910002902150154,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 146,
+      "scenario": "trusted_bad_privacy_safe_write",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 7,
+      "latency_ms": 0.020200037397444248,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 147,
+      "scenario": "trusted_bad_privacy_destructive",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 7,
+      "latency_ms": 0.015900004655122757,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 148,
+      "scenario": "trusted_bad_privacy_sensitive_pii",
+      "control_outcome": "success",
+      "iatp_outcome": "blocked",
+      "trust_score": 7,
+      "latency_ms": 0.026600086130201817,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 149,
+      "scenario": "trusted_bad_privacy_poisoned_injection",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 7,
+      "latency_ms": 0.02280005719512701,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 150,
+      "scenario": "verified_secure_safe_read",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.018499908037483692,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 151,
+      "scenario": "verified_secure_safe_write",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.01950003206729889,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 152,
+      "scenario": "verified_secure_destructive",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.015500001609325409,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 153,
+      "scenario": "verified_secure_sensitive_pii",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.026699970476329327,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 154,
+      "scenario": "verified_secure_poisoned_injection",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.021300045773386955,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 155,
+      "scenario": "trusted_partial_safe_read",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.02080004196614027,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 156,
+      "scenario": "trusted_partial_safe_write",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.019900035113096237,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 157,
+      "scenario": "trusted_partial_destructive",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.016900012269616127,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 158,
+      "scenario": "trusted_partial_sensitive_pii",
+      "control_outcome": "success",
+      "iatp_outcome": "blocked",
+      "trust_score": 10,
+      "latency_ms": 0.02720009069889784,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 159,
+      "scenario": "trusted_partial_poisoned_injection",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.022399937734007835,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 160,
+      "scenario": "standard_unknown_safe_read",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 1,
+      "latency_ms": 0.021400046534836292,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 161,
+      "scenario": "standard_unknown_safe_write",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 1,
+      "latency_ms": 0.02450007013976574,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 162,
+      "scenario": "standard_unknown_destructive",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 1,
+      "latency_ms": 0.017600017599761486,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 163,
+      "scenario": "standard_unknown_sensitive_pii",
+      "control_outcome": "failure",
+      "iatp_outcome": "blocked",
+      "trust_score": 1,
+      "latency_ms": 0.028700102120637894,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 164,
+      "scenario": "standard_unknown_poisoned_injection",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 1,
+      "latency_ms": 0.024000066332519054,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 165,
+      "scenario": "untrusted_malicious_safe_read",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 0,
+      "latency_ms": 0.020699924789369106,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 166,
+      "scenario": "untrusted_malicious_safe_write",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 0,
+      "latency_ms": 0.02110004425048828,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 167,
+      "scenario": "untrusted_malicious_destructive",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 0,
+      "latency_ms": 0.017200014553964138,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 168,
+      "scenario": "untrusted_malicious_sensitive_pii",
+      "control_outcome": "failure",
+      "iatp_outcome": "blocked",
+      "trust_score": 0,
+      "latency_ms": 0.03790005575865507,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 169,
+      "scenario": "untrusted_malicious_poisoned_injection",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 0,
+      "latency_ms": 0.023499946109950542,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 170,
+      "scenario": "trusted_bad_privacy_safe_read",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 7,
+      "latency_ms": 0.01950003206729889,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 171,
+      "scenario": "trusted_bad_privacy_safe_write",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 7,
+      "latency_ms": 0.02019992098212242,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 172,
+      "scenario": "trusted_bad_privacy_destructive",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 7,
+      "latency_ms": 0.016300007700920105,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 173,
+      "scenario": "trusted_bad_privacy_sensitive_pii",
+      "control_outcome": "success",
+      "iatp_outcome": "blocked",
+      "trust_score": 7,
+      "latency_ms": 0.027699978090822697,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 174,
+      "scenario": "trusted_bad_privacy_poisoned_injection",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 7,
+      "latency_ms": 0.022300053387880325,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 175,
+      "scenario": "verified_secure_safe_read",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.01880002673715353,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 176,
+      "scenario": "verified_secure_safe_write",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.019300030544400215,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 177,
+      "scenario": "verified_secure_destructive",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.015900004655122757,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 178,
+      "scenario": "verified_secure_sensitive_pii",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.02720009069889784,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 179,
+      "scenario": "verified_secure_poisoned_injection",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.02189993392676115,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 180,
+      "scenario": "trusted_partial_safe_read",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.02050003968179226,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 181,
+      "scenario": "trusted_partial_safe_write",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.020099920220673084,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 182,
+      "scenario": "trusted_partial_destructive",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.015900004655122757,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 183,
+      "scenario": "trusted_partial_sensitive_pii",
+      "control_outcome": "success",
+      "iatp_outcome": "blocked",
+      "trust_score": 10,
+      "latency_ms": 0.026899971999228,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 184,
+      "scenario": "trusted_partial_poisoned_injection",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.021900050342082977,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 185,
+      "scenario": "standard_unknown_safe_read",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 1,
+      "latency_ms": 0.021099927835166454,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 186,
+      "scenario": "standard_unknown_safe_write",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 1,
+      "latency_ms": 0.02210005186498165,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 187,
+      "scenario": "standard_unknown_destructive",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 1,
+      "latency_ms": 0.01780001912266016,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 188,
+      "scenario": "standard_unknown_sensitive_pii",
+      "control_outcome": "failure",
+      "iatp_outcome": "blocked",
+      "trust_score": 1,
+      "latency_ms": 0.031100003980100155,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 189,
+      "scenario": "standard_unknown_poisoned_injection",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 1,
+      "latency_ms": 0.023799948394298553,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 190,
+      "scenario": "untrusted_malicious_safe_read",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 0,
+      "latency_ms": 0.019900035113096237,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 191,
+      "scenario": "untrusted_malicious_safe_write",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 0,
+      "latency_ms": 0.02159993164241314,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 192,
+      "scenario": "untrusted_malicious_destructive",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 0,
+      "latency_ms": 0.018400023691356182,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 193,
+      "scenario": "untrusted_malicious_sensitive_pii",
+      "control_outcome": "failure",
+      "iatp_outcome": "blocked",
+      "trust_score": 0,
+      "latency_ms": 0.031200004741549492,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 194,
+      "scenario": "untrusted_malicious_poisoned_injection",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 0,
+      "latency_ms": 0.023099943064153194,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 195,
+      "scenario": "trusted_bad_privacy_safe_read",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 7,
+      "latency_ms": 0.019700033590197563,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 196,
+      "scenario": "trusted_bad_privacy_safe_write",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 7,
+      "latency_ms": 0.019900035113096237,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 197,
+      "scenario": "trusted_bad_privacy_destructive",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 7,
+      "latency_ms": 0.01580000389367342,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 198,
+      "scenario": "trusted_bad_privacy_sensitive_pii",
+      "control_outcome": "success",
+      "iatp_outcome": "blocked",
+      "trust_score": 7,
+      "latency_ms": 0.026600086130201817,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 199,
+      "scenario": "trusted_bad_privacy_poisoned_injection",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 7,
+      "latency_ms": 0.02180004958063364,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 200,
+      "scenario": "verified_secure_safe_read",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.018400023691356182,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 201,
+      "scenario": "verified_secure_safe_write",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.019900035113096237,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 202,
+      "scenario": "verified_secure_destructive",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.015400000847876072,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 203,
+      "scenario": "verified_secure_sensitive_pii",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.026999972760677338,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 204,
+      "scenario": "verified_secure_poisoned_injection",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.02150004729628563,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 205,
+      "scenario": "trusted_partial_safe_read",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.020400038920342922,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 206,
+      "scenario": "trusted_partial_safe_write",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.020200037397444248,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 207,
+      "scenario": "trusted_partial_destructive",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.01619989052414894,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 208,
+      "scenario": "trusted_partial_sensitive_pii",
+      "control_outcome": "success",
+      "iatp_outcome": "blocked",
+      "trust_score": 10,
+      "latency_ms": 0.02750009298324585,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 209,
+      "scenario": "trusted_partial_poisoned_injection",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.03370002377778292,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 210,
+      "scenario": "standard_unknown_safe_read",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 1,
+      "latency_ms": 0.021300045773386955,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 211,
+      "scenario": "standard_unknown_safe_write",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 1,
+      "latency_ms": 0.020999927073717117,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 212,
+      "scenario": "standard_unknown_destructive",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 1,
+      "latency_ms": 0.0171000137925148,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 213,
+      "scenario": "standard_unknown_sensitive_pii",
+      "control_outcome": "failure",
+      "iatp_outcome": "blocked",
+      "trust_score": 1,
+      "latency_ms": 0.02859998494386673,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 214,
+      "scenario": "standard_unknown_poisoned_injection",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 1,
+      "latency_ms": 0.022699940018355846,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 215,
+      "scenario": "untrusted_malicious_safe_read",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 0,
+      "latency_ms": 0.01950003206729889,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 216,
+      "scenario": "untrusted_malicious_safe_write",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 0,
+      "latency_ms": 0.020399922505021095,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 217,
+      "scenario": "untrusted_malicious_destructive",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 0,
+      "latency_ms": 0.01780001912266016,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 218,
+      "scenario": "untrusted_malicious_sensitive_pii",
+      "control_outcome": "failure",
+      "iatp_outcome": "blocked",
+      "trust_score": 0,
+      "latency_ms": 0.026799971237778664,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 219,
+      "scenario": "untrusted_malicious_poisoned_injection",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 0,
+      "latency_ms": 0.0241999514400959,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 220,
+      "scenario": "trusted_bad_privacy_safe_read",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 7,
+      "latency_ms": 0.017700018361210823,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 221,
+      "scenario": "trusted_bad_privacy_safe_write",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 7,
+      "latency_ms": 0.01950003206729889,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 222,
+      "scenario": "trusted_bad_privacy_destructive",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 7,
+      "latency_ms": 0.014499993994832039,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 223,
+      "scenario": "trusted_bad_privacy_sensitive_pii",
+      "control_outcome": "success",
+      "iatp_outcome": "blocked",
+      "trust_score": 7,
+      "latency_ms": 0.026899971999228,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 224,
+      "scenario": "trusted_bad_privacy_poisoned_injection",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 7,
+      "latency_ms": 0.021099927835166454,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 225,
+      "scenario": "verified_secure_safe_read",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.01780001912266016,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 226,
+      "scenario": "verified_secure_safe_write",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.018200022168457508,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 227,
+      "scenario": "verified_secure_destructive",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.014199991710484028,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 228,
+      "scenario": "verified_secure_sensitive_pii",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.028000096790492535,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 229,
+      "scenario": "verified_secure_poisoned_injection",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.02189993392676115,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 230,
+      "scenario": "trusted_partial_safe_read",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.018000020645558834,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 231,
+      "scenario": "trusted_partial_safe_write",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.019299914129078388,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 232,
+      "scenario": "trusted_partial_destructive",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.014999997802078724,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 233,
+      "scenario": "trusted_partial_sensitive_pii",
+      "control_outcome": "success",
+      "iatp_outcome": "blocked",
+      "trust_score": 10,
+      "latency_ms": 0.026099965907633305,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 234,
+      "scenario": "trusted_partial_poisoned_injection",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 10,
+      "latency_ms": 0.02080004196614027,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 235,
+      "scenario": "standard_unknown_safe_read",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 1,
+      "latency_ms": 0.020600040443241596,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 236,
+      "scenario": "standard_unknown_safe_write",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 1,
+      "latency_ms": 0.02050003968179226,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 237,
+      "scenario": "standard_unknown_destructive",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 1,
+      "latency_ms": 0.017200014553964138,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 238,
+      "scenario": "standard_unknown_sensitive_pii",
+      "control_outcome": "failure",
+      "iatp_outcome": "blocked",
+      "trust_score": 1,
+      "latency_ms": 0.026799971237778664,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 239,
+      "scenario": "standard_unknown_poisoned_injection",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 1,
+      "latency_ms": 0.022699940018355846,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'third-party-api' does not support transaction reversal\n  \u2022 Agent 'third-party-api' may not handle duplicate requests safely\n  \u2022 Agent 'third-party-api' may have humans review your data"
+    },
+    {
+      "run_id": 240,
+      "scenario": "untrusted_malicious_safe_read",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 0,
+      "latency_ms": 0.018900027498602867,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 241,
+      "scenario": "untrusted_malicious_safe_write",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 0,
+      "latency_ms": 0.02059992402791977,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 242,
+      "scenario": "untrusted_malicious_destructive",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 0,
+      "latency_ms": 0.017000013031065464,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 243,
+      "scenario": "untrusted_malicious_sensitive_pii",
+      "control_outcome": "failure",
+      "iatp_outcome": "blocked",
+      "trust_score": 0,
+      "latency_ms": 0.026499968953430653,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 244,
+      "scenario": "untrusted_malicious_poisoned_injection",
+      "control_outcome": "failure",
+      "iatp_outcome": "warned",
+      "trust_score": 0,
+      "latency_ms": 0.02410006709396839,
+      "policy_decision": "WARN: \u26a0\ufe0f  Policy Warning:\n  \u2022 Agent 'honeypot-agent' does not support transaction reversal\n  \u2022 Agent 'honeypot-agent' may not handle duplicate requests safely\n  \u2022 Agent 'honeypot-agent' may have humans review your data"
+    },
+    {
+      "run_id": 245,
+      "scenario": "trusted_bad_privacy_safe_read",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 7,
+      "latency_ms": 0.018099904991686344,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 246,
+      "scenario": "trusted_bad_privacy_safe_write",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 7,
+      "latency_ms": 0.018900027498602867,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 247,
+      "scenario": "trusted_bad_privacy_destructive",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 7,
+      "latency_ms": 0.015600002370774746,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 248,
+      "scenario": "trusted_bad_privacy_sensitive_pii",
+      "control_outcome": "success",
+      "iatp_outcome": "blocked",
+      "trust_score": 7,
+      "latency_ms": 0.02559996210038662,
+      "policy_decision": "ALLOW"
+    },
+    {
+      "run_id": 249,
+      "scenario": "trusted_bad_privacy_poisoned_injection",
+      "control_outcome": "success",
+      "iatp_outcome": "allowed",
+      "trust_score": 7,
+      "latency_ms": 0.02110004425048828,
+      "policy_decision": "ALLOW"
+    }
+  ]
+}

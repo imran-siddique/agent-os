@@ -1,0 +1,14 @@
+{
+  "agent_id": "secure-bank-agent",
+  "trust_level": "verified_partner",
+  "capabilities": {
+    "reversibility": "full",
+    "idempotency": true,
+    "rate_limit": 100,
+    "sla_latency": "2000ms"
+  },
+  "privacy_contract": {
+    "retention": "ephemeral",
+    "human_review": false
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "agent_id": "standard-agent",
+  "trust_level": "standard",
+  "capabilities": {
+    "reversibility": "partial",
+    "idempotency": true,
+    "rate_limit": 50,
+    "sla_latency": "3000ms"
+  },
+  "privacy_contract": {
+    "retention": "temporary",
+    "human_review": false
+  }
+}

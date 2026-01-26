@@ -1,0 +1,20 @@
+{
+  "agent_id": "coder-agent-v1.0",
+  "agent_version": "1.0.0",
+  "trust_level": "trusted",
+  "scopes": ["repo:read", "repo:write"],
+  "capabilities": {
+    "reversibility": "full",
+    "idempotency": true,
+    "undo_window": "24h",
+    "rate_limit": 100,
+    "sla_latency": "2000ms"
+  },
+  "privacy_contract": {
+    "retention": "ephemeral",
+    "storage_location": "us-west",
+    "human_review": false,
+    "encryption_at_rest": true,
+    "encryption_in_transit": true
+  }
+}

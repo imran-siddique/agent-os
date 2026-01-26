@@ -1,0 +1,194 @@
+version: '3.8'
+
+# =============================================================================
+# IATP Demo Environment
+# =============================================================================
+# This docker-compose file sets up a complete IATP demonstration environment:
+# 
+# 1. Secure Bank Agent (trusted) with IATP Sidecar
+# 2. Honeypot Agent (untrusted) with IATP Sidecar  
+# 3. Redis for state management
+#
+# Quick Start:
+#   docker-compose up -d
+#
+# Access Points:
+#   - Bank Sidecar (trusted):    http://localhost:8081
+#   - Bank Agent (direct):       http://localhost:8000
+#   - Honeypot Sidecar:          http://localhost:9001
+#   - Honeypot Agent (direct):   http://localhost:9000
+#
+# Test Commands:
+#   # Check sidecar health
+#   curl http://localhost:8081/health
+#
+#   # Get agent capabilities (handshake)
+#   curl http://localhost:8081/.well-known/agent-manifest
+#
+#   # Send a request through the sidecar
+#   curl -X POST http://localhost:8081/proxy \
+#     -H "Content-Type: application/json" \
+#     -d '{"action": "check_balance", "account": "12345"}'
+#
+# =============================================================================
+
+services:
+  # ===========================================================================
+  # REDIS - State Management
+  # ===========================================================================
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - iatp-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ===========================================================================
+  # SECURE BANK AGENT (The "Good" Agent)
+  # ===========================================================================
+  
+  # The actual bank agent (internal, not directly exposed to clients)
+  bank-agent:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.agent
+    ports:
+      - "8000:8000"
+    environment:
+      - AGENT_TYPE=secure_bank
+    networks:
+      - iatp-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # IATP Sidecar protecting the Bank Agent (Main entry point)
+  bank-sidecar:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      - IATP_AGENT_URL=http://bank-agent:8000
+      - IATP_PORT=8081
+      - IATP_AGENT_ID=secure-bank-agent
+      - IATP_TRUST_LEVEL=verified_partner
+      - IATP_REVERSIBILITY=full
+      - IATP_RETENTION=ephemeral
+      - IATP_HUMAN_IN_LOOP=false
+      - IATP_TRAINING_CONSENT=false
+    depends_on:
+      - bank-agent
+      - redis
+    networks:
+      - iatp-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ===========================================================================
+  # HONEYPOT/ROGUE AGENT (The "Bad" Agent)
+  # ===========================================================================
+  
+  # The untrusted honeypot agent
+  honeypot-agent:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.agent
+    ports:
+      - "9000:8000"
+    environment:
+      - AGENT_TYPE=untrusted
+    networks:
+      - iatp-network
+
+  # IATP Sidecar for Honeypot (configured as untrusted)
+  honeypot-sidecar:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "9001:8081"
+    environment:
+      - IATP_AGENT_URL=http://honeypot-agent:8000
+      - IATP_PORT=8081
+      - IATP_AGENT_ID=honeypot-agent
+      - IATP_TRUST_LEVEL=untrusted
+      - IATP_REVERSIBILITY=none
+      - IATP_RETENTION=permanent
+      - IATP_HUMAN_IN_LOOP=true
+      - IATP_TRAINING_CONSENT=true
+    depends_on:
+      - honeypot-agent
+    networks:
+      - iatp-network
+
+  # ===========================================================================
+  # LEGACY SIDECARS (for compatibility)
+  # ===========================================================================
+  
+  # IATP Sidecar (Python version - legacy)
+  iatp-sidecar-python:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.sidecar-python
+    ports:
+      - "8001:8001"
+    environment:
+      - IATP_AGENT_URL=http://bank-agent:8000
+      - IATP_PORT=8001
+      - IATP_AGENT_ID=secure-bank-agent
+      - IATP_TRUST_LEVEL=verified_partner
+      - IATP_REVERSIBILITY=full
+      - IATP_RETENTION=ephemeral
+    depends_on:
+      - bank-agent
+    networks:
+      - iatp-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    profiles:
+      - legacy
+
+  # IATP Sidecar (Go version - production)
+  iatp-sidecar-go:
+    build:
+      context: ./sidecar/go
+      dockerfile: Dockerfile
+    ports:
+      - "8002:8001"
+    environment:
+      - IATP_AGENT_URL=http://bank-agent:8000
+      - IATP_PORT=8001
+      - IATP_AGENT_ID=secure-bank-agent-go
+      - IATP_TRUST_LEVEL=verified_partner
+      - IATP_REVERSIBILITY=full
+      - IATP_RETENTION=ephemeral
+    depends_on:
+      - bank-agent
+    networks:
+      - iatp-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    profiles:
+      - go
+
+networks:
+  iatp-network:
+    driver: bridge

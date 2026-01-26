@@ -1,0 +1,19 @@
+{
+  "agent_id": "reviewer-agent-v1.0",
+  "agent_version": "1.0.0",
+  "trust_level": "standard",
+  "scopes": ["repo:read"],
+  "capabilities": {
+    "reversibility": "none",
+    "idempotency": true,
+    "rate_limit": 50,
+    "sla_latency": "1000ms"
+  },
+  "privacy_contract": {
+    "retention": "temporary",
+    "storage_location": "us-east",
+    "human_review": false,
+    "encryption_at_rest": true,
+    "encryption_in_transit": true
+  }
+}

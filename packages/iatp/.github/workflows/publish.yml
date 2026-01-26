@@ -1,0 +1,174 @@
+# =============================================================================
+# PyPI Publishing Workflow
+# =============================================================================
+# This workflow publishes the package to PyPI when a GitHub Release is created.
+# It uses Trusted Publishing (OIDC) for secure, tokenless authentication.
+#
+# Setup Instructions:
+# 1. Go to https://pypi.org/manage/account/publishing/
+# 2. Add a new "pending publisher" with:
+#    - PyPI Project Name: inter-agent-trust-protocol
+#    - Owner: imran-siddique
+#    - Repository: inter-agent-trust-protocol
+#    - Workflow name: publish.yml
+#    - Environment: pypi
+# =============================================================================
+
+name: Publish to PyPI
+
+on:
+  release:
+    types: [published]
+  
+  # Allow manual trigger for testing
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Target repository'
+        required: true
+        default: 'testpypi'
+        type: choice
+        options:
+          - testpypi
+          - pypi
+
+jobs:
+  # ==========================================================================
+  # Build Distribution
+  # ==========================================================================
+  build:
+    name: Build distribution 📦
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+
+      - name: Build package
+        run: python -m build
+
+      - name: Check package metadata
+        run: twine check dist/*
+
+      - name: Upload distribution artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+
+  # ==========================================================================
+  # Publish to TestPyPI (for testing)
+  # ==========================================================================
+  publish-testpypi:
+    name: Publish to TestPyPI 🧪
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.target == 'testpypi'
+    needs: build
+    runs-on: ubuntu-latest
+    
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/inter-agent-trust-protocol
+
+    permissions:
+      id-token: write  # Required for OIDC trusted publishing
+
+    steps:
+      - name: Download distribution artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+
+      - name: Publish to TestPyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+
+  # ==========================================================================
+  # Publish to PyPI (production)
+  # ==========================================================================
+  publish-pypi:
+    name: Publish to PyPI 🚀
+    if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && github.event.inputs.target == 'pypi')
+    needs: build
+    runs-on: ubuntu-latest
+    
+    environment:
+      name: pypi
+      url: https://pypi.org/p/inter-agent-trust-protocol
+
+    permissions:
+      id-token: write  # Required for OIDC trusted publishing
+
+    steps:
+      - name: Download distribution artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+  # ==========================================================================
+  # Create GitHub Release Assets
+  # ==========================================================================
+  github-release:
+    name: Upload to GitHub Release 📎
+    if: github.event_name == 'release'
+    needs: [build, publish-pypi]
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write  # Required for uploading release assets
+
+    steps:
+      - name: Download distribution artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+
+      - name: Upload to GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload '${{ github.ref_name }}' dist/** --repo '${{ github.repository }}'
+
+  # ==========================================================================
+  # Post-publish verification
+  # ==========================================================================
+  verify:
+    name: Verify installation ✅
+    if: github.event_name == 'release'
+    needs: publish-pypi
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Wait for PyPI to update
+        run: sleep 60
+
+      - name: Install from PyPI
+        run: |
+          pip install inter-agent-trust-protocol
+          
+      - name: Verify installation
+        run: |
+          python -c "import iatp; print(f'IATP version: {iatp.__version__}')"
+          iatp --version
+          iatp --help
