@@ -39,7 +39,7 @@ setup(
         "pydantic>=2.5.3",
         "httpx>=0.26.0",
         "python-dateutil>=2.8.2",
-        "scak>=1.1.0",
+        "agent-primitives>=0.1.0",
         "click>=8.0.0",
     ],
     extras_require={

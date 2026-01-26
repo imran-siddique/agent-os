@@ -10,10 +10,11 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, Optional
 
-from agent_kernel import (
+from agent_primitives import (
     AgentFailure,
+    FailureType,
+    FailureSeverity,
 )
-from agent_kernel.models import FailureType
 
 from iatp.models import CapabilityManifest
 
