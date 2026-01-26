@@ -1,0 +1,53 @@
+This is BibTeX, Version 0.99e
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: anonym_main.aux
+Reallocating 'name_of_file' (item size: 1) to 9 items.
+The style file: plainnat.bst
+Reallocating 'name_of_file' (item size: 1) to 18 items.
+Database file #1: bibliography_anon.bib
+Warning--empty journal in hong2023metagpt
+Warning--empty journal in liu2023lost
+Warning--empty journal in mohtashami2023landmark
+Warning--empty journal in wang2023voyager
+You've used 11 entries,
+            2773 wiz_defined-function locations,
+            645 strings with 6760 characters,
+and the built_in function-call counts, 5164 in all, are:
+= -- 408
+> -- 419
+< -- 2
++ -- 143
+- -- 132
+* -- 428
+:= -- 855
+add.period$ -- 39
+call.type$ -- 11
+change.case$ -- 68
+chr.to.int$ -- 11
+cite$ -- 26
+duplicate$ -- 223
+empty$ -- 364
+format.name$ -- 145
+if$ -- 1040
+int.to.chr$ -- 1
+int.to.str$ -- 1
+missing$ -- 11
+newline$ -- 69
+num.names$ -- 44
+pop$ -- 155
+preamble$ -- 1
+purify$ -- 58
+quote$ -- 0
+skip$ -- 179
+stack$ -- 0
+substring$ -- 22
+swap$ -- 9
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 116
+warning$ -- 4
+while$ -- 33
+width$ -- 0
+write$ -- 147
+(There were 4 warnings)

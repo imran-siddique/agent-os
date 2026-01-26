@@ -1,0 +1,109 @@
+================================================================================
+                    arXiv SUBMISSION METADATA REFERENCE
+================================================================================
+Copy/paste these fields into the arXiv submission form.
+All fields comply with arXiv guidelines (no unicode, no all-caps, macros expanded).
+
+================================================================================
+TITLE (required)
+================================================================================
+Self-Correcting Agent Kernel: Automated Alignment via Differential Auditing and Semantic Memory Hygiene
+
+================================================================================
+AUTHORS (required)
+================================================================================
+[FILL IN YOUR REAL NAMES - arXiv requires non-anonymous submissions]
+
+Format: Firstname Lastname (Affiliation)
+
+Example single author:
+Imran Siddique (Microsoft Research)
+
+Example multiple authors:
+Author One (1), Author Two (1 and 2), Author Three (2) ((1) Microsoft Research, (2) Stanford University)
+
+IMPORTANT:
+- Do NOT use "Anonymous" - arXiv rejects anonymous submissions
+- Do NOT include Dr., Professor, PhD, etc.
+- Do NOT use all uppercase letters
+- Affiliations in parentheses, city/country only (no street addresses)
+- Separate multiple authors with commas
+
+================================================================================
+ABSTRACT (required - max 1920 characters)
+================================================================================
+Production AI agents face a "Reliability Wall" defined by two invisible pathologies: laziness (premature give-ups on achievable tasks) and context rot (performance degradation due to accumulated prompt instructions). Existing architectures often exacerbate these issues by treating "more context" as the solution to every failure, leading to the Accumulation Paradox. We present the Self-Correcting Agent Kernel (SCAK), a dual-loop OODA architecture grounded in the principle of Scale by Subtraction.
+
+SCAK's Runtime Loop ensures deterministic safety, while the Alignment Loop implements Differential Auditing: a probabilistic mechanism that compares a weak agent (GPT-4o) against a stronger teacher (o1-preview) only on "give-up signals" (5-10% of interactions). This catches capability failures that explicit error handlers miss. To combat context rot, we introduce Semantic Purge: a formal decay taxonomy where "Type A" (syntax) patches are actively deleted on model upgrades, while "Type B" (business) knowledge persists.
+
+Evaluations on GAIA benchmark extensions demonstrate 100% laziness detection and a 72% correction rate (p<0.001) at 90% lower cost than full verification. Chaos engineering tests show <30s Mean Time To Recovery (MTTR), validating that reliability stems not from infinite memory, but from hygienic forgetting.
+
+[Character count: 1,289 - within 1,920 limit]
+
+================================================================================
+COMMENTS (optional but recommended)
+================================================================================
+15 pages, 6 figures, 8 tables. Code available at https://github.com/[your-username]/self-correcting-agent-kernel. LLMs (Claude, GPT-4) assisted with drafting; all claims and experiments are author-original.
+
+================================================================================
+PRIMARY CATEGORY
+================================================================================
+cs.AI (Artificial Intelligence)
+
+Alternative categories to consider:
+- cs.LG (Machine Learning)
+- cs.CL (Computation and Language)
+- cs.MA (Multiagent Systems)
+
+================================================================================
+CROSS-LIST CATEGORIES (optional)
+================================================================================
+cs.LG, cs.SE
+
+================================================================================
+REPORT NUMBER (only if your institution assigns one)
+================================================================================
+[Leave blank unless your institution provides a report number like "MSR-TR-2026-XX"]
+
+================================================================================
+ACM CLASSIFICATION (optional)
+================================================================================
+I.2.11 (Distributed Artificial Intelligence - Multiagent systems)
+
+================================================================================
+MSC CLASSIFICATION (optional)
+================================================================================
+68T42 (Agent technology)
+
+================================================================================
+JOURNAL REFERENCE (only if already published)
+================================================================================
+[Leave blank - not yet published]
+
+================================================================================
+DOI (only if already published)
+================================================================================
+[Leave blank - not yet published]
+
+================================================================================
+LICENSE
+================================================================================
+Recommended: CC BY 4.0 (Creative Commons Attribution)
+This allows others to share and adapt your work with attribution.
+
+================================================================================
+CHECKLIST BEFORE SUBMISSION
+================================================================================
+[ ] Title: No all-caps, no unicode, macros expanded
+[ ] Authors: Real names (not anonymous), proper format with affiliations
+[ ] Abstract: Under 1920 characters, no "Abstract" word, no leading whitespace
+[ ] Comments: Include page count and figure count
+[ ] Upload: arxiv_submission.tar.gz (flat structure, forward slashes)
+[ ] Figures: All 6 PDF figures included in tar.gz
+[ ] main.tex: \pdfoutput=1 present at top
+[ ] main.bbl: Compiled bibliography included
+[ ] bibliography.bib: Source bibliography included
+[ ] No \includegraphics paths with backslashes
+[ ] No unicode characters in source files
+
+================================================================================

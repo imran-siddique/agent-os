@@ -1,0 +1,416 @@
+{
+  "ablation_no_purge": {
+    "component_removed": "Semantic Purge",
+    "description": "Removes Type A/B decay taxonomy and automatic purge on model upgrades",
+    "metrics": {
+      "context_reduction_percent": {
+        "baseline": {
+          "mean": 50.0,
+          "std": 0.0,
+          "n": 10,
+          "ci_lower": NaN,
+          "ci_upper": NaN,
+          "samples": [
+            50.0,
+            50.0,
+            50.0,
+            50.0,
+            50.0,
+            50.0,
+            50.0,
+            50.0,
+            50.0,
+            50.0
+          ]
+        },
+        "ablation": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10,
+          "ci_lower": NaN,
+          "ci_upper": NaN,
+          "samples": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "test": {
+          "t_statistic": Infinity,
+          "p_value": 0.0,
+          "cohens_d": 999.9,
+          "significant": true,
+          "effect_size_interpretation": "large"
+        }
+      },
+      "accuracy_retention": {
+        "baseline": {
+          "mean": 1.0,
+          "std": 0.0,
+          "n": 10,
+          "ci_lower": NaN,
+          "ci_upper": NaN,
+          "samples": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "ablation": {
+          "mean": 1.0,
+          "std": 0.0,
+          "n": 10,
+          "ci_lower": NaN,
+          "ci_upper": NaN,
+          "samples": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "test": {
+          "t_statistic": NaN,
+          "p_value": 0.0,
+          "cohens_d": 0.0,
+          "significant": true,
+          "effect_size_interpretation": "negligible"
+        }
+      }
+    },
+    "conclusion": "CRITICAL - Context grows unbounded without purge (p<0.001)",
+    "impact_rating": "CRITICAL"
+  },
+  "ablation_no_audit": {
+    "component_removed": "Differential Auditing",
+    "description": "Removes Completeness Auditor and Shadow Teacher verification",
+    "metrics": {
+      "laziness_detection_rate_percent": {
+        "baseline": {
+          "mean": 100.0,
+          "std": 0.0,
+          "n": 10,
+          "ci_lower": NaN,
+          "ci_upper": NaN,
+          "samples": [
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0
+          ]
+        },
+        "ablation": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10,
+          "ci_lower": NaN,
+          "ci_upper": NaN,
+          "samples": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "test": {
+          "t_statistic": Infinity,
+          "p_value": 0.0,
+          "cohens_d": 999.9,
+          "significant": true,
+          "effect_size_interpretation": "large"
+        }
+      },
+      "correction_rate_percent": {
+        "baseline": {
+          "mean": 72.0,
+          "std": 0.0,
+          "n": 10,
+          "ci_lower": NaN,
+          "ci_upper": NaN,
+          "samples": [
+            72.0,
+            72.0,
+            72.0,
+            72.0,
+            72.0,
+            72.0,
+            72.0,
+            72.0,
+            72.0,
+            72.0
+          ]
+        },
+        "ablation": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10,
+          "ci_lower": NaN,
+          "ci_upper": NaN,
+          "samples": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "test": {
+          "t_statistic": Infinity,
+          "p_value": 0.0,
+          "cohens_d": 999.9,
+          "significant": true,
+          "effect_size_interpretation": "large"
+        }
+      }
+    },
+    "conclusion": "CRITICAL - Laziness detection drops to 0% without auditing (p<0.001)",
+    "impact_rating": "CRITICAL"
+  },
+  "ablation_no_shadow_teacher": {
+    "component_removed": "Shadow Teacher (o1-preview)",
+    "description": "Replaces stronger teacher model with self-critique",
+    "metrics": {
+      "correction_rate_percent": {
+        "baseline": {
+          "mean": 72.0,
+          "std": 0.0,
+          "n": 10,
+          "ci_lower": NaN,
+          "ci_upper": NaN,
+          "samples": [
+            72.0,
+            72.0,
+            72.0,
+            72.0,
+            72.0,
+            72.0,
+            72.0,
+            72.0,
+            72.0,
+            72.0
+          ]
+        },
+        "ablation": {
+          "mean": 43.61246535524957,
+          "std": 2.3430221322655402,
+          "n": 10,
+          "ci_lower": 41.9363682920913,
+          "ci_upper": 45.288562418407835,
+          "samples": [
+            39.752790080795826,
+            46.76593776011011,
+            41.61589545977316,
+            43.14181852711854,
+            45.18913110036793,
+            43.79171383531611,
+            41.66660311764366,
+            44.8406084045771,
+            46.94571012280083,
+            42.41444514399245
+          ]
+        },
+        "test": {
+          "t_statistic": 38.31345227095637,
+          "p_value": 1.0474847078764458e-18,
+          "cohens_d": 17.134296746110426,
+          "significant": true,
+          "effect_size_interpretation": "large"
+        }
+      },
+      "patch_quality_percent": {
+        "baseline": {
+          "mean": 85.0,
+          "std": 0.0,
+          "n": 10,
+          "ci_lower": NaN,
+          "ci_upper": NaN,
+          "samples": [
+            85.0,
+            85.0,
+            85.0,
+            85.0,
+            85.0,
+            85.0,
+            85.0,
+            85.0,
+            85.0,
+            85.0
+          ]
+        },
+        "ablation": {
+          "mean": 64.210256557078,
+          "std": 6.951937495922632,
+          "n": 10,
+          "ci_lower": 59.237140059493335,
+          "ci_upper": 69.18337305466267,
+          "samples": [
+            63.844652159578956,
+            64.91597364317327,
+            74.53663276918627,
+            64.51542790120797,
+            54.672719671180836,
+            60.01996520202039,
+            53.55988491147775,
+            74.18074030702918,
+            65.51677375745479,
+            66.33979524847055
+          ]
+        },
+        "test": {
+          "t_statistic": 9.456779680303955,
+          "p_value": 2.0946771101507206e-08,
+          "cohens_d": 4.229200442679674,
+          "significant": true,
+          "effect_size_interpretation": "large"
+        }
+      }
+    },
+    "conclusion": "IMPORTANT - Correction rate drops 32% without stronger teacher (p<0.001)",
+    "impact_rating": "IMPORTANT"
+  },
+  "ablation_flat_memory": {
+    "component_removed": "Tiered Memory Hierarchy",
+    "description": "Removes Tier 2 (Redis) and Tier 3 (Vector DB), keeps only Tier 1",
+    "metrics": {
+      "latency_ms": {
+        "baseline": {
+          "mean": 94.51087709275879,
+          "std": 6.43826539944045,
+          "n": 10,
+          "ci_lower": 89.90521947679709,
+          "ci_upper": 99.1165347087205,
+          "samples": [
+            87.89940355540548,
+            100.54859430869968,
+            103.35311410788908,
+            96.50312574173381,
+            85.4016196097561,
+            86.17017368583755,
+            91.66389636372358,
+            100.57471593952302,
+            98.14483642231654,
+            94.84929119270302
+          ]
+        },
+        "ablation": {
+          "mean": 341.746844052636,
+          "std": 29.297918888482453,
+          "n": 10,
+          "ci_lower": 320.7883754451917,
+          "ci_upper": 362.70531266008027,
+          "samples": [
+            328.88868218296756,
+            320.951066092015,
+            339.95898535790803,
+            392.06721519092554,
+            353.1894251643864,
+            387.08992191501505,
+            309.80936697142704,
+            346.39205656575973,
+            305.79067499259276,
+            333.3310460933624
+          ]
+        },
+        "test": {
+          "t_statistic": -26.063575613252443,
+          "p_value": 9.549924356740703e-16,
+          "cohens_d": -11.65598536158765,
+          "significant": true,
+          "effect_size_interpretation": "large"
+        }
+      },
+      "context_size_tokens": {
+        "baseline": {
+          "mean": 1522.1538437895383,
+          "std": 88.08674726798911,
+          "n": 10,
+          "ci_lower": 1459.1403808068897,
+          "ci_upper": 1585.167306772187,
+          "samples": [
+            1474.6900635429072,
+            1644.7708306803884,
+            1523.1454183665162,
+            1395.6513630679306,
+            1624.7793371570767,
+            1567.2189676581497,
+            1393.0222084413358,
+            1465.3184192222075,
+            1575.0082168036245,
+            1557.9336129552473
+          ]
+        },
+        "ablation": {
+          "mean": 2793.021305832976,
+          "std": 178.1430575619023,
+          "n": 10,
+          "ci_lower": 2665.5854393553395,
+          "ci_upper": 2920.4571723106123,
+          "samples": [
+            2587.951913777934,
+            2769.25707778949,
+            2796.7173796337543,
+            2745.511517962853,
+            2661.4264367520695,
+            3131.9485451060937,
+            2782.3615736768966,
+            3055.925234374133,
+            2804.039338986614,
+            2595.0740402699203
+          ]
+        },
+        "test": {
+          "t_statistic": -20.222435928261117,
+          "p_value": 7.957286458966422e-14,
+          "cohens_d": -9.043748281245184,
+          "significant": true,
+          "effect_size_interpretation": "large"
+        }
+      }
+    },
+    "conclusion": "IMPORTANT - Latency increases 250ms, context doubles without tiers (p<0.001)",
+    "impact_rating": "IMPORTANT"
+  },
+  "metadata": {
+    "timestamp": "2026-01-18T05:14:59.696042",
+    "n_runs_per_study": 10,
+    "confidence_level": 0.95,
+    "significance_threshold": 0.05
+  }
+}

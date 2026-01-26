@@ -1,0 +1,66 @@
+{
+  "experiment": "multi_agent_rag_chain",
+  "description": "Governed multi-agent RAG workflow with laziness detection",
+  "timestamp": "2026-01-18T05:18:17.428772",
+  "config": {
+    "num_queries": 20,
+    "num_agents": 4,
+    "agent_roles": [
+      "supervisor",
+      "retrieval",
+      "analyst",
+      "verifier"
+    ]
+  },
+  "baseline": {
+    "workflow_success_rate": 0.5,
+    "laziness_detected": 12,
+    "laziness_corrected": 0,
+    "correction_rate": 0.0,
+    "agent_stats": {
+      "retriever": {
+        "total_calls": 20,
+        "laziness_count": 4,
+        "laziness_rate": 0.2
+      },
+      "analyst": {
+        "total_calls": 20,
+        "laziness_count": 7,
+        "laziness_rate": 0.35
+      },
+      "verifier": {
+        "total_calls": 20,
+        "laziness_count": 1,
+        "laziness_rate": 0.05
+      }
+    }
+  },
+  "with_scak": {
+    "workflow_success_rate": 0.8,
+    "laziness_detected": 12,
+    "laziness_corrected": 8,
+    "correction_rate": 0.6666666666666666,
+    "agent_stats": {
+      "retriever": {
+        "total_calls": 27,
+        "laziness_count": 7,
+        "laziness_rate": 0.25925925925925924
+      },
+      "analyst": {
+        "total_calls": 24,
+        "laziness_count": 4,
+        "laziness_rate": 0.16666666666666666
+      },
+      "verifier": {
+        "total_calls": 21,
+        "laziness_count": 1,
+        "laziness_rate": 0.047619047619047616
+      }
+    }
+  },
+  "improvement": {
+    "workflow_success_rate_delta": 0.30000000000000004,
+    "correction_rate_delta": 0.6666666666666666
+  },
+  "conclusion": "SCAK improved workflow success rate by 30.0% (from 50.0% to 80.0%) in multi-agent RAG chain."
+}
