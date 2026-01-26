@@ -63,6 +63,7 @@ from caas.models import (
     ContentFormat,
     SourceType,
     ModelTier,
+    FileType,
     # Data classes
     Section,
     Document,
@@ -72,16 +73,21 @@ from caas.models import (
     RoutingDecision,
     ContextTriadItem,
     ContextTriadState,
+    FileNode,
+    FileEdit,
+    VFSState,
+    FileResponse,
+    FileListResponse,
 )
 
 # Context Triad - Hot/Warm/Cold context management
 from caas.triad import ContextTriadManager
 
 # Pragmatic Truth - Official vs. Practical knowledge tracking
-from caas.pragmatic_truth import PragmaticTruthManager
+from caas.pragmatic_truth import SourceDetector, ConflictDetector, CitationFormatter
 
 # Decay functions for time-based retrieval
-from caas.decay import TimeDecayCalculator
+from caas.decay import calculate_decay_factor, apply_decay_to_score, get_time_weighted_score
 
 # Conversation management
 from caas.conversation import ConversationManager
@@ -94,7 +100,10 @@ from caas.detection import DocumentTypeDetector, StructureAnalyzer
 
 # Ingestion & Processing
 from caas.ingestion import (
-    DocumentProcessor,
+    BaseProcessor,
+    PDFProcessor,
+    HTMLProcessor,
+    CodeProcessor,
     ProcessorFactory,
     StructureParser,
 )
@@ -116,6 +125,9 @@ from caas.gateway import (
 # Metadata enrichment
 from caas.enrichment import MetadataEnricher
 
+# Virtual File System - Project state management for SDLC agents
+from caas.vfs import VirtualFileSystem
+
 # Public API - explicit exports for `from caas import *`
 __all__ = [
     # Version info
@@ -130,6 +142,7 @@ __all__ = [
     "ContentFormat",
     "SourceType",
     "ModelTier",
+    "FileType",
     # Data Models
     "Section",
     "Document",
@@ -139,10 +152,19 @@ __all__ = [
     "RoutingDecision",
     "ContextTriadItem",
     "ContextTriadState",
+    "FileNode",
+    "FileEdit",
+    "VFSState",
+    "FileResponse",
+    "FileListResponse",
     # Core Managers
     "ContextTriadManager",
-    "PragmaticTruthManager",
-    "TimeDecayCalculator",
+    "SourceDetector",
+    "ConflictDetector",
+    "CitationFormatter",
+    "calculate_decay_factor",
+    "apply_decay_to_score",
+    "get_time_weighted_score",
     "ConversationManager",
     # Routing
     "HeuristicRouter",
@@ -150,7 +172,10 @@ __all__ = [
     "DocumentTypeDetector",
     "StructureAnalyzer",
     # Ingestion
-    "DocumentProcessor",
+    "BaseProcessor",
+    "PDFProcessor",
+    "HTMLProcessor",
+    "CodeProcessor",
     "ProcessorFactory",
     "StructureParser",
     # Storage
@@ -166,6 +191,8 @@ __all__ = [
     "SecurityLevel",
     # Enrichment
     "MetadataEnricher",
+    # Virtual File System
+    "VirtualFileSystem",
 ]
 
 

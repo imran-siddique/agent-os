@@ -259,3 +259,96 @@ class ConversationHistoryResponse(BaseModel):
     total_turns_ever: int
     oldest_turn_timestamp: Optional[str] = None
     newest_turn_timestamp: Optional[str] = None
+
+
+# ============================================================================
+# Virtual File System Models
+# ============================================================================
+
+
+class FileType(str, Enum):
+    """Types of file system nodes."""
+    FILE = "file"
+    DIRECTORY = "directory"
+
+
+class FileEdit(BaseModel):
+    """Represents an edit to a file."""
+    agent_id: str = Field(description="ID of the agent that made the edit")
+    timestamp: str = Field(description="ISO timestamp of the edit")
+    content: str = Field(description="Content after this edit")
+    message: Optional[str] = Field(default=None, description="Optional commit-like message")
+
+
+class FileNode(BaseModel):
+    """Represents a file or directory in the virtual file system."""
+    path: str = Field(description="Full path of the file/directory")
+    file_type: FileType = Field(description="Type of node (file or directory)")
+    content: str = Field(default="", description="Content of the file (empty for directories)")
+    metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
+    created_by: str = Field(description="Agent ID that created this file")
+    created_at: str = Field(description="ISO timestamp of creation")
+    modified_by: str = Field(description="Agent ID that last modified this file")
+    modified_at: str = Field(description="ISO timestamp of last modification")
+    edit_history: List[FileEdit] = Field(default_factory=list, description="History of edits")
+
+
+class VFSState(BaseModel):
+    """Represents the complete virtual file system state."""
+    files: Dict[str, FileNode] = Field(
+        default_factory=dict,
+        description="Mapping of file paths to FileNode objects"
+    )
+    root_path: str = Field(default="/", description="Root path of the file system")
+
+
+class CreateFileRequest(BaseModel):
+    """Request to create a file in the VFS."""
+    path: str = Field(description="Path of the file to create")
+    content: str = Field(default="", description="Initial content of the file")
+    agent_id: str = Field(description="ID of the agent creating the file")
+    metadata: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Optional metadata")
+
+
+class UpdateFileRequest(BaseModel):
+    """Request to update a file in the VFS."""
+    path: str = Field(description="Path of the file to update")
+    content: str = Field(description="New content of the file")
+    agent_id: str = Field(description="ID of the agent updating the file")
+    message: Optional[str] = Field(default=None, description="Optional commit-like message")
+
+
+class ReadFileRequest(BaseModel):
+    """Request to read a file from the VFS."""
+    path: str = Field(description="Path of the file to read")
+
+
+class DeleteFileRequest(BaseModel):
+    """Request to delete a file from the VFS."""
+    path: str = Field(description="Path of the file to delete")
+    agent_id: str = Field(description="ID of the agent deleting the file")
+
+
+class ListFilesRequest(BaseModel):
+    """Request to list files in the VFS."""
+    path: str = Field(default="/", description="Path to list files from")
+    recursive: bool = Field(default=False, description="Whether to list files recursively")
+
+
+class FileResponse(BaseModel):
+    """Response containing file information."""
+    path: str
+    file_type: FileType
+    content: str
+    metadata: Dict[str, Any]
+    created_by: str
+    created_at: str
+    modified_by: str
+    modified_at: str
+    edit_count: int = Field(description="Number of edits made to this file")
+
+
+class FileListResponse(BaseModel):
+    """Response containing a list of files."""
+    files: List[FileResponse]
+    total_count: int

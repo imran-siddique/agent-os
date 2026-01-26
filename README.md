@@ -41,6 +41,36 @@ CaaS provides stateless functions. You control storage, agents, and orchestratio
 
 ---
 
+## Core Features
+
+### 1. Virtual File System (Project State)
+
+A lightweight in-memory file system that maintains project state shared across multiple SDLC agents.
+
+```python
+from caas import VirtualFileSystem
+
+# Create shared VFS
+vfs = VirtualFileSystem()
+
+# Agent 1 creates a file
+vfs.create_file("/project/main.py", "print('hello')", agent_id="agent-1")
+
+# Agent 2 reads and updates the file
+content = vfs.read_file("/project/main.py")
+vfs.update_file("/project/main.py", "print('world')", agent_id="agent-2")
+
+# View edit history
+history = vfs.get_file_history("/project/main.py")
+# Shows edits from both agents
+```
+
+**Why VFS?** SDLC agents don't just chat—they edit files. The VFS ensures all agents see each other's changes, enabling true multi-agent collaboration on codebases.
+
+### 2. Context Management
+
+---
+
 ## Architecture
 
 CaaS sits in **Layer 1: Primitives** of the Agent OS.
@@ -52,6 +82,29 @@ CaaS sits in **Layer 1: Primitives** of the Agent OS.
 CaaS does not import `iatp` or `agent-control-plane`. It returns structured data that upper layers consume. This decoupling is intentional.
 
 **Example:** The `ContextTriadManager` produces a `ContextTriadState` object. The `amb` message bus transports it. The `agent-control-plane` interprets it. Each layer operates independently.
+
+---
+
+## Key Features
+
+### 🗂️ Virtual File System (Project State)
+- **Multi-agent collaboration**: All agents see each other's file edits in real-time
+- **Edit history**: Track who changed what and when
+- **In-memory performance**: Fast operations with optional disk persistence
+- **Path normalization**: Consistent file paths across agents
+- **Use case**: SDLC agents collaboratively editing codebases
+
+### 🎯 Context Routing & Management
+- **Heuristic Router**: Zero-latency query routing to appropriate model tiers
+- **Context Triad**: Hot/Warm/Cold context layers for optimal retrieval
+- **Time Decay**: Prioritize recent information with configurable decay
+- **Structure-aware**: Preserve document hierarchy and relationships
+
+### 🔒 Enterprise Features
+- **Trust Gateway**: On-premises deployment with security policies
+- **Audit logging**: Complete audit trail of all operations
+- **Conflict detection**: Identify conflicts between official docs and practical reality
+- **Source citations**: Transparent provenance for all information
 
 ---
 

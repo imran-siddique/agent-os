@@ -25,6 +25,13 @@ from caas.models import (
     AddTurnRequest,
     UpdateTurnRequest,
     ConversationHistoryResponse,
+    CreateFileRequest,
+    UpdateFileRequest,
+    ReadFileRequest,
+    DeleteFileRequest,
+    ListFilesRequest,
+    FileResponse,
+    FileListResponse,
 )
 from caas.ingestion import ProcessorFactory
 from caas.detection import DocumentTypeDetector, StructureAnalyzer
@@ -34,6 +41,7 @@ from caas.triad import ContextTriadManager
 from caas.routing import HeuristicRouter
 from caas.conversation import ConversationManager
 from caas.gateway import TrustGateway, SecurityPolicy, DeploymentMode
+from caas.vfs import VirtualFileSystem
 
 
 # Initialize FastAPI app
@@ -52,6 +60,8 @@ corpus_analyzer = CorpusAnalyzer()
 triad_manager = ContextTriadManager()
 heuristic_router = HeuristicRouter()
 conversation_manager = ConversationManager(max_turns=10)  # Sliding window with 10 turns
+# Virtual File System for SDLC agents
+vfs = VirtualFileSystem()
 # Trust Gateway with enterprise-grade security
 trust_gateway = TrustGateway(
     security_policy=SecurityPolicy(
@@ -88,6 +98,13 @@ async def root():
             "gateway_route": "/gateway/route",
             "gateway_info": "/gateway/info",
             "gateway_audit": "/gateway/audit",
+            "vfs_create": "/vfs/files (POST)",
+            "vfs_read": "/vfs/files (GET)",
+            "vfs_update": "/vfs/files (PUT)",
+            "vfs_delete": "/vfs/files (DELETE)",
+            "vfs_list": "/vfs/list",
+            "vfs_history": "/vfs/history",
+            "vfs_state": "/vfs/state",
         }
     }
 
@@ -1131,6 +1148,177 @@ async def gateway_clear_audit_logs(user_id: Optional[str] = None):
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to clear audit logs: {str(e)}")
+
+
+# ============================================================================
+# Virtual File System Endpoints
+# ============================================================================
+
+@app.post("/vfs/files", response_model=FileResponse, tags=["vfs"])
+async def create_vfs_file(request: CreateFileRequest):
+    """
+    Create a new file in the Virtual File System.
+    
+    Allows SDLC agents to create files in shared project state.
+    All agents can see files created by other agents.
+    """
+    try:
+        file_node = vfs.create_file(
+            path=request.path,
+            content=request.content,
+            agent_id=request.agent_id,
+            metadata=request.metadata,
+        )
+        
+        return FileResponse(
+            path=file_node.path,
+            file_type=file_node.file_type,
+            content=file_node.content,
+            metadata=file_node.metadata,
+            created_by=file_node.created_by,
+            created_at=file_node.created_at,
+            modified_by=file_node.modified_by,
+            modified_at=file_node.modified_at,
+            edit_count=len(file_node.edit_history),
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/vfs/files", response_model=FileResponse, tags=["vfs"])
+async def read_vfs_file(path: str):
+    """
+    Read a file from the Virtual File System.
+    
+    Agents can read files created or modified by other agents,
+    ensuring shared visibility of project state.
+    """
+    try:
+        content = vfs.read_file(path)
+        info = vfs.get_file_info(path)
+        return info
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.put("/vfs/files", response_model=FileResponse, tags=["vfs"])
+async def update_vfs_file(request: UpdateFileRequest):
+    """
+    Update an existing file in the Virtual File System.
+    
+    Agents can update files and other agents will immediately see
+    the changes. Edit history is maintained for auditability.
+    """
+    try:
+        file_node = vfs.update_file(
+            path=request.path,
+            content=request.content,
+            agent_id=request.agent_id,
+            message=request.message,
+        )
+        
+        return FileResponse(
+            path=file_node.path,
+            file_type=file_node.file_type,
+            content=file_node.content,
+            metadata=file_node.metadata,
+            created_by=file_node.created_by,
+            created_at=file_node.created_at,
+            modified_by=file_node.modified_by,
+            modified_at=file_node.modified_at,
+            edit_count=len(file_node.edit_history),
+        )
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.delete("/vfs/files", tags=["vfs"])
+async def delete_vfs_file(path: str, agent_id: str):
+    """
+    Delete a file from the Virtual File System.
+    
+    Removes a file from the shared project state.
+    """
+    try:
+        vfs.delete_file(path, agent_id)
+        return {"status": "deleted", "path": path}
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/vfs/list", response_model=FileListResponse, tags=["vfs"])
+async def list_vfs_files(path: str = "/", recursive: bool = False):
+    """
+    List files in a directory within the Virtual File System.
+    
+    Agents can browse the project structure to understand
+    what files exist and have been created by other agents.
+    """
+    try:
+        return vfs.list_files(path, recursive)
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/vfs/history", tags=["vfs"])
+async def get_vfs_file_history(path: str):
+    """
+    Get the edit history of a file.
+    
+    Shows all edits made to a file, including which agents
+    made changes and when. Useful for understanding how a
+    file evolved through multi-agent collaboration.
+    """
+    try:
+        history = vfs.get_file_history(path)
+        return {
+            "path": path,
+            "edit_count": len(history),
+            "history": [
+                {
+                    "agent_id": edit.agent_id,
+                    "timestamp": edit.timestamp,
+                    "message": edit.message,
+                    "content_preview": edit.content[:100] + "..." if len(edit.content) > 100 else edit.content,
+                }
+                for edit in history
+            ]
+        }
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@app.get("/vfs/state", tags=["vfs"])
+async def get_vfs_state():
+    """
+    Get the complete Virtual File System state.
+    
+    Returns the entire file system state, useful for debugging
+    or snapshotting the current project state.
+    """
+    state = vfs.get_state()
+    return {
+        "root_path": state.root_path,
+        "file_count": len(state.files),
+        "files": [
+            {
+                "path": node.path,
+                "type": node.file_type,
+                "created_by": node.created_by,
+                "modified_by": node.modified_by,
+                "edit_count": len(node.edit_history),
+            }
+            for node in state.files.values()
+        ]
+    }
 
 
 if __name__ == "__main__":
