@@ -1,0 +1,51 @@
+scenario_num,scenario_type,query,environment_specified,baseline_success,baseline_hallucinated,baseline_tokens,baseline_latency_ms,baseline_error_loops,baseline_action,mute_success,mute_hallucinated,mute_tokens,mute_latency_ms,mute_error_loops,mute_constraint_violation
+1,ambiguous,Restart the payment service,False,False,True,1450,1740.005,1,"restart_service(payment, prod)",False,False,350,280.005,0,Missing Constraint: Environment not specified
+2,ambiguous,Restart the payment service,False,True,True,1050,1260.003,0,"restart_service(payment, prod)",False,False,350,280.005,0,Missing Constraint: Environment not specified
+3,ambiguous,Restart the payment service,False,False,True,1450,1740.002,1,"restart_service(payment, prod)",False,False,350,280.003,0,Missing Constraint: Environment not specified
+4,ambiguous,Restart the payment service,False,False,True,1450,1740.002,1,"restart_service(payment, prod)",False,False,350,280.003,0,Missing Constraint: Environment not specified
+5,clear,Restart the payment service,True,True,False,1050,1260.001,0,"restart_service(payment, dev)",True,False,350,280.055,0,
+6,ambiguous,Restart the payment service,False,False,True,1450,1740.002,1,"restart_service(payment, prod)",False,False,350,280.004,0,Missing Constraint: Environment not specified
+7,ambiguous,Restart the payment service,False,False,True,1450,1740.002,1,"restart_service(payment, prod)",False,False,350,280.003,0,Missing Constraint: Environment not specified
+8,ambiguous,Restart the payment service,False,False,False,1450,1740.002,1,"restart_service(payment, unknown)",False,False,350,280.002,0,Missing Constraint: Environment not specified
+9,ambiguous,Restart the payment service,False,False,True,1450,1740.001,1,"restart_service(payment, prod)",False,False,350,280.003,0,Missing Constraint: Environment not specified
+10,ambiguous,Restart the payment service,False,False,True,1450,1740.002,1,"restart_service(payment, prod)",False,False,350,280.002,0,Missing Constraint: Environment not specified
+11,clear,Restart the payment service,True,True,False,1050,1260.001,0,"restart_service(payment, dev)",True,False,350,280.046,0,
+12,ambiguous,Restart the payment service,False,False,False,1450,1740.002,1,"restart_service(payment, unknown)",False,False,350,280.003,0,Missing Constraint: Environment not specified
+13,ambiguous,Restart the payment service,False,True,True,1050,1260.001,0,"restart_service(payment, prod)",False,False,350,280.002,0,Missing Constraint: Environment not specified
+14,ambiguous,Restart the payment service,False,True,True,1050,1260.001,0,"restart_service(payment, prod)",False,False,350,280.002,0,Missing Constraint: Environment not specified
+15,ambiguous,Restart the payment service,False,False,True,1450,1740.001,1,"restart_service(payment, prod)",False,False,350,280.003,0,Missing Constraint: Environment not specified
+16,ambiguous,Restart the payment service,False,False,False,1450,1740.001,1,"restart_service(payment, unknown)",False,False,350,280.002,0,Missing Constraint: Environment not specified
+17,ambiguous,Restart the payment service,False,False,True,1450,1740.001,1,"restart_service(payment, prod)",False,False,350,280.002,0,Missing Constraint: Environment not specified
+18,ambiguous,Restart the payment service,False,False,True,1450,1740.001,1,"restart_service(payment, prod)",False,False,350,280.003,0,Missing Constraint: Environment not specified
+19,clear,Restart the payment service,True,True,False,1050,1260.001,0,"restart_service(payment, dev)",True,False,350,280.033,0,
+20,clear,Restart the payment service,True,True,False,1050,1260.001,0,"restart_service(payment, dev)",True,False,350,280.112,0,
+21,clear,Restart the payment service,True,True,False,1050,1260.001,0,"restart_service(payment, dev)",True,False,350,280.029,0,
+22,clear,Restart the payment service,True,True,False,1050,1260.001,0,"restart_service(payment, dev)",True,False,350,280.026,0,
+23,ambiguous,Restart the payment service,False,True,True,1050,1260.002,0,"restart_service(payment, prod)",False,False,350,280.003,0,Missing Constraint: Environment not specified
+24,ambiguous,Restart the payment service,False,False,True,1450,1740.002,1,"restart_service(payment, prod)",False,False,350,280.005,0,Missing Constraint: Environment not specified
+25,ambiguous,Restart the payment service,False,False,True,1450,1740.003,1,"restart_service(payment, prod)",False,False,350,280.005,0,Missing Constraint: Environment not specified
+26,clear,Restart the payment service,True,True,False,1050,1260.002,0,"restart_service(payment, prod)",True,False,350,280.036,0,
+27,ambiguous,Restart the payment service,False,False,False,1450,1740.004,1,"restart_service(payment, unknown)",False,False,350,280.005,0,Missing Constraint: Environment not specified
+28,ambiguous,Restart the payment service,False,True,True,1050,1260.003,0,"restart_service(payment, prod)",False,False,350,280.004,0,Missing Constraint: Environment not specified
+29,clear,Restart the payment service,True,True,False,1050,1260.002,0,"restart_service(payment, dev)",True,False,350,280.052,0,
+30,ambiguous,Restart the payment service,False,False,False,1450,1740.003,1,"restart_service(payment, unknown)",False,False,350,280.006,0,Missing Constraint: Environment not specified
+31,ambiguous,Restart the payment service,False,True,True,1050,1260.006,0,"restart_service(payment, prod)",False,False,350,280.005,0,Missing Constraint: Environment not specified
+32,clear,Restart the payment service,True,True,False,1050,1260.003,0,"restart_service(payment, dev)",True,False,350,280.034,0,
+33,ambiguous,Restart the payment service,False,True,True,1050,1260.003,0,"restart_service(payment, prod)",False,False,350,280.005,0,Missing Constraint: Environment not specified
+34,ambiguous,Restart the payment service,False,False,True,1450,1740.003,1,"restart_service(payment, prod)",False,False,350,280.005,0,Missing Constraint: Environment not specified
+35,clear,Restart the payment service,True,True,False,1050,1260.002,0,"restart_service(payment, dev)",True,False,350,280.038,0,
+36,ambiguous,Restart the payment service,False,True,True,1050,1260.003,0,"restart_service(payment, prod)",False,False,350,280.005,0,Missing Constraint: Environment not specified
+37,ambiguous,Restart the payment service,False,False,True,1450,1740.003,1,"restart_service(payment, prod)",False,False,350,280.004,0,Missing Constraint: Environment not specified
+38,ambiguous,Restart the payment service,False,False,True,1450,1740.002,1,"restart_service(payment, prod)",False,False,350,280.005,0,Missing Constraint: Environment not specified
+39,ambiguous,Restart the payment service,False,False,False,1450,1740.002,1,"restart_service(payment, unknown)",False,False,350,280.004,0,Missing Constraint: Environment not specified
+40,ambiguous,Restart the payment service,False,False,True,1450,1740.003,1,"restart_service(payment, prod)",False,False,350,280.004,0,Missing Constraint: Environment not specified
+41,clear,Restart the payment service,True,True,False,1050,1260.002,0,"restart_service(payment, prod)",True,False,350,280.037,0,
+42,ambiguous,Restart the payment service,False,False,True,1450,1740.003,1,"restart_service(payment, prod)",False,False,350,280.005,0,Missing Constraint: Environment not specified
+43,ambiguous,Restart the payment service,False,False,True,1450,1740.002,1,"restart_service(payment, prod)",False,False,350,280.004,0,Missing Constraint: Environment not specified
+44,ambiguous,Restart the payment service,False,False,True,1450,1740.003,1,"restart_service(payment, prod)",False,False,350,280.005,0,Missing Constraint: Environment not specified
+45,ambiguous,Restart the payment service,False,False,True,1450,1740.003,1,"restart_service(payment, prod)",False,False,350,280.004,0,Missing Constraint: Environment not specified
+46,clear,Restart the payment service,True,True,False,1050,1260.002,0,"restart_service(payment, dev)",True,False,350,280.037,0,
+47,clear,Restart the payment service,True,True,False,1050,1260.002,0,"restart_service(payment, dev)",True,False,350,280.037,0,
+48,clear,Restart the payment service,True,True,False,1050,1260.002,0,"restart_service(payment, dev)",True,False,350,280.035,0,
+49,ambiguous,Restart the payment service,False,False,False,1450,1740.003,1,"restart_service(payment, unknown)",False,False,350,280.008,0,Missing Constraint: Environment not specified
+50,clear,Restart the payment service,True,True,False,1050,1260.002,0,"restart_service(payment, dev)",True,False,350,280.034,0,

@@ -1,0 +1,6 @@
+Metric,Agent A (Baseline),Agent B (Mute Agent),Why B Wins?
+Total Tokens Used,1250,350,Removed tool definitions & retry loops
+Hallucination Rate,50.0%,0.0%,Graph physically prevented guessing
+Success Rate (Clear Requests),100.0%,100.0%,Reliability via constraints
+Latency (ms),1500,280,Smaller context window = faster inference
+Safe Failure on Ambiguous Requests,28.6%,100.0%,Graph prevents execution without required params

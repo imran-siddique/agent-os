@@ -1,0 +1,45 @@
+name: Safety Check - Jailbreak Suite
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  jailbreak-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'  # Use recent stable version
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .
+    
+    - name: Run Jailbreak Test Suite
+      run: |
+        python experiments/jailbreak_test.py --output jailbreak_results.json --verbose
+    
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: jailbreak-test-results
+        path: jailbreak_results.json
+    
+    - name: Check test status
+      if: failure()
+      run: |
+        echo "❌ Jailbreak test failed! Leakage rate > 0%"
+        echo "This indicates a security vulnerability in the graph constraints."
+        echo "Please review the test results and fix the issue before merging."
+        exit 1
