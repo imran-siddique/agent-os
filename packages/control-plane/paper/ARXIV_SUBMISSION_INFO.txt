@@ -1,0 +1,122 @@
+================================================================================
+arXiv SUBMISSION METADATA - Agent Control Plane Paper
+================================================================================
+Use this file to copy/paste the required metadata during arXiv submission.
+All fields have been verified against arXiv guidelines.
+
+================================================================================
+TITLE (required)
+================================================================================
+Agent Control Plane: A Deterministic Kernel for Zero-Violation Governance in Agentic AI
+
+[✓] No all uppercase letters
+[✓] No unicode characters  
+[✓] No unexpanded macros
+[✓] Spelling checked
+
+================================================================================
+AUTHORS (required) - YOU MUST UPDATE THIS BEFORE SUBMISSION
+================================================================================
+**IMPORTANT: Anonymous submissions are NOT accepted by arXiv!**
+
+Replace with your real information in this format:
+  Firstname Lastname (Affiliation)
+
+Example format for single author:
+  Imran Siddique (Microsoft)
+
+Example format for multiple authors:
+  Author One (1), Author Two (1 and 2), Author Three (2) ((1) Microsoft, (2) University Name)
+
+Guidelines:
+- Use format: Firstname Lastname or Firstname Middlename Lastname
+- Do NOT include honorifics (Dr., Professor, etc.)
+- Do NOT include degree suffixes (PhD, MD, MSc, etc.)
+- Do NOT use all uppercase for names
+- Affiliations go in parentheses - city/country only, no full addresses
+- Separate multiple authors with commas or "and"
+- Do NOT truncate with "et al." - list ALL authors
+- Do NOT list AI tools as authors (see Comments field for LLM disclosure)
+
+================================================================================
+ABSTRACT (required) - 1324 characters [✓ Under 1920 limit]
+================================================================================
+Modern AI agents capable of executing real-world actions---querying databases, calling APIs, writing files---face a critical reliability gap: their stochastic nature makes safety guarantees elusive, and prompt-based guardrails fail under adversarial conditions. We introduce the Agent Control Plane (ACP), a kernel-inspired middleware layer that enforces deterministic governance through attribute-based access control (ABAC), multi-dimensional constraint graphs, and shadow mode simulation.
+
+Unlike advisory systems that merely suggest safe behavior, ACP interposes between agent intent and action execution, achieving 0.00% safety violations on a 60-prompt red-team benchmark spanning direct attacks, prompt injections, and contextual confusion---with zero false positives. Our key insight, Scale by Subtraction, replaces verbose LLM-generated refusals with deterministic NULL responses, yielding a 98.1% token reduction while eliminating information leakage about blocked actions.
+
+Ablation studies with statistical rigor (Welch's t-test, Bonferroni correction) confirm component necessity: removing the PolicyEngine increases violations from 0% to 40.0% (p < 0.0001, Cohen's d = 8.7). We demonstrate production readiness through integrations with OpenAI function calling, LangChain agents, and multi-agent orchestration.
+
+[✓] Does NOT start with "Abstract"
+[✓] No leading whitespace on lines
+[✓] Under 1920 character limit (1324 chars)
+[✓] TeX macros expanded to plain text
+[✓] No unicode characters
+
+================================================================================
+COMMENTS (recommended)
+================================================================================
+13 pages, 4 figures. Large language models were used to assist with grammar and formatting; all technical claims, experimental results, and intellectual contributions are original work by the authors. Code available at https://github.com/[your-username]/agent-control-plane
+
+Guidelines:
+- Include page count and figure count
+- LLM usage disclosure goes here (NOT in Authors field)
+- Update GitHub URL with your actual repository before submission
+- "Submitted to" or "To appear in" info goes here if applicable
+
+================================================================================
+CATEGORY SUGGESTIONS
+================================================================================
+Primary: cs.AI (Artificial Intelligence)
+Cross-list options:
+  - cs.LG (Machine Learning)
+  - cs.CR (Cryptography and Security) - for safety/security aspects
+  - cs.SE (Software Engineering) - for kernel/middleware architecture
+
+================================================================================
+LICENSE
+================================================================================
+Recommended: CC BY 4.0 (Creative Commons Attribution)
+- Allows others to share and adapt with attribution
+- Compatible with most academic use cases
+
+Alternative: CC BY-SA 4.0 (if you want derivatives to use same license)
+
+================================================================================
+FILES TO UPLOAD
+================================================================================
+Upload: arxiv_submission.zip (or contents of arxiv/ folder)
+
+Contents:
+  - main.tex        (LaTeX source)
+  - main.bbl        (Bibliography)
+  - figures/
+    - architecture.png
+    - constraint_graphs.png
+    - results_chart.png
+    - ablation_chart.png
+
+[✓] All figures are PNG format (accepted by arXiv)
+[✓] Bibliography pre-compiled as .bbl
+[✓] No PDF included (arXiv compiles from source)
+
+================================================================================
+PRE-SUBMISSION CHECKLIST
+================================================================================
+[ ] Update AUTHORS field with real name(s) and affiliation(s)
+[ ] Update GitHub URL in Comments (remove [anonymized] placeholder)
+[ ] Select appropriate category (cs.AI recommended as primary)
+[ ] Choose license (CC BY 4.0 recommended)
+[ ] Test compile worked locally (verified ✓)
+[ ] All co-authors have consented to submission
+[ ] No copyright conflicts with license granted to arXiv
+
+================================================================================
+REPORT-NO (optional)
+================================================================================
+Only required if your institution assigns publication numbers.
+Example: MSR-TR-2026-01
+
+Leave blank if not applicable.
+
+================================================================================

@@ -1,0 +1,17 @@
+# Include documentation
+include README.md
+include LICENSE
+recursive-include docs *.md *.rst *.txt
+
+# Include examples
+recursive-include examples *.py
+
+# Include tests
+recursive-include tests *.py
+
+# Exclude compiled files
+global-exclude __pycache__
+global-exclude *.py[co]
+global-exclude .DS_Store
+global-exclude *.swp
+global-exclude *.swo

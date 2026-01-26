@@ -1,0 +1,112 @@
+\begin{thebibliography}{16}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Chan et~al.(2024)Chan, Ezell, Kaufmann, Wei, Hammond, Bradley,
+  Bluemke, Rajkumar, Krueger, Korbak, et~al.]{chan2024visibility}
+Alan Chan, Carson Ezell, Max Kaufmann, Kevin Wei, Lewis Hammond, Herbie
+  Bradley, Emma Bluemke, Nitarshan Rajkumar, David Krueger, Tomasz Korbak,
+  et~al.
+\newblock Visibility into {AI} agents.
+\newblock \emph{arXiv preprint arXiv:2401.13138}, 2024.
+\newblock ACM FAccT 2024.
+
+\bibitem[Chase(2022)]{langchain2022}
+Harrison Chase.
+\newblock Langchain: Building applications with llms through composability.
+\newblock \url{https://python.langchain.com/}, 2022.
+
+\bibitem[{CrewAI}(2024)]{crewai2024}
+{CrewAI}.
+\newblock Crewai: Framework for orchestrating role-playing ai agents.
+\newblock \url{https://docs.crewai.com/}, 2024.
+
+\bibitem[{Deloitte}(2025)]{deloitte2025orchestration}
+{Deloitte}.
+\newblock Unlocking exponential value with {AI} agent orchestration.
+\newblock \url{https://www2.deloitte.com/}, 2025.
+\newblock Industry report.
+
+\bibitem[Greshake et~al.(2023)Greshake, Abdelnabi, Mishra, Endres, Holz, and
+  Fritz]{greshake2023not}
+Kai Greshake, Sahar Abdelnabi, Shailesh Mishra, Christoph Endres, Thorsten
+  Holz, and Mario Fritz.
+\newblock Not what you've signed up for: Compromising real-world
+  {LLM}-integrated applications with indirect prompt injection.
+\newblock \emph{arXiv preprint arXiv:2302.12173}, 2023.
+
+\bibitem[{Guardrails AI}(2023)]{guardrailsai2023}
+{Guardrails AI}.
+\newblock Guardrails ai: Adding guardrails to large language models.
+\newblock \url{https://www.guardrailsai.com/}, 2023.
+
+\bibitem[Han et~al.(2024)Han, Rao, Ettinger, Jiang, Lin, Lambert, Choi, and
+  Dziri]{wildguard2024}
+Seungju Han, Kavel Rao, Allyson Ettinger, Liwei Jiang, Bill~Yuchen Lin, Nathan
+  Lambert, Yejin Choi, and Nouha Dziri.
+\newblock {WildGuard}: Open one-stop moderation tools for safety risks,
+  jailbreaks, and refusals of {LLMs}.
+\newblock \emph{arXiv preprint arXiv:2406.18495}, 2024.
+\newblock NeurIPS 2024.
+
+\bibitem[Inan et~al.(2023)Inan, Upasani, Chi, et~al.]{inan2023llamaguard}
+Hakan Inan, Kartikeya Upasani, Jianfeng Chi, et~al.
+\newblock Llama guard: Llm-based input-output safeguard for human-ai
+  conversations.
+\newblock \emph{arXiv preprint arXiv:2312.06674}, 2023.
+
+\bibitem[Liu et~al.(2023)Liu, Yu, Zhang, Xu, Lei, Lai, Gu, Ding, Men, Yang,
+  et~al.]{agentbench2024}
+Xiao Liu, Hao Yu, Hanchen Zhang, Yifan Xu, Xuanyu Lei, Hanyu Lai, Yu~Gu,
+  Hangliang Ding, Kaiwen Men, Kejuan Yang, et~al.
+\newblock {AgentBench}: Evaluating {LLMs} as agents.
+\newblock \emph{arXiv preprint arXiv:2308.03688}, 2023.
+\newblock Published at ICLR 2024.
+
+\bibitem[{Microsoft Research}(2023)]{autogen2023}
+{Microsoft Research}.
+\newblock Autogen: Enabling next-gen llm applications via multi-agent
+  conversation.
+\newblock \url{https://microsoft.github.io/autogen/}, 2023.
+
+\bibitem[{NIST}(2014)]{nist2014abac}
+{NIST}.
+\newblock Guide to attribute based access control (abac) definition and
+  considerations.
+\newblock Technical Report SP 800-162, National Institute of Standards and
+  Technology, 2014.
+
+\bibitem[{NVIDIA}(2023)]{nvidia2023nemo}
+{NVIDIA}.
+\newblock Nemo guardrails: A toolkit for controllable and safe llm
+  applications.
+\newblock \url{https://github.com/NVIDIA/NeMo-Guardrails}, 2023.
+
+\bibitem[{Self-Correcting Agent Team}(2026)]{selfcorrecting2026}
+{Self-Correcting Agent Team}.
+\newblock Self-correcting agent kernel: Automated alignment via differential
+  auditing and semantic memory hygiene, 2026.
+\newblock URL
+  \url{https://github.com/imran-siddique/self-correcting-agent-kernel}.
+\newblock arXiv preprint (submitted; ID pending).
+
+\bibitem[{Significant-Gravitas}(2023)]{autogpt2023}
+{Significant-Gravitas}.
+\newblock Autogpt: An autonomous gpt-4 experiment.
+\newblock \url{https://github.com/Significant-Gravitas/AutoGPT}, 2023.
+
+\bibitem[Wei et~al.(2023)Wei, Haghtalab, and Steinhardt]{wei2023jailbroken}
+Alexander Wei, Nika Haghtalab, and Jacob Steinhardt.
+\newblock Jailbroken: How does {LLM} safety training fail?
+\newblock \emph{arXiv preprint arXiv:2307.02483}, 2023.
+
+\bibitem[Zou et~al.(2023)Zou, Wang, Kolter, and Fredrikson]{zou2023universal}
+Andy Zou, Zifan Wang, J.~Zico Kolter, and Matt Fredrikson.
+\newblock Universal and transferable adversarial attacks on aligned language
+  models.
+\newblock \emph{arXiv preprint arXiv:2307.15043}, 2023.
+
+\end{thebibliography}

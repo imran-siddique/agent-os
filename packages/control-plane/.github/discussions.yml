@@ -1,0 +1,73 @@
+# GitHub Discussions Configuration
+
+# This file serves as documentation for GitHub Discussions setup
+# GitHub Discussions must be enabled in repository settings
+
+## Categories
+
+The following discussion categories should be configured:
+
+### 📣 Announcements
+- **Purpose:** Official project announcements, releases, and updates
+- **Type:** Announcement (maintainers only can create)
+
+### 💡 Ideas
+- **Purpose:** Feature requests and enhancement proposals
+- **Type:** Open discussion
+
+### 🙏 Q&A
+- **Purpose:** Questions about usage, troubleshooting, and how-tos
+- **Type:** Q&A (can mark answers)
+
+### 🎉 Show and Tell
+- **Purpose:** Share projects built with Agent Control Plane
+- **Type:** Open discussion
+
+### 🛠️ Development
+- **Purpose:** Technical discussions about contributions and architecture
+- **Type:** Open discussion
+
+### 📚 Documentation
+- **Purpose:** Discussions about improving docs and tutorials
+- **Type:** Open discussion
+
+### 🔐 Security
+- **Purpose:** General security discussions (not for vulnerability reports)
+- **Type:** Open discussion
+- **Note:** For vulnerability reports, use Security Advisory or private issue template
+
+## Setup Instructions
+
+To enable GitHub Discussions:
+
+1. Go to repository Settings
+2. Scroll to "Features" section
+3. Check "Discussions"
+4. Configure categories as outlined above
+5. Pin important discussions (welcome, guidelines, roadmap)
+
+## Pinned Discussions
+
+Create and pin these discussions:
+
+1. **Welcome to Agent Control Plane Discussions** 
+   - Introduction and guidelines
+   - Links to documentation
+   - Community expectations
+
+2. **Roadmap & Planning**
+   - Link to ROADMAP.md
+   - Invite feedback on priorities
+   - Quarterly updates
+
+3. **Showcase Your Projects**
+   - Template for project showcases
+   - Encourage community sharing
+   - Highlight exceptional projects
+
+## Moderation
+
+- Maintainers moderate all categories
+- Community members can help in Q&A
+- Follow Code of Conduct (see CONTRIBUTING.md)
+- Report issues to maintainers via private message or email

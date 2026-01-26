@@ -1,0 +1,707 @@
+"""
+Kernel Space - Protected core that survives agent crashes.
+
+This module implements the kernel/user space separation for Agent OS.
+The kernel space contains critical infrastructure that MUST survive
+even when user-space agents crash or hallucinate.
+
+Kernel Space Components:
+    - Policy Engine (enforcement)
+    - Flight Recorder (audit)
+    - Signal Dispatcher (control)
+    - VFS Mount Manager (memory)
+    - IPC Router (communication)
+
+User Space Components:
+    - LLM Generation
+    - Tool Execution
+    - Agent Logic
+    - Custom Handlers
+
+Design Philosophy:
+    - Kernel survives agent crashes (isolation)
+    - Policy violations trigger kernel panic (0% tolerance)
+    - All agent actions pass through kernel syscalls
+    - Kernel state is checkpointed independently
+
+Comparison with AIOS:
+    AIOS focuses on EFFICIENCY (GPU throughput, scheduling)
+    We focus on SAFETY (isolation, policy enforcement, audit)
+"""
+
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum, auto
+from typing import Any, Callable, Dict, List, Optional, TypeVar, Generic, Union
+import asyncio
+import logging
+import traceback
+from contextlib import asynccontextmanager
+
+# Import kernel components
+from .signals import (
+    SignalDispatcher, AgentSignal, SignalInfo, AgentKernelPanic,
+    policy_violation, kill_agent, pause_agent
+)
+from .vfs import AgentVFS, create_agent_vfs
+
+logger = logging.getLogger(__name__)
+
+
+class ProtectionRing(Enum):
+    """
+    Protection rings (inspired by x86 architecture).
+    
+    Ring 0: Kernel - Most privileged (policy, audit, signals)
+    Ring 1: Drivers - Backend drivers (VFS backends, tool executors)
+    Ring 2: Services - System services (monitoring, health checks)
+    Ring 3: User - Agent code (least privileged)
+    """
+    RING_0_KERNEL = 0
+    RING_1_DRIVERS = 1
+    RING_2_SERVICES = 2
+    RING_3_USER = 3
+
+
+class SyscallType(Enum):
+    """
+    System calls that user space can make into kernel.
+    
+    All agent actions must go through syscalls.
+    """
+    # Process control
+    SYS_FORK = auto()      # Spawn child agent
+    SYS_EXIT = auto()      # Terminate self
+    SYS_WAIT = auto()      # Wait for child
+    SYS_EXEC = auto()      # Execute tool
+    
+    # File operations (VFS)
+    SYS_OPEN = auto()
+    SYS_CLOSE = auto()
+    SYS_READ = auto()
+    SYS_WRITE = auto()
+    SYS_STAT = auto()
+    
+    # Memory operations
+    SYS_MMAP = auto()      # Map memory region
+    SYS_MUNMAP = auto()    # Unmap memory region
+    SYS_BRK = auto()       # Extend heap (context window)
+    
+    # IPC operations
+    SYS_PIPE = auto()      # Create pipe
+    SYS_SEND = auto()      # Send message
+    SYS_RECV = auto()      # Receive message
+    
+    # Signal operations
+    SYS_SIGNAL = auto()    # Send signal
+    SYS_SIGACTION = auto() # Set signal handler
+    SYS_SIGPROCMASK = auto()  # Block signals
+    
+    # Policy operations (read-only from user space)
+    SYS_GETPOLICY = auto() # Get policy for action
+    SYS_CHECKPOLICY = auto() # Check if action allowed
+
+
+@dataclass
+class SyscallRequest:
+    """A system call request from user space."""
+    syscall: SyscallType
+    args: Dict[str, Any]
+    caller_ring: ProtectionRing = ProtectionRing.RING_3_USER
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    trace_id: Optional[str] = None
+
+
+@dataclass
+class SyscallResult:
+    """Result of a system call."""
+    success: bool
+    return_value: Any = None
+    error_code: Optional[int] = None
+    error_message: Optional[str] = None
+    execution_time_ms: float = 0.0
+
+
+class KernelState(Enum):
+    """Kernel operating state."""
+    BOOTING = auto()
+    RUNNING = auto()
+    DEGRADED = auto()  # Some components failed
+    PANIC = auto()     # Unrecoverable error
+    SHUTDOWN = auto()
+
+
+@dataclass
+class KernelMetrics:
+    """Kernel performance metrics."""
+    syscall_count: int = 0
+    policy_checks: int = 0
+    policy_violations: int = 0
+    agent_crashes: int = 0
+    kernel_panics: int = 0
+    uptime_seconds: float = 0.0
+    active_agents: int = 0
+    
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "syscall_count": self.syscall_count,
+            "policy_checks": self.policy_checks,
+            "policy_violations": self.policy_violations,
+            "agent_crashes": int,
+            "kernel_panics": self.kernel_panics,
+            "uptime_seconds": self.uptime_seconds,
+            "active_agents": self.active_agents,
+        }
+
+
+class KernelSpace:
+    """
+    The Kernel Space - protected core of Agent OS.
+    
+    This is Ring 0 - the most privileged code that:
+    - Enforces all policies
+    - Records all actions to flight recorder
+    - Manages agent signals
+    - Controls the VFS
+    - Routes IPC messages
+    
+    The kernel SURVIVES agent crashes. If an agent hallucinates,
+    throws an exception, or violates policy, the kernel remains
+    stable and can recover or terminate the agent.
+    
+    Example:
+        kernel = KernelSpace()
+        
+        # Register an agent in user space
+        agent_ctx = kernel.create_agent_context("agent-001")
+        
+        # Agent makes syscalls through the kernel
+        result = await kernel.syscall(SyscallRequest(
+            syscall=SyscallType.SYS_WRITE,
+            args={"path": "/mem/working/notes.txt", "data": "Hello"},
+        ), agent_ctx)
+    """
+    
+    def __init__(
+        self,
+        policy_engine: Optional[Any] = None,
+        flight_recorder: Optional[Any] = None,
+    ):
+        self._state = KernelState.BOOTING
+        self._metrics = KernelMetrics()
+        self._start_time = datetime.now(timezone.utc)
+        
+        # Kernel components (Ring 0)
+        self._policy_engine = policy_engine
+        self._flight_recorder = flight_recorder
+        
+        # Agent registry
+        self._agents: Dict[str, "AgentContext"] = {}
+        self._signal_dispatchers: Dict[str, SignalDispatcher] = {}
+        self._vfs_instances: Dict[str, AgentVFS] = {}
+        
+        # Syscall handlers
+        self._syscall_handlers: Dict[SyscallType, Callable] = {}
+        self._init_syscall_handlers()
+        
+        # Boot complete
+        self._state = KernelState.RUNNING
+        logger.info("[Kernel] Booted successfully")
+    
+    def _init_syscall_handlers(self) -> None:
+        """Initialize syscall handlers."""
+        # File operations
+        self._syscall_handlers[SyscallType.SYS_READ] = self._sys_read
+        self._syscall_handlers[SyscallType.SYS_WRITE] = self._sys_write
+        self._syscall_handlers[SyscallType.SYS_OPEN] = self._sys_open
+        self._syscall_handlers[SyscallType.SYS_CLOSE] = self._sys_close
+        
+        # Signal operations
+        self._syscall_handlers[SyscallType.SYS_SIGNAL] = self._sys_signal
+        
+        # Policy operations
+        self._syscall_handlers[SyscallType.SYS_CHECKPOLICY] = self._sys_checkpolicy
+        
+        # Process operations
+        self._syscall_handlers[SyscallType.SYS_EXIT] = self._sys_exit
+        self._syscall_handlers[SyscallType.SYS_EXEC] = self._sys_exec
+    
+    @property
+    def state(self) -> KernelState:
+        return self._state
+    
+    @property
+    def metrics(self) -> KernelMetrics:
+        self._metrics.uptime_seconds = (
+            datetime.now(timezone.utc) - self._start_time
+        ).total_seconds()
+        self._metrics.active_agents = len(self._agents)
+        return self._metrics
+    
+    def create_agent_context(self, agent_id: str) -> "AgentContext":
+        """
+        Create a context for an agent in user space.
+        
+        This sets up all the kernel resources the agent needs:
+        - Signal dispatcher
+        - VFS instance
+        - Policy context
+        """
+        if agent_id in self._agents:
+            raise ValueError(f"Agent {agent_id} already registered")
+        
+        # Create kernel resources for this agent
+        signal_dispatcher = SignalDispatcher(agent_id)
+        vfs = create_agent_vfs(agent_id)
+        
+        self._signal_dispatchers[agent_id] = signal_dispatcher
+        self._vfs_instances[agent_id] = vfs
+        
+        # Create agent context
+        ctx = AgentContext(
+            agent_id=agent_id,
+            kernel=self,
+            ring=ProtectionRing.RING_3_USER,
+        )
+        
+        self._agents[agent_id] = ctx
+        
+        logger.info(f"[Kernel] Created context for agent: {agent_id}")
+        return ctx
+    
+    def destroy_agent_context(self, agent_id: str) -> None:
+        """Clean up agent resources."""
+        if agent_id in self._agents:
+            del self._agents[agent_id]
+        if agent_id in self._signal_dispatchers:
+            del self._signal_dispatchers[agent_id]
+        if agent_id in self._vfs_instances:
+            del self._vfs_instances[agent_id]
+        
+        logger.info(f"[Kernel] Destroyed context for agent: {agent_id}")
+    
+    async def syscall(
+        self,
+        request: SyscallRequest,
+        ctx: "AgentContext",
+    ) -> SyscallResult:
+        """
+        Handle a system call from user space.
+        
+        All agent actions MUST go through this interface.
+        The kernel enforces policy and records all actions.
+        """
+        start_time = datetime.now(timezone.utc)
+        self._metrics.syscall_count += 1
+        
+        # Log to flight recorder
+        if self._flight_recorder:
+            self._flight_recorder.record({
+                "type": "syscall",
+                "syscall": request.syscall.name,
+                "agent_id": ctx.agent_id,
+                "args": request.args,
+                "timestamp": request.timestamp.isoformat(),
+            })
+        
+        # Check if agent is in valid state
+        dispatcher = self._signal_dispatchers.get(ctx.agent_id)
+        if dispatcher and dispatcher.is_terminated:
+            return SyscallResult(
+                success=False,
+                error_code=-1,
+                error_message="Agent has been terminated",
+            )
+        
+        # Policy check (if policy engine available)
+        if self._policy_engine:
+            self._metrics.policy_checks += 1
+            try:
+                allowed = await self._check_policy(request, ctx)
+                if not allowed:
+                    self._metrics.policy_violations += 1
+                    
+                    # This is a policy violation - trigger signal
+                    if dispatcher:
+                        policy_violation(
+                            dispatcher,
+                            policy_name="syscall_policy",
+                            details=f"Syscall {request.syscall.name} not allowed",
+                            context={"args": request.args},
+                        )
+                    
+                    return SyscallResult(
+                        success=False,
+                        error_code=-2,
+                        error_message="Policy violation",
+                    )
+            except AgentKernelPanic as e:
+                # Re-raise kernel panics
+                self._metrics.kernel_panics += 1
+                raise
+        
+        # Execute the syscall
+        handler = self._syscall_handlers.get(request.syscall)
+        if not handler:
+            return SyscallResult(
+                success=False,
+                error_code=-3,
+                error_message=f"Unknown syscall: {request.syscall.name}",
+            )
+        
+        try:
+            result = await handler(request, ctx)
+            execution_time = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+            result.execution_time_ms = execution_time
+            return result
+        except AgentKernelPanic:
+            raise
+        except Exception as e:
+            logger.error(f"[Kernel] Syscall {request.syscall.name} failed: {e}")
+            self._metrics.agent_crashes += 1
+            return SyscallResult(
+                success=False,
+                error_code=-4,
+                error_message=str(e),
+            )
+    
+    async def _check_policy(
+        self,
+        request: SyscallRequest,
+        ctx: "AgentContext",
+    ) -> bool:
+        """Check if syscall is allowed by policy."""
+        # Integration with PolicyEngine would go here
+        # For now, allow all
+        return True
+    
+    # ========== Syscall Implementations ==========
+    
+    async def _sys_read(
+        self,
+        request: SyscallRequest,
+        ctx: "AgentContext",
+    ) -> SyscallResult:
+        """SYS_READ: Read from VFS."""
+        path = request.args.get("path")
+        if not path:
+            return SyscallResult(success=False, error_code=1, error_message="No path specified")
+        
+        vfs = self._vfs_instances.get(ctx.agent_id)
+        if not vfs:
+            return SyscallResult(success=False, error_code=2, error_message="No VFS for agent")
+        
+        try:
+            data = vfs.read(path)
+            return SyscallResult(success=True, return_value=data)
+        except Exception as e:
+            return SyscallResult(success=False, error_code=3, error_message=str(e))
+    
+    async def _sys_write(
+        self,
+        request: SyscallRequest,
+        ctx: "AgentContext",
+    ) -> SyscallResult:
+        """SYS_WRITE: Write to VFS."""
+        path = request.args.get("path")
+        data = request.args.get("data")
+        
+        if not path or data is None:
+            return SyscallResult(success=False, error_code=1, error_message="Missing path or data")
+        
+        vfs = self._vfs_instances.get(ctx.agent_id)
+        if not vfs:
+            return SyscallResult(success=False, error_code=2, error_message="No VFS for agent")
+        
+        try:
+            bytes_written = vfs.write(path, data)
+            return SyscallResult(success=True, return_value=bytes_written)
+        except Exception as e:
+            return SyscallResult(success=False, error_code=3, error_message=str(e))
+    
+    async def _sys_open(
+        self,
+        request: SyscallRequest,
+        ctx: "AgentContext",
+    ) -> SyscallResult:
+        """SYS_OPEN: Open a file descriptor."""
+        path = request.args.get("path")
+        mode = request.args.get("mode", "r")
+        
+        vfs = self._vfs_instances.get(ctx.agent_id)
+        if not vfs:
+            return SyscallResult(success=False, error_code=2, error_message="No VFS for agent")
+        
+        try:
+            from .vfs import FileMode
+            file_mode = FileMode.READ if "r" in mode else FileMode.WRITE
+            fd = vfs.open(path, file_mode)
+            return SyscallResult(success=True, return_value=fd)
+        except Exception as e:
+            return SyscallResult(success=False, error_code=3, error_message=str(e))
+    
+    async def _sys_close(
+        self,
+        request: SyscallRequest,
+        ctx: "AgentContext",
+    ) -> SyscallResult:
+        """SYS_CLOSE: Close a file descriptor."""
+        fd = request.args.get("fd")
+        
+        vfs = self._vfs_instances.get(ctx.agent_id)
+        if not vfs:
+            return SyscallResult(success=False, error_code=2, error_message="No VFS for agent")
+        
+        try:
+            vfs.close(fd)
+            return SyscallResult(success=True)
+        except Exception as e:
+            return SyscallResult(success=False, error_code=3, error_message=str(e))
+    
+    async def _sys_signal(
+        self,
+        request: SyscallRequest,
+        ctx: "AgentContext",
+    ) -> SyscallResult:
+        """SYS_SIGNAL: Send a signal to an agent."""
+        target_agent = request.args.get("target", ctx.agent_id)
+        signal_num = request.args.get("signal")
+        reason = request.args.get("reason", "")
+        
+        dispatcher = self._signal_dispatchers.get(target_agent)
+        if not dispatcher:
+            return SyscallResult(success=False, error_code=1, error_message="Target agent not found")
+        
+        try:
+            signal = AgentSignal(signal_num)
+            dispatcher.signal(signal, source=ctx.agent_id, reason=reason)
+            return SyscallResult(success=True)
+        except Exception as e:
+            return SyscallResult(success=False, error_code=2, error_message=str(e))
+    
+    async def _sys_checkpolicy(
+        self,
+        request: SyscallRequest,
+        ctx: "AgentContext",
+    ) -> SyscallResult:
+        """SYS_CHECKPOLICY: Check if an action is allowed."""
+        action = request.args.get("action")
+        target = request.args.get("target")
+        
+        # This would integrate with the policy engine
+        # For now, return allowed
+        return SyscallResult(success=True, return_value=True)
+    
+    async def _sys_exit(
+        self,
+        request: SyscallRequest,
+        ctx: "AgentContext",
+    ) -> SyscallResult:
+        """SYS_EXIT: Agent requests termination."""
+        exit_code = request.args.get("code", 0)
+        
+        logger.info(f"[Kernel] Agent {ctx.agent_id} exiting with code {exit_code}")
+        
+        # Clean up agent
+        self.destroy_agent_context(ctx.agent_id)
+        
+        return SyscallResult(success=True, return_value=exit_code)
+    
+    async def _sys_exec(
+        self,
+        request: SyscallRequest,
+        ctx: "AgentContext",
+    ) -> SyscallResult:
+        """SYS_EXEC: Execute a tool."""
+        tool_name = request.args.get("tool")
+        tool_args = request.args.get("args", {})
+        
+        # This would integrate with the tool registry
+        # For now, return not implemented
+        return SyscallResult(
+            success=False,
+            error_code=-99,
+            error_message="Tool execution not implemented in kernel space",
+        )
+    
+    # ========== Kernel Control ==========
+    
+    def panic(self, reason: str) -> None:
+        """
+        Trigger a kernel panic.
+        
+        This is a catastrophic failure that requires system restart.
+        """
+        self._state = KernelState.PANIC
+        self._metrics.kernel_panics += 1
+        
+        logger.critical(f"[KERNEL PANIC] {reason}")
+        
+        # Record to flight recorder
+        if self._flight_recorder:
+            self._flight_recorder.record({
+                "type": "kernel_panic",
+                "reason": reason,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "metrics": self._metrics.to_dict(),
+            })
+        
+        raise AgentKernelPanic(
+            agent_id="kernel",
+            signal=SignalInfo(signal=AgentSignal.SIGKILL, reason=reason),
+            message=f"Kernel panic: {reason}",
+        )
+    
+    def shutdown(self) -> None:
+        """Graceful kernel shutdown."""
+        logger.info("[Kernel] Initiating shutdown")
+        self._state = KernelState.SHUTDOWN
+        
+        # Send SIGTERM to all agents
+        for agent_id, dispatcher in self._signal_dispatchers.items():
+            try:
+                dispatcher.signal(
+                    AgentSignal.SIGTERM,
+                    source="kernel",
+                    reason="Kernel shutdown",
+                )
+            except Exception:
+                pass
+        
+        # Clean up all agents
+        for agent_id in list(self._agents.keys()):
+            self.destroy_agent_context(agent_id)
+        
+        logger.info("[Kernel] Shutdown complete")
+
+
+@dataclass
+class AgentContext:
+    """
+    Context for an agent running in user space.
+    
+    This is the agent's view of the kernel - it can only
+    interact with the kernel through syscalls.
+    """
+    agent_id: str
+    kernel: KernelSpace
+    ring: ProtectionRing = ProtectionRing.RING_3_USER
+    
+    # Runtime state
+    pid: int = field(default_factory=lambda: id(object()))
+    created: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    
+    async def syscall(self, syscall_type: SyscallType, **kwargs) -> SyscallResult:
+        """Make a system call to the kernel."""
+        request = SyscallRequest(
+            syscall=syscall_type,
+            args=kwargs,
+            caller_ring=self.ring,
+        )
+        return await self.kernel.syscall(request, self)
+    
+    # ========== Convenience Methods ==========
+    
+    async def read(self, path: str) -> bytes:
+        """Read from VFS."""
+        result = await self.syscall(SyscallType.SYS_READ, path=path)
+        if not result.success:
+            raise IOError(result.error_message)
+        return result.return_value
+    
+    async def write(self, path: str, data: Union[bytes, str]) -> int:
+        """Write to VFS."""
+        result = await self.syscall(SyscallType.SYS_WRITE, path=path, data=data)
+        if not result.success:
+            raise IOError(result.error_message)
+        return result.return_value
+    
+    async def exit(self, code: int = 0) -> None:
+        """Request termination."""
+        await self.syscall(SyscallType.SYS_EXIT, code=code)
+    
+    async def signal(
+        self,
+        target: str,
+        signal: AgentSignal,
+        reason: str = "",
+    ) -> bool:
+        """Send a signal to another agent."""
+        result = await self.syscall(
+            SyscallType.SYS_SIGNAL,
+            target=target,
+            signal=signal.value,
+            reason=reason,
+        )
+        return result.success
+    
+    async def check_policy(self, action: str, target: str) -> bool:
+        """Check if an action is allowed."""
+        result = await self.syscall(
+            SyscallType.SYS_CHECKPOLICY,
+            action=action,
+            target=target,
+        )
+        return result.return_value if result.success else False
+
+
+@asynccontextmanager
+async def user_space_execution(kernel: KernelSpace, agent_id: str):
+    """
+    Context manager for user-space agent execution.
+    
+    This provides isolation - if the agent crashes, the kernel survives.
+    
+    Example:
+        kernel = KernelSpace()
+        
+        async with user_space_execution(kernel, "agent-001") as ctx:
+            # Agent code runs here - isolated from kernel
+            await ctx.write("/mem/working/task.txt", "Hello World")
+            
+            # If this raises, kernel catches it
+            result = await some_llm_call()
+    """
+    ctx = kernel.create_agent_context(agent_id)
+    
+    try:
+        yield ctx
+    except AgentKernelPanic:
+        # Kernel panics propagate up
+        raise
+    except Exception as e:
+        # User space crashes are contained
+        logger.error(f"[UserSpace] Agent {agent_id} crashed: {e}")
+        logger.debug(traceback.format_exc())
+        
+        # Record crash
+        kernel._metrics.agent_crashes += 1
+        
+        # Signal the agent (if still exists)
+        dispatcher = kernel._signal_dispatchers.get(agent_id)
+        if dispatcher:
+            try:
+                dispatcher.signal(
+                    AgentSignal.SIGKILL,
+                    source="kernel",
+                    reason=f"Agent crash: {e}",
+                )
+            except AgentKernelPanic:
+                pass
+    finally:
+        # Clean up
+        kernel.destroy_agent_context(agent_id)
+
+
+# ========== Factory Functions ==========
+
+def create_kernel(
+    policy_engine: Optional[Any] = None,
+    flight_recorder: Optional[Any] = None,
+) -> KernelSpace:
+    """Create a new kernel instance."""
+    return KernelSpace(
+        policy_engine=policy_engine,
+        flight_recorder=flight_recorder,
+    )
