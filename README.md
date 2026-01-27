@@ -119,6 +119,32 @@ vfs.read("/policy/rules.yaml")  # Read-only from user space
 
 ---
 
+## Framework Integrations
+
+Wrap existing frameworks with Agent OS governance:
+
+```python
+# LangChain
+from agent_os.integrations import LangChainKernel
+governed = LangChainKernel().wrap(my_chain)
+
+# OpenAI Assistants
+from agent_os.integrations import OpenAIKernel
+governed = OpenAIKernel().wrap_assistant(assistant, client)
+
+# Semantic Kernel
+from agent_os.integrations import SemanticKernelWrapper
+governed = SemanticKernelWrapper().wrap(sk_kernel)
+
+# CrewAI
+from agent_os.integrations import CrewAIKernel
+governed = CrewAIKernel().wrap(my_crew)
+```
+
+See [integrations documentation](docs/integrations.md) for full details.
+
+---
+
 ## How It Differs from LangChain/CrewAI
 
 LangChain and CrewAI are frameworks for building agents. Agent OS is infrastructure for governing them.
@@ -146,18 +172,29 @@ async def my_langchain_agent(task: str):
 
 ## Examples
 
-The `examples/` directory contains working demos:
+The `examples/` directory contains working demos with full observability:
 
-| Demo | Description |
-|------|-------------|
-| [carbon-auditor](examples/carbon-auditor/) | Multi-model verification example |
-| [grid-balancing](examples/grid-balancing/) | Multi-agent coordination |
-| [defi-sentinel](examples/defi-sentinel/) | Real-time monitoring |
-| [pharma-compliance](examples/pharma-compliance/) | Document analysis |
+| Demo | Description | Command |
+|------|-------------|---------|
+| [carbon-auditor](examples/carbon-auditor/) | Multi-model verification | `cd examples/carbon-auditor && docker-compose up` |
+| [grid-balancing](examples/grid-balancing/) | Multi-agent coordination (100 agents) | `cd examples/grid-balancing && docker-compose up` |
+| [defi-sentinel](examples/defi-sentinel/) | Real-time attack detection | `cd examples/defi-sentinel && docker-compose up` |
+| [pharma-compliance](examples/pharma-compliance/) | Document analysis | `cd examples/pharma-compliance && docker-compose up` |
+
+Each demo includes:
+- **Grafana dashboard** on port 300X
+- **Prometheus metrics** on port 909X  
+- **Jaeger tracing** on port 1668X
 
 ```bash
-# Run a demo
-python examples/carbon-auditor/demo.py
+# Run carbon auditor with full observability
+cd examples/carbon-auditor
+cp .env.example .env  # Optional: add API keys
+docker-compose up
+
+# Open dashboards
+open http://localhost:3000  # Grafana (admin/admin)
+open http://localhost:16686 # Jaeger traces
 ```
 
 ---
@@ -182,32 +219,65 @@ agent-os/
 
 ---
 
+## MCP Integration (Claude Desktop)
+
+Agent OS provides an MCP server for Claude Desktop integration:
+
+```bash
+# Install
+pip install agent-os[mcp]
+
+# Run MCP server
+mcp-kernel-server --stdio
+
+# Or add to claude_desktop_config.json:
+{
+  "mcpServers": {
+    "agent-os": {
+      "command": "mcp-kernel-server",
+      "args": ["--stdio"]
+    }
+  }
+}
+```
+
+Exposes tools: `cmvk_verify`, `kernel_execute`, `iatp_sign`, `iatp_verify`
+
+See [MCP server documentation](packages/mcp-kernel-server/README.md).
+
+---
+
 ## Documentation
 
-- [Quickstart Guide](docs/quickstart.md)
-- [Kernel Internals](docs/kernel-internals.md)
-- [Architecture Overview](docs/architecture.md)
-- [RFC-001: IATP](docs/rfcs/RFC-001-IATP.md)
-- [RFC-002: Agent VFS](docs/rfcs/RFC-002-Agent-VFS.md)
+- [Quickstart Guide](docs/quickstart.md) - 60 seconds to first agent
+- [Framework Integrations](docs/integrations.md) - LangChain, OpenAI, etc.
+- [Kernel Internals](docs/kernel-internals.md) - How the kernel works
+- [Architecture Overview](docs/architecture.md) - System design
+- [CMVK Algorithm](docs/cmvk-algorithm.md) - Cross-model verification
+- [RFC-003: Agent Signals](docs/rfcs/RFC-003-Agent-Signals.md) - POSIX-style signals
+- [RFC-004: Agent Primitives](docs/rfcs/RFC-004-Agent-Primitives.md) - Core primitives
 
 ---
 
 ## Status
 
-This is a research project exploring kernel concepts for AI agent governance. The code is functional but not production-hardened.
+This is a research project exploring kernel concepts for AI agent governance. The code is functional but evolving.
 
 **What works:**
-- Policy engine with signal-based enforcement
+- Policy engine with signal-based enforcement (SIGKILL, SIGSTOP, SIGCONT)
 - VFS for structured agent memory
-- Cross-model verification (CMVK)
-- Inter-agent trust protocol (IATP)
-- MCP server integration
-- Prometheus/OpenTelemetry observability
+- Cross-model verification (CMVK) with drift detection
+- Inter-agent trust protocol (IATP) with cryptographic signing
+- MCP server integration (Claude Desktop compatible)
+- Prometheus/OpenTelemetry observability with pre-built dashboards
+- Framework integrations: LangChain, CrewAI, AutoGen, OpenAI Assistants, Semantic Kernel
+- Stateless architecture (MCP June 2026 compliant)
+- AGENTS.md compatibility (OpenAI/Anthropic standard)
 
 **What's experimental:**
 - The "0% violation" claim needs formal verification
 - Benchmark numbers need independent reproduction
-- Integration with LangChain/CrewAI is basic
+- Some integrations are basic wrappers
 
 ---
 
