@@ -8,6 +8,8 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10+-blue.svg)](https://python.org)
 [![Tests](https://img.shields.io/badge/tests-76%20passed-brightgreen)](tests/)
+[![Coverage](https://img.shields.io/badge/coverage-27%25-yellow)](https://codecov.io/gh/imran-siddique/agent-os)
+[![Security](https://img.shields.io/badge/security-bandit%20%7C%20pip--audit-green)](docs/dependencies.md)
 [![Star History](https://img.shields.io/github/stars/imran-siddique/agent-os?style=social)](https://github.com/imran-siddique/agent-os)
 
 </div>

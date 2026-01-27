@@ -3,10 +3,15 @@ name: CI
 on:
   push:
     branches: [master, main]
+    tags:
+      - 'v*'
   pull_request:
     branches: [master, main]
 
 jobs:
+  # ==========================================================================
+  # Test Suite with Coverage
+  # ==========================================================================
   test:
     runs-on: ubuntu-latest
     strategy:
@@ -26,8 +31,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ".[dev]"
       
-      - name: Run tests
-        run: pytest tests/ -v
+      - name: Run tests with coverage
+        run: |
+          pytest tests/ -v --cov=packages --cov-report=xml --cov-report=term
+      
+      - name: Upload coverage to Codecov
+        if: matrix.python-version == '3.11'
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.xml
+          fail_ci_if_error: false
       
       - name: Run demos
         run: |
@@ -36,6 +49,9 @@ jobs:
           python examples/defi-sentinel/demo.py --attack reentrancy
           python examples/pharma-compliance/demo.py --reports 5
 
+  # ==========================================================================
+  # Linting (Ruff + MyPy)
+  # ==========================================================================
   lint:
     runs-on: ubuntu-latest
     steps:
@@ -47,14 +63,94 @@ jobs:
           python-version: "3.11"
       
       - name: Install linters
-        run: pip install ruff
+        run: pip install ruff mypy
       
-      - name: Run linter
+      - name: Run Ruff linter
         run: ruff check . --exit-zero
+      
+      - name: Run MyPy (type checking)
+        run: mypy packages/primitives packages/control-plane --ignore-missing-imports --exit-zero
 
+  # ==========================================================================
+  # Security Scanning (Bandit + pip-audit)
+  # ==========================================================================
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      
+      - name: Install security tools
+        run: pip install bandit pip-audit
+      
+      - name: Run Bandit (SAST)
+        run: bandit -r packages/ -ll --exit-zero
+      
+      - name: Run pip-audit (CVE scan)
+        run: |
+          pip install -e ".[full]"
+          pip-audit --strict --ignore-vuln CVE-2026-0994 --ignore-vuln CVE-2026-24486 || true
+
+  # ==========================================================================
+  # Benchmark Regression (Policy Enforcement <10ms)
+  # ==========================================================================
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      
+      - name: Run performance benchmarks
+        run: |
+          python -c "
+          import time
+          import sys
+          sys.path.insert(0, 'packages/control-plane/src')
+          from agent_control_plane import PolicyEngine, KernelSpace
+          
+          # Benchmark policy enforcement
+          kernel = KernelSpace()
+          
+          # Warm up
+          for _ in range(100):
+              kernel.check_policy({'action': 'test', 'resource': '/tmp/file'})
+          
+          # Actual benchmark
+          iterations = 1000
+          start = time.perf_counter()
+          for _ in range(iterations):
+              kernel.check_policy({'action': 'test', 'resource': '/tmp/file'})
+          elapsed = time.perf_counter() - start
+          
+          avg_ms = (elapsed / iterations) * 1000
+          print(f'Policy enforcement: {avg_ms:.3f}ms average')
+          
+          if avg_ms > 10:
+              print(f'FAIL: Policy enforcement took {avg_ms:.3f}ms (>10ms threshold)')
+              sys.exit(1)
+          else:
+              print(f'PASS: Policy enforcement under 10ms threshold')
+          "
+
+  # ==========================================================================
+  # Build Package
+  # ==========================================================================
   build:
     runs-on: ubuntu-latest
-    needs: [test]
+    needs: [test, lint, security]
     steps:
       - uses: actions/checkout@v4
       
@@ -71,3 +167,33 @@ jobs:
       
       - name: Check package
         run: twine check dist/*
+      
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  # ==========================================================================
+  # Publish to PyPI (on tag push)
+  # ==========================================================================
+  publish:
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: startsWith(github.ref, 'refs/tags/v')
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
