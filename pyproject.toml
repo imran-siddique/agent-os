@@ -101,7 +101,7 @@ packages = ["src/agent_os"]
 [tool.hatch.build.targets.sdist]
 include = [
     "/src",
-    "/packages",
+    "/modules",
     "/docs",
     "/README.md",
     "/LICENSE",
@@ -136,7 +136,7 @@ known-first-party = ["agent_os"]
 # Pytest
 # ============================================================================
 [tool.pytest.ini_options]
-testpaths = ["tests", "packages/*/tests"]
+testpaths = ["tests", "modules/*/tests"]
 asyncio_mode = "auto"
 addopts = "-v --tb=short"
 
@@ -158,7 +158,7 @@ disallow_untyped_defs = false
 # Coverage
 # ============================================================================
 [tool.coverage.run]
-source = ["src/agent_os", "packages"]
+source = ["src/agent_os", "modules"]
 branch = true
 
 [tool.coverage.report]

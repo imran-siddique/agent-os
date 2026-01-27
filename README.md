@@ -37,16 +37,63 @@ This is the same principle operating systems use: applications request resources
 
 ---
 
-## Core Components
+## Architecture
 
-| Package | Description |
-|---------|-------------|
-| [`control-plane`](packages/control-plane/) | Kernel with policy engine, signals, VFS |
-| [`iatp`](packages/iatp/) | Inter-Agent Trust Protocol for multi-agent |
-| [`cmvk`](packages/cmvk/) | Cross-Model Verification (consensus across LLMs) |
-| [`amb`](packages/amb/) | Agent Message Bus |
-| [`observability`](packages/observability/) | Prometheus metrics + OpenTelemetry |
-| [`mcp-kernel-server`](packages/mcp-kernel-server/) | MCP server integration |
+```
+agent-os/
+├── modules/                  # OS Modules (like Linux kernel modules)
+│   ├── primitives/           # Layer 1: Base types and failures
+│   ├── cmvk/                 # Layer 2: Cross-model verification
+│   ├── amb/                  # Layer 2: Agent message bus
+│   ├── iatp/                 # Layer 2: Inter-agent trust protocol
+│   ├── emk/                  # Layer 2: Episodic memory kernel
+│   ├── control-plane/        # Layer 3: THE KERNEL
+│   ├── observability/        # Layer 3: Prometheus + OpenTelemetry
+│   ├── scak/                 # Layer 4: Self-correcting agent kernel
+│   ├── mute-agent/           # Layer 4: Face/Hands agent architecture
+│   ├── atr/                  # Layer 4: Agent tool registry
+│   ├── caas/                 # Layer 4: Context-as-a-Service
+│   └── mcp-kernel-server/    # Integration: MCP for Claude Desktop
+├── extensions/               # IDE & CLI Extensions
+│   ├── vscode/               # VS Code extension
+│   ├── cursor/               # Cursor IDE extension
+│   ├── copilot/              # GitHub Copilot integration
+│   └── github-cli/           # gh CLI extension
+├── src/                      # Core Python package (agent_os)
+├── examples/                 # Working demos with observability
+├── docs/                     # Documentation
+└── papers/                   # Research papers
+```
+
+---
+
+## Core Modules
+
+| Module | Layer | Description |
+|--------|-------|-------------|
+| [`primitives`](modules/primitives/) | 1 | Base types and failure modes |
+| [`cmvk`](modules/cmvk/) | 2 | Cross-model verification (consensus across LLMs) |
+| [`amb`](modules/amb/) | 2 | Agent message bus (decoupled communication) |
+| [`iatp`](modules/iatp/) | 2 | Inter-agent trust protocol (sidecar-based) |
+| [`emk`](modules/emk/) | 2 | Episodic memory kernel (append-only ledger) |
+| [`control-plane`](modules/control-plane/) | 3 | **THE KERNEL** - Policy engine, signals, VFS |
+| [`observability`](modules/observability/) | 3 | Prometheus metrics + OpenTelemetry tracing |
+| [`scak`](modules/scak/) | 4 | Self-correcting agent kernel |
+| [`mute-agent`](modules/mute-agent/) | 4 | Decoupled reasoning/execution architecture |
+| [`atr`](modules/atr/) | 4 | Agent tool registry (runtime discovery) |
+| [`caas`](modules/caas/) | 4 | Context-as-a-Service (RAG routing) |
+| [`mcp-kernel-server`](modules/mcp-kernel-server/) | Int | MCP server for Claude Desktop |
+
+---
+
+## IDE & CLI Extensions
+
+| Extension | Description |
+|-----------|-------------|
+| [`vscode`](extensions/vscode/) | VS Code extension with real-time policy checks |
+| [`cursor`](extensions/cursor/) | Cursor IDE extension (Composer integration) |
+| [`copilot`](extensions/copilot/) | GitHub Copilot safety layer |
+| [`github-cli`](extensions/github-cli/) | `gh agent-os` CLI extension |
 
 ---
 
@@ -199,22 +246,25 @@ open http://localhost:16686 # Jaeger traces
 
 ---
 
-## Architecture
+## CLI Tool
 
-```
-agent-os/
-├── packages/
-│   ├── primitives/          # Base types
-│   ├── cmvk/                 # Cross-model verification  
-│   ├── iatp/                 # Inter-agent trust
-│   ├── amb/                  # Message bus
-│   ├── control-plane/        # THE KERNEL
-│   ├── scak/                 # Self-correction
-│   ├── mcp-kernel-server/    # MCP integration
-│   └── observability/        # Prometheus + OTel
-├── examples/                 # Working demos
-├── papers/                   # Research papers
-└── docs/                     # Documentation
+Agent OS includes a CLI for terminal workflows:
+
+```bash
+# Check files for safety violations
+agentos check src/app.py
+
+# Check staged git files (pre-commit)
+agentos check --staged
+
+# Multi-model code review
+agentos review src/app.py --cmvk
+
+# Install git pre-commit hook
+agentos install-hooks
+
+# Initialize Agent OS in project
+agentos init
 ```
 
 ---
@@ -243,7 +293,7 @@ mcp-kernel-server --stdio
 
 Exposes tools: `cmvk_verify`, `kernel_execute`, `iatp_sign`, `iatp_verify`
 
-See [MCP server documentation](packages/mcp-kernel-server/README.md).
+See [MCP server documentation](modules/mcp-kernel-server/README.md).
 
 ---
 
@@ -271,6 +321,8 @@ This is a research project exploring kernel concepts for AI agent governance. Th
 - MCP server integration (Claude Desktop compatible)
 - Prometheus/OpenTelemetry observability with pre-built dashboards
 - Framework integrations: LangChain, CrewAI, AutoGen, OpenAI Assistants, Semantic Kernel
+- IDE extensions: VS Code, Cursor, GitHub Copilot
+- CLI tool with pre-commit hooks
 - Stateless architecture (MCP June 2026 compliant)
 - AGENTS.md compatibility (OpenAI/Anthropic standard)
 
