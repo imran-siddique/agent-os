@@ -81,34 +81,87 @@ class CMVKVerifyTool:
     
     async def _verify_claim(self, claim: str, context: str, threshold: float) -> dict:
         """
-        Perform cross-model verification.
+        Perform cross-model verification using drift-based consensus.
         
-        In production, this calls multiple LLM APIs and compares responses.
-        Here we provide the interface for integration.
+        Algorithm:
+        1. Query each model with the claim
+        2. Calculate pairwise drift between responses
+        3. If max drift > threshold, flag disagreement
+        4. Return consensus response with confidence score
+        
+        In production, this calls actual LLM APIs.
+        This implementation provides the interface and algorithm structure.
         """
-        # Hash for deterministic demo results
+        import hashlib
+        
+        # Models to verify against
+        models = ["gpt-4", "claude-sonnet-4", "gemini-pro"]
+        
+        # In production: Call each model API
+        # responses = [await call_model(m, claim) for m in models]
+        
+        # For demo: Generate deterministic mock responses
         claim_hash = int(hashlib.md5(claim.encode()).hexdigest()[:8], 16)
         
-        # Simulated multi-model response
-        models_checked = ["gpt-4-turbo", "claude-3-sonnet", "gemini-pro"]
-        agreement_score = 0.7 + (claim_hash % 30) / 100  # 0.70-0.99
+        # Simulate model responses (in production, actual API calls)
+        responses = []
+        for i, model in enumerate(models):
+            response_hash = (claim_hash + i * 12345) % 1000000
+            responses.append({
+                "model": model,
+                "response": f"Response from {model}",
+                "latency_ms": 500 + (response_hash % 500)
+            })
         
-        verified = agreement_score >= threshold
+        # Calculate pairwise drift scores
+        # Drift = 0.0 (identical) to 1.0 (completely different)
+        drift_scores = []
+        for i in range(len(responses)):
+            for j in range(i + 1, len(responses)):
+                # In production: Use embedding similarity or semantic comparison
+                # drift = cosine_distance(embed(r_i), embed(r_j))
+                # For demo: deterministic based on hash
+                pair_hash = (claim_hash + i * 100 + j * 10) % 100
+                drift = pair_hash / 100 * 0.3  # 0.0 to 0.3 range
+                drift_scores.append({
+                    "pair": (responses[i]["model"], responses[j]["model"]),
+                    "drift": round(drift, 3)
+                })
+        
+        max_drift = max(d["drift"] for d in drift_scores) if drift_scores else 0.0
+        avg_drift = sum(d["drift"] for d in drift_scores) / len(drift_scores) if drift_scores else 0.0
+        
+        # Drift-based decision
+        # High drift = disagreement = low confidence
+        disagreement_threshold = 1.0 - threshold  # threshold is agreement, so invert
+        disagreement_detected = max_drift > disagreement_threshold
+        
+        confidence = 1.0 - avg_drift
+        verified = not disagreement_detected and confidence >= threshold
         
         return {
             "verified": verified,
-            "confidence": round(agreement_score, 3),
-            "agreement_score": round(agreement_score, 3),
-            "models_checked": models_checked,
-            "divergences": [] if verified else [
-                {
-                    "model": "gemini-pro",
-                    "disagreement": "Partial disagreement on technical details",
-                    "severity": "low"
-                }
-            ],
-            "claim_hash": claim_hash
+            "confidence": round(confidence, 3),
+            "drift_score": round(max_drift, 3),
+            "avg_drift": round(avg_drift, 3),
+            "models_checked": models,
+            "drift_details": drift_scores,
+            "disagreement_detected": disagreement_detected,
+            "consensus_method": "drift_threshold",
+            "threshold_used": threshold,
+            "interpretation": self._interpret_result(verified, confidence, max_drift)
         }
+    
+    def _interpret_result(self, verified: bool, confidence: float, max_drift: float) -> str:
+        """Generate human-readable interpretation of verification result."""
+        if verified and confidence > 0.9:
+            return "Strong consensus across all models. High confidence in claim validity."
+        elif verified and confidence > 0.7:
+            return "Models agree with moderate confidence. Claim appears valid."
+        elif not verified and max_drift > 0.25:
+            return "Significant disagreement between models. Claim requires manual review."
+        else:
+            return "Weak consensus. Consider additional verification."
 
 
 class KernelExecuteTool:
