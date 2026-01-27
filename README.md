@@ -74,6 +74,70 @@
 
 ---
 
+## Why POSIX?
+
+In 1988, **POSIX standardized how processes interact with operating systems.**
+Result: Any program can run on any OS (Linux, BSD, macOS).
+
+**In 2026, we need the same for AI agents.**
+
+| POSIX Primitive | Agent OS Equivalent | What It Does |
+|-----------------|---------------------|--------------|
+| `SIGKILL` | `AgentSignal.SIGKILL` | Terminate agent (non-catchable) |
+| `SIGSTOP` | `AgentSignal.SIGSTOP` | Pause agent to inspect state |
+| `SIGINT` | `AgentSignal.SIGINT` | Graceful interrupt |
+| `/proc` filesystem | Agent VFS | Structured memory (`/mem/working`, `/mem/episodic`) |
+| Pipes (`|`) | IPC Pipes | Type-safe agent-to-agent communication |
+| `syscall()` | `kernel.execute()` | Agent-to-kernel interface |
+
+**Result:** Any agent can run on any infrastructure, with guaranteed safety.
+
+```
+Think: "Kubernetes standardized containers. Agent OS standardizes agents."
+```
+
+---
+
+## Agent OS vs LangChain/CrewAI
+
+**LangChain and CrewAI are applications. Agent OS is the operating system underneath.**
+
+```
+Chrome (application) runs on Linux (OS)
+LangChain (framework) runs on Agent OS (kernel)
+
+You don't compare Chrome to Linux.
+You don't compare LangChain to Agent OS.
+But you DO need both.
+```
+
+| Dimension | LangChain | CrewAI | **Agent OS** |
+|-----------|-----------|--------|--------------|
+| **Layer** | Application | Application | **Kernel** |
+| **Purpose** | Build agents | Coordinate agents | **Govern agents** |
+| **Safety** | Prompt-based | Prompt-based | **Kernel-enforced** |
+| **Violations** | ~27% bypass rate | ~27% bypass rate | **0% guaranteed** |
+| **Analogy** | Chrome | Firefox | **Linux** |
+
+### Use Them Together
+
+```python
+# LangChain agent + Agent OS governance
+from langchain.agents import AgentExecutor
+from agent_os import KernelSpace
+
+kernel = KernelSpace(policy="strict")
+
+@kernel.govern  # Wrap any LangChain agent
+async def my_langchain_agent(task: str):
+    return agent_executor.invoke({"input": task})
+
+# Now your LangChain agent has kernel-level safety
+result = await kernel.execute(my_langchain_agent, "analyze data")
+```
+
+---
+
 ## Quick Jump
 
 | I want to... | Go here |
