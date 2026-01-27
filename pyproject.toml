@@ -3,9 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "agent-os-kernel"
+name = "agent-os"
 version = "1.1.0"
-description = "A Safety-First Kernel for Autonomous AI Agents - POSIX-inspired primitives with 0% policy violation guarantee"
+description = "A kernel architecture for governing autonomous AI agents"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.9"
@@ -24,19 +24,13 @@ keywords = [
     "governance",
     "control-plane",
     "multi-agent",
-    "signals",
-    "vfs",
-    "posix",
-    "autonomous",
 ]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Software Development :: Libraries :: Python Modules",
-    "Topic :: System :: Operating System Kernels",
-    "Topic :: Security",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.9",
@@ -46,7 +40,7 @@ classifiers = [
     "Typing :: Typed",
 ]
 
-# Core dependencies (minimal)
+# Core dependencies (minimal - just what's needed for kernel)
 dependencies = [
     "pydantic>=2.0.0",
 ]
@@ -56,30 +50,13 @@ Homepage = "https://github.com/imran-siddique/agent-os"
 Documentation = "https://github.com/imran-siddique/agent-os/tree/master/docs"
 Repository = "https://github.com/imran-siddique/agent-os"
 "Bug Tracker" = "https://github.com/imran-siddique/agent-os/issues"
-Changelog = "https://github.com/imran-siddique/agent-os/blob/master/CHANGELOG.md"
 
 [project.optional-dependencies]
-# Layer 1: Primitives
-primitives = []  # No extra deps, just pydantic
-
+# Individual components
 cmvk = [
     "numpy>=1.20.0",
 ]
 
-caas = [
-    "fastapi>=0.100.0",
-    "uvicorn>=0.20.0",
-    "PyPDF2>=3.0.0",
-    "numpy>=1.20.0",
-    "scikit-learn>=1.0.0",
-]
-
-emk = [
-    "numpy>=1.20.0",
-    "chromadb>=0.4.0",
-]
-
-# Layer 2: Infrastructure
 iatp = [
     "fastapi>=0.100.0",
     "uvicorn>=0.20.0",
@@ -91,35 +68,19 @@ amb = [
     "aiofiles>=23.0.0",
 ]
 
-atr = [
-    "docker>=6.0.0",
+observability = [
+    "prometheus-client>=0.17.0",
+    "opentelemetry-api>=1.20.0",
+    "opentelemetry-sdk>=1.20.0",
 ]
 
-# Layer 3: Framework
-control-plane = []  # Zero external deps by design
-
-# Layer 4: Intelligence
-scak = [
-    "pyyaml>=6.0",
+mcp = [
+    "mcp>=1.0.0",
 ]
-
-mute-agent = []  # Minimal deps
 
 # Bundles
-core = [
-    "agent-os[primitives,cmvk,control-plane]",
-]
-
-infrastructure = [
-    "agent-os[iatp,amb,atr]",
-]
-
-intelligence = [
-    "agent-os[scak,mute-agent]",
-]
-
 full = [
-    "agent-os[primitives,cmvk,caas,emk,iatp,amb,atr,control-plane,scak,mute-agent]",
+    "agent-os[cmvk,iatp,amb,observability,mcp]",
 ]
 
 # Development
@@ -129,23 +90,10 @@ dev = [
     "pytest-cov>=4.0.0",
     "mypy>=1.0.0",
     "ruff>=0.1.0",
-    "black>=23.0.0",
-]
-
-docs = [
-    "mkdocs>=1.5.0",
-    "mkdocs-material>=9.0.0",
-    "mkdocstrings[python]>=0.24.0",
-]
-
-all = [
-    "agent-os[full,dev,docs]",
 ]
 
 [project.scripts]
 agent-os = "agent_os.cli:main"
-agentctl = "agent_os.cli:main"
-agentos = "agent_os.cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/agent_os"]

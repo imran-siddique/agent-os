@@ -53,15 +53,16 @@ This is the same principle operating systems use: applications request resources
 ## Install
 
 ```bash
-pip install agent-os-kernel
+pip install agent-os
 ```
 
-Or install specific components:
+Or with optional components:
 
 ```bash
-pip install agent-control-plane
-pip install inter-agent-trust-protocol
-pip install cmvk
+pip install agent-os[cmvk]           # + cross-model verification
+pip install agent-os[iatp]           # + inter-agent trust
+pip install agent-os[observability]  # + Prometheus/OpenTelemetry
+pip install agent-os[full]           # Everything
 ```
 
 ---
