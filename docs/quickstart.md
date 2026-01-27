@@ -10,7 +10,13 @@
 ## Installation
 
 ```bash
-pip install agent-os-kernel
+pip install agent-os
+```
+
+Or with all extras:
+
+```bash
+pip install agent-os[full]
 ```
 
 ## Your First Governed Agent
@@ -186,7 +192,7 @@ agentos init my-agent --template audit
 
 ```bash
 # Ensure the package is installed
-pip install agent-os-kernel
+pip install agent-os
 
 # Or check your PATH
 python -m agent_os.cli --help
