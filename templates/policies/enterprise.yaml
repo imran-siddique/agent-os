@@ -1,0 +1,267 @@
+# Enterprise Policy Template
+# Comprehensive governance for enterprise AI agent deployments
+
+kernel:
+  version: "1.0"
+  mode: strict
+  template: enterprise
+
+description: |
+  Enterprise-grade policy template with comprehensive controls for:
+  - Security and compliance
+  - Audit and accountability
+  - Rate limiting and resource control
+  - Multi-level approval workflows
+
+signals:
+  enabled:
+    - SIGSTOP   # Pause for human review
+    - SIGKILL   # Terminate on violation
+    - SIGCONT   # Resume after approval
+    - SIGUSR1   # Custom: escalate to security team
+    - SIGUSR2   # Custom: request manager approval
+
+policies:
+  # ============================================
+  # SECURITY POLICIES
+  # ============================================
+  
+  - name: destructive_operations
+    description: Block all destructive operations
+    severity: critical
+    category: security
+    deny:
+      - action: database_write
+        operations: [DROP, TRUNCATE, DELETE]
+      - action: file_delete
+        paths: ["/**"]
+      - action: shell_exec
+        commands: ["rm", "del", "format"]
+    action: SIGKILL
+    requires_approval: true
+    approval_level: security_team
+
+  - name: credential_protection
+    description: Prevent credential exposure
+    severity: critical
+    category: security
+    deny:
+      - patterns:
+          - '(?i)(password|api[_-]?key|secret|token)\s*[:=]\s*["\'][^"\']+["\']'
+          - 'sk-[A-Za-z0-9]{32,}'
+          - 'ghp_[A-Za-z0-9]{36}'
+          - 'AKIA[A-Z0-9]{16}'
+    action: SIGKILL
+
+  - name: network_restrictions
+    description: Control network access
+    severity: high
+    category: security
+    allow:
+      - action: http_request
+        domains:
+          - "*.company.com"
+          - "api.openai.com"
+          - "api.anthropic.com"
+    deny:
+      - action: http_request
+        domains: ["*"]  # Block all others
+    action: SIGSTOP
+    message: "Network request to unapproved domain"
+
+  # ============================================
+  # COMPLIANCE POLICIES
+  # ============================================
+
+  - name: pii_protection
+    description: Protect personally identifiable information
+    severity: critical
+    category: compliance
+    scope: [input, output]
+    deny:
+      - patterns:
+          - '\b\d{3}-\d{2}-\d{4}\b'  # SSN
+          - '\b(?:4[0-9]{12}(?:[0-9]{3})?)\b'  # Credit card
+    action: SIGKILL
+    audit: always
+
+  - name: data_residency
+    description: Ensure data stays in approved regions
+    severity: high
+    category: compliance
+    deny:
+      - action: http_request
+        regions_excluded:
+          - "CN"
+          - "RU"
+    action: SIGKILL
+
+  - name: retention_policy
+    description: Enforce data retention rules
+    severity: medium
+    category: compliance
+    rules:
+      - data_type: "logs"
+        max_retention_days: 90
+      - data_type: "pii"
+        max_retention_days: 30
+      - data_type: "audit"
+        min_retention_days: 365
+
+  # ============================================
+  # OPERATIONAL POLICIES
+  # ============================================
+
+  - name: rate_limiting
+    description: Prevent resource abuse
+    severity: medium
+    category: operational
+    limits:
+      - action: llm_call
+        max_per_minute: 60
+        max_per_hour: 1000
+      - action: database_query
+        max_per_minute: 100
+      - action: file_read
+        max_per_minute: 200
+    action: SIGSTOP
+    message: "Rate limit exceeded"
+
+  - name: cost_controls
+    description: Control AI spending
+    severity: high
+    category: operational
+    limits:
+      - action: llm_call
+        max_tokens_per_call: 4000
+        max_cost_per_day_usd: 100
+      - action: cmvk_review
+        max_per_day: 50
+    action: SIGSTOP
+    escalate_to: finance_team
+
+  - name: resource_limits
+    description: Prevent resource exhaustion
+    severity: high
+    category: operational
+    limits:
+      - memory_mb: 1024
+      - cpu_percent: 80
+      - disk_write_mb: 100
+    action: SIGSTOP
+
+  # ============================================
+  # APPROVAL WORKFLOWS
+  # ============================================
+
+  - name: high_risk_operations
+    description: Require approval for high-risk operations
+    severity: high
+    category: workflow
+    requires_approval:
+      - action: database_write
+        scope: production
+        approval_level: dba_team
+      - action: deploy
+        approval_level: release_manager
+      - action: user_data_access
+        approval_level: privacy_officer
+    timeout_minutes: 30
+    action: SIGSTOP
+
+# ============================================
+# AUDIT CONFIGURATION
+# ============================================
+
+audit:
+  enabled: true
+  log_path: "./logs/enterprise-audit.log"
+  include:
+    - all_actions
+    - policy_checks
+    - signals
+    - approvals
+    - denials
+  
+  # Structured logging for SIEM integration
+  format: json
+  fields:
+    - timestamp
+    - agent_id
+    - action
+    - policy
+    - result
+    - user
+    - session_id
+    - correlation_id
+  
+  retention_days: 365
+  
+  # Export to external systems
+  export:
+    enabled: true
+    destinations:
+      - type: syslog
+        host: "siem.company.com"
+        port: 514
+      - type: webhook
+        url: "https://security.company.com/api/events"
+        headers:
+          Authorization: "Bearer ${AUDIT_WEBHOOK_TOKEN}"
+
+# ============================================
+# NOTIFICATIONS
+# ============================================
+
+notifications:
+  channels:
+    - name: security_team
+      type: slack
+      webhook: "${SLACK_SECURITY_WEBHOOK}"
+      events: [SIGKILL, credential_exposure, pii_detection]
+    
+    - name: ops_team
+      type: pagerduty
+      routing_key: "${PAGERDUTY_KEY}"
+      events: [rate_limit_exceeded, resource_exhaustion]
+    
+    - name: compliance
+      type: email
+      recipients: ["compliance@company.com"]
+      events: [pii_detection, data_residency_violation]
+
+  escalation:
+    - level: 1
+      delay_minutes: 0
+      notify: [security_team]
+    - level: 2
+      delay_minutes: 15
+      notify: [ops_team, security_team]
+    - level: 3
+      delay_minutes: 30
+      notify: [ciso@company.com]
+
+# ============================================
+# INTEGRATION
+# ============================================
+
+integrations:
+  sso:
+    enabled: true
+    provider: okta
+    required_groups:
+      - "agent-os-users"
+      - "developers"
+  
+  secrets_manager:
+    enabled: true
+    provider: vault
+    path: "secret/agent-os"
+  
+  observability:
+    prometheus:
+      enabled: true
+      port: 9090
+    opentelemetry:
+      enabled: true
+      endpoint: "https://otel.company.com:4317"

@@ -1,0 +1,186 @@
+# Data Protection Policy Template
+# Prevents data leakage and ensures PII handling compliance
+
+kernel:
+  version: "1.0"
+  mode: strict
+  template: data-protection
+
+description: |
+  Policy for protecting sensitive data and preventing data leakage.
+  Suitable for applications handling PII, financial data, or health information.
+
+signals:
+  enabled:
+    - SIGSTOP   # Pause for human review
+    - SIGKILL   # Terminate on critical violation
+
+policies:
+  # ============================================
+  # PII Detection and Protection
+  # ============================================
+  - name: pii_detection
+    description: Detect and block exposure of personally identifiable information
+    severity: critical
+    scope: output  # Check agent outputs
+    deny:
+      - patterns:
+          # Social Security Numbers (US)
+          - '\b\d{3}-\d{2}-\d{4}\b'
+          - '\b\d{9}\b'  # SSN without dashes
+          
+          # Credit Card Numbers
+          - '\b(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12})\b'
+          
+          # Email addresses (in sensitive contexts)
+          - '(?i)(email|e-mail)\s*[:=]\s*["\']?[\w.+-]+@[\w-]+\.[\w.-]+["\']?'
+          
+          # Phone numbers
+          - '\b\d{3}[-.]?\d{3}[-.]?\d{4}\b'
+          
+          # Passport numbers
+          - '(?i)passport\s*[:=]?\s*[A-Z0-9]{6,9}'
+          
+          # Driver's license
+          - '(?i)driver.*license\s*[:=]?\s*[A-Z0-9]{5,15}'
+    action: SIGKILL
+    message: "PII detected in output - data must be masked or removed"
+
+  # ============================================
+  # Financial Data Protection
+  # ============================================
+  - name: financial_data_protection
+    description: Protect financial information
+    severity: critical
+    deny:
+      - patterns:
+          # Bank account numbers
+          - '(?i)(account|acct)\s*(?:number|#|no)?\s*[:=]?\s*\d{8,17}'
+          
+          # Routing numbers
+          - '(?i)routing\s*(?:number|#)?\s*[:=]?\s*\d{9}'
+          
+          # CVV/CVC
+          - '(?i)(cvv|cvc|cv2)\s*[:=]?\s*\d{3,4}'
+    action: SIGKILL
+    message: "Financial data exposure blocked"
+
+  # ============================================
+  # Health Data Protection (HIPAA)
+  # ============================================
+  - name: health_data_protection
+    description: Protect health-related information (HIPAA compliance)
+    severity: critical
+    deny:
+      - patterns:
+          # Medical Record Numbers
+          - '(?i)(mrn|medical\s*record)\s*[:=]?\s*[A-Z0-9]{6,12}'
+          
+          # Health Insurance IDs
+          - '(?i)(insurance|member)\s*id\s*[:=]?\s*[A-Z0-9]{8,15}'
+          
+          # Diagnosis codes
+          - '(?i)diagnosis\s*[:=]?\s*[A-Z]\d{2}\.\d{1,2}'
+    action: SIGKILL
+    message: "Protected health information (PHI) detected"
+
+  # ============================================
+  # Logging Safety
+  # ============================================
+  - name: safe_logging
+    description: Prevent sensitive data in logs
+    severity: high
+    deny:
+      - patterns:
+          # Logging passwords
+          - '(?i)log.*password'
+          - '(?i)console\.log.*password'
+          - '(?i)print.*password'
+          - '(?i)logger\..*password'
+          
+          # Logging tokens/keys
+          - '(?i)log.*(?:token|api[_-]?key|secret)'
+          - '(?i)console\.log.*(?:token|api[_-]?key)'
+    action: SIGSTOP
+    message: "Sensitive data should not be logged"
+
+  # ============================================
+  # Data Retention
+  # ============================================
+  - name: data_retention_warnings
+    description: Warn about potential data retention issues
+    severity: medium
+    deny:
+      - patterns:
+          # Storing data without expiry
+          - '(?i)cache\.set\s*\([^)]*\)\s*[^,]*$'  # Cache without TTL
+          - '(?i)localStorage\.setItem'
+          - '(?i)sessionStorage\.setItem'
+    action: SIGSTOP
+    message: "Consider data retention policies - add TTL or expiration"
+
+  # ============================================
+  # Data Export Controls
+  # ============================================
+  - name: data_export_controls
+    description: Monitor data export operations
+    severity: high
+    deny:
+      - patterns:
+          # Bulk data exports
+          - '(?i)SELECT\s+\*\s+FROM\s+\w+\s*;'  # SELECT * without WHERE
+          - '(?i)pg_dump'
+          - '(?i)mysqldump'
+          - '(?i)mongodump'
+    action: SIGSTOP
+    message: "Bulk data export detected - ensure authorization"
+
+  # ============================================
+  # Encryption Requirements
+  # ============================================
+  - name: encryption_requirements
+    description: Ensure sensitive data is encrypted
+    severity: high
+    deny:
+      - patterns:
+          # Storing sensitive data in plain text
+          - '(?i)(password|secret|key)\s*=\s*["\'][^"\']+["\']'
+          
+          # Weak hashing
+          - '(?i)md5\s*\('
+          - '(?i)sha1\s*\('
+    action: SIGSTOP
+    message: "Use strong encryption (AES-256, SHA-256+) for sensitive data"
+
+  # ============================================
+  # Third-Party Data Sharing
+  # ============================================
+  - name: third_party_sharing
+    description: Monitor data sharing with third parties
+    severity: medium
+    deny:
+      - patterns:
+          # External API calls with user data
+          - '(?i)(fetch|axios|requests)\s*\.\s*(get|post)\s*\([^)]*user'
+    action: SIGSTOP
+    message: "Review third-party data sharing for compliance"
+
+audit:
+  enabled: true
+  log_path: "./logs/data-protection-audit.log"
+  include:
+    - all_violations
+    - pii_detections
+    - data_exports
+  retention_days: 365  # Longer retention for compliance
+
+compliance:
+  frameworks:
+    - GDPR
+    - CCPA
+    - HIPAA
+  data_classification:
+    public: []
+    internal: ["email", "name"]
+    confidential: ["ssn", "credit_card", "health_data"]
+    restricted: ["password", "encryption_key"]

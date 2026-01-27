@@ -1,0 +1,156 @@
+# Secure Coding Policy Template
+# Prevents common security vulnerabilities in code
+
+kernel:
+  version: "1.0"
+  mode: strict
+  template: secure-coding
+
+description: |
+  Comprehensive security policy for preventing common coding vulnerabilities.
+  Recommended for all production code.
+
+signals:
+  enabled:
+    - SIGSTOP   # Pause for human review
+    - SIGKILL   # Terminate on critical violation
+
+policies:
+  # ============================================
+  # SQL Injection Prevention
+  # ============================================
+  - name: sql_injection_prevention
+    description: Block raw SQL string concatenation
+    severity: critical
+    deny:
+      - patterns:
+          # String concatenation in SQL
+          - '["\']\s*\+\s*\w+\s*\+\s*["\'].*(?:SELECT|INSERT|UPDATE|DELETE|DROP)'
+          - 'f["\'].*(?:SELECT|INSERT|UPDATE|DELETE|DROP).*\{.*\}'
+          - '\.format\(.*\).*(?:SELECT|INSERT|UPDATE|DELETE|DROP)'
+    action: SIGKILL
+    message: "Use parameterized queries instead of string concatenation"
+
+  # ============================================
+  # Destructive Operations
+  # ============================================
+  - name: destructive_sql
+    description: Block destructive SQL operations
+    severity: critical
+    deny:
+      - patterns:
+          - '\bDROP\s+(TABLE|DATABASE|INDEX|VIEW|SCHEMA)\b'
+          - '\bTRUNCATE\s+TABLE\b'
+          - '\bDELETE\s+FROM\s+\w+\s*;'  # DELETE without WHERE
+    action: SIGKILL
+    message: "Destructive SQL operations blocked"
+
+  # ============================================
+  # Command Injection Prevention
+  # ============================================
+  - name: command_injection_prevention
+    description: Block shell command execution with user input
+    severity: critical
+    deny:
+      - patterns:
+          - 'os\.system\s*\('
+          - 'subprocess\.call\s*\(\s*["\'][^"\']*\$'
+          - 'eval\s*\('
+          - 'exec\s*\('
+          - 'child_process\.exec\s*\('
+    action: SIGKILL
+    message: "Use safe alternatives like subprocess.run with shell=False"
+
+  # ============================================
+  # Path Traversal Prevention
+  # ============================================
+  - name: path_traversal_prevention
+    description: Block path traversal patterns
+    severity: high
+    deny:
+      - patterns:
+          - '\.\./\.\.'
+          - '\.\.\\\.\\' 
+          - '%2e%2e%2f'
+          - '%252e%252e%252f'
+    action: SIGKILL
+    message: "Path traversal attempt detected"
+
+  # ============================================
+  # Insecure Randomness
+  # ============================================
+  - name: insecure_randomness
+    description: Flag use of weak random generators for security
+    severity: medium
+    deny:
+      - patterns:
+          - 'Math\.random\s*\(\)'  # JavaScript
+          - 'random\.random\s*\('  # Python (in security context)
+          - 'rand\s*\(\)'          # C/C++
+    action: SIGSTOP
+    message: "Use cryptographically secure random (secrets, crypto.randomBytes)"
+
+  # ============================================
+  # Hardcoded Credentials
+  # ============================================
+  - name: hardcoded_credentials
+    description: Block hardcoded passwords and secrets
+    severity: critical
+    deny:
+      - patterns:
+          - '(?i)(password|passwd|pwd)\s*[:=]\s*["\'][^"\']{4,}["\']'
+          - '(?i)(api[_-]?key|apikey)\s*[:=]\s*["\'][A-Za-z0-9]{16,}["\']'
+          - '(?i)(secret[_-]?key)\s*[:=]\s*["\'][^"\']{16,}["\']'
+          - '(?i)(access[_-]?token)\s*[:=]\s*["\'][^"\']{16,}["\']'
+          # Common API key patterns
+          - 'sk-[A-Za-z0-9]{32,}'   # OpenAI
+          - 'ghp_[A-Za-z0-9]{36}'   # GitHub
+          - 'AKIA[A-Z0-9]{16}'      # AWS
+    action: SIGKILL
+    message: "Use environment variables or secret management"
+
+  # ============================================
+  # Insecure Protocols
+  # ============================================
+  - name: insecure_protocols
+    description: Flag use of insecure protocols
+    severity: medium
+    deny:
+      - patterns:
+          - 'http://'              # Non-HTTPS
+          - 'ftp://'               # Unencrypted FTP
+          - 'telnet://'            # Telnet
+    exceptions:
+      - 'http://localhost'
+      - 'http://127.0.0.1'
+    action: SIGSTOP
+    message: "Use secure protocols (HTTPS, SFTP, SSH)"
+
+  # ============================================
+  # Dangerous File Operations
+  # ============================================
+  - name: dangerous_file_ops
+    description: Block dangerous file system operations
+    severity: high
+    deny:
+      - patterns:
+          - 'rm\s+-rf\s+/'
+          - 'shutil\.rmtree\s*\(["\']/'
+          - 'chmod\s+777'
+          - 'chmod\s+\+s'
+    action: SIGKILL
+    message: "Dangerous file operation blocked"
+
+audit:
+  enabled: true
+  log_path: "./logs/security-audit.log"
+  include:
+    - all_violations
+    - policy_checks
+    - signals
+  retention_days: 90
+
+notifications:
+  on_block: true
+  on_warning: true
+  webhook: null  # Optional: https://your-webhook.com/alerts

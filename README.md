@@ -91,6 +91,7 @@ agent-os/
 | Extension | Description |
 |-----------|-------------|
 | [`vscode`](extensions/vscode/) | VS Code extension with real-time policy checks |
+| [`jetbrains`](extensions/jetbrains/) | IntelliJ, PyCharm, WebStorm plugin |
 | [`cursor`](extensions/cursor/) | Cursor IDE extension (Composer integration) |
 | [`copilot`](extensions/copilot/) | GitHub Copilot safety layer |
 | [`github-cli`](extensions/github-cli/) | `gh agent-os` CLI extension |
@@ -110,6 +111,18 @@ pip install agent-os[cmvk]           # + cross-model verification
 pip install agent-os[iatp]           # + inter-agent trust
 pip install agent-os[observability]  # + Prometheus/OpenTelemetry
 pip install agent-os[full]           # Everything
+```
+
+### One-Command Quickstart
+
+**macOS/Linux:**
+```bash
+curl -sSL https://raw.githubusercontent.com/imran-siddique/agent-os/main/scripts/quickstart.sh | bash
+```
+
+**Windows (PowerShell):**
+```powershell
+iwr -useb https://raw.githubusercontent.com/imran-siddique/agent-os/main/scripts/quickstart.ps1 | iex
 ```
 
 ---

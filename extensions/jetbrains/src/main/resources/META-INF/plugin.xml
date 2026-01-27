@@ -1,0 +1,135 @@
+<idea-plugin>
+    <id>com.agentos.plugin</id>
+    <name>Agent OS - AI Safety for Code</name>
+    <vendor email="support@agent-os.dev" url="https://github.com/imran-siddique/agent-os">Agent OS</vendor>
+
+    <description><![CDATA[
+        <h1>Kernel-level safety for AI coding assistants</h1>
+        <p>Agent OS wraps your AI assistant with a safety kernel that blocks dangerous code before it executes.</p>
+        
+        <h2>Features</h2>
+        <ul>
+            <li>🛡️ Real-time policy enforcement</li>
+            <li>🔍 Multi-model code review (CMVK)</li>
+            <li>📋 Complete audit trail</li>
+            <li>👥 Team-shared policies</li>
+        </ul>
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.lang</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- Tool Window -->
+        <toolWindow id="Agent OS" 
+                    secondary="true" 
+                    anchor="right" 
+                    factoryClass="com.agentos.plugin.toolwindow.AgentOSToolWindowFactory"
+                    icon="/icons/shield.svg"/>
+        
+        <!-- Settings -->
+        <applicationConfigurable 
+            parentId="tools"
+            instance="com.agentos.plugin.settings.AgentOSConfigurable"
+            id="com.agentos.plugin.settings"
+            displayName="Agent OS"/>
+        
+        <applicationService 
+            serviceImplementation="com.agentos.plugin.settings.AgentOSSettings"/>
+        
+        <!-- Code Inspections -->
+        <localInspection 
+            language=""
+            displayName="Agent OS: Destructive SQL"
+            groupPath="Agent OS"
+            groupBundle="messages.InspectionsBundle"
+            groupKey="group.names.agent.os"
+            enabledByDefault="true"
+            level="ERROR"
+            implementationClass="com.agentos.plugin.inspections.DestructiveSQLInspection"/>
+        
+        <localInspection 
+            language=""
+            displayName="Agent OS: Hardcoded Secrets"
+            groupPath="Agent OS"
+            groupBundle="messages.InspectionsBundle"
+            groupKey="group.names.agent.os"
+            enabledByDefault="true"
+            level="ERROR"
+            implementationClass="com.agentos.plugin.inspections.HardcodedSecretsInspection"/>
+        
+        <localInspection 
+            language=""
+            displayName="Agent OS: Dangerous File Operations"
+            groupPath="Agent OS"
+            groupBundle="messages.InspectionsBundle"
+            groupKey="group.names.agent.os"
+            enabledByDefault="true"
+            level="ERROR"
+            implementationClass="com.agentos.plugin.inspections.DangerousFileOpsInspection"/>
+        
+        <localInspection 
+            language=""
+            displayName="Agent OS: Privilege Escalation"
+            groupPath="Agent OS"
+            groupBundle="messages.InspectionsBundle"
+            groupKey="group.names.agent.os"
+            enabledByDefault="true"
+            level="WARNING"
+            implementationClass="com.agentos.plugin.inspections.PrivilegeEscalationInspection"/>
+        
+        <!-- Notifications -->
+        <notificationGroup id="Agent OS Notifications" 
+                          displayType="BALLOON" 
+                          isLogByDefault="true"/>
+        
+        <!-- Startup Activity -->
+        <postStartupActivity implementation="com.agentos.plugin.AgentOSStartupActivity"/>
+        
+        <!-- Status Bar Widget -->
+        <statusBarWidgetFactory 
+            id="AgentOSStatusBar"
+            implementation="com.agentos.plugin.statusbar.AgentOSStatusBarWidgetFactory"/>
+    </extensions>
+
+    <actions>
+        <!-- Main Menu -->
+        <group id="AgentOS.MainMenu" text="Agent OS" description="Agent OS actions">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+            
+            <action id="AgentOS.ReviewWithCMVK" 
+                    class="com.agentos.plugin.actions.ReviewWithCMVKAction"
+                    text="Review with CMVK" 
+                    description="Review selected code with multi-model verification"
+                    icon="/icons/review.svg">
+                <keyboard-shortcut keymap="$default" first-keystroke="ctrl shift R"/>
+            </action>
+            
+            <action id="AgentOS.ToggleSafety" 
+                    class="com.agentos.plugin.actions.ToggleSafetyAction"
+                    text="Toggle Agent OS" 
+                    description="Enable or disable Agent OS protection">
+                <keyboard-shortcut keymap="$default" first-keystroke="ctrl shift A"/>
+            </action>
+            
+            <separator/>
+            
+            <action id="AgentOS.ShowAuditLog" 
+                    class="com.agentos.plugin.actions.ShowAuditLogAction"
+                    text="Show Audit Log" 
+                    description="Open the audit log tool window"/>
+            
+            <action id="AgentOS.ConfigurePolicies" 
+                    class="com.agentos.plugin.actions.ConfigurePoliciesAction"
+                    text="Configure Policies" 
+                    description="Open Agent OS settings"/>
+        </group>
+        
+        <!-- Editor Context Menu -->
+        <group id="AgentOS.EditorPopupMenu">
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+            <separator/>
+            <reference ref="AgentOS.ReviewWithCMVK"/>
+        </group>
+    </actions>
+</idea-plugin>
