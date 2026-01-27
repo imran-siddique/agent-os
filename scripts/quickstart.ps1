@@ -1,25 +1,61 @@
 # Agent OS Quickstart Script for Windows
 # Run with: powershell -ExecutionPolicy Bypass -File quickstart.ps1
 
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Continue"
 
 Write-Host "[Agent OS] Quickstart" -ForegroundColor Cyan
 Write-Host "======================"
 
 # Check for Python
-try {
-    $pythonVersion = python --version 2>&1
-    Write-Host "[OK] Found $pythonVersion" -ForegroundColor Green
-} catch {
+$pythonVersion = python --version 2>&1
+if ($LASTEXITCODE -ne 0) {
     Write-Host "[ERROR] Python is required. Install from https://python.org" -ForegroundColor Red
     exit 1
 }
+Write-Host "[OK] Found $pythonVersion" -ForegroundColor Green
 
-# Install Agent OS
-Write-Host ""
-Write-Host "[*] Installing Agent OS..." -ForegroundColor Yellow
-pip install --quiet agent-os
-Write-Host "[OK] Agent OS installed" -ForegroundColor Green
+# Check if we're in the agent-os repo (for local development)
+$InRepo = (Test-Path ".\src\agent_os") -or (Test-Path "..\src\agent_os") -or (Test-Path ".\pyproject.toml")
+
+if ($InRepo) {
+    Write-Host ""
+    Write-Host "[*] Detected agent-os repository - installing from source..." -ForegroundColor Yellow
+    
+    # Find the repo root
+    if (Test-Path ".\pyproject.toml") {
+        $RepoRoot = "."
+    } elseif (Test-Path "..\pyproject.toml") {
+        $RepoRoot = ".."
+    } else {
+        $RepoRoot = "."
+    }
+    
+    pip install -e "$RepoRoot" 2>&1 | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "[ERROR] Failed to install Agent OS from source" -ForegroundColor Red
+        Write-Host "        Run manually: pip install -e $RepoRoot" -ForegroundColor Yellow
+        exit 1
+    }
+    Write-Host "[OK] Agent OS installed from source" -ForegroundColor Green
+} else {
+    # Try to install from PyPI
+    Write-Host ""
+    Write-Host "[*] Installing Agent OS from PyPI..." -ForegroundColor Yellow
+    
+    pip install agent-os 2>&1 | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "[ERROR] Agent OS is not yet published to PyPI." -ForegroundColor Red
+        Write-Host ""
+        Write-Host "To install from source:" -ForegroundColor Yellow
+        Write-Host "  git clone https://github.com/imran-siddique/agent-os.git"
+        Write-Host "  cd agent-os"
+        Write-Host "  pip install -e ."
+        Write-Host ""
+        Write-Host "Then run this quickstart again from within the repo."
+        exit 1
+    }
+    Write-Host "[OK] Agent OS installed" -ForegroundColor Green
+}
 
 # Create demo project
 $DemoDir = "agent-os-demo"
@@ -61,9 +97,15 @@ Write-Host "[OK] Created agent.py" -ForegroundColor Green
 Write-Host ""
 Write-Host "[*] Running your first governed agent..." -ForegroundColor Yellow
 Write-Host ""
+
 python agent.py
+if ($LASTEXITCODE -ne 0) {
+    Write-Host ""
+    Write-Host "[ERROR] Agent failed to run. Check the error above." -ForegroundColor Red
+    exit 1
+}
 
 Write-Host ""
 Write-Host "[SUCCESS] Quickstart Complete!" -ForegroundColor Green
 Write-Host "   Project: $(Get-Location)"
-Write-Host "   Docs: https://agent-os.dev/docs"
+Write-Host "   Docs: https://github.com/imran-siddique/agent-os/tree/main/docs"
