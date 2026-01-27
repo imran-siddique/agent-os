@@ -1,0 +1,49 @@
+kernel:
+  version: "1.0"
+  mode: strict
+
+signals:
+  enabled:
+    - SIGSTOP   # Pause for human review
+    - SIGKILL   # Terminate on violation
+    - SIGCONT   # Resume after review
+
+policies:
+  # Filter harmful content in outputs
+  - name: content_filter
+    scope: output
+    deny:
+      - patterns:
+          - "(?i)how to (hack|break into|steal)"
+          - "(?i)(bomb|weapon|explosive) (making|instructions)"
+          - "(?i)(illegal|illicit) (drugs|substances)"
+    action: SIGSTOP
+    reason: "Content flagged for human review"
+  
+  # Block PII in outputs
+  - name: no_pii
+    scope: output
+    deny:
+      - patterns:
+          - "\\b\\d{3}-\\d{2}-\\d{4}\\b"  # SSN
+          - "\\b\\d{16}\\b"                # Credit card
+    action: SIGKILL
+    reason: "PII detected in output"
+  
+  # Rate limit LLM calls
+  - name: rate_limit
+    scope: action
+    limit:
+      action: llm_call
+      max_per_minute: 20
+    action: SIGSTOP
+    reason: "Rate limit exceeded"
+
+audit:
+  enabled: true
+  log_path: "./logs/chat-audit.log"
+  include:
+    - user_messages
+    - agent_responses
+    - policy_checks
+    - signals

@@ -219,7 +219,17 @@ async def my_langchain_agent(task: str):
 
 ## Examples
 
-The `examples/` directory contains working demos with full observability:
+The `examples/` directory contains working demos:
+
+### Getting Started
+
+| Demo | Description | Command |
+|------|-------------|---------|
+| [hello-world](examples/hello-world/) | Simplest example (15 lines) | `cd examples/hello-world && python agent.py` |
+| [chat-agent](examples/chat-agent/) | Interactive chatbot with memory | `cd examples/chat-agent && python chat.py` |
+| [tool-using-agent](examples/tool-using-agent/) | Agent with safe tools | `cd examples/tool-using-agent && python agent.py` |
+
+### Production Demos (with Observability)
 
 | Demo | Description | Command |
 |------|-------------|---------|
@@ -228,7 +238,7 @@ The `examples/` directory contains working demos with full observability:
 | [defi-sentinel](examples/defi-sentinel/) | Real-time attack detection | `cd examples/defi-sentinel && docker-compose up` |
 | [pharma-compliance](examples/pharma-compliance/) | Document analysis | `cd examples/pharma-compliance && docker-compose up` |
 
-Each demo includes:
+Each production demo includes:
 - **Grafana dashboard** on port 300X
 - **Prometheus metrics** on port 909X  
 - **Jaeger tracing** on port 1668X
@@ -243,6 +253,54 @@ docker-compose up
 open http://localhost:3000  # Grafana (admin/admin)
 open http://localhost:16686 # Jaeger traces
 ```
+
+---
+
+## Safe Tool Plugins
+
+Agent OS includes pre-built safe tools for agents:
+
+```python
+from atr.tools.safe import create_safe_toolkit
+
+toolkit = create_safe_toolkit("standard")
+
+# Available tools
+http = toolkit["http"]        # Rate-limited HTTP with domain whitelisting
+files = toolkit["files"]      # Sandboxed file reader
+calc = toolkit["calculator"]  # Safe math (no eval)
+json = toolkit["json"]        # Safe JSON/YAML parsing
+dt = toolkit["datetime"]      # Timezone-aware datetime
+text = toolkit["text"]        # Text processing
+
+# Use a tool
+result = await http.get("https://api.github.com/users/octocat")
+```
+
+See [Creating Custom Tools](docs/tutorials/custom-tools.md) for more.
+
+---
+
+## Message Bus Adapters
+
+Connect agents using various message brokers:
+
+```python
+from amb_core.adapters import RedisBroker, KafkaBroker, NATSBroker
+
+# Redis (low latency)
+broker = RedisBroker(url="redis://localhost:6379")
+
+# Kafka (high throughput)
+broker = KafkaBroker(bootstrap_servers="localhost:9092")
+
+# NATS (cloud-native)
+broker = NATSBroker(servers=["nats://localhost:4222"])
+
+# Also: AzureServiceBusBroker, AWSSQSBroker
+```
+
+See [Message Bus Adapters Guide](docs/tutorials/message-bus-adapters.md) for details.
 
 ---
 
@@ -299,6 +357,14 @@ See [MCP server documentation](modules/mcp-kernel-server/README.md).
 
 ## Documentation
 
+### Tutorials
+- [5-Minute Getting Started](docs/tutorials/getting-started.md) - Get running fast
+- [Building Your First Governed Agent](docs/tutorials/first-governed-agent.md) - Complete walkthrough
+- [Using Message Bus Adapters](docs/tutorials/message-bus-adapters.md) - Connect agents
+- [Creating Custom Tools](docs/tutorials/custom-tools.md) - Build safe tools
+- [Cheatsheet](docs/cheatsheet.md) - Quick reference
+
+### Reference
 - [Quickstart Guide](docs/quickstart.md) - 60 seconds to first agent
 - [Framework Integrations](docs/integrations.md) - LangChain, OpenAI, etc.
 - [Kernel Internals](docs/kernel-internals.md) - How the kernel works
@@ -325,6 +391,8 @@ This is a research project exploring kernel concepts for AI agent governance. Th
 - CLI tool with pre-commit hooks
 - Stateless architecture (MCP June 2026 compliant)
 - AGENTS.md compatibility (OpenAI/Anthropic standard)
+- **Message bus adapters: Redis, Kafka, RabbitMQ, NATS, Azure Service Bus, AWS SQS**
+- **Safe tool plugins: HTTP client, file reader, calculator, JSON parser, datetime, text**
 
 **What's experimental:**
 - The "0% violation" claim needs formal verification

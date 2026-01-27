@@ -5,7 +5,32 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue)](https://www.docker.com/)
 
-## 🚀 Quick Start (Any Demo)
+## 🌟 Getting Started Examples
+
+Start here if you're new to Agent OS:
+
+| Example | Description | Complexity |
+|---------|-------------|------------|
+| [**hello-world**](./hello-world/) | Simplest possible example - 15 lines | ⭐ Beginner |
+| [**chat-agent**](./chat-agent/) | Interactive chatbot with memory | ⭐⭐ Intermediate |
+| [**tool-using-agent**](./tool-using-agent/) | Agent with safe tools | ⭐⭐ Intermediate |
+
+```bash
+# Hello World (instant)
+cd examples/hello-world && python agent.py
+
+# Chat Agent (interactive)
+cd examples/chat-agent && python chat.py
+
+# Tool-Using Agent
+cd examples/tool-using-agent && python agent.py
+```
+
+---
+
+## 🚀 Production Examples
+
+Full enterprise demos with observability:
 
 ```bash
 # Pick a demo, run one command
