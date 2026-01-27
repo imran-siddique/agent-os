@@ -2,7 +2,49 @@
 
 **Autonomous energy trading using Agent OS**
 
-> "100 agents negotiated grid stability in 30 seconds. No humans involved."
+> "Watch 100 DER agents negotiate grid stability in real-time."
+
+## 🎬 Demo Video
+
+[![Grid Balancing Demo](https://img.shields.io/badge/Watch-Demo%20Video-red?style=for-the-badge&logo=youtube)](https://github.com/imran-siddique/agent-os)
+
+**Script (60 seconds):**
+```
+[0:00] "Grid operator announces price spike at 6 PM."
+[0:10] [Dashboard: 100 DER agents activate]
+[0:20] [Agents negotiating: Solar-01 bids 50kW @ $0.15]
+[0:30] [Consensus forming: 15 agents reach agreement]
+[0:40] [Grid frequency: 60.02 Hz - stable]
+[0:50] "100 agents. 30 second negotiation. Zero policy violations."
+```
+
+## 🚀 Quick Start (One Command)
+
+```bash
+cd examples/grid-balancing
+cp .env.example .env
+docker-compose up
+
+# Wait 30 seconds, then open:
+# → http://localhost:8082  (Demo UI)
+# → http://localhost:3002  (Grafana Dashboard - admin/admin)
+# → http://localhost:16688 (Jaeger Traces)
+```
+
+## 📊 Live Dashboard
+
+```
+┌─────────────────────────────────────────┐
+│ Grid Balancing - DER Coordination       │
+├─────────────────────────────────────────┤
+│ DERs Active:             100            │
+│ Grid Load:               450 MW         │
+│ Grid Frequency:          60.02 Hz       │
+│ Negotiations/sec:        1,247          │
+│ Consensus Rate:          97.3%          │
+│ Policy Violations:       0              │
+└─────────────────────────────────────────┘
+```
 
 ## Overview
 

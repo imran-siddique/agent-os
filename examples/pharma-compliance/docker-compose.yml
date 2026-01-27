@@ -1,7 +1,9 @@
 version: '3.8'
 
 services:
+  # ==========================================================================
   # Pharma Compliance Demo - Document analysis
+  # ==========================================================================
   pharma-compliance:
     build:
       context: .
@@ -9,28 +11,66 @@ services:
     container_name: pharma-compliance-demo
     environment:
       - PYTHONUNBUFFERED=1
-      - NUM_REPORTS=50
+      - NUM_REPORTS=${NUM_REPORTS:-50}
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
     volumes:
       - ./data:/app/data:ro
       - ./output:/app/output
-    command: python demo.py --reports 50
-    
-  # Quick demo with fewer documents
-  quick-demo:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: pharma-quick-demo
-    command: python demo.py --reports 10
-    profiles:
-      - quick
+    ports:
+      - "8083:8083"  # Demo UI
+    command: python demo.py --reports 50 --ui
+    depends_on:
+      - prometheus
+      - jaeger
+    networks:
+      - pharma-net
 
-  # Full enterprise demo
-  enterprise-demo:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: pharma-enterprise-demo
-    command: python demo.py --reports 100
-    profiles:
-      - enterprise
+  # ==========================================================================
+  # Observability Stack
+  # ==========================================================================
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: pharma-prometheus
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9093:9090"
+    networks:
+      - pharma-net
+
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: pharma-grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "3003:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - pharma-net
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.52
+    container_name: pharma-jaeger
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    ports:
+      - "16689:16686"
+      - "4320:4317"
+    networks:
+      - pharma-net
+
+networks:
+  pharma-net:
+    driver: bridge
+
+volumes:
+  prometheus_data:
+  grafana_data:

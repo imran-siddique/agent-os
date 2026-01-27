@@ -1,0 +1,96 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "pharma-compliance-live",
+    "title": "Pharma Compliance - AE Processing",
+    "tags": ["pharma", "compliance", "agent-os", "demo"],
+    "timezone": "browser",
+    "schemaVersion": 38,
+    "version": 1,
+    "refresh": "5s",
+    "panels": [
+      {
+        "id": 1,
+        "type": "stat",
+        "title": "Reports Processed",
+        "gridPos": {"h": 4, "w": 4, "x": 0, "y": 0},
+        "targets": [{"expr": "pharma_reports_processed_total", "refId": "A"}]
+      },
+      {
+        "id": 2,
+        "type": "stat",
+        "title": "Serious AEs Found",
+        "gridPos": {"h": 4, "w": 4, "x": 4, "y": 0},
+        "targets": [{"expr": "pharma_serious_ae_total", "refId": "A"}],
+        "fieldConfig": {"defaults": {"thresholds": {"steps": [{"color": "green", "value": null}, {"color": "red", "value": 1}]}}}
+      },
+      {
+        "id": 3,
+        "type": "gauge",
+        "title": "CMVK Confidence",
+        "gridPos": {"h": 4, "w": 4, "x": 8, "y": 0},
+        "targets": [{"expr": "pharma_cmvk_confidence * 100", "refId": "A"}],
+        "fieldConfig": {
+          "defaults": {"unit": "percent", "min": 0, "max": 100, "thresholds": {"steps": [{"color": "red", "value": null}, {"color": "yellow", "value": 80}, {"color": "green", "value": 95}]}}
+        }
+      },
+      {
+        "id": 4,
+        "type": "stat",
+        "title": "Processing Time (avg)",
+        "gridPos": {"h": 4, "w": 4, "x": 12, "y": 0},
+        "targets": [{"expr": "histogram_quantile(0.50, rate(pharma_processing_seconds_bucket[5m]))", "refId": "A"}],
+        "fieldConfig": {"defaults": {"unit": "s"}}
+      },
+      {
+        "id": 5,
+        "type": "stat",
+        "title": "Escalations",
+        "gridPos": {"h": 4, "w": 4, "x": 16, "y": 0},
+        "targets": [{"expr": "pharma_escalations_total", "refId": "A"}],
+        "fieldConfig": {"defaults": {"thresholds": {"steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 5}]}}}
+      },
+      {
+        "id": 6,
+        "type": "stat",
+        "title": "Policy Violations",
+        "gridPos": {"h": 4, "w": 4, "x": 20, "y": 0},
+        "targets": [{"expr": "agent_os_violations_total", "refId": "A"}],
+        "fieldConfig": {"defaults": {"thresholds": {"steps": [{"color": "green", "value": null}, {"color": "red", "value": 1}]}}}
+      },
+      {
+        "id": 7,
+        "type": "timeseries",
+        "title": "Reports Processing Rate",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
+        "targets": [
+          {"expr": "rate(pharma_reports_processed_total[1m])", "legendFormat": "Processed/min", "refId": "A"},
+          {"expr": "rate(pharma_serious_ae_total[1m])", "legendFormat": "Serious AE/min", "refId": "B"}
+        ]
+      },
+      {
+        "id": 8,
+        "type": "piechart",
+        "title": "AE Categories",
+        "gridPos": {"h": 8, "w": 6, "x": 12, "y": 4},
+        "targets": [{"expr": "pharma_ae_by_category", "legendFormat": "{{category}}", "refId": "A"}]
+      },
+      {
+        "id": 9,
+        "type": "bargauge",
+        "title": "Drug Mentions",
+        "gridPos": {"h": 8, "w": 6, "x": 18, "y": 4},
+        "targets": [{"expr": "topk(10, pharma_drug_mentions_total)", "legendFormat": "{{drug}}", "refId": "A"}]
+      },
+      {
+        "id": 10,
+        "type": "table",
+        "title": "Recent Serious AEs",
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 12},
+        "targets": [{"expr": "pharma_last_serious_ae_info", "format": "table", "refId": "A"}]
+      }
+    ]
+  },
+  "folderId": 0,
+  "overwrite": true
+}

@@ -1,0 +1,191 @@
+# Sample Carbon Projects Data
+# 
+# Based on real Verra VCS project structures (anonymized)
+# Source: https://registry.verra.org/app/search/VCS
+#
+# This file contains synthetic data modeled after real projects.
+# For actual verification, integrate with Verra API.
+
+projects:
+  # Project 1: Verified project (real pattern from Amazon region)
+  - id: "VCS-001-SAMPLE"
+    name: "Amazon Forest Conservation Project"
+    methodology: "VM0007"  # REDD+ Methodology
+    location:
+      country: "Brazil"
+      region: "Amazonas"
+      coordinates:
+        lat: -3.4653
+        lon: -62.2159
+      area_ha: 50000
+    claims:
+      baseline_ndvi: 0.82
+      project_ndvi: 0.85
+      carbon_avoided_tonnes: 125000
+      period: "2020-2024"
+    expected_result: "VERIFIED"
+    notes: "Forest maintained, NDVI improved slightly"
+
+  # Project 2: Fraudulent project (synthetic - typical fraud pattern)
+  - id: "VCS-002-SAMPLE"
+    name: "Southeast Asia Reforestation"
+    methodology: "VM0042"  # Improved Forest Management
+    location:
+      country: "Indonesia"
+      region: "Kalimantan"
+      coordinates:
+        lat: -1.2500
+        lon: 116.8600
+      area_ha: 25000
+    claims:
+      baseline_ndvi: 0.45
+      project_ndvi: 0.80
+      carbon_avoided_tonnes: 80000
+      period: "2021-2024"
+    expected_result: "FRAUD"
+    notes: "Claims dramatic improvement but satellite shows continued deforestation"
+
+  # Project 3: Flagged for review (borderline case)
+  - id: "VCS-003-SAMPLE"
+    name: "Central Africa Conservation"
+    methodology: "VM0007"
+    location:
+      country: "DRC"
+      region: "Equateur"
+      coordinates:
+        lat: 0.5000
+        lon: 18.5000
+      area_ha: 75000
+    claims:
+      baseline_ndvi: 0.78
+      project_ndvi: 0.75
+      carbon_avoided_tonnes: 200000
+      period: "2019-2024"
+    expected_result: "FLAGGED"
+    notes: "Slight NDVI decline - may be seasonal or early deforestation"
+
+  # Project 4: Verified (small project)
+  - id: "VCS-004-SAMPLE"
+    name: "Costa Rica Agroforestry"
+    methodology: "VM0042"
+    location:
+      country: "Costa Rica"
+      region: "Guanacaste"
+      coordinates:
+        lat: 10.4500
+        lon: -85.4500
+      area_ha: 5000
+    claims:
+      baseline_ndvi: 0.60
+      project_ndvi: 0.72
+      carbon_avoided_tonnes: 15000
+      period: "2022-2024"
+    expected_result: "VERIFIED"
+    notes: "Agroforestry implementation visible in satellite data"
+
+  # Project 5: Fraudulent (overclaiming)
+  - id: "VCS-005-SAMPLE"
+    name: "Pacific Mangrove Protection"
+    methodology: "VM0033"  # Mangrove methodology
+    location:
+      country: "Philippines"
+      region: "Palawan"
+      coordinates:
+        lat: 9.5000
+        lon: 118.7500
+      area_ha: 10000
+    claims:
+      baseline_ndvi: 0.55
+      project_ndvi: 0.85
+      carbon_avoided_tonnes: 50000
+      period: "2021-2024"
+    expected_result: "FRAUD"
+    notes: "Claims 30% NDVI increase but satellite shows only 5% improvement"
+
+  # Projects 6-10: Additional test cases
+  - id: "VCS-006-SAMPLE"
+    name: "Mexico Cloud Forest"
+    methodology: "VM0007"
+    location:
+      country: "Mexico"
+      region: "Chiapas"
+      coordinates: {lat: 16.7500, lon: -92.6500}
+      area_ha: 30000
+    claims: {baseline_ndvi: 0.88, project_ndvi: 0.87, carbon_avoided_tonnes: 90000, period: "2020-2024"}
+    expected_result: "VERIFIED"
+
+  - id: "VCS-007-SAMPLE"
+    name: "India Tiger Corridor"
+    methodology: "VM0007"
+    location:
+      country: "India"
+      region: "Madhya Pradesh"
+      coordinates: {lat: 23.2500, lon: 77.4000}
+      area_ha: 45000
+    claims: {baseline_ndvi: 0.70, project_ndvi: 0.68, carbon_avoided_tonnes: 120000, period: "2019-2024"}
+    expected_result: "FLAGGED"
+
+  - id: "VCS-008-SAMPLE"
+    name: "Kenya Acacia Restoration"
+    methodology: "VM0042"
+    location:
+      country: "Kenya"
+      region: "Rift Valley"
+      coordinates: {lat: -0.2500, lon: 36.0000}
+      area_ha: 20000
+    claims: {baseline_ndvi: 0.35, project_ndvi: 0.55, carbon_avoided_tonnes: 40000, period: "2021-2024"}
+    expected_result: "VERIFIED"
+
+  - id: "VCS-009-SAMPLE"
+    name: "Vietnam Bamboo Carbon"
+    methodology: "VM0042"
+    location:
+      country: "Vietnam"
+      region: "Nghe An"
+      coordinates: {lat: 19.2500, lon: 104.8500}
+      area_ha: 15000
+    claims: {baseline_ndvi: 0.40, project_ndvi: 0.90, carbon_avoided_tonnes: 100000, period: "2020-2024"}
+    expected_result: "FRAUD"
+    notes: "Extreme NDVI claim not supported by satellite"
+
+  - id: "VCS-010-SAMPLE"
+    name: "Peru Andean Grasslands"
+    methodology: "VM0007"
+    location:
+      country: "Peru"
+      region: "Cusco"
+      coordinates: {lat: -13.5000, lon: -71.9500}
+      area_ha: 35000
+    claims: {baseline_ndvi: 0.50, project_ndvi: 0.52, carbon_avoided_tonnes: 25000, period: "2022-2024"}
+    expected_result: "VERIFIED"
+
+# Methodology references
+methodologies:
+  VM0007:
+    name: "REDD+ Methodology Framework"
+    url: "https://verra.org/methodologies/vm0007-redd-methodology-framework-redd-mf-v1-6/"
+  VM0033:
+    name: "Tidal Wetland and Seagrass Restoration"
+    url: "https://verra.org/methodologies/vm0033/"
+  VM0042:
+    name: "Improved Forest Management"
+    url: "https://verra.org/methodologies/vm0042/"
+
+# Data sources
+data_sources:
+  satellite:
+    - name: "Sentinel-2"
+      provider: "Copernicus/ESA"
+      resolution: "10m"
+      bands: ["B4", "B8"]  # For NDVI calculation
+      api: "https://dataspace.copernicus.eu/"
+    - name: "Landsat 8/9"
+      provider: "NASA/USGS"
+      resolution: "30m"
+      api: "https://earthexplorer.usgs.gov/"
+  
+  registry:
+    - name: "Verra VCS"
+      url: "https://registry.verra.org/"
+    - name: "Gold Standard"
+      url: "https://registry.goldstandard.org/"

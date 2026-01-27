@@ -1,0 +1,142 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "defi-sentinel-live",
+    "title": "DeFi Sentinel - Attack Detection",
+    "tags": ["defi", "security", "agent-os", "demo"],
+    "timezone": "browser",
+    "schemaVersion": 38,
+    "version": 1,
+    "refresh": "1s",
+    "panels": [
+      {
+        "id": 1,
+        "type": "stat",
+        "title": "Attacks Blocked",
+        "gridPos": {"h": 4, "w": 4, "x": 0, "y": 0},
+        "targets": [{"expr": "defi_sentinel_attacks_blocked_total", "refId": "A"}],
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "type": "stat",
+        "title": "Transactions Scanned",
+        "gridPos": {"h": 4, "w": 4, "x": 4, "y": 0},
+        "targets": [{"expr": "defi_sentinel_transactions_total", "refId": "A"}]
+      },
+      {
+        "id": 3,
+        "type": "stat",
+        "title": "Value Protected (USD)",
+        "gridPos": {"h": 4, "w": 4, "x": 8, "y": 0},
+        "targets": [{"expr": "defi_sentinel_value_protected_usd", "refId": "A"}],
+        "fieldConfig": {"defaults": {"unit": "currencyUSD"}}
+      },
+      {
+        "id": 4,
+        "type": "gauge",
+        "title": "Detection Latency",
+        "gridPos": {"h": 4, "w": 4, "x": 12, "y": 0},
+        "targets": [
+          {"expr": "histogram_quantile(0.95, rate(defi_sentinel_detection_latency_seconds_bucket[1m]))", "refId": "A"}
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "ms",
+            "min": 0,
+            "max": 100,
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 50},
+                {"color": "red", "value": 100}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 5,
+        "type": "stat",
+        "title": "SIGKILL Issued",
+        "gridPos": {"h": 4, "w": 4, "x": 16, "y": 0},
+        "targets": [{"expr": "agent_os_sigkill_total{reason='attack_detected'}", "refId": "A"}],
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 1}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 6,
+        "type": "stat",
+        "title": "Policy Violations",
+        "gridPos": {"h": 4, "w": 4, "x": 20, "y": 0},
+        "targets": [{"expr": "agent_os_violations_total", "refId": "A"}],
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "red", "value": 1}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 7,
+        "type": "timeseries",
+        "title": "Transaction Rate & Attacks",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
+        "targets": [
+          {"expr": "rate(defi_sentinel_transactions_total[1m])", "legendFormat": "Transactions/min", "refId": "A"},
+          {"expr": "rate(defi_sentinel_attacks_blocked_total[1m]) * 100", "legendFormat": "Attacks/min (x100)", "refId": "B"}
+        ]
+      },
+      {
+        "id": 8,
+        "type": "piechart",
+        "title": "Attack Types Detected",
+        "gridPos": {"h": 8, "w": 6, "x": 12, "y": 4},
+        "targets": [
+          {"expr": "defi_sentinel_attacks_by_type", "legendFormat": "{{attack_type}}", "refId": "A"}
+        ]
+      },
+      {
+        "id": 9,
+        "type": "bargauge",
+        "title": "Value at Risk by Type",
+        "gridPos": {"h": 8, "w": 6, "x": 18, "y": 4},
+        "targets": [
+          {"expr": "defi_sentinel_value_at_risk_usd", "legendFormat": "{{attack_type}}", "refId": "A"}
+        ],
+        "fieldConfig": {"defaults": {"unit": "currencyUSD"}}
+      },
+      {
+        "id": 10,
+        "type": "table",
+        "title": "Recent Blocked Attacks",
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 12},
+        "targets": [
+          {"expr": "defi_sentinel_last_attack_info", "format": "table", "refId": "A"}
+        ]
+      }
+    ]
+  },
+  "folderId": 0,
+  "overwrite": true
+}

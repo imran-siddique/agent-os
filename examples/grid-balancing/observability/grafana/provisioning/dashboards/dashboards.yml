@@ -1,0 +1,10 @@
+apiVersion: 1
+providers:
+  - name: 'Grid Balancing'
+    orgId: 1
+    folder: 'Grid Balancing Demo'
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /var/lib/grafana/dashboards

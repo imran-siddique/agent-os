@@ -1,0 +1,10 @@
+apiVersion: 1
+providers:
+  - name: 'Pharma Compliance'
+    orgId: 1
+    folder: 'Pharma Compliance Demo'
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /var/lib/grafana/dashboards

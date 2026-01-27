@@ -2,9 +2,54 @@
 
 **Catch the Phantom Credits**
 
-> "This AI just caught a $5M carbon credit fraud in 90 seconds."
+> "This demo audits 10 carbon projects in 90 seconds and shows you exactly which ones are fraudulent."
 
 $2B+ voluntary carbon market plagued by fake credits. Projects claim forest preservation, but satellite data shows deforestation. This demo shows autonomous verification using Agent OS.
+
+## 🎬 Demo Video
+
+[![Carbon Auditor Demo](https://img.shields.io/badge/Watch-Demo%20Video-red?style=for-the-badge&logo=youtube)](https://github.com/imran-siddique/agent-os)
+
+**Script (60 seconds):**
+```
+[0:00] "This is a carbon credit claim. Company says they saved 10,000 tons CO2."
+[0:10] "Let's verify with satellite data."
+[0:15] [Screen shows CMVK running: GPT-4, Claude, Gemini analyzing]
+[0:25] [Dashboard shows: FRAUD DETECTED - Only 6,000 tons verifiable]
+[0:35] [Agent OS kernel sends SIGKILL to halt certification]
+[0:45] "Zero violations. Deterministic enforcement. Agent OS."
+```
+
+## 🚀 Quick Start (One Command)
+
+```bash
+# Clone and run
+cd examples/carbon-auditor
+cp .env.example .env  # Add your API keys
+docker-compose up
+
+# Wait 30 seconds, then open:
+# → http://localhost:8080  (Demo UI)
+# → http://localhost:3000  (Grafana Dashboard - admin/admin)
+# → http://localhost:16686 (Jaeger Traces)
+```
+
+**No API keys?** Demo runs with synthetic data by default.
+
+## 📊 Live Dashboard
+
+```
+┌─────────────────────────────────────────┐
+│ Carbon Auditor - Live Dashboard         │
+├─────────────────────────────────────────┤
+│ Agents Active:           3              │
+│ Projects Audited:        47             │
+│ Fraud Detected:          7 (14.9%)      │
+│ CMVK Consensus:          96.3%          │
+│ Policy Violations:       0              │
+│ Avg Audit Time:          142s           │
+└─────────────────────────────────────────┘
+```
 
 ## Overview
 

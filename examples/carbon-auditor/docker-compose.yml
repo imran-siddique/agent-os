@@ -1,7 +1,9 @@
 version: '3.8'
 
 services:
+  # ==========================================================================
   # Carbon Auditor Demo - Complete verification swarm
+  # ==========================================================================
   carbon-auditor:
     build:
       context: .
@@ -9,13 +11,72 @@ services:
     container_name: carbon-auditor-demo
     environment:
       - PYTHONUNBUFFERED=1
-      - DEMO_MODE=fraud  # Options: fraud, verified, both
+      - DEMO_MODE=${DEMO_MODE:-both}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+      - PROMETHEUS_MULTIPROC_DIR=/tmp/prometheus
     volumes:
       - ./data:/app/data:ro
       - ./output:/app/output
-    command: python demo_audit.py --both
-    
-  # Optional: Run with Redis-backed AMB for persistence
+    ports:
+      - "8080:8080"  # Demo UI
+    command: python demo_audit.py --scenario both --ui
+    depends_on:
+      - prometheus
+      - jaeger
+    networks:
+      - carbon-auditor-net
+
+  # ==========================================================================
+  # Observability Stack
+  # ==========================================================================
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: carbon-auditor-prometheus
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      - carbon-auditor-net
+
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: carbon-auditor-grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - carbon-auditor-net
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.52
+    container_name: carbon-auditor-jaeger
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    ports:
+      - "16686:16686"  # UI
+      - "4317:4317"    # OTLP gRPC
+    networks:
+      - carbon-auditor-net
+
+  # ==========================================================================
+  # Optional: Redis-backed AMB for persistence
+  # ==========================================================================
   redis:
     image: redis:7-alpine
     container_name: carbon-auditor-redis
@@ -23,18 +84,13 @@ services:
       - "6379:6379"
     profiles:
       - full
+    networks:
+      - carbon-auditor-net
 
-  # Optional: Run interactive demo
-  interactive:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: carbon-auditor-interactive
-    stdin_open: true
-    tty: true
-    volumes:
-      - ./data:/app/data:ro
-      - ./output:/app/output
-    command: /bin/bash
-    profiles:
-      - dev
+networks:
+  carbon-auditor-net:
+    driver: bridge
+
+volumes:
+  prometheus_data:
+  grafana_data:
