@@ -2,7 +2,49 @@
 
 **Find the Contradictions Humans Miss**
 
-> "This AI found 12 FDA filing contradictions in 8 minutes. Human reviewers found 3 in 2 weeks."
+> "Watch 50 adverse event reports analyzed in 2 minutes with full audit trail."
+
+## 🎬 Demo Video
+
+[![Pharma Compliance Demo](https://img.shields.io/badge/Watch-Demo%20Video-red?style=for-the-badge&logo=youtube)](https://github.com/imran-siddique/agent-os)
+
+**Script (60 seconds):**
+```
+[0:00] "50 adverse event reports. FDA requires review within 15 days."
+[0:10] [Agent swarm activates: Reader, Classifier, Escalator]
+[0:20] [Dashboard: Processing at 25 reports/minute]
+[0:30] [Alert: "Serious AE detected - Death reported - Case #AE-2024-0742"]
+[0:40] [CMVK verifies: 3/3 models agree on seriousness classification]
+[0:50] "50 reports. 2 minutes. 3 serious AEs found. Zero policy violations."
+```
+
+## 🚀 Quick Start (One Command)
+
+```bash
+cd examples/pharma-compliance
+cp .env.example .env
+docker-compose up
+
+# Wait 30 seconds, then open:
+# → http://localhost:8083  (Demo UI)
+# → http://localhost:3003  (Grafana Dashboard - admin/admin)
+# → http://localhost:16689 (Jaeger Traces)
+```
+
+## 📊 Live Dashboard
+
+```
+┌─────────────────────────────────────────┐
+│ Pharma Compliance - AE Processing       │
+├─────────────────────────────────────────┤
+│ Reports Processed:       47             │
+│ Serious AEs Found:       3              │
+│ CMVK Confidence:         96.8%          │
+│ Processing Time:         2.4s (avg)     │
+│ Escalations:             3              │
+│ Policy Violations:       0              │
+└─────────────────────────────────────────┘
+```
 
 ## Overview
 

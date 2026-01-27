@@ -1,0 +1,11 @@
+apiVersion: 1
+
+providers:
+  - name: 'Carbon Auditor'
+    orgId: 1
+    folder: 'Carbon Auditor Demo'
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /var/lib/grafana/dashboards

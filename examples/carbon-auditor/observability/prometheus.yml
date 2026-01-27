@@ -1,0 +1,15 @@
+# Prometheus Configuration for Carbon Auditor Demo
+
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+scrape_configs:
+  - job_name: 'carbon-auditor'
+    static_configs:
+      - targets: ['carbon-auditor:8080']
+    metrics_path: /metrics
+
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']

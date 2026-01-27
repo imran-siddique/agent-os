@@ -1,0 +1,109 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "grid-balancing-live",
+    "title": "Grid Balancing - DER Coordination",
+    "tags": ["energy", "grid", "agent-os", "demo"],
+    "timezone": "browser",
+    "schemaVersion": 38,
+    "version": 1,
+    "refresh": "1s",
+    "panels": [
+      {
+        "id": 1,
+        "type": "stat",
+        "title": "DERs Active",
+        "gridPos": {"h": 4, "w": 4, "x": 0, "y": 0},
+        "targets": [{"expr": "grid_ders_active", "refId": "A"}],
+        "fieldConfig": {
+          "defaults": {"thresholds": {"steps": [{"color": "red", "value": null}, {"color": "green", "value": 50}]}}
+        }
+      },
+      {
+        "id": 2,
+        "type": "stat",
+        "title": "Grid Load (MW)",
+        "gridPos": {"h": 4, "w": 4, "x": 4, "y": 0},
+        "targets": [{"expr": "grid_load_mw", "refId": "A"}],
+        "fieldConfig": {"defaults": {"unit": "watt"}}
+      },
+      {
+        "id": 3,
+        "type": "gauge",
+        "title": "Grid Frequency",
+        "gridPos": {"h": 4, "w": 4, "x": 8, "y": 0},
+        "targets": [{"expr": "grid_frequency_hz", "refId": "A"}],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "hertz",
+            "min": 59.5,
+            "max": 60.5,
+            "thresholds": {"steps": [{"color": "red", "value": null}, {"color": "yellow", "value": 59.9}, {"color": "green", "value": 59.95}]}
+          }
+        }
+      },
+      {
+        "id": 4,
+        "type": "stat",
+        "title": "Negotiations/sec",
+        "gridPos": {"h": 4, "w": 4, "x": 12, "y": 0},
+        "targets": [{"expr": "rate(grid_negotiations_total[1m])", "refId": "A"}]
+      },
+      {
+        "id": 5,
+        "type": "stat",
+        "title": "Consensus Rate",
+        "gridPos": {"h": 4, "w": 4, "x": 16, "y": 0},
+        "targets": [{"expr": "grid_consensus_rate * 100", "refId": "A"}],
+        "fieldConfig": {
+          "defaults": {"unit": "percent", "thresholds": {"steps": [{"color": "red", "value": null}, {"color": "yellow", "value": 80}, {"color": "green", "value": 95}]}}
+        }
+      },
+      {
+        "id": 6,
+        "type": "stat",
+        "title": "Policy Violations",
+        "gridPos": {"h": 4, "w": 4, "x": 20, "y": 0},
+        "targets": [{"expr": "agent_os_violations_total", "refId": "A"}],
+        "fieldConfig": {"defaults": {"thresholds": {"steps": [{"color": "green", "value": null}, {"color": "red", "value": 1}]}}}
+      },
+      {
+        "id": 7,
+        "type": "timeseries",
+        "title": "Grid Load vs Supply",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
+        "targets": [
+          {"expr": "grid_load_mw", "legendFormat": "Load", "refId": "A"},
+          {"expr": "grid_supply_mw", "legendFormat": "Supply", "refId": "B"}
+        ],
+        "fieldConfig": {"defaults": {"unit": "watt"}}
+      },
+      {
+        "id": 8,
+        "type": "timeseries",
+        "title": "DER Contributions by Type",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4},
+        "targets": [
+          {"expr": "grid_der_contribution_mw", "legendFormat": "{{der_type}}", "refId": "A"}
+        ],
+        "fieldConfig": {"defaults": {"unit": "watt"}}
+      },
+      {
+        "id": 9,
+        "type": "heatmap",
+        "title": "Negotiation Latency",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12},
+        "targets": [{"expr": "sum(rate(grid_negotiation_latency_seconds_bucket[1m])) by (le)", "format": "heatmap", "refId": "A"}]
+      },
+      {
+        "id": 10,
+        "type": "table",
+        "title": "Top DER Contributors",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12},
+        "targets": [{"expr": "topk(10, grid_der_output_mw)", "format": "table", "refId": "A"}]
+      }
+    ]
+  },
+  "folderId": 0,
+  "overwrite": true
+}

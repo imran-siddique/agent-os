@@ -1,7 +1,9 @@
 version: '3.8'
 
 services:
+  # ==========================================================================
   # Grid Balancing Demo - 100 DER simulation
+  # ==========================================================================
   grid-demo:
     build:
       context: .
@@ -9,44 +11,81 @@ services:
     container_name: grid-balancing-demo
     environment:
       - PYTHONUNBUFFERED=1
-      - NUM_AGENTS=100
-      - SCENARIO=price_spike
+      - NUM_AGENTS=${NUM_AGENTS:-100}
+      - SCENARIO=${SCENARIO:-price_spike}
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
     volumes:
       - ./data:/app/data:ro
       - ./output:/app/output
-    command: python demo.py --agents 100 --scenario price_spike
-    
+    ports:
+      - "8082:8082"  # Demo UI
+    command: python demo.py --agents 100 --scenario price_spike --ui
+    depends_on:
+      - prometheus
+      - jaeger
+    networks:
+      - grid-net
+
+  # ==========================================================================
+  # Observability Stack
+  # ==========================================================================
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: grid-prometheus
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9092:9090"
+    networks:
+      - grid-net
+
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: grid-grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "3002:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - grid-net
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.52
+    container_name: grid-jaeger
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    ports:
+      - "16688:16686"
+      - "4319:4317"
+    networks:
+      - grid-net
+
+  # ==========================================================================
   # Redis-backed AMB for production scenarios
+  # ==========================================================================
   redis:
     image: redis:7-alpine
     container_name: grid-redis
     ports:
-      - "6379:6379"
+      - "6381:6379"
     profiles:
       - full
       - prod
+    networks:
+      - grid-net
 
-  # Multiple grid regions (parallel simulation)
-  region-west:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: grid-region-west
-    environment:
-      - REGION=west
-      - NUM_AGENTS=50
-    command: python demo.py --agents 50 --required-kw 200
-    profiles:
-      - multi-region
+networks:
+  grid-net:
+    driver: bridge
 
-  region-east:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: grid-region-east
-    environment:
-      - REGION=east
-      - NUM_AGENTS=50
-    command: python demo.py --agents 50 --required-kw 300
-    profiles:
-      - multi-region
+volumes:
+  prometheus_data:
+  grafana_data:

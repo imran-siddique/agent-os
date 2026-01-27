@@ -4,267 +4,180 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue)](https://www.docker.com/)
-[![Kubernetes](https://img.shields.io/badge/Kubernetes-Manifests-326ce5)](https://kubernetes.io/)
 
-## Quick Deploy
+## 🚀 Quick Start (Any Demo)
 
 ```bash
-# One command to run any demo
-./run-demo.sh carbon-auditor   # Carbon credit fraud detection
-./run-demo.sh grid-balancing   # Energy trading swarm (100 agents)
-./run-demo.sh defi-sentinel    # DeFi attack response (<500ms)
-./run-demo.sh pharma-compliance # Document contradiction finder
+# Pick a demo, run one command
+cd examples/carbon-auditor && docker-compose up   # Carbon fraud detection
+cd examples/defi-sentinel && docker-compose up    # DeFi attack response
+cd examples/grid-balancing && docker-compose up   # Energy trading (100 agents)
+cd examples/pharma-compliance && docker-compose up # Document analysis
 ```
 
-## Enterprise Metrics Dashboard
+Each demo includes:
+- 📊 **Grafana Dashboard** (port 300X)
+- 🔍 **Jaeger Tracing** (port 1668X)
+- 📈 **Prometheus Metrics** (port 909X)
+- 🖥️ **Demo UI** (port 808X)
 
-All demos expose metrics at `localhost:9090/metrics` for Prometheus:
+## 📊 Demo Dashboards
 
-```yaml
-# prometheus.yml
-scrape_configs:
-  - job_name: 'agent-os-demo'
-    static_configs:
-      - targets: ['localhost:9090']
-```
+| Demo | UI Port | Grafana | Jaeger |
+|------|---------|---------|--------|
+| Carbon Auditor | [localhost:8080](http://localhost:8080) | [localhost:3000](http://localhost:3000) | [localhost:16686](http://localhost:16686) |
+| DeFi Sentinel | [localhost:8081](http://localhost:8081) | [localhost:3001](http://localhost:3001) | [localhost:16687](http://localhost:16687) |
+| Grid Balancing | [localhost:8082](http://localhost:8082) | [localhost:3002](http://localhost:3002) | [localhost:16688](http://localhost:16688) |
+| Pharma Compliance | [localhost:8083](http://localhost:8083) | [localhost:3003](http://localhost:3003) | [localhost:16689](http://localhost:16689) |
 
-Key metrics across all demos:
-| Metric | Target | Description |
-|--------|--------|-------------|
-| `agent_os_violation_rate` | 0% | Policy violations per 1000 requests |
-| `agent_os_policy_check_duration_seconds` | <5ms | Policy enforcement latency |
-| `agent_os_sigkill_total` | Tracked | Emergency terminations |
-| `agent_os_mttr_seconds` | <60s | Mean time to recovery |
+**Grafana login:** admin / admin
 
 ---
 
 ## Demo 1: Carbon Credit Auditor 🌲
-**"Catch the Phantom Credits"**
 
-> "This AI just caught a $5M carbon credit fraud in 90 seconds."
+**"Catch the Phantom Credits"** - Satellite-verified carbon credit fraud detection
 
-Autonomous verification for the $2B voluntary carbon market using satellite imagery.
-
-**Kernel Features:**
-| Feature | Agent OS Capability |
-|---------|-------------------|
-| CMVK | Cross-Model Verification Kernel |
-| Drift Detection | Mathematical verification, not LLM inference |
-| Audit Trail | Every decision cryptographically signed |
-| Flight Recorder | Complete reasoning trace |
-
-**Run It:**
 ```bash
 cd examples/carbon-auditor
-
-# Docker (recommended)
+cp .env.example .env  # Optional: Add API keys
 docker-compose up
-
-# Local
-pip install -e .
-python demo.py --scenario fraud
-python demo.py --scenario verified
-python demo.py --scenario both
 ```
 
-**Sample Output:**
+**Live Dashboard:**
 ```
-🛰️  Fetching satellite imagery for coordinates (34.5°N, 118.2°W)...
-📊 Claimed NDVI: 0.82 | Actual NDVI: 0.45
-⚠️  Drift Score: 0.37 (threshold: 0.15)
-❌ VERDICT: FRAUD DETECTED
-   Reason: Satellite data contradicts claimed forest preservation
-   Evidence: NDVI dropped 45% since claim date
-```
-
----
-
-## Demo 2: Grid Balancing Swarm ⚡
-**"Negotiate Your Electricity"**
-
-> "Your EV just earned you $5 by selling electricity back to the grid. Automatically."
-
-100 distributed energy resource (DER) agents autonomously trading energy in real-time.
-
-**Kernel Features:**
-| Feature | Agent OS Capability |
-|---------|-------------------|
-| AMB | Agent Message Bus (1000+ msg/sec) |
-| IATP | Inter-Agent Trust Protocol |
-| Mute Agent | Dispatch only on valid contract |
-| Signals | SIGSTOP to pause rogue traders |
-
-**Run It:**
-```bash
-cd examples/grid-balancing
-
-# Scale test with 100 agents
-python demo.py --agents 100
-
-# Watch real-time trading
-python demo.py --agents 10 --visualize
+┌─────────────────────────────────────────┐
+│ Carbon Auditor - Live Dashboard         │
+├─────────────────────────────────────────┤
+│ Agents Active:           3              │
+│ Projects Audited:        47             │
+│ Fraud Detected:          7 (14.9%)      │
+│ CMVK Consensus:          96.3%          │
+│ Policy Violations:       0              │
+└─────────────────────────────────────────┘
 ```
 
-**Sample Output:**
+**60-Second Video Script:**
 ```
-🔌 Grid Balancing Swarm Initialized
-   Agents: 100 DER nodes (50 solar, 30 battery, 20 EV)
-   Protocol: IATP v2.0 (cryptographic trust)
-
-📊 Trading Round #47:
-   Total Energy Traded: 2.4 MWh
-   Grid Frequency Deviation: 0.002 Hz (target: <0.01)
-   Stabilization Time: 87ms
-   Trust Violations: 0
+[0:00] "This is a carbon credit claim. Company says they saved 10,000 tons CO2."
+[0:10] "Let's verify with satellite data."
+[0:15] [Screen shows CMVK running: GPT-4, Claude, Gemini analyzing]
+[0:25] [Dashboard shows: FRAUD DETECTED - Only 6,000 tons verifiable]
+[0:35] [Agent OS kernel sends SIGKILL to halt certification]
+[0:45] "Zero violations. Deterministic enforcement. Agent OS."
 ```
 
 ---
 
-## Demo 3: DeFi Risk Sentinel 🛡️
-**"Stop the Hack Before It Happens"**
+## Demo 2: DeFi Risk Sentinel 🛡️
 
-> "This AI stopped a $10M smart contract hack in 0.45 seconds. Without human intervention."
+**"Stop the Hack Before It Happens"** - Sub-second attack detection
 
-Sub-second attack detection and autonomous response for DeFi protocols.
-
-**Kernel Features:**
-| Feature | Agent OS Capability |
-|---------|-------------------|
-| Mute Agent | Speed + silence (no verbose reasoning) |
-| SIGKILL | Emergency protocol pause |
-| Response Time | <500ms (achieved 142ms) |
-| VFS | Attack pattern storage |
-
-**Run It:**
 ```bash
 cd examples/defi-sentinel
-
-# Simulate all attack types
-python demo.py --attack all
-
-# Specific attacks
-python demo.py --attack flash_loan
-python demo.py --attack reentrancy
-python demo.py --attack oracle_manipulation
+cp .env.example .env
+docker-compose up
 ```
 
-**Sample Output:**
+**Live Dashboard:**
 ```
-🚨 ATTACK DETECTED: Flash Loan Attack
-   Block: 18,234,567
-   Target: 0x1234...abcd (Lending Pool)
-   Borrowed: $10,000,000 USDC
-   
-⚡ Response Time: 142ms
-   Action: SIGKILL → Protocol Pause
-   Funds Protected: $10,000,000
-   
-📝 Post-Mortem:
-   Attack Vector: Price oracle manipulation via flash loan
-   Detection Method: Anomaly in price/volume ratio
-   Confidence: 99.2%
+┌─────────────────────────────────────────┐
+│ DeFi Sentinel - Attack Detection        │
+├─────────────────────────────────────────┤
+│ Attacks Blocked:         3              │
+│ Transactions Scanned:    12,847         │
+│ Value Protected:         $4.7M          │
+│ Detection Latency:       45ms (p95)     │
+│ Policy Violations:       0              │
+└─────────────────────────────────────────┘
 ```
 
 ---
 
-## Demo 4: Pharma Compliance Swarm 💊
-**"Find the Contradictions Humans Miss"**
+## Demo 3: Grid Balancing Swarm ⚡
 
-> "This AI found 12 FDA filing contradictions in 8 minutes. Human reviewers found 3 in 2 weeks."
+**"100 Agents Negotiating Energy"** - Autonomous DER trading
 
-Deep document analysis across 100,000+ pages of clinical trial data.
+```bash
+cd examples/grid-balancing
+cp .env.example .env
+docker-compose up
+```
 
-**Kernel Features:**
-| Feature | Agent OS Capability |
-|---------|-------------------|
-| CaaS | Context as a Service (200K tokens) |
-| Agent VFS | Document storage and retrieval |
-| Citations | Every claim traced to source |
-| CMVK | Cross-document verification |
+**Live Dashboard:**
+```
+┌─────────────────────────────────────────┐
+│ Grid Balancing - DER Coordination       │
+├─────────────────────────────────────────┤
+│ DERs Active:             100            │
+│ Grid Load:               450 MW         │
+│ Grid Frequency:          60.02 Hz       │
+│ Negotiations/sec:        1,247          │
+│ Consensus Rate:          97.3%          │
+│ Policy Violations:       0              │
+└─────────────────────────────────────────┘
+```
 
-**Run It:**
+---
+
+## Demo 4: Pharma Compliance 💊
+
+**"Find Contradictions Humans Miss"** - FDA document analysis
+
 ```bash
 cd examples/pharma-compliance
-
-# Analyze clinical trial reports
-python demo.py --reports 50
-
-# Focus on specific report
-python demo.py --report CTR-2024-001.pdf
+cp .env.example .env
+docker-compose up
 ```
 
-**Sample Output:**
+**Live Dashboard:**
 ```
-📄 Analyzing 50 clinical trial reports (127,453 pages)...
-
-❌ Contradiction #1 (High Severity):
-   Document A: "No adverse events in placebo group" (CTR-001, p.47)
-   Document B: "3 placebo patients reported mild headache" (AE-Report, p.12)
-   
-❌ Contradiction #7 (Critical):
-   Document A: "Primary endpoint: 30% improvement" (Protocol v2.1, p.8)
-   Document B: "Primary endpoint: 25% improvement" (FDA Submission, p.3)
-   
-📊 Summary:
-   Reports Analyzed: 50
-   Contradictions Found: 12 (3 critical, 5 high, 4 medium)
-   Analysis Time: 8 minutes
-   Human Baseline: 3 contradictions in 2 weeks
+┌─────────────────────────────────────────┐
+│ Pharma Compliance - AE Processing       │
+├─────────────────────────────────────────┤
+│ Reports Processed:       47             │
+│ Serious AEs Found:       3              │
+│ CMVK Confidence:         96.8%          │
+│ Processing Time:         2.4s (avg)     │
+│ Policy Violations:       0              │
+└─────────────────────────────────────────┘
 ```
 
 ---
 
-## Benchmark Summary
+## Key Metrics (All Demos)
 
-| Demo | Key Metric | Result | Industry Baseline |
-|------|-----------|--------|-------------------|
-| Carbon Auditor | Fraud detection | 96% accuracy | 60% (manual) |
-| Grid Balancing | Stabilization time | 87ms | 500ms (SCADA) |
-| DeFi Sentinel | Attack response | 142ms | Minutes (human) |
-| Pharma Compliance | Contradictions found | 12 | 3 (human reviewers) |
-
-**Kernel Metrics (All Demos):**
-| Metric | Target | Achieved |
-|--------|--------|----------|
-| Violation Rate | 0% | 0% |
-| Policy Latency | <5ms | 2.3ms |
-| Kernel Uptime | 99.9% | 100% |
+| Metric | Target | Description |
+|--------|--------|-------------|
+| `agent_os_violations_total` | 0 | Policy violations |
+| `agent_os_policy_check_duration_seconds` | <5ms | Enforcement latency |
+| `agent_os_sigkill_total` | tracked | Emergency terminations |
+| `agent_os_cmvk_consensus_ratio` | >90% | Model agreement |
 
 ---
 
 ## Architecture
 
-All demos showcase the full Agent OS kernel stack:
+All demos use the full Agent OS kernel stack:
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                   Your Demo Application                  │
+│                   Demo Application                       │
 ├─────────────────────────────────────────────────────────┤
 │                     Agent OS Kernel                      │
 │  ┌─────────────┬─────────────┬─────────────────────┐    │
 │  │   Signals   │    VFS      │   Policy Engine     │    │
-│  │ SIGSTOP/KILL│ /mem /audit │ read_only, no_pii   │    │
+│  │ SIGKILL/STOP│ /mem /audit │ Deterministic       │    │
 │  └─────────────┴─────────────┴─────────────────────┘    │
 │  ┌─────────────┬─────────────┬─────────────────────┐    │
 │  │    IATP     │    AMB      │      CMVK           │    │
-│  │ Agent Trust │ Message Bus │ Verification        │    │
+│  │ Agent Trust │ Message Bus │ Multi-Model Verify  │    │
 │  └─────────────┴─────────────┴─────────────────────┘    │
 ├─────────────────────────────────────────────────────────┤
 │                    Observability                         │
-│        Prometheus Metrics │ OpenTelemetry Traces        │
+│    Prometheus │ Grafana │ Jaeger │ OpenTelemetry       │
 └─────────────────────────────────────────────────────────┘
 ```
-
-## Deploy to Kubernetes
-
-Each demo includes Kubernetes manifests:
-
-```bash
-cd examples/carbon-auditor
-kubectl apply -f k8s/
-```
-
----
 
 ## License
 

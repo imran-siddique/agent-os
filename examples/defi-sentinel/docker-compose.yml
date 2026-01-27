@@ -1,7 +1,9 @@
 version: '3.8'
 
 services:
+  # ==========================================================================
   # DeFi Sentinel Demo - Attack detection simulation
+  # ==========================================================================
   defi-sentinel:
     build:
       context: .
@@ -9,36 +11,79 @@ services:
     container_name: defi-sentinel-demo
     environment:
       - PYTHONUNBUFFERED=1
-      - ATTACK_TYPE=all
+      - ATTACK_TYPE=${ATTACK_TYPE:-all}
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
     volumes:
       - ./data:/app/data:ro
       - ./output:/app/output
-    command: python demo.py --attack all
-    
-  # Single attack mode
-  reentrancy-demo:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: defi-reentrancy-demo
-    command: python demo.py --attack reentrancy
-    profiles:
-      - single
+    ports:
+      - "8081:8081"  # Demo UI
+    command: python demo.py --attack all --ui
+    depends_on:
+      - prometheus
+      - jaeger
+    networks:
+      - defi-sentinel-net
 
-  flash-loan-demo:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: defi-flash-loan-demo
-    command: python demo.py --attack flash_loan
-    profiles:
-      - single
+  # ==========================================================================
+  # Observability Stack
+  # ==========================================================================
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: defi-sentinel-prometheus
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9091:9090"
+    networks:
+      - defi-sentinel-net
 
-  # With Redis for production mempool simulation
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: defi-sentinel-grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "3001:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - defi-sentinel-net
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.52
+    container_name: defi-sentinel-jaeger
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    ports:
+      - "16687:16686"  # UI (different port to avoid conflict)
+      - "4318:4317"    # OTLP gRPC
+    networks:
+      - defi-sentinel-net
+
+  # ==========================================================================
+  # Redis for production mempool simulation
+  # ==========================================================================
   redis:
     image: redis:7-alpine
     container_name: defi-sentinel-redis
     ports:
-      - "6379:6379"
+      - "6380:6379"
     profiles:
       - full
+    networks:
+      - defi-sentinel-net
+
+networks:
+  defi-sentinel-net:
+    driver: bridge
+
+volumes:
+  prometheus_data:
+  grafana_data:

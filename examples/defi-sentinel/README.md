@@ -2,7 +2,51 @@
 
 **Stop the Hack Before It Happens**
 
-> "This AI stopped a $10M smart contract hack in 0.45 seconds. Without human intervention."
+> "This demo simulates stopping a reentrancy attack in 45ms. Watch it in real-time."
+
+## 🎬 Demo Video
+
+[![DeFi Sentinel Demo](https://img.shields.io/badge/Watch-Demo%20Video-red?style=for-the-badge&logo=youtube)](https://github.com/imran-siddique/agent-os)
+
+**Script (60 seconds):**
+```
+[0:00] "Watching for DeFi attacks in real-time."
+[0:10] [Screen shows: Mempool scanner running at 100 TPS]
+[0:20] [Alert: "Reentrancy pattern detected - $2.3M at risk"]
+[0:30] [CMVK verifies: 3/3 models confirm attack]
+[0:40] [Agent OS: SIGKILL → Guardian agent pauses contract]
+[0:50] "$2.3M saved. 45ms response. Zero human intervention."
+```
+
+## 🚀 Quick Start (One Command)
+
+```bash
+cd examples/defi-sentinel
+cp .env.example .env  # Optional: Add API keys for real mempool
+docker-compose up
+
+# Wait 30 seconds, then open:
+# → http://localhost:8081  (Demo UI)
+# → http://localhost:3001  (Grafana Dashboard - admin/admin)
+# → http://localhost:16687 (Jaeger Traces)
+```
+
+**No API keys?** Demo runs with simulated transactions.
+
+## 📊 Live Dashboard
+
+```
+┌─────────────────────────────────────────┐
+│ DeFi Sentinel - Attack Detection        │
+├─────────────────────────────────────────┤
+│ Attacks Blocked:         3              │
+│ Transactions Scanned:    12,847         │
+│ Value Protected:         $4.7M          │
+│ Detection Latency:       45ms (p95)     │
+│ SIGKILL Issued:          3              │
+│ Policy Violations:       0              │
+└─────────────────────────────────────────┘
+```
 
 ## Overview
 
