@@ -265,10 +265,10 @@ async def my_healthcare_agent(task: str, user: dict):
 
 ## Resources
 
-- [HIPAA Policy Template](/docs/policies/hipaa/)
-- [Audit Log Configuration](/docs/observability/audit/)
-- [PHI Detection Rules](/docs/modules/phi-detection/)
-- [Healthcare Integration Guide](/docs/integrations/healthcare/)
+- [Policy Reference](/docs/policies/) — Create custom HIPAA policies
+- [Observability Guide](/docs/observability/) — Audit log configuration
+- [API Reference](/docs/api/) — Full API documentation
+- [Integrations](/docs/integrations/) — Connect to your framework
 
 ---
 

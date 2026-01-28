@@ -217,11 +217,11 @@ governed = kernel.wrap_assistant(assistant, client)
 
 ## Next Steps
 
-| Tutorial | Time | What You'll Learn |
-|:---------|:-----|:------------------|
-| [30-Minute Deep Dive](/docs/tutorials/deep-dive/) | 30 min | Policies, signals, VFS, memory |
-| [Custom Policies](/docs/tutorials/custom-policies/) | 15 min | Define your own rules |
-| [Multi-Agent Systems](/docs/tutorials/multi-agent/) | 20 min | Coordinate multiple agents |
+| Resource | What You'll Learn |
+|:---------|:------------------|
+| [Policy Reference](/docs/policies/) | Complete policy language docs |
+| [Integrations](/docs/integrations/) | Framework-specific guides |
+| [Modules](/docs/modules/) | CMVK, EMK, IATP, AMB |
 
 ---
 
@@ -237,7 +237,7 @@ The `strict` policy blocks: file writes/deletes, destructive SQL, shell commands
 
 ### Can I customize policies?
 
-Yes. See [Custom Policies](/docs/tutorials/custom-policies/).
+Yes. See [Policy Reference](/docs/policies/).
 
 ### Does it work with async code?
 

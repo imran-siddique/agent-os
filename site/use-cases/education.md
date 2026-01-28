@@ -296,10 +296,10 @@ async def my_tutor(question: str, subject: str, student_context: dict):
 
 ## Resources
 
-- [K-12 Policy Template](/docs/policies/k12/)
-- [Content Filter Configuration](/docs/filters/content/)
-- [Parent Portal Setup](/docs/features/parent-portal/)
-- [COPPA Compliance Guide](/docs/compliance/coppa/)
+- [Policy Reference](/docs/policies/) — Create custom education policies
+- [Observability Guide](/docs/observability/) — Parent dashboard configuration
+- [API Reference](/docs/api/) — Full API documentation
+- [Integrations](/docs/integrations/) — Connect to your framework
 
 ---
 

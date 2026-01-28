@@ -141,7 +141,7 @@ await bus.subscribe("agent.results", handler)
 
 ---
 
-### [Control Plane](/docs/modules/control-plane/)
+### Control Plane
 
 The kernel itself—policy engine, signals, VFS.
 
@@ -163,11 +163,11 @@ dispatcher.signal(agent_id, AgentSignal.SIGSTOP)
 - Virtual file system (VFS)
 - Audit logging
 
-[Read Control Plane Documentation →](/docs/modules/control-plane/)
+[See Core Concepts →](/docs/concepts/)
 
 ---
 
-### [Observability](/docs/modules/observability/)
+### Observability
 
 Prometheus metrics and OpenTelemetry tracing.
 
@@ -184,23 +184,20 @@ enable_tracing()
 - Pre-built Grafana dashboards
 - Jaeger integration
 
-[Read Observability Documentation →](/docs/modules/observability/)
+[Read Observability Documentation →](/docs/observability/)
 
 ---
 
 ## Application Modules
 
-### [SCAK - Self-Correcting Agent Kernel](/docs/modules/scak/)
-Verification-driven correction loops for agents.
+These modules build on top of the core infrastructure:
 
-### [ATR - Agent Tool Registry](/docs/modules/atr/)
-Runtime tool discovery and safe tool plugins.
+- **SCAK** — Self-Correcting Agent Kernel: Verification-driven correction loops
+- **ATR** — Agent Tool Registry: Runtime tool discovery and safe plugins
+- **CAAS** — Context-as-a-Service: RAG routing and context management
+- **MCP Kernel Server** — MCP server for Claude Desktop integration
 
-### [CAAS - Context-as-a-Service](/docs/modules/caas/)
-RAG routing and context management.
-
-### [MCP Kernel Server](/docs/modules/mcp/)
-MCP server for Claude Desktop integration.
+*Documentation for application modules coming soon.*
 
 ---
 

@@ -19,59 +19,31 @@ See how Agent OS solves real problems across industries.
 
 <div class="use-cases-grid" markdown="1">
 
-### 🌲 [Carbon Credit Auditor](/use-cases/carbon-auditor/)
-**Industry**: Environmental Finance
+### 🏥 [Healthcare - HIPAA Compliant](/use-cases/healthcare/)
+**Industry**: Healthcare & Life Sciences
 
-Detect fraudulent carbon credits using satellite imagery and multi-model verification. Catch phantom credits before they're certified.
+Deploy AI agents that handle patient data with regulatory guarantees. Complete PHI protection, audit trails, and role-based access.
 
 **Key features used**:
-- CMVK for multi-model consensus
-- Policy engine for compliance
-- Full audit trail
+- Policy engine for PHI protection
+- Comprehensive audit logging
+- Automatic PII detection
 
-[Read Case Study →](/use-cases/carbon-auditor/)
+[Read Case Study →](/use-cases/healthcare/)
 
 ---
 
-### 🛡️ [DeFi Risk Sentinel](/use-cases/defi-sentinel/)
-**Industry**: Decentralized Finance
+### 🎓 [Education - Safe Tutoring](/use-cases/education/)
+**Industry**: Education
 
-Real-time attack detection with sub-second response. Protect smart contracts from exploits, flash loans, and rug pulls.
-
-**Key features used**:
-- Policy engine for threat detection
-- Signal system for immediate response
-- AMB for alert distribution
-
-[Read Case Study →](/use-cases/defi-sentinel/)
-
----
-
-### ⚡ [Grid Balancing Swarm](/use-cases/grid-balancing/)
-**Industry**: Energy
-
-100 agents negotiating energy trades in real-time. Coordinate distributed energy resources (DERs) while maintaining grid stability.
+Build AI tutoring bots that parents and schools trust. Age-appropriate content filtering, zero PII collection, parent-visible logs.
 
 **Key features used**:
-- IATP for agent trust
-- AMB for coordination
-- Policy engine for safety constraints
+- Content filtering policies
+- COPPA/FERPA compliance
+- Parent visibility dashboard
 
-[Read Case Study →](/use-cases/grid-balancing/)
-
----
-
-### 💊 [Pharma Compliance](/use-cases/pharma-compliance/)
-**Industry**: Healthcare
-
-Analyze adverse event reports and clinical documents. Ensure FDA compliance while maintaining complete audit trails.
-
-**Key features used**:
-- EMK for document memory
-- Policy engine for PII protection
-- CMVK for report verification
-
-[Read Case Study →](/use-cases/pharma-compliance/)
+[Read Case Study →](/use-cases/education/)
 
 </div>
 
@@ -83,46 +55,45 @@ Analyze adverse event reports and clinical documents. Ensure FDA compliance whil
 
 | Use Case | Description | Key Features |
 |:---------|:------------|:-------------|
-| [Fraud Detection](/use-cases/fraud-detection/) | Identify suspicious transactions | CMVK, Audit Trail |
-| [Risk Assessment](/use-cases/risk-assessment/) | Automated risk scoring | Policy Engine, VFS |
-| [Compliance Reporting](/use-cases/compliance/) | Generate compliant reports | EMK, Policy Engine |
-| [Trading Agents](/use-cases/trading/) | Governed algorithmic trading | SIGSTOP, Policies |
+| **Fraud Detection** | Identify suspicious transactions | CMVK consensus, Audit Trail |
+| **Risk Assessment** | Automated risk scoring | Policy Engine, VFS |
+| **Compliance Reporting** | Generate compliant reports | EMK memory, Policy Engine |
+| **Trading Agents** | Governed algorithmic trading | SIGSTOP signals, Policies |
 
 ### Healthcare & Life Sciences
 
 | Use Case | Description | Key Features |
 |:---------|:------------|:-------------|
-| [Clinical Trials](/use-cases/clinical-trials/) | Document analysis | EMK, PII Policies |
-| [Drug Discovery](/use-cases/drug-discovery/) | Research assistants | CMVK, Audit Trail |
-| [Patient Data](/use-cases/patient-data/) | HIPAA-compliant agents | Policy Engine, VFS |
-| [Adverse Events](/use-cases/adverse-events/) | Report processing | EMK, CMVK |
+| **[HIPAA Compliance](/use-cases/healthcare/)** | Patient data agents | Policy Engine, Audit |
+| **Clinical Trials** | Document analysis | EMK, PII Policies |
+| **Drug Discovery** | Research assistants | CMVK, Audit Trail |
+| **Adverse Events** | Report processing | EMK, CMVK |
 
 ### Energy & Utilities
 
 | Use Case | Description | Key Features |
 |:---------|:------------|:-------------|
-| [Grid Management](/use-cases/grid-management/) | Load balancing agents | AMB, IATP |
-| [Renewable Forecasting](/use-cases/renewable/) | Generation prediction | CMVK, EMK |
-| [Demand Response](/use-cases/demand-response/) | Coordinated agents | IATP, Policies |
-| [Asset Monitoring](/use-cases/asset-monitoring/) | Infrastructure agents | VFS, Signals |
+| **Grid Management** | Load balancing agents | AMB, IATP |
+| **Renewable Forecasting** | Generation prediction | CMVK, EMK |
+| **Demand Response** | Coordinated agents | IATP, Policies |
+| **Asset Monitoring** | Infrastructure agents | VFS, Signals |
+
+### Education
+
+| Use Case | Description | Key Features |
+|:---------|:------------|:-------------|
+| **[Safe Tutoring](/use-cases/education/)** | Age-appropriate AI tutors | Content filters, COPPA |
+| **Research Assistants** | Academic research | CMVK verification |
+| **Administrative Automation** | School operations | Policy Engine, Audit |
 
 ### Software Development
 
 | Use Case | Description | Key Features |
 |:---------|:------------|:-------------|
-| [Code Review](/use-cases/code-review/) | AI-powered code review | CMVK, Policies |
-| [CI/CD Agents](/use-cases/cicd/) | Build and deploy | Signals, Audit |
-| [Security Scanning](/use-cases/security-scan/) | Vulnerability detection | Policy Engine |
-| [Documentation](/use-cases/documentation/) | Auto-documentation | EMK, CMVK |
-
-### Enterprise Operations
-
-| Use Case | Description | Key Features |
-|:---------|:------------|:-------------|
-| [Customer Support](/use-cases/support/) | Support agents | EMK, Policies |
-| [Data Analysis](/use-cases/analysis/) | Business intelligence | VFS, CMVK |
-| [Document Processing](/use-cases/documents/) | Extract and process | EMK, Policy Engine |
-| [Workflow Automation](/use-cases/workflow/) | Multi-agent workflows | AMB, IATP |
+| **Code Review** | AI-powered code review | CMVK, Policies |
+| **CI/CD Agents** | Build and deploy | Signals, Audit |
+| **Security Scanning** | Vulnerability detection | Policy Engine |
+| **Documentation** | Auto-documentation | EMK, CMVK |
 
 ---
 
@@ -130,33 +101,33 @@ Analyze adverse event reports and clinical documents. Ensure FDA compliance whil
 
 ### Policy Engine
 When you need deterministic enforcement:
-- [Compliance Reporting](/use-cases/compliance/)
-- [PII Protection](/use-cases/pii-protection/)
-- [Data Access Control](/use-cases/data-access/)
+- Compliance Reporting
+- PII Protection
+- Data Access Control
 
 ### CMVK (Cross-Model Verification)
 When you need consensus and trust:
-- [Fraud Detection](/use-cases/fraud-detection/)
-- [Content Verification](/use-cases/content-verification/)
-- [Research Validation](/use-cases/research-validation/)
+- Fraud Detection
+- Content Verification
+- Research Validation
 
 ### EMK (Episodic Memory)
 When agents need to learn and remember:
-- [Customer Support](/use-cases/support/)
-- [Research Assistants](/use-cases/research/)
-- [Training Agents](/use-cases/training/)
+- Customer Support
+- Research Assistants
+- Training Agents
 
 ### IATP (Inter-Agent Trust)
 When multiple agents must coordinate:
-- [Multi-Agent Systems](/use-cases/multi-agent/)
-- [Swarm Coordination](/use-cases/swarm/)
-- [Agent Marketplaces](/use-cases/marketplace/)
+- Multi-Agent Systems
+- Swarm Coordination
+- Agent Marketplaces
 
 ### AMB (Message Bus)
 When agents need to communicate:
-- [Distributed Systems](/use-cases/distributed/)
-- [Event-Driven Agents](/use-cases/event-driven/)
-- [Real-time Coordination](/use-cases/realtime/)
+- Distributed Systems
+- Event-Driven Agents
+- Real-time Coordination
 
 ---
 
@@ -184,9 +155,9 @@ When agents need to communicate:
 Agent OS is designed for your specific needs:
 
 1. **Start with the quickstart** — [5-Minute Guide](/docs/tutorials/quickstart/)
-2. **Define your policies** — [Custom Policies](/docs/tutorials/custom-policies/)
+2. **Define your policies** — [Policy Reference](/docs/policies/)
 3. **Integrate with your stack** — [Framework Integrations](/docs/integrations/)
-4. **Deploy with observability** — [Production Guide](/docs/tutorials/production/)
+4. **Deploy with observability** — [Observability Guide](/docs/observability/)
 
 [Get Started →](/docs/tutorials/quickstart/)
 
@@ -197,4 +168,4 @@ Agent OS is designed for your specific needs:
 We'd love to hear about how you're using Agent OS:
 
 - [GitHub Discussions](https://github.com/imran-siddique/agent-os/discussions) — Share your story
-- [Submit a Case Study](https://github.com/imran-siddique/agent-os/issues/new?template=case_study.md) — Detailed write-up
+- [Submit a Case Study](https://github.com/imran-siddique/agent-os/issues/new) — Detailed write-up

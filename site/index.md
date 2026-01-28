@@ -291,39 +291,12 @@ See Agent OS in action with full observability:
 <div class="examples-grid" markdown="1">
 
 <div class="example-card" markdown="1">
-### 🏦 Carbon Credit Auditor
-**Finance / ESG**
-
-Satellite-verified fraud detection. Multi-model consensus. 14.9% fraud rate caught.
-
-[View Demo →](/use-cases/carbon-auditor/)
-</div>
-
-<div class="example-card" markdown="1">
-### 💰 DeFi Risk Sentinel
-**Cryptocurrency**
-
-Sub-second attack detection. $4.7M value protected. 45ms p95 latency.
-
-[View Demo →](/use-cases/defi-sentinel/)
-</div>
-
-<div class="example-card" markdown="1">
-### ⚡ Grid Balancing Swarm
-**Energy / IoT**
-
-100 agents negotiating energy. 97.3% consensus rate. Zero violations.
-
-[View Demo →](/use-cases/grid-balancing/)
-</div>
-
-<div class="example-card" markdown="1">
 ### 🏥 HIPAA-Compliant Data Agent
 **Healthcare**
 
 Patient data analysis with guaranteed PHI protection. Full audit trail for compliance.
 
-[View Demo →](/use-cases/healthcare/)
+[View Case Study →](/use-cases/healthcare/)
 </div>
 
 <div class="example-card" markdown="1">
@@ -332,7 +305,25 @@ Patient data analysis with guaranteed PHI protection. Full audit trail for compl
 
 Age-appropriate content filtering. No PII collection. Parent-visible audit logs.
 
-[View Demo →](/use-cases/education/)
+[View Case Study →](/use-cases/education/)
+</div>
+
+<div class="example-card" markdown="1">
+### 🏦 Financial Compliance
+**Finance / ESG**
+
+Fraud detection with multi-model consensus. Complete audit trails for regulators.
+
+[View Use Cases →](/use-cases/)
+</div>
+
+<div class="example-card" markdown="1">
+### ⚡ Energy Grid Coordination
+**Energy / IoT**
+
+Multi-agent coordination for grid balancing. IATP trust protocols for agent verification.
+
+[View Use Cases →](/use-cases/)
 </div>
 
 <div class="example-card" markdown="1">
@@ -341,7 +332,16 @@ Age-appropriate content filtering. No PII collection. Parent-visible audit logs.
 
 Self-healing infrastructure with guardrails. Can't delete prod, can't expose secrets.
 
-[View Demo →](/use-cases/devops/)
+[View Use Cases →](/use-cases/)
+</div>
+
+<div class="example-card" markdown="1">
+### 💼 Enterprise Operations
+**Business**
+
+Customer support, document processing, workflow automation with governance.
+
+[View Use Cases →](/use-cases/)
 </div>
 
 </div>

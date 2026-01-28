@@ -52,7 +52,7 @@ The kernel decides. The agent has no choice.
 
 **Kernel Space**: Where Agent OS runs. It intercepts every action and decides whether to allow it based on policies.
 
-[Learn more about Kernel Architecture →](/docs/concepts/kernel/)
+[Learn more in the Policies Reference →](/docs/policies/)
 
 ---
 
@@ -76,7 +76,7 @@ policies:
 
 When an agent tries a blocked action, it's stopped **before execution**.
 
-[Learn more about Policies →](/docs/concepts/policies/)
+[See the full Policy Reference →](/docs/policies/)
 
 ---
 
@@ -99,7 +99,7 @@ dispatcher.signal(agent_id, AgentSignal.SIGCONT)  # Resume
 dispatcher.signal(agent_id, AgentSignal.SIGKILL)  # Terminate
 ```
 
-[Learn more about Signals →](/docs/concepts/signals/)
+[See API Reference for signals →](/docs/api/)
 
 ---
 
@@ -125,7 +125,7 @@ vfs.write("/mem/working/task.txt", "Current task")
 vfs.read("/policy/rules.yaml")  # Read-only from user space
 ```
 
-[Learn more about VFS →](/docs/concepts/vfs/)
+[See the EMK Module for memory features →](/docs/modules/emk/)
 
 ---
 
@@ -148,9 +148,9 @@ Agent OS borrows heavily from POSIX operating systems:
 
 <div class="next-steps" markdown="1">
 
-- [Kernel Architecture](/docs/concepts/kernel/) — Deep dive into kernel design
-- [Policy Engine](/docs/concepts/policies/) — Define agent permissions
-- [Signals](/docs/concepts/signals/) — Control agent execution
-- [VFS](/docs/concepts/vfs/) — Agent memory and state
+- [Policy Reference](/docs/policies/) — Full policy language documentation
+- [API Reference](/docs/api/) — Complete API including signals
+- [Modules](/docs/modules/) — CMVK, EMK, IATP, AMB documentation
+- [Tutorials](/docs/tutorials/) — Step-by-step guides
 
 </div>

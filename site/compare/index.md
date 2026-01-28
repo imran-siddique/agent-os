@@ -60,7 +60,7 @@ governed_agent = kernel.wrap(agent)
 
 ## Detailed Comparisons
 
-### [Agent OS vs LangChain](/compare/langchain/)
+### Agent OS vs LangChain
 
 LangChain is an application framework for building LLM-powered applications. Agent OS is a governance layer that wraps LangChain agents.
 
@@ -72,11 +72,9 @@ LangChain is an application framework for building LLM-powered applications. Age
 | **Audit trail** | Built-in, immutable | Via callbacks |
 | **Best for** | Production safety | Rapid prototyping |
 
-[Read full comparison →](/compare/langchain/)
-
 ---
 
-### [Agent OS vs CrewAI](/compare/crewai/)
+### Agent OS vs CrewAI
 
 CrewAI is a framework for orchestrating role-playing AI agents. Agent OS governs those agents.
 
@@ -88,11 +86,9 @@ CrewAI is a framework for orchestrating role-playing AI agents. Agent OS governs
 | **Process control** | SIGKILL/SIGSTOP/SIGCONT | None |
 | **Best for** | Safety & compliance | Multi-agent workflows |
 
-[Read full comparison →](/compare/crewai/)
-
 ---
 
-### [Agent OS vs AutoGen](/compare/autogen/)
+### Agent OS vs AutoGen
 
 AutoGen (Microsoft) is a framework for multi-agent conversations. Agent OS provides safety infrastructure.
 
@@ -104,11 +100,9 @@ AutoGen (Microsoft) is a framework for multi-agent conversations. Agent OS provi
 | **Audit** | Immutable ledger | Conversation logs |
 | **Best for** | Deterministic safety | Research & prototyping |
 
-[Read full comparison →](/compare/autogen/)
-
 ---
 
-### [Agent OS vs Semantic Kernel](/compare/semantic-kernel/)
+### Agent OS vs Semantic Kernel
 
 Semantic Kernel (Microsoft) is an SDK for building AI applications. Agent OS adds governance.
 
@@ -119,8 +113,6 @@ Semantic Kernel (Microsoft) is an SDK for building AI applications. Agent OS add
 | **Safety** | Deterministic | Prompt-based |
 | **Enterprise ready** | Yes (SOC 2 support) | Yes |
 | **Best for** | Safety requirements | Enterprise AI apps |
-
-[Read full comparison →](/compare/semantic-kernel/)
 
 ---
 

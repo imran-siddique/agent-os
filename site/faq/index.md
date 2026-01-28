@@ -143,7 +143,7 @@ policies:
         reason: "PII detected"
 ```
 
-[See Custom Policies Tutorial →](/docs/tutorials/custom-policies/)
+[See Custom Policies Documentation →](/docs/policies/)
 
 ### What happens when a policy is violated?
 
@@ -208,7 +208,7 @@ governed_agent = kernel.wrap(agent_executor)
 result = governed_agent.invoke({"input": "analyze this data"})
 ```
 
-[See LangChain Integration Guide →](/docs/integrations/langchain/)
+[See Integrations Guide →](/docs/integrations/)
 
 ### How do I use Agent OS with CrewAI?
 
@@ -227,7 +227,7 @@ governed_crew = kernel.wrap(crew)
 result = governed_crew.kickoff()
 ```
 
-[See CrewAI Integration Guide →](/docs/integrations/crewai/)
+[See Integrations Guide →](/docs/integrations/)
 
 ### Does Agent OS work with OpenAI's Assistants API?
 
@@ -244,7 +244,7 @@ kernel = OpenAIKernel()
 governed = kernel.wrap_assistant(assistant, client)
 ```
 
-[See OpenAI Integration Guide →](/docs/integrations/openai/)
+[See Integrations Guide →](/docs/integrations/)
 
 ---
 
@@ -335,7 +335,7 @@ enable_tracing()
 
 **Grafana Dashboards**: Pre-built dashboards included in `/examples/`.
 
-[See Observability Guide →](/docs/tutorials/observability/)
+[See Observability Guide →](/docs/observability/)
 
 ### Can I use Agent OS in a distributed system?
 
