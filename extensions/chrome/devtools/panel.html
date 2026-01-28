@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Agent OS Monitor</title>
+  <style>
+    :root {
+      --bg-primary: #1e1e1e;
+      --bg-secondary: #252526;
+      --bg-tertiary: #2d2d2d;
+      --text-primary: #cccccc;
+      --text-secondary: #858585;
+      --accent-blue: #569cd6;
+      --accent-green: #4ec9b0;
+      --accent-yellow: #dcdcaa;
+      --accent-red: #f14c4c;
+      --border-color: #404040;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 12px;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      height: 100vh;
+      overflow: hidden;
+    }
+    
+    .container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    .header h1 {
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .header h1 .icon {
+      font-size: 16px;
+    }
+    
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+    }
+    
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-green);
+    }
+    
+    .status-dot.disconnected {
+      background: var(--accent-red);
+    }
+    
+    /* Tabs */
+    .tabs {
+      display: flex;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    .tab {
+      padding: 8px 16px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      color: var(--text-secondary);
+      transition: all 0.2s;
+    }
+    
+    .tab:hover {
+      color: var(--text-primary);
+      background: var(--bg-tertiary);
+    }
+    
+    .tab.active {
+      color: var(--accent-blue);
+      border-bottom-color: var(--accent-blue);
+    }
+    
+    /* Content */
+    .content {
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+    }
+    
+    .panel {
+      display: none;
+      flex: 1;
+      overflow: auto;
+      padding: 12px;
+    }
+    
+    .panel.active {
+      display: block;
+    }
+    
+    /* Message List */
+    .message-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .message-item {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 10px;
+    }
+    
+    .message-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    
+    .message-type {
+      font-weight: 600;
+      color: var(--accent-blue);
+    }
+    
+    .message-time {
+      color: var(--text-secondary);
+      font-size: 11px;
+    }
+    
+    .message-body {
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 11px;
+      background: var(--bg-tertiary);
+      padding: 8px;
+      border-radius: 3px;
+      overflow-x: auto;
+      white-space: pre;
+    }
+    
+    .message-meta {
+      display: flex;
+      gap: 12px;
+      margin-top: 8px;
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+    
+    /* Agent Network */
+    .network-canvas {
+      width: 100%;
+      height: 400px;
+      background: var(--bg-secondary);
+      border-radius: 4px;
+    }
+    
+    /* Trust Table */
+    .trust-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    .trust-table th,
+    .trust-table td {
+      padding: 8px 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    .trust-table th {
+      background: var(--bg-secondary);
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+    
+    .trust-level {
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    
+    .trust-level.high {
+      background: rgba(78, 201, 176, 0.2);
+      color: var(--accent-green);
+    }
+    
+    .trust-level.medium {
+      background: rgba(220, 220, 170, 0.2);
+      color: var(--accent-yellow);
+    }
+    
+    .trust-level.low {
+      background: rgba(241, 76, 76, 0.2);
+      color: var(--accent-red);
+    }
+    
+    /* Stats Cards */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    
+    .stat-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 12px;
+    }
+    
+    .stat-label {
+      color: var(--text-secondary);
+      font-size: 11px;
+      margin-bottom: 4px;
+    }
+    
+    .stat-value {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--accent-blue);
+    }
+    
+    .stat-value.success {
+      color: var(--accent-green);
+    }
+    
+    .stat-value.warning {
+      color: var(--accent-yellow);
+    }
+    
+    .stat-value.danger {
+      color: var(--accent-red);
+    }
+    
+    /* Toolbar */
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    
+    .toolbar button {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 6px 12px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    
+    .toolbar button:hover {
+      background: var(--bg-tertiary);
+    }
+    
+    .toolbar input {
+      flex: 1;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 6px 10px;
+      border-radius: 3px;
+      font-size: 12px;
+    }
+    
+    .toolbar input::placeholder {
+      color: var(--text-secondary);
+    }
+    
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-secondary);
+    }
+    
+    .empty-state .icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>
+        <span class="icon">🛡️</span>
+        Agent OS Monitor
+      </h1>
+      <div class="status">
+        <div class="status-dot" id="connectionStatus"></div>
+        <span id="connectionText">Connected</span>
+      </div>
+    </div>
+    
+    <!-- Tabs -->
+    <div class="tabs">
+      <div class="tab active" data-tab="messages">AMB Messages</div>
+      <div class="tab" data-tab="trust">IATP Trust</div>
+      <div class="tab" data-tab="network">Agent Network</div>
+      <div class="tab" data-tab="stats">Statistics</div>
+    </div>
+    
+    <!-- Content -->
+    <div class="content">
+      <!-- AMB Messages Panel -->
+      <div class="panel active" id="messages">
+        <div class="toolbar">
+          <input type="text" id="messageFilter" placeholder="Filter messages...">
+          <button id="clearMessages">Clear</button>
+          <button id="pauseMessages">Pause</button>
+        </div>
+        <div class="message-list" id="messageList">
+          <div class="empty-state">
+            <div class="icon">📭</div>
+            <p>No messages captured yet</p>
+            <p>Agent OS messages will appear here</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- IATP Trust Panel -->
+      <div class="panel" id="trust">
+        <div class="toolbar">
+          <input type="text" id="trustFilter" placeholder="Filter agents...">
+          <button id="refreshTrust">Refresh</button>
+        </div>
+        <table class="trust-table">
+          <thead>
+            <tr>
+              <th>Agent ID</th>
+              <th>Name</th>
+              <th>Trust Level</th>
+              <th>Public Key</th>
+              <th>Last Verified</th>
+            </tr>
+          </thead>
+          <tbody id="trustTableBody">
+            <tr>
+              <td colspan="5" class="empty-state">No agents registered</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Agent Network Panel -->
+      <div class="panel" id="network">
+        <div class="toolbar">
+          <button id="zoomIn">Zoom In</button>
+          <button id="zoomOut">Zoom Out</button>
+          <button id="resetView">Reset</button>
+        </div>
+        <canvas class="network-canvas" id="networkCanvas"></canvas>
+      </div>
+      
+      <!-- Statistics Panel -->
+      <div class="panel" id="stats">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Messages Sent</div>
+            <div class="stat-value" id="statMessagesSent">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Messages Received</div>
+            <div class="stat-value" id="statMessagesReceived">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Active Agents</div>
+            <div class="stat-value success" id="statActiveAgents">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Trust Verifications</div>
+            <div class="stat-value" id="statVerifications">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Failed Verifications</div>
+            <div class="stat-value danger" id="statFailedVerifications">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Policy Violations</div>
+            <div class="stat-value danger" id="statViolations">0</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="panel.js"></script>
+</body>
+</html>

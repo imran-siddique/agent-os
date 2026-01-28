@@ -85,6 +85,14 @@
     "views": {
       "agent-os-sidebar": [
         {
+          "id": "agent-os.kernelDebugger",
+          "name": "Kernel Debugger"
+        },
+        {
+          "id": "agent-os.memoryBrowser",
+          "name": "Agent Memory (VFS)"
+        },
+        {
           "id": "agent-os.auditLog",
           "name": "Audit Log"
         },

@@ -1,0 +1,48 @@
+{
+  "manifest_version": 3,
+  "name": "Agent OS DevTools",
+  "version": "0.1.0",
+  "description": "Developer tools for monitoring Agent OS inter-agent communication (AMB) and trust protocols (IATP)",
+  "author": "Agent OS Team",
+  "homepage_url": "https://github.com/imran-siddique/agent-os",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "webNavigation"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "devtools_page": "devtools/devtools.html",
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png"
+    },
+    "default_title": "Agent OS DevTools",
+    "default_popup": "popup/popup.html"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["injected.js"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
