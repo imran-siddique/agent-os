@@ -8,9 +8,23 @@ Welcome to the Agent OS documentation. Agent OS is a kernel architecture for gov
 
 | Guide | Time | Description |
 |-------|------|-------------|
-| [5-Minute Quickstart](tutorials/getting-started.md) | 5 min | Get running immediately |
+| [5-Minute Quickstart](tutorials/5-minute-quickstart.md) | 5 min | Minimal setup, maximum speed |
+| [30-Minute Deep Dive](tutorials/30-minute-deep-dive.md) | 30 min | Comprehensive walkthrough |
 | [First Governed Agent](tutorials/first-governed-agent.md) | 15 min | Build a complete agent |
 | [Cheatsheet](cheatsheet.md) | - | Quick reference card |
+
+### 📓 Interactive Notebooks
+
+Learn by doing with our Jupyter notebooks:
+
+| Notebook | Time | Description |
+|----------|------|-------------|
+| [Hello Agent OS](../notebooks/01-hello-agent-os.ipynb) | 5 min | Your first governed agent |
+| [Episodic Memory](../notebooks/02-episodic-memory-demo.ipynb) | 15 min | Persistent agent memory |
+| [Time-Travel Debugging](../notebooks/03-time-travel-debugging.ipynb) | 20 min | Replay agent decisions |
+| [Cross-Model Verification](../notebooks/04-cross-model-verification.ipynb) | 15 min | Detect hallucinations |
+| [Multi-Agent Coordination](../notebooks/05-multi-agent-coordination.ipynb) | 20 min | Agent trust protocols |
+| [Policy Engine](../notebooks/06-policy-engine.ipynb) | 15 min | Deep dive into policies |
 
 ### 📚 Tutorials
 

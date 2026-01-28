@@ -371,11 +371,24 @@ See [MCP server documentation](modules/mcp-kernel-server/README.md).
 ## Documentation
 
 ### Tutorials
-- [5-Minute Getting Started](docs/tutorials/getting-started.md) - Get running fast
-- [Building Your First Governed Agent](docs/tutorials/first-governed-agent.md) - Complete walkthrough
+- [5-Minute Quickstart](docs/tutorials/5-minute-quickstart.md) - Get running fast
+- [30-Minute Deep Dive](docs/tutorials/30-minute-deep-dive.md) - Comprehensive walkthrough
+- [Building Your First Governed Agent](docs/tutorials/first-governed-agent.md) - Complete tutorial
 - [Using Message Bus Adapters](docs/tutorials/message-bus-adapters.md) - Connect agents
 - [Creating Custom Tools](docs/tutorials/custom-tools.md) - Build safe tools
 - [Cheatsheet](docs/cheatsheet.md) - Quick reference
+
+### Interactive Notebooks
+Learn by doing with Jupyter notebooks:
+
+| Notebook | Description | Time |
+|----------|-------------|------|
+| [Hello Agent OS](notebooks/01-hello-agent-os.ipynb) | Your first governed agent | 5 min |
+| [Episodic Memory](notebooks/02-episodic-memory-demo.ipynb) | Agent memory that persists | 15 min |
+| [Time-Travel Debugging](notebooks/03-time-travel-debugging.ipynb) | Replay and debug decisions | 20 min |
+| [Cross-Model Verification](notebooks/04-cross-model-verification.ipynb) | Detect hallucinations | 15 min |
+| [Multi-Agent Coordination](notebooks/05-multi-agent-coordination.ipynb) | Trust between agents | 20 min |
+| [Policy Engine](notebooks/06-policy-engine.ipynb) | Deep dive into policies | 15 min |
 
 ### Reference
 - [Quickstart Guide](docs/quickstart.md) - 60 seconds to first agent
