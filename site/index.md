@@ -63,19 +63,59 @@ Traditional agent safety relies on **prompts**: *"Please don't do dangerous thin
 
 The agent decides whether to comply. That's not safety—that's hope.
 
-```
-Prompt-Based Safety:          Kernel-Based Safety:
-                              
-  "Please be safe"              Every action is checked
-         ↓                             ↓
-  LLM decides to comply         Kernel decides to allow
-         ↓                             ↓
-  Maybe it doesn't 🤷           No choice - blocked or allowed
-```
+<div class="mermaid">
+graph LR
+    subgraph "Prompt-Based Safety ❌"
+        A1["Please be safe"] --> B1["LLM decides"]
+        B1 --> C1["Maybe complies 🤷"]
+    end
+    
+    subgraph "Kernel-Based Safety ✅"
+        A2["Action request"] --> B2["Policy Engine"]
+        B2 --> C2{Check}
+        C2 -->|Pass| D2["Execute"]
+        C2 -->|Fail| E2["SIGKILL 🛑"]
+    end
+</div>
 
 ## Agent OS: Kernel-Level Enforcement
 
 Agent OS applies operating system concepts to AI agent governance. Just like Linux doesn't ask applications to behave—it **enforces permissions**—Agent OS doesn't ask agents to be safe—it **enforces policies**.
+
+<div class="architecture-diagram">
+<div class="mermaid">
+graph TB
+    subgraph "User Space"
+        A1[Agent 1]
+        A2[Agent 2]
+        A3[Agent N]
+    end
+    
+    subgraph "Kernel Space"
+        PE[Policy Engine]
+        SD[Signal Dispatcher]
+        VFS[Virtual File System]
+        AUD[Audit Log]
+    end
+    
+    subgraph "Infrastructure Modules"
+        CMVK[Cross-Model Verification]
+        EMK[Episodic Memory]
+        IATP[Inter-Agent Trust]
+        AMB[Message Bus]
+    end
+    
+    A1 --> PE
+    A2 --> PE
+    A3 --> PE
+    PE --> SD
+    PE --> VFS
+    PE --> AUD
+    PE --> CMVK
+    PE --> EMK
+    PE --> IATP
+</div>
+</div>
 
 ```python
 from agent_os import KernelSpace
@@ -393,5 +433,11 @@ pip install agent-os
 
 [Get Started →](/docs/tutorials/quickstart/){: .btn .btn-primary .fs-5 .mb-4 .mb-md-0 .mr-2 }
 [Read the Docs →](/docs/){: .btn .fs-5 .mb-4 .mb-md-0 }
+
+<div class="footer-meta" markdown="1">
+
+**v1.1.0** · [Changelog](https://github.com/imran-siddique/agent-os/releases) · [Benchmarks](/benchmarks/) · MIT License
+
+</div>
 
 </div>
