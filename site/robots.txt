@@ -1,0 +1,21 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://agent-os.dev/sitemap.xml
+
+# Crawl-delay for politeness
+Crawl-delay: 1
+
+# Block common bot paths
+Disallow: /assets/
+Disallow: /*.json$
+Disallow: /*.xml$
+
+# Allow important resources
+Allow: /sitemap.xml
+Allow: /assets/images/
+
+# Block development/staging
+Disallow: /staging/
+Disallow: /dev/

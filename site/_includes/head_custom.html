@@ -1,0 +1,162 @@
+<!-- Custom head content for SEO and AEO optimization -->
+
+<!-- Primary Meta Tags -->
+<meta name="title" content="{{ page.title }} | Agent OS">
+<meta name="author" content="Agent OS Team">
+<meta name="robots" content="index, follow">
+<meta name="language" content="English">
+<meta name="revisit-after" content="7 days">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="{{ page.url | absolute_url }}">
+<meta property="og:title" content="{{ page.title }} | Agent OS">
+<meta property="og:description" content="{{ page.description | default: site.description }}">
+<meta property="og:image" content="{{ '/assets/images/og-image.png' | absolute_url }}">
+<meta property="og:site_name" content="Agent OS">
+<meta property="og:locale" content="en_US">
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary_large_image">
+<meta property="twitter:url" content="{{ page.url | absolute_url }}">
+<meta property="twitter:title" content="{{ page.title }} | Agent OS">
+<meta property="twitter:description" content="{{ page.description | default: site.description }}">
+<meta property="twitter:image" content="{{ '/assets/images/og-image.png' | absolute_url }}">
+<meta name="twitter:site" content="@agentos_dev">
+<meta name="twitter:creator" content="@agentos_dev">
+
+<!-- Schema.org structured data for AEO -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Agent OS",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Cross-platform",
+  "description": "{{ site.description }}",
+  "url": "{{ site.url }}",
+  "author": {
+    "@type": "Organization",
+    "name": "Agent OS",
+    "url": "{{ site.url }}"
+  },
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "softwareVersion": "1.1.0",
+  "downloadUrl": "https://pypi.org/project/agent-os/",
+  "releaseNotes": "{{ site.url }}/changelog/",
+  "screenshot": "{{ '/assets/images/screenshot.png' | absolute_url }}",
+  "featureList": [
+    "Kernel-level policy enforcement",
+    "POSIX-style signals (SIGKILL, SIGSTOP, SIGCONT)",
+    "Cross-model verification (CMVK)",
+    "Episodic memory kernel (EMK)",
+    "Inter-agent trust protocol (IATP)",
+    "Prometheus and OpenTelemetry observability"
+  ]
+}
+</script>
+
+{% if page.layout == 'home' %}
+<!-- Organization schema for homepage -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Agent OS",
+  "url": "{{ site.url }}",
+  "logo": "{{ '/assets/images/logo.svg' | absolute_url }}",
+  "sameAs": [
+    "https://github.com/imran-siddique/agent-os",
+    "https://twitter.com/agentos_dev",
+    "https://pypi.org/project/agent-os/"
+  ],
+  "description": "{{ site.description }}"
+}
+</script>
+{% endif %}
+
+{% if page.url contains '/faq/' %}
+<!-- FAQ schema for AEO -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is Agent OS?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Agent OS is a kernel architecture for governing autonomous AI agents. It applies operating system concepts to AI agents, providing deterministic policy enforcement rather than relying on prompts to control agent behavior."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How is Agent OS different from LangChain or CrewAI?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "LangChain and CrewAI are frameworks for building agents. Agent OS is infrastructure for governing agents. You can use them together - build with LangChain/CrewAI, govern with Agent OS."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I install Agent OS?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Install via pip: pip install agent-os. For all features: pip install agent-os[full]. Requires Python 3.9+."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is Agent OS open source?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Agent OS is released under the MIT License. View the source code at https://github.com/imran-siddique/agent-os"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What policies are included by default?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The strict policy blocks: file writes/deletes, destructive SQL (DROP, DELETE), shell execution, secret exposure (hardcoded API keys), and optionally network calls to unknown domains."
+      }
+    }
+  ]
+}
+</script>
+{% endif %}
+
+{% if page.url contains '/docs/tutorials/' %}
+<!-- HowTo schema for tutorials -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "{{ page.title }}",
+  "description": "{{ page.description }}",
+  "tool": {
+    "@type": "SoftwareApplication",
+    "name": "Agent OS"
+  },
+  "supply": {
+    "@type": "HowToSupply",
+    "name": "Python 3.9+"
+  }
+}
+</script>
+{% endif %}
+
+<!-- Custom CSS -->
+<link rel="stylesheet" href="{{ '/assets/css/custom.css' | relative_url }}">
+
+<!-- Preconnect for performance -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<!-- Canonical URL -->
+<link rel="canonical" href="{{ page.url | absolute_url }}">
