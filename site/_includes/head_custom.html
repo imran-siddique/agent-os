@@ -1,16 +1,21 @@
 <!-- Custom head content for SEO and AEO optimization -->
 
+<!-- Accessibility: Set language -->
+<html lang="en">
+
 <!-- Primary Meta Tags -->
-<meta name="title" content="{{ page.title }} | Agent OS">
+<meta name="title" content="{{ page.title }} | Agent OS - Kernel for AI Agent Governance">
 <meta name="author" content="Agent OS Team">
-<meta name="robots" content="index, follow">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
 <meta name="language" content="English">
-<meta name="revisit-after" content="7 days">
+<meta name="revisit-after" content="3 days">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#6366f1">
 
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content="website">
 <meta property="og:url" content="{{ page.url | absolute_url }}">
-<meta property="og:title" content="{{ page.title }} | Agent OS">
+<meta property="og:title" content="{{ page.title }} | Agent OS - Kernel for AI Agent Governance">
 <meta property="og:description" content="{{ page.description | default: site.description }}">
 <meta property="og:image" content="{{ '/assets/images/og-image.png' | absolute_url }}">
 <meta property="og:site_name" content="Agent OS">
@@ -32,13 +37,14 @@
   "@type": "SoftwareApplication",
   "name": "Agent OS",
   "applicationCategory": "DeveloperApplication",
+  "applicationSubCategory": "AI Safety Framework",
   "operatingSystem": "Cross-platform",
   "description": "{{ site.description }}",
-  "url": "{{ site.url }}",
+  "url": "{{ site.url }}{{ site.baseurl }}",
   "author": {
     "@type": "Organization",
     "name": "Agent OS",
-    "url": "{{ site.url }}"
+    "url": "{{ site.url }}{{ site.baseurl }}"
   },
   "offers": {
     "@type": "Offer",
@@ -47,7 +53,7 @@
   },
   "softwareVersion": "1.1.0",
   "downloadUrl": "https://pypi.org/project/agent-os/",
-  "releaseNotes": "{{ site.url }}/changelog/",
+  "releaseNotes": "{{ site.url }}{{ site.baseurl }}/changelog/",
   "screenshot": "{{ '/assets/images/screenshot.png' | absolute_url }}",
   "featureList": [
     "Kernel-level policy enforcement",
@@ -56,7 +62,8 @@
     "Episodic memory kernel (EMK)",
     "Inter-agent trust protocol (IATP)",
     "Prometheus and OpenTelemetry observability"
-  ]
+  ],
+  "keywords": "AI safety, agent framework, kernel enforcement, LLM governance, autonomous agents, AI compliance"
 }
 </script>
 
@@ -67,14 +74,31 @@
   "@context": "https://schema.org",
   "@type": "Organization",
   "name": "Agent OS",
-  "url": "{{ site.url }}",
+  "url": "{{ site.url }}{{ site.baseurl }}",
   "logo": "{{ '/assets/images/logo.svg' | absolute_url }}",
   "sameAs": [
     "https://github.com/imran-siddique/agent-os",
     "https://twitter.com/agentos_dev",
     "https://pypi.org/project/agent-os/"
   ],
-  "description": "{{ site.description }}"
+  "description": "{{ site.description }}",
+  "foundingDate": "2024",
+  "slogan": "Stop hoping your agents behave—enforce it."
+}
+</script>
+
+<!-- WebSite schema for search -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Agent OS Documentation",
+  "url": "{{ site.url }}{{ site.baseurl }}",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "{{ site.url }}{{ site.baseurl }}/search/?q={search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
 }
 </script>
 {% endif %}
@@ -139,13 +163,45 @@
   "@type": "HowTo",
   "name": "{{ page.title }}",
   "description": "{{ page.description }}",
+  "image": "{{ '/assets/images/og-image.png' | absolute_url }}",
+  "totalTime": "PT5M",
   "tool": {
     "@type": "SoftwareApplication",
     "name": "Agent OS"
   },
-  "supply": {
-    "@type": "HowToSupply",
-    "name": "Python 3.9+"
+  "supply": [
+    {
+      "@type": "HowToSupply",
+      "name": "Python 3.9+"
+    },
+    {
+      "@type": "HowToSupply",
+      "name": "pip package manager"
+    }
+  ]
+}
+</script>
+{% endif %}
+
+{% if page.url contains '/compare/' %}
+<!-- Comparison schema -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "{{ page.title }}",
+  "description": "{{ page.description | default: 'Compare Agent OS with other AI agent frameworks' }}",
+  "author": {
+    "@type": "Organization",
+    "name": "Agent OS"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Agent OS",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "{{ '/assets/images/logo.svg' | absolute_url }}"
+    }
   }
 }
 </script>
@@ -154,9 +210,46 @@
 <!-- Custom CSS -->
 <link rel="stylesheet" href="{{ '/assets/css/custom.css' | relative_url }}">
 
+<!-- Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<!-- Mermaid.js for diagrams -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  mermaid.initialize({ 
+    startOnLoad: true,
+    theme: 'dark',
+    securityLevel: 'loose'
+  });
+</script>
+
 <!-- Preconnect for performance -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdnjs.cloudflare.com">
+
+<!-- Google Fonts - Inter and Fira Code -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
 
 <!-- Canonical URL -->
 <link rel="canonical" href="{{ page.url | absolute_url }}">
+
+<!-- RSS Feed -->
+<link rel="alternate" type="application/rss+xml" title="Agent OS Updates" href="{{ '/feed.xml' | absolute_url }}">
+
+<!-- Accessibility: Skip to main content link -->
+<style>
+  .skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: #6366f1;
+    color: white;
+    padding: 8px 16px;
+    z-index: 100;
+    text-decoration: none;
+  }
+  .skip-link:focus {
+    top: 0;
+  }
+</style>

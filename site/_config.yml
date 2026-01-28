@@ -62,6 +62,9 @@ collections:
   modules:
     output: true
     permalink: /:collection/:path/
+  posts:
+    output: true
+    permalink: /blog/:year/:month/:day/:title/
 
 # Defaults
 defaults:

@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e"/>
+      <stop offset="100%" style="stop-color:#16213e"/>
+    </linearGradient>
+    <linearGradient id="accent-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1"/>
+      <stop offset="100%" style="stop-color:#8b5cf6"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg-gradient)"/>
+  
+  <!-- Decorative elements -->
+  <circle cx="100" cy="100" r="200" fill="url(#accent-gradient)" opacity="0.1"/>
+  <circle cx="1100" cy="530" r="250" fill="url(#accent-gradient)" opacity="0.1"/>
+  
+  <!-- Kernel symbol -->
+  <g transform="translate(150, 250)">
+    <circle cx="65" cy="65" r="60" fill="none" stroke="url(#accent-gradient)" stroke-width="4"/>
+    <circle cx="65" cy="65" r="40" fill="none" stroke="url(#accent-gradient)" stroke-width="3"/>
+    <circle cx="65" cy="65" r="15" fill="url(#accent-gradient)"/>
+    <!-- Connecting lines -->
+    <line x1="65" y1="5" x2="65" y2="25" stroke="url(#accent-gradient)" stroke-width="3"/>
+    <line x1="65" y1="105" x2="65" y2="125" stroke="url(#accent-gradient)" stroke-width="3"/>
+    <line x1="5" y1="65" x2="25" y2="65" stroke="url(#accent-gradient)" stroke-width="3"/>
+    <line x1="105" y1="65" x2="125" y2="65" stroke="url(#accent-gradient)" stroke-width="3"/>
+  </g>
+  
+  <!-- Title -->
+  <text x="300" y="290" font-family="system-ui, -apple-system, sans-serif" font-size="72" font-weight="700" fill="#ffffff">Agent</text>
+  <text x="490" y="290" font-family="system-ui, -apple-system, sans-serif" font-size="72" font-weight="700" fill="url(#accent-gradient)">OS</text>
+  
+  <!-- Tagline -->
+  <text x="300" y="360" font-family="system-ui, -apple-system, sans-serif" font-size="32" fill="#94a3b8">Kernel-Level Governance for AI Agents</text>
+  
+  <!-- Feature pills -->
+  <g transform="translate(300, 420)">
+    <rect x="0" y="0" width="200" height="40" rx="20" fill="rgba(99, 102, 241, 0.2)" stroke="#6366f1" stroke-width="1"/>
+    <text x="100" y="27" font-family="system-ui" font-size="16" fill="#a5b4fc" text-anchor="middle">Policy Enforcement</text>
+    
+    <rect x="220" y="0" width="160" height="40" rx="20" fill="rgba(99, 102, 241, 0.2)" stroke="#6366f1" stroke-width="1"/>
+    <text x="300" y="27" font-family="system-ui" font-size="16" fill="#a5b4fc" text-anchor="middle">POSIX Signals</text>
+    
+    <rect x="400" y="0" width="180" height="40" rx="20" fill="rgba(99, 102, 241, 0.2)" stroke="#6366f1" stroke-width="1"/>
+    <text x="490" y="27" font-family="system-ui" font-size="16" fill="#a5b4fc" text-anchor="middle">Zero Violations</text>
+  </g>
+  
+  <!-- URL -->
+  <text x="300" y="550" font-family="system-ui" font-size="24" fill="#64748b">github.com/imran-siddique/agent-os</text>
+</svg>

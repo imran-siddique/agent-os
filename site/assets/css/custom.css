@@ -1,13 +1,103 @@
 /* Agent OS Custom Styles */
 
-/* Hero section */
+/* ===========================
+   DESIGN TOKENS / VARIABLES
+   =========================== */
+:root {
+  --aos-primary: #6366f1;      /* Indigo - trust/safety */
+  --aos-primary-dark: #4f46e5;
+  --aos-secondary: #10b981;    /* Emerald - enforcement/success */
+  --aos-accent: #8b5cf6;       /* Purple - features */
+  --aos-warning: #f59e0b;
+  --aos-danger: #ef4444;
+  --aos-info: #3b82f6;
+  
+  --aos-bg-card: rgba(99, 102, 241, 0.05);
+  --aos-border-card: rgba(99, 102, 241, 0.2);
+  --aos-gradient: linear-gradient(135deg, var(--aos-primary), var(--aos-accent));
+}
+
+/* ===========================
+   HERO SECTION
+   =========================== */
 .hero {
   text-align: center;
   padding: 3rem 0;
   margin-bottom: 2rem;
+  animation: fadeIn 0.5s ease-out;
 }
 
-/* Features grid */
+.hero h1 {
+  background: var(--aos-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.github-badges {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.github-badges img {
+  height: 20px;
+}
+
+/* ===========================
+   QUICK FAQ / EXECUTIVE SUMMARY
+   =========================== */
+.faq-quick {
+  background: var(--aos-bg-card);
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid var(--aos-border-card);
+}
+
+.faq-quick details {
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--aos-border-card);
+}
+
+.faq-quick details:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.faq-quick summary {
+  cursor: pointer;
+  list-style: none;
+  font-size: 1.05rem;
+  padding: 0.5rem 0;
+}
+
+.faq-quick summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq-quick summary::before {
+  content: "▸ ";
+  color: var(--aos-primary);
+  font-weight: bold;
+}
+
+.faq-quick details[open] summary::before {
+  content: "▾ ";
+}
+
+.faq-quick details p {
+  margin: 0.75rem 0 0 1rem;
+  opacity: 0.9;
+  line-height: 1.6;
+}
+
+/* ===========================
+   FEATURES GRID
+   =========================== */
 .features-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -17,6 +107,9 @@
 
 .features-grid h3 {
   margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .features-grid p {
@@ -25,7 +118,9 @@
   opacity: 0.9;
 }
 
-/* Examples grid */
+/* ===========================
+   EXAMPLES GRID - CARDS
+   =========================== */
 .examples-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -33,12 +128,149 @@
   margin: 2rem 0;
 }
 
-.examples-grid h3 {
+.example-card {
+  background: var(--aos-bg-card);
+  border: 1px solid var(--aos-border-card);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.2s ease;
+}
+
+.example-card:hover {
+  border-color: var(--aos-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(99, 102, 241, 0.15);
+}
+
+.example-card h3 {
   font-size: 1.1rem;
+  margin-bottom: 0.25rem;
+}
+
+.example-card h3 + p {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--aos-accent);
+  margin-bottom: 0.75rem;
+}
+
+.example-card a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-weight: 500;
+  color: var(--aos-primary);
+}
+
+/* ===========================
+   TESTIMONIALS
+   =========================== */
+.testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.testimonial {
+  background: var(--aos-bg-card);
+  border-left: 4px solid var(--aos-secondary);
+  border-radius: 0 12px 12px 0;
+  padding: 1.25rem;
+  font-style: normal;
+}
+
+.testimonial-quote {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 0.75rem;
+}
+
+.testimonial strong {
+  color: var(--aos-secondary);
+  font-weight: 500;
+}
+
+.cta-small {
+  text-align: center;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+/* ===========================
+   CODE EXPLANATION TABLE
+   =========================== */
+.code-explanation {
+  background: var(--aos-bg-card);
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+.code-explanation table {
+  margin: 0;
+}
+
+.code-explanation td:first-child {
+  font-family: 'Fira Code', 'Consolas', monospace;
+  font-size: 0.85rem;
+  color: var(--aos-accent);
+  white-space: nowrap;
+}
+
+/* ===========================
+   ROADMAP & LIMITATIONS
+   =========================== */
+.limitations-box {
+  background: rgba(245, 158, 11, 0.1);
+  border-left: 4px solid var(--aos-warning);
+  border-radius: 0 8px 8px 0;
+  padding: 1.25rem;
+  margin: 1.5rem 0;
+}
+
+.limitations-box strong {
+  color: var(--aos-warning);
+}
+
+.limitations-box ul {
   margin-bottom: 0.5rem;
 }
 
-/* Use cases grid */
+/* Status badges in roadmap table */
+td:last-child {
+  text-align: center;
+}
+
+/* ===========================
+   SOCIAL SHARE
+   =========================== */
+.social-share {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: var(--aos-bg-card);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.social-share img {
+  margin: 0 0.25rem;
+}
+
+/* ===========================
+   NEWSLETTER / CTA
+   =========================== */
+.newsletter-signup {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* ===========================
+   USE CASES GRID
+   =========================== */
 .use-cases-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -50,7 +282,9 @@
   margin-bottom: 0.5rem;
 }
 
-/* Quick links table */
+/* ===========================
+   QUICK LINKS TABLE
+   =========================== */
 .quick-links table {
   width: 100%;
 }
@@ -60,7 +294,9 @@
   padding: 0.5rem;
 }
 
-/* Next steps */
+/* ===========================
+   NEXT STEPS
+   =========================== */
 .next-steps {
   display: flex;
   flex-wrap: wrap;
@@ -73,17 +309,19 @@
   min-width: 200px;
   padding: 1rem;
   border: 1px solid var(--color-border);
-  border-radius: 4px;
+  border-radius: 8px;
   text-decoration: none;
   transition: all 0.2s;
 }
 
 .next-steps a:hover {
-  border-color: var(--color-link);
-  background: var(--color-background-alt);
+  border-color: var(--aos-primary);
+  background: var(--aos-bg-card);
 }
 
-/* Community links */
+/* ===========================
+   COMMUNITY LINKS
+   =========================== */
 .community-links {
   display: flex;
   flex-wrap: wrap;
@@ -100,39 +338,51 @@
   display: inline-block;
   padding: 0.5rem 1rem;
   border: 1px solid var(--color-border);
-  border-radius: 4px;
+  border-radius: 8px;
   text-decoration: none;
 }
 
 .community-links a:hover {
-  border-color: var(--color-link);
+  border-color: var(--aos-primary);
 }
 
-/* Footer CTA */
+/* ===========================
+   FOOTER CTA
+   =========================== */
 .footer-cta {
   text-align: center;
   padding: 3rem 0;
   margin-top: 3rem;
   border-top: 1px solid var(--color-border);
+  background: var(--aos-bg-card);
+  border-radius: 12px;
 }
 
-/* Code blocks enhancements */
+/* ===========================
+   CODE BLOCKS ENHANCEMENTS
+   =========================== */
 .highlight {
   position: relative;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
-/* Architecture diagram ASCII */
+/* ===========================
+   ARCHITECTURE DIAGRAM ASCII
+   =========================== */
 .architecture-ascii {
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-family: 'Fira Code', 'Consolas', 'Monaco', 'Courier New', monospace;
   font-size: 0.85rem;
   line-height: 1.4;
   overflow-x: auto;
   background: var(--color-background-alt);
   padding: 1rem;
-  border-radius: 4px;
+  border-radius: 8px;
 }
 
-/* Comparison tables */
+/* ===========================
+   COMPARISON TABLES
+   =========================== */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -142,7 +392,7 @@ table {
 th {
   text-align: left;
   font-weight: 600;
-  border-bottom: 2px solid var(--color-border);
+  border-bottom: 2px solid var(--aos-primary);
   padding: 0.75rem 0.5rem;
 }
 
@@ -151,10 +401,17 @@ td {
   padding: 0.75rem 0.5rem;
 }
 
-/* Responsive */
+tr:hover td {
+  background: var(--aos-bg-card);
+}
+
+/* ===========================
+   RESPONSIVE
+   =========================== */
 @media (max-width: 768px) {
   .features-grid,
   .examples-grid,
+  .testimonials-grid,
   .use-cases-grid {
     grid-template-columns: 1fr;
   }
@@ -162,9 +419,20 @@ td {
   .next-steps {
     flex-direction: column;
   }
+  
+  .hero h1 {
+    font-size: 2rem;
+  }
+  
+  .github-badges {
+    flex-direction: column;
+    align-items: center;
+  }
 }
 
-/* Animation for hero */
+/* ===========================
+   ANIMATIONS
+   =========================== */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -176,11 +444,9 @@ td {
   }
 }
 
-.hero {
-  animation: fadeIn 0.5s ease-out;
-}
-
-/* Highlight boxes */
+/* ===========================
+   HIGHLIGHT BOXES
+   =========================== */
 .highlight-box {
   padding: 1.5rem;
   border-radius: 8px;
@@ -188,46 +454,98 @@ td {
 }
 
 .highlight-box.info {
-  background: rgba(86, 156, 214, 0.1);
-  border-left: 4px solid #569cd6;
+  background: rgba(59, 130, 246, 0.1);
+  border-left: 4px solid var(--aos-info);
 }
 
 .highlight-box.warning {
-  background: rgba(220, 220, 170, 0.1);
-  border-left: 4px solid #dcdcaa;
+  background: rgba(245, 158, 11, 0.1);
+  border-left: 4px solid var(--aos-warning);
 }
 
 .highlight-box.danger {
-  background: rgba(241, 76, 76, 0.1);
-  border-left: 4px solid #f14c4c;
+  background: rgba(239, 68, 68, 0.1);
+  border-left: 4px solid var(--aos-danger);
 }
 
 .highlight-box.success {
-  background: rgba(78, 201, 176, 0.1);
-  border-left: 4px solid #4ec9b0;
+  background: rgba(16, 185, 129, 0.1);
+  border-left: 4px solid var(--aos-secondary);
 }
 
-/* Badges */
+/* ===========================
+   BADGES
+   =========================== */
 .badge {
   display: inline-block;
   padding: 0.2rem 0.5rem;
   font-size: 0.75rem;
   font-weight: 600;
-  border-radius: 3px;
+  border-radius: 4px;
   text-transform: uppercase;
 }
 
 .badge-new {
-  background: #4ec9b0;
+  background: var(--aos-secondary);
   color: #000;
 }
 
 .badge-beta {
-  background: #dcdcaa;
+  background: var(--aos-warning);
   color: #000;
 }
 
 .badge-enterprise {
-  background: #569cd6;
+  background: var(--aos-info);
   color: #fff;
+}
+
+/* ===========================
+   MERMAID DIAGRAMS
+   =========================== */
+.mermaid {
+  background: transparent !important;
+  text-align: center;
+  margin: 2rem 0;
+}
+
+/* ===========================
+   ACCESSIBILITY
+   =========================== */
+:focus-visible {
+  outline: 2px solid var(--aos-primary);
+  outline-offset: 2px;
+}
+
+/* Skip to content link */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--aos-primary);
+  color: white;
+  padding: 8px;
+  z-index: 100;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* High contrast for text */
+p, li, td {
+  line-height: 1.7;
+}
+
+/* ===========================
+   PRINT STYLES
+   =========================== */
+@media print {
+  .hero, .github-badges, .social-share {
+    display: none;
+  }
+  
+  .example-card {
+    break-inside: avoid;
+  }
 }
