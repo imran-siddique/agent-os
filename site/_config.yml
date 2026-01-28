@@ -2,15 +2,15 @@ title: Agent OS Documentation
 description: >-
   Kernel-level governance for autonomous AI agents. The operating system 
   for safe, auditable, and controllable AI agent systems.
-url: "https://agent-os.dev"
-baseurl: ""
+url: "https://imran-siddique.github.io"
+baseurl: "/agent-os"
 
 # Theme - Using Just the Docs for clean documentation
 remote_theme: just-the-docs/just-the-docs@v0.8.2
 
 # Logo and branding
 logo: "/assets/images/logo.svg"
-favicon_ico: "/assets/images/favicon.ico"
+# favicon_ico: "/assets/images/favicon.ico"
 
 # Aux links (top right)
 aux_links:
