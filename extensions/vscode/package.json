@@ -2,18 +2,24 @@
   "name": "agent-os-vscode",
   "displayName": "Agent OS - AI Safety for Code",
   "description": "Kernel-level safety for AI coding assistants. Block destructive operations, verify with multi-model review, and audit all AI suggestions.",
-  "version": "0.1.0",
+  "version": "1.0.1",
   "publisher": "agent-os",
   "repository": {
     "type": "git",
     "url": "https://github.com/imran-siddique/agent-os"
   },
+  "homepage": "https://github.com/imran-siddique/agent-os#readme",
+  "bugs": {
+    "url": "https://github.com/imran-siddique/agent-os/issues"
+  },
+  "icon": "images/icon.png",
   "engines": {
     "vscode": "^1.85.0"
   },
   "categories": [
     "Machine Learning",
     "Programming Languages",
+    "Linters",
     "Other"
   ],
   "keywords": [
@@ -24,13 +30,35 @@
     "code review",
     "security",
     "policy",
-    "governance"
+    "governance",
+    "enterprise",
+    "compliance",
+    "soc2",
+    "gdpr"
   ],
   "activationEvents": [
     "onStartupFinished"
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "snippets": [
+      {
+        "language": "python",
+        "path": "./snippets/agent-os.code-snippets"
+      },
+      {
+        "language": "typescript",
+        "path": "./snippets/agent-os.code-snippets"
+      },
+      {
+        "language": "javascript",
+        "path": "./snippets/agent-os.code-snippets"
+      },
+      {
+        "language": "yaml",
+        "path": "./snippets/agent-os.code-snippets"
+      }
+    ],
     "commands": [
       {
         "command": "agent-os.reviewCode",
@@ -56,6 +84,58 @@
       {
         "command": "agent-os.allowOnce",
         "title": "Agent OS: Allow This Once"
+      },
+      {
+        "command": "agent-os.openPolicyEditor",
+        "title": "Agent OS: Open Policy Editor",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "agent-os.openWorkflowDesigner",
+        "title": "Agent OS: Open Workflow Designer",
+        "icon": "$(type-hierarchy)"
+      },
+      {
+        "command": "agent-os.showMetrics",
+        "title": "Agent OS: Show Metrics Dashboard",
+        "icon": "$(graph)"
+      },
+      {
+        "command": "agent-os.showOnboarding",
+        "title": "Agent OS: Getting Started",
+        "icon": "$(rocket)"
+      },
+      {
+        "command": "agent-os.createFirstAgent",
+        "title": "Agent OS: Create First Agent"
+      },
+      {
+        "command": "agent-os.runSafetyTest",
+        "title": "Agent OS: Run Safety Test"
+      },
+      {
+        "command": "agent-os.openDocs",
+        "title": "Agent OS: Open Documentation"
+      },
+      {
+        "command": "agent-os.signIn",
+        "title": "Agent OS: Sign In (Enterprise)"
+      },
+      {
+        "command": "agent-os.signOut",
+        "title": "Agent OS: Sign Out"
+      },
+      {
+        "command": "agent-os.setupCICD",
+        "title": "Agent OS: Setup CI/CD Integration"
+      },
+      {
+        "command": "agent-os.installHooks",
+        "title": "Agent OS: Install Git Hooks"
+      },
+      {
+        "command": "agent-os.checkCompliance",
+        "title": "Agent OS: Check Compliance"
       }
     ],
     "menus": {
@@ -116,7 +196,11 @@
         },
         "agentOS.mode": {
           "type": "string",
-          "enum": ["basic", "enhanced", "enterprise"],
+          "enum": [
+            "basic",
+            "enhanced",
+            "enterprise"
+          ],
           "default": "basic",
           "description": "Safety mode: basic (local only), enhanced (+ CMVK), enterprise (custom)"
         },
@@ -152,14 +236,18 @@
         },
         "agentOS.cmvk.models": {
           "type": "array",
-          "default": ["gpt-4", "claude-sonnet-4", "gemini-pro"],
+          "default": [
+            "gpt-4",
+            "claude-sonnet-4",
+            "gemini-pro"
+          ],
           "description": "Models to use for CMVK verification"
         },
         "agentOS.cmvk.consensusThreshold": {
           "type": "number",
           "default": 0.8,
           "minimum": 0.5,
-          "maximum": 1.0,
+          "maximum": 1,
           "description": "Minimum consensus ratio required (0.5-1.0)"
         },
         "agentOS.cmvk.apiEndpoint": {
@@ -186,9 +274,90 @@
           "type": "boolean",
           "default": true,
           "description": "Show notification for warnings"
+        },
+        "agentOS.enterprise.sso.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable enterprise SSO authentication"
+        },
+        "agentOS.enterprise.sso.provider": {
+          "type": "string",
+          "enum": [
+            "azure",
+            "okta",
+            "google",
+            "github"
+          ],
+          "description": "SSO provider for enterprise authentication"
+        },
+        "agentOS.enterprise.compliance.framework": {
+          "type": "string",
+          "enum": [
+            "soc2",
+            "gdpr",
+            "hipaa",
+            "pci-dss"
+          ],
+          "description": "Default compliance framework for validation"
+        },
+        "agentOS.diagnostics.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable real-time diagnostics for policy violations"
+        },
+        "agentOS.diagnostics.severity": {
+          "type": "string",
+          "enum": [
+            "error",
+            "warning",
+            "information"
+          ],
+          "default": "warning",
+          "description": "Minimum severity level for diagnostics"
         }
       }
     },
+    "walkthroughs": [
+      {
+        "id": "agent-os-getting-started",
+        "title": "Getting Started with Agent OS",
+        "description": "Learn how to protect your AI coding workflows with kernel-level safety",
+        "steps": [
+          {
+            "id": "understand",
+            "title": "Understand Agent OS",
+            "description": "Agent OS provides kernel-level safety for AI agents. Unlike prompt-based safety, violations are blocked at execution time.\n[Learn More](https://github.com/imran-siddique/agent-os)",
+            "media": {
+              "markdown": "Agent OS intercepts AI actions before execution and checks them against your policies."
+            }
+          },
+          {
+            "id": "configure-policies",
+            "title": "Configure Policies",
+            "description": "Set up safety policies for your project.\n[Open Policy Editor](command:agent-os.openPolicyEditor)",
+            "media": {
+              "markdown": "Policies define what actions are allowed. Start with our templates or create custom rules."
+            }
+          },
+          {
+            "id": "first-agent",
+            "title": "Create Your First Agent",
+            "description": "Build a governed agent with safety guarantees.\n[Create Agent](command:agent-os.createFirstAgent)",
+            "media": {
+              "markdown": "Your first agent will be protected by Agent OS with full policy enforcement."
+            }
+          },
+          {
+            "id": "view-metrics",
+            "title": "Monitor Safety",
+            "description": "View the metrics dashboard to monitor policy enforcement.\n[Open Dashboard](command:agent-os.showMetrics)",
+            "media": {
+              "markdown": "Track blocked operations, warnings, and compliance status in real-time."
+            }
+          }
+        ]
+      }
+    ],
     "colors": [
       {
         "id": "agentOS.safeBackground",
@@ -219,13 +388,13 @@
     "publish": "vsce publish"
   },
   "devDependencies": {
-    "@types/vscode": "^1.85.0",
     "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
+    "@vscode/vsce": "^2.22.0",
     "eslint": "^8.0.0",
-    "typescript": "^5.3.0",
-    "@vscode/vsce": "^2.22.0"
+    "typescript": "^5.3.0"
   },
   "dependencies": {
     "axios": "^1.6.0"

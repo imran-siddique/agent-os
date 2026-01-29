@@ -3,21 +3,43 @@
  * 
  * Provides kernel-level safety for AI coding assistants.
  * Intercepts AI completions, enforces policies, and provides audit trails.
+ * 
+ * GA Release - v1.0.0
  */
 
 import * as vscode from 'vscode';
 import { PolicyEngine } from './policyEngine';
 import { CMVKClient } from './cmvkClient';
-import { AuditLogger, AuditEntry } from './auditLogger';
+import { AuditLogger } from './auditLogger';
 import { AuditLogProvider } from './views/auditLogView';
 import { PoliciesProvider } from './views/policiesView';
 import { StatsProvider } from './views/statsView';
 import { StatusBarManager } from './statusBar';
+import { KernelDebuggerProvider, MemoryBrowserProvider } from './views/kernelDebuggerView';
+
+// New GA Features
+import { PolicyEditorPanel } from './webviews/policyEditor/PolicyEditorPanel';
+import { WorkflowDesignerPanel } from './webviews/workflowDesigner/WorkflowDesignerPanel';
+import { MetricsDashboardPanel } from './webviews/metricsDashboard/MetricsDashboardPanel';
+import { OnboardingPanel } from './webviews/onboarding/OnboardingPanel';
+import { AgentOSCompletionProvider, AgentOSHoverProvider } from './language/completionProvider';
+import { AgentOSDiagnosticProvider } from './language/diagnosticProvider';
+
+// Enterprise Features
+import { EnterpriseAuthProvider } from './enterprise/auth/ssoProvider';
+import { RBACManager } from './enterprise/auth/rbacManager';
+import { CICDIntegration } from './enterprise/integration/cicdIntegration';
+import { ComplianceManager } from './enterprise/compliance/frameworkLoader';
 
 let policyEngine: PolicyEngine;
 let cmvkClient: CMVKClient;
 let auditLogger: AuditLogger;
 let statusBar: StatusBarManager;
+let authProvider: EnterpriseAuthProvider;
+let rbacManager: RBACManager;
+let cicdIntegration: CICDIntegration;
+let complianceManager: ComplianceManager;
+let diagnosticProvider: AgentOSDiagnosticProvider;
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Agent OS extension activating...');
@@ -28,25 +50,69 @@ export function activate(context: vscode.ExtensionContext) {
     auditLogger = new AuditLogger(context);
     statusBar = new StatusBarManager();
 
+    // Initialize enterprise components
+    authProvider = new EnterpriseAuthProvider(context);
+    rbacManager = new RBACManager(authProvider);
+    cicdIntegration = new CICDIntegration();
+    complianceManager = new ComplianceManager();
+    diagnosticProvider = new AgentOSDiagnosticProvider();
+
+    // Log RBAC initialization
+    console.log(`RBAC initialized with ${rbacManager.getAllRoles().length} roles`);
+
     // Create tree data providers
     const auditLogProvider = new AuditLogProvider(auditLogger);
     const policiesProvider = new PoliciesProvider(policyEngine);
     const statsProvider = new StatsProvider(auditLogger);
+    const kernelDebuggerProvider = new KernelDebuggerProvider();
+    const memoryBrowserProvider = new MemoryBrowserProvider();
 
     // Register tree views
     vscode.window.registerTreeDataProvider('agent-os.auditLog', auditLogProvider);
     vscode.window.registerTreeDataProvider('agent-os.policies', policiesProvider);
     vscode.window.registerTreeDataProvider('agent-os.stats', statsProvider);
+    vscode.window.registerTreeDataProvider('agent-os.kernelDebugger', kernelDebuggerProvider);
+    vscode.window.registerTreeDataProvider('agent-os.memoryBrowser', memoryBrowserProvider);
+
+    // Register completion and hover providers for IntelliSense
+    const completionProvider = new AgentOSCompletionProvider();
+    const hoverProvider = new AgentOSHoverProvider();
+    
+    context.subscriptions.push(
+        vscode.languages.registerCompletionItemProvider(
+            [
+                { scheme: 'file', language: 'python' },
+                { scheme: 'file', language: 'javascript' },
+                { scheme: 'file', language: 'typescript' },
+                { scheme: 'file', language: 'yaml' },
+                { scheme: 'file', language: 'json' }
+            ],
+            completionProvider,
+            '.', ':', '"', "'"
+        ),
+        vscode.languages.registerHoverProvider(
+            [
+                { scheme: 'file', language: 'python' },
+                { scheme: 'file', language: 'javascript' },
+                { scheme: 'file', language: 'typescript' },
+                { scheme: 'file', language: 'yaml' }
+            ],
+            hoverProvider
+        )
+    );
+
+    // Activate diagnostic provider
+    diagnosticProvider.activate(context);
 
     // Register inline completion interceptor
     const completionInterceptor = vscode.languages.registerInlineCompletionItemProvider(
         { pattern: '**' },
         {
             async provideInlineCompletionItems(
-                document: vscode.TextDocument,
-                position: vscode.Position,
-                context: vscode.InlineCompletionContext,
-                token: vscode.CancellationToken
+                _document: vscode.TextDocument,
+                _position: vscode.Position,
+                _context: vscode.InlineCompletionContext,
+                _token: vscode.CancellationToken
             ): Promise<vscode.InlineCompletionItem[] | null> {
                 // We don't provide completions - we intercept and validate existing ones
                 // This hook allows us to log what completions are being suggested
@@ -57,7 +123,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Register document change listener to analyze pasted/typed code
     const textChangeListener = vscode.workspace.onDidChangeTextDocument(async (event) => {
-        if (!isEnabled()) return;
+        if (!isEnabled()) { return; }
 
         for (const change of event.contentChanges) {
             if (change.text.length > 10) {  // Only analyze substantial changes
@@ -72,7 +138,10 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
 
-    // Register commands
+    // ========================================
+    // Register Core Commands
+    // ========================================
+    
     const reviewCodeCmd = vscode.commands.registerCommand('agent-os.reviewCode', async () => {
         const editor = vscode.window.activeTextEditor;
         if (!editor) {
@@ -115,6 +184,133 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.window.showInformationMessage(`Allowed once: ${violation}`);
     });
 
+    // ========================================
+    // Register GA Feature Commands
+    // ========================================
+
+    // Policy Editor
+    const openPolicyEditorCmd = vscode.commands.registerCommand('agent-os.openPolicyEditor', () => {
+        PolicyEditorPanel.createOrShow(context.extensionUri);
+    });
+
+    // Workflow Designer
+    const openWorkflowDesignerCmd = vscode.commands.registerCommand('agent-os.openWorkflowDesigner', () => {
+        WorkflowDesignerPanel.createOrShow(context.extensionUri);
+    });
+
+    // Metrics Dashboard
+    const showMetricsCmd = vscode.commands.registerCommand('agent-os.showMetrics', () => {
+        MetricsDashboardPanel.createOrShow(context.extensionUri, auditLogger);
+    });
+
+    // Onboarding
+    const showOnboardingCmd = vscode.commands.registerCommand('agent-os.showOnboarding', () => {
+        OnboardingPanel.createOrShow(context.extensionUri, context);
+    });
+
+    // Template Gallery - create first agent
+    const createFirstAgentCmd = vscode.commands.registerCommand('agent-os.createFirstAgent', async () => {
+        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+        if (!workspaceFolder) {
+            vscode.window.showErrorMessage('Please open a workspace folder first');
+            return;
+        }
+
+        const agentCode = `"""
+My First Governed Agent
+
+This agent is protected by Agent OS with kernel-level safety guarantees.
+"""
+
+from agent_os import KernelSpace
+
+# Create kernel with strict policy
+kernel = KernelSpace(policy="strict")
+
+@kernel.register
+async def my_first_agent(task: str):
+    """A simple agent that processes tasks safely."""
+    # Your agent code here
+    # All operations are checked against policies
+    result = f"Processed: {task}"
+    return result
+
+if __name__ == "__main__":
+    import asyncio
+    result = asyncio.run(kernel.execute(my_first_agent, "Hello Agent OS!"))
+    print(result)
+`;
+
+        const uri = vscode.Uri.joinPath(workspaceFolder.uri, 'my_first_agent.py');
+        await vscode.workspace.fs.writeFile(uri, Buffer.from(agentCode));
+        const doc = await vscode.workspace.openTextDocument(uri);
+        await vscode.window.showTextDocument(doc);
+        vscode.window.showInformationMessage('Created your first governed agent! 🎉');
+    });
+
+    // Safety Test
+    const runSafetyTestCmd = vscode.commands.registerCommand('agent-os.runSafetyTest', async () => {
+        const testCode = `# Agent OS Safety Test
+# This demonstrates how Agent OS blocks dangerous operations
+
+# Test 1: SQL Injection - WILL BE BLOCKED
+query = "SELECT * FROM users WHERE id = " + user_input
+
+# Test 2: Hardcoded Secret - WILL BE BLOCKED  
+api_key = "sk-1234567890abcdef1234567890abcdef"
+
+# Test 3: Destructive Command - WILL BE BLOCKED
+import os
+os.system("rm -rf /important")
+
+# Test 4: Safe Code - WILL BE ALLOWED
+safe_query = "SELECT * FROM users WHERE id = ?"
+`;
+        const doc = await vscode.workspace.openTextDocument({
+            language: 'python',
+            content: testCode
+        });
+        await vscode.window.showTextDocument(doc);
+        vscode.window.showInformationMessage(
+            'Safety test file created! Notice the diagnostics highlighting dangerous code.',
+            'View Diagnostics'
+        );
+    });
+
+    // Open Documentation
+    const openDocsCmd = vscode.commands.registerCommand('agent-os.openDocs', () => {
+        vscode.env.openExternal(vscode.Uri.parse('https://github.com/imran-siddique/agent-os'));
+    });
+
+    // ========================================
+    // Register Enterprise Commands
+    // ========================================
+
+    // SSO Sign In
+    const signInCmd = vscode.commands.registerCommand('agent-os.signIn', () => {
+        authProvider.signIn();
+    });
+
+    // SSO Sign Out
+    const signOutCmd = vscode.commands.registerCommand('agent-os.signOut', () => {
+        authProvider.signOut();
+    });
+
+    // CI/CD Integration
+    const setupCICDCmd = vscode.commands.registerCommand('agent-os.setupCICD', () => {
+        cicdIntegration.showConfigWizard();
+    });
+
+    // Pre-commit Hook
+    const installHooksCmd = vscode.commands.registerCommand('agent-os.installHooks', () => {
+        cicdIntegration.installPreCommitHook();
+    });
+
+    // Compliance Check
+    const checkComplianceCmd = vscode.commands.registerCommand('agent-os.checkCompliance', () => {
+        complianceManager.showComplianceWizard();
+    });
+
     // Register configuration change listener
     const configChangeListener = vscode.workspace.onDidChangeConfiguration((event) => {
         if (event.affectsConfiguration('agentOS')) {
@@ -135,20 +331,40 @@ export function activate(context: vscode.ExtensionContext) {
         exportAuditLogCmd,
         allowOnceCmd,
         configChangeListener,
-        statusBar
+        statusBar,
+        // GA Features
+        openPolicyEditorCmd,
+        openWorkflowDesignerCmd,
+        showMetricsCmd,
+        showOnboardingCmd,
+        createFirstAgentCmd,
+        runSafetyTestCmd,
+        openDocsCmd,
+        // Enterprise Features
+        signInCmd,
+        signOutCmd,
+        setupCICDCmd,
+        installHooksCmd,
+        checkComplianceCmd
     );
 
     // Initialize status bar
     statusBar.update(isEnabled());
 
-    // Show welcome message on first activation
+    // Show onboarding for first-time users
     const hasShownWelcome = context.globalState.get('agent-os.welcomeShown', false);
-    if (!hasShownWelcome) {
+    const onboardingSkipped = context.globalState.get('agent-os.onboardingSkipped', false);
+    
+    if (!hasShownWelcome && !onboardingSkipped) {
+        // Show onboarding panel for new users
+        OnboardingPanel.createOrShow(context.extensionUri, context);
+        context.globalState.update('agent-os.welcomeShown', true);
+    } else if (!hasShownWelcome) {
         showWelcomeMessage();
         context.globalState.update('agent-os.welcomeShown', true);
     }
 
-    console.log('Agent OS extension activated');
+    console.log('Agent OS extension activated - GA Release v1.0.0');
 }
 
 export function deactivate() {

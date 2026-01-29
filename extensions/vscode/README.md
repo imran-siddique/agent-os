@@ -24,11 +24,49 @@ Agent OS wraps your AI assistant with a kernel that provides:
 - 🔍 **Multi-model code review (CMVK)** - Verify code with GPT-4, Claude, and Gemini
 - 📋 **Complete audit trail** - Log every AI suggestion and your decisions
 - 👥 **Team-shared policies** - Consistent safety across your organization
+- 🏢 **Enterprise ready** - SSO, RBAC, compliance frameworks
+
+## What's New in v1.0.0 (GA Release)
+
+### Policy Management Studio
+Visual interface for creating, editing, and testing policies with:
+- Syntax highlighting and validation
+- Policy template library (SOC 2, GDPR, HIPAA, PCI DSS)
+- Real-time testing against sample scenarios
+- Import/export support (YAML, JSON, Rego)
+
+### Workflow Designer
+Drag-and-drop canvas for building agent workflows:
+- Visual workflow builder
+- Policy attachment at workflow/step level
+- Simulation and dry-run capabilities
+- Code export (Python, TypeScript, Go)
+
+### Enhanced IntelliSense
+AI-powered development assistance:
+- Context-aware code completion for AgentOS APIs
+- Real-time diagnostics with quick fixes
+- 14+ code snippets for common patterns
+- Inline policy suggestions
+
+### Metrics Dashboard
+Real-time monitoring of agent activity:
+- Policy violation tracking
+- Activity visualization by hour
+- Compliance reporting
+- Export to JSON/CSV
+
+### Enterprise Features
+- **SSO Integration**: Azure AD, Okta, Google, GitHub
+- **Role-Based Access Control**: Granular permissions
+- **CI/CD Integration**: GitHub Actions, GitLab CI, Jenkins, Azure Pipelines
+- **Compliance Frameworks**: SOC 2, GDPR, HIPAA, PCI DSS templates
 
 ## Quick Start
 
 1. Install from VS Code Marketplace
-2. Start coding - Agent OS protects you automatically
+2. Run **"Agent OS: Getting Started"** from command palette
+3. Start coding - Agent OS protects you automatically
 
 ```
 ⚠️  Agent OS Warning
@@ -102,7 +140,21 @@ Share policies via `.vscode/agent-os.json`:
 }
 ```
 
-Commit to your repo - all team members get the same policies.
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `Agent OS: Getting Started` | Interactive onboarding tutorial |
+| `Agent OS: Open Policy Editor` | Visual policy management studio |
+| `Agent OS: Open Workflow Designer` | Drag-and-drop workflow builder |
+| `Agent OS: Show Metrics Dashboard` | Real-time monitoring |
+| `Agent OS: Review Code with CMVK` | Multi-model code review |
+| `Agent OS: Toggle Safety Mode` | Enable/disable protection |
+| `Agent OS: Configure Policies` | Open policy configuration |
+| `Agent OS: Export Audit Log` | Export logs to JSON |
+| `Agent OS: Setup CI/CD Integration` | Generate CI/CD configuration |
+| `Agent OS: Check Compliance` | Run compliance validation |
+| `Agent OS: Sign In (Enterprise)` | Enterprise SSO authentication |
 
 ## Configuration
 
@@ -114,18 +166,10 @@ Open Settings (Ctrl+,) and search for "Agent OS":
 | `agentOS.mode` | basic | basic, enhanced (CMVK), enterprise |
 | `agentOS.cmvk.enabled` | false | Enable multi-model verification |
 | `agentOS.cmvk.models` | ["gpt-4", "claude-sonnet-4", "gemini-pro"] | Models for CMVK |
-| `agentOS.cmvk.consensusThreshold` | 0.8 | Required agreement (0.5-1.0) |
 | `agentOS.audit.retentionDays` | 7 | Days to keep audit logs |
-
-## Commands
-
-| Command | Description |
-|---------|-------------|
-| `Agent OS: Review Code with CMVK` | Multi-model code review |
-| `Agent OS: Toggle Safety Mode` | Enable/disable protection |
-| `Agent OS: Show Audit Log` | Open audit log sidebar |
-| `Agent OS: Configure Policies` | Open policy configuration |
-| `Agent OS: Export Audit Log` | Export logs to JSON |
+| `agentOS.diagnostics.enabled` | true | Real-time diagnostics |
+| `agentOS.enterprise.sso.enabled` | false | Enterprise SSO |
+| `agentOS.enterprise.compliance.framework` | - | Default compliance framework |
 
 ## Pricing
 
@@ -133,7 +177,7 @@ Open Settings (Ctrl+,) and search for "Agent OS":
 |------|-------|----------|
 | **Free** | $0 | Local policies, 7-day audit, 10 CMVK/day |
 | **Pro** | $9/mo | Unlimited CMVK, 90-day audit, priority support |
-| **Enterprise** | Custom | Self-hosted, SSO, compliance reports |
+| **Enterprise** | Custom | Self-hosted, SSO, RBAC, compliance reports |
 
 ## Privacy
 
@@ -141,6 +185,12 @@ Open Settings (Ctrl+,) and search for "Agent OS":
 - **No network**: Basic mode never sends code anywhere
 - **Opt-in CMVK**: You choose when to use cloud verification
 - **Open source**: Inspect the code yourself
+
+## Requirements
+
+- VS Code 1.85.0 or later
+- Node.js 18+ (for development)
+- Python 3.10+ (for Agent OS SDK)
 
 ## Contributing
 
