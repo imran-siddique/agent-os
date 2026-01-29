@@ -480,7 +480,7 @@ ${this.getRequiredSecrets(spec).map(s => `- \`${s}\``).join('\n')}
     private getRequiredSecrets(spec: AgentSpec): string[] {
         const secrets: string[] = [];
         
-        for (const source of spec.dataSources) {
+        for (const source of spec.dataSources || []) {
             if (source.includes('Slack')) secrets.push('SLACK_TOKEN');
             if (source.includes('GitHub')) secrets.push('GITHUB_TOKEN');
             if (source.includes('Jira')) secrets.push('JIRA_TOKEN', 'JIRA_URL');
@@ -488,7 +488,7 @@ ${this.getRequiredSecrets(spec).map(s => `- \`${s}\``).join('\n')}
             if (source.includes('REST API')) secrets.push('API_KEY');
         }
         
-        for (const output of spec.outputs) {
+        for (const output of spec.outputs || []) {
             if (output === 'Slack') secrets.push('SLACK_WEBHOOK_URL');
             if (output === 'Email') secrets.push('SMTP_HOST', 'SMTP_USER', 'SMTP_PASSWORD');
             if (output === 'PagerDuty') secrets.push('PAGERDUTY_KEY');

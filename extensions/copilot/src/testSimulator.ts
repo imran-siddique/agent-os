@@ -568,7 +568,7 @@ export class TestSimulator {
         const scenarios: TestScenario[] = [];
         
         // Network error
-        if (spec.dataSources.some(s => s.includes('API'))) {
+        if (spec.dataSources?.some(s => s.includes('API'))) {
             scenarios.push({
                 id: 'network-error',
                 name: 'Network Error',
@@ -583,7 +583,7 @@ export class TestSimulator {
         }
         
         // Auth error
-        if (spec.policies.some(p => p.type === 'auth')) {
+        if (spec.policies?.some(p => p.type === 'auth')) {
             scenarios.push({
                 id: 'auth-error',
                 name: 'Authentication Error',
