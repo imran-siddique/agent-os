@@ -1,0 +1,34 @@
+# Gitpod Configuration for Agent OS
+# One-click development environment in the browser
+# https://gitpod.io/#https://github.com/imran-siddique/agent-os
+
+image: gitpod/workspace-python-3.11
+
+tasks:
+  - name: Setup
+    init: |
+      pip install -e ".[full,dev]"
+    command: |
+      echo "🚀 Agent OS Ready!"
+      echo ""
+      echo "Quick commands:"
+      echo "  pytest tests/ -v           # Run tests"
+      echo "  python examples/hello-world/agent.py  # Run hello world"
+      echo ""
+      echo "Try the hello world example:"
+      python examples/hello-world/agent.py
+
+vscode:
+  extensions:
+    - ms-python.python
+    - ms-python.vscode-pylance
+    - ms-python.debugpy
+
+ports:
+  - port: 3000
+    onOpen: open-preview
+    name: Grafana Dashboard
+  - port: 9090
+    name: Prometheus
+  - port: 16686
+    name: Jaeger Tracing

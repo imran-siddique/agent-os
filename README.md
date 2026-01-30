@@ -12,6 +12,12 @@
 
 [Quick Start](#quick-example) • [Documentation](https://imran-siddique.github.io/agent-os-docs/) • [VS Code Extension](https://marketplace.visualstudio.com/items?itemName=agent-os.agent-os-vscode) • [Examples](examples/)
 
+<br/>
+
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/imran-siddique/agent-os)
+
+*Try Agent OS instantly in your browser - no installation required*
+
 </div>
 
 ---
