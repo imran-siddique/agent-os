@@ -22,11 +22,18 @@ import { TemplateGallery } from './templateGallery';
 import { PolicyLibrary } from './policyLibrary';
 import { logger } from './logger';
 import dotenv from 'dotenv';
+import crypto from 'crypto';
 
 dotenv.config();
 
 const app = express();
-app.use(express.json());
+
+// Raw body for webhook signature verification
+app.use(express.json({
+    verify: (req: any, res, buf) => {
+        req.rawBody = buf;
+    }
+}));
 
 // Initialize components
 const policyEngine = new PolicyEngine();
@@ -36,73 +43,230 @@ const extension = new CopilotExtension(policyEngine, cmvkClient, auditLogger);
 const templateGallery = new TemplateGallery();
 const policyLibrary = new PolicyLibrary();
 
+// CORS for GitHub
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-GitHub-Token, X-Hub-Signature-256');
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(200);
+    }
+    next();
+});
+
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {
     res.json({
         status: 'healthy',
         version: '1.0.0',
-        service: 'agent-os-copilot-extension'
+        service: 'agent-os-copilot-extension',
+        timestamp: new Date().toISOString()
     });
 });
 
-// GitHub Copilot Extension webhook endpoints
+// Root endpoint - service info
+app.get('/', (req: Request, res: Response) => {
+    res.json({
+        name: 'AgentOS Copilot Extension',
+        version: '1.0.0',
+        description: 'Build safe AI agents with natural language',
+        documentation: 'https://imran-siddique.github.io/agent-os-docs/tutorials/copilot-extension/',
+        endpoints: {
+            health: '/health',
+            copilot: '/api/copilot',
+            webhook: '/api/webhook',
+            templates: '/api/templates',
+            compliance: '/api/compliance'
+        }
+    });
+});
 
 /**
- * Filter endpoint - Called by Copilot to filter suggestions
- * POST /api/filter
+ * GitHub Copilot Extension endpoint
+ * This is the main endpoint that GitHub Copilot calls
+ * POST /api/copilot
  */
-app.post('/api/filter', async (req: Request, res: Response) => {
+app.post('/api/copilot', async (req: Request, res: Response) => {
     try {
-        const { suggestions, context } = req.body;
+        const { messages, copilot_references, copilot_confirmations } = req.body;
+        const githubToken = req.headers['x-github-token'] as string;
         
-        logger.info('Filtering suggestions', { 
-            count: suggestions?.length,
-            file: context?.file?.path 
+        logger.info('Copilot request received', { 
+            messageCount: messages?.length,
+            hasToken: !!githubToken
         });
 
-        const result = await extension.filterSuggestions(suggestions, context);
+        // Get the latest user message
+        const userMessage = messages?.filter((m: any) => m.role === 'user').pop();
+        if (!userMessage) {
+            return res.json({
+                choices: [{
+                    message: {
+                        role: 'assistant',
+                        content: "I didn't receive a message. Try asking me something like `@agentos help` or `@agentos create an agent that monitors my API`."
+                    }
+                }]
+            });
+        }
+
+        // Extract command from message
+        const content = userMessage.content || '';
         
-        res.json(result);
+        // Handle the chat message
+        const response = await extension.handleChatMessage(content, {
+            user: { id: 'copilot-user' }
+        });
+
+        // Format response for Copilot
+        res.json({
+            choices: [{
+                message: {
+                    role: 'assistant',
+                    content: response.message || JSON.stringify(response)
+                }
+            }]
+        });
     } catch (error) {
-        logger.error('Filter error', { error });
-        res.status(500).json({ error: 'Internal server error' });
+        logger.error('Copilot endpoint error', { error });
+        res.json({
+            choices: [{
+                message: {
+                    role: 'assistant',
+                    content: '❌ Sorry, I encountered an error processing your request. Please try again.'
+                }
+            }]
+        });
     }
 });
 
 /**
- * Chat endpoint - Called by Copilot Chat for @agent-os commands
- * POST /api/chat
+ * GitHub Webhook endpoint
+ * Handles installation and other GitHub events
+ * POST /api/webhook
  */
-app.post('/api/chat', async (req: Request, res: Response) => {
+app.post('/api/webhook', async (req: Request, res: Response) => {
     try {
-        const { message, context, command } = req.body;
+        const signature = req.headers['x-hub-signature-256'] as string;
+        const event = req.headers['x-github-event'] as string;
         
-        logger.info('Chat request', { command, messageLength: message?.length });
+        // Verify webhook signature if secret is configured
+        if (process.env.GITHUB_WEBHOOK_SECRET && signature) {
+            const rawBody = (req as any).rawBody;
+            const expectedSignature = 'sha256=' + crypto
+                .createHmac('sha256', process.env.GITHUB_WEBHOOK_SECRET)
+                .update(rawBody)
+                .digest('hex');
+            
+            if (signature !== expectedSignature) {
+                logger.warn('Invalid webhook signature');
+                return res.status(401).json({ error: 'Invalid signature' });
+            }
+        }
 
-        const response = await extension.handleChatMessage(message, context, command);
-        
-        res.json(response);
+        logger.info('Webhook received', { event, action: req.body.action });
+
+        // Handle different webhook events
+        switch (event) {
+            case 'installation':
+                if (req.body.action === 'created') {
+                    logger.info('New installation', { 
+                        installationId: req.body.installation?.id,
+                        account: req.body.installation?.account?.login
+                    });
+                }
+                break;
+            
+            case 'installation_repositories':
+                logger.info('Repository access changed', {
+                    action: req.body.action,
+                    repos: req.body.repositories_added?.length || req.body.repositories_removed?.length
+                });
+                break;
+            
+            case 'ping':
+                logger.info('Webhook ping received');
+                break;
+            
+            default:
+                logger.info('Unhandled webhook event', { event });
+        }
+
+        res.json({ received: true });
     } catch (error) {
-        logger.error('Chat error', { error });
-        res.status(500).json({ error: 'Internal server error' });
+        logger.error('Webhook error', { error });
+        res.status(500).json({ error: 'Webhook processing failed' });
     }
 });
 
 /**
- * Annotation endpoint - Called to get safety annotations for code
- * POST /api/annotate
+ * OAuth callback endpoint
+ * GET /auth/callback
  */
-app.post('/api/annotate', async (req: Request, res: Response) => {
-    try {
-        const { code, language, context } = req.body;
-        
-        const annotations = await extension.annotateCode(code, language, context);
-        
-        res.json(annotations);
-    } catch (error) {
-        logger.error('Annotation error', { error });
-        res.status(500).json({ error: 'Internal server error' });
+app.get('/auth/callback', async (req: Request, res: Response) => {
+    const { code, state } = req.query;
+    
+    if (!code) {
+        return res.status(400).send('Missing authorization code');
     }
+
+    // In production, exchange code for token and complete setup
+    logger.info('OAuth callback received', { hasCode: !!code, hasState: !!state });
+    
+    res.send(`
+        <html>
+        <head><title>AgentOS Setup Complete</title></head>
+        <body style="font-family: system-ui; padding: 2rem; text-align: center;">
+            <h1>✅ AgentOS Installation Complete!</h1>
+            <p>You can now use @agentos in GitHub Copilot Chat.</p>
+            <p>Try: <code>@agentos help</code></p>
+            <p><a href="https://github.com">Return to GitHub</a></p>
+        </body>
+        </html>
+    `);
+});
+
+/**
+ * Setup page
+ * GET /setup
+ */
+app.get('/setup', (req: Request, res: Response) => {
+    res.send(`
+        <html>
+        <head>
+            <title>AgentOS Setup</title>
+            <style>
+                body { font-family: system-ui; max-width: 600px; margin: 2rem auto; padding: 1rem; }
+                h1 { color: #10b981; }
+                .step { background: #f1f5f9; padding: 1rem; border-radius: 8px; margin: 1rem 0; }
+                code { background: #e2e8f0; padding: 0.25rem 0.5rem; border-radius: 4px; }
+            </style>
+        </head>
+        <body>
+            <h1>🤖 AgentOS Setup</h1>
+            <p>Welcome! AgentOS helps you build safe AI agents with natural language.</p>
+            
+            <div class="step">
+                <h3>Step 1: Start Using</h3>
+                <p>Open GitHub Copilot Chat and type:</p>
+                <code>@agentos help</code>
+            </div>
+            
+            <div class="step">
+                <h3>Step 2: Create Your First Agent</h3>
+                <p>Describe what you want:</p>
+                <code>@agentos create an agent that monitors my API endpoints</code>
+            </div>
+            
+            <div class="step">
+                <h3>Step 3: Explore Templates</h3>
+                <p>Browse 50+ pre-built templates:</p>
+                <code>@agentos templates</code>
+            </div>
+            
+            <p><a href="https://imran-siddique.github.io/agent-os-docs/tutorials/copilot-extension/">📚 Full Documentation</a></p>
+        </body>
+        </html>
+    `);
 });
 
 /**

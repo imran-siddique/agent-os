@@ -1,0 +1,28 @@
+{
+  "name": "AgentOS",
+  "url": "https://imran-siddique.github.io/agent-os-docs/",
+  "hook_attributes": {
+    "url": "https://YOUR_DEPLOYED_URL/api/webhook",
+    "active": true
+  },
+  "redirect_url": "https://YOUR_DEPLOYED_URL/auth/callback",
+  "callback_urls": [
+    "https://YOUR_DEPLOYED_URL/auth/callback"
+  ],
+  "setup_url": "https://YOUR_DEPLOYED_URL/setup",
+  "description": "Build safe AI agents with natural language. 50+ templates, compliance frameworks (GDPR, HIPAA, SOC2, PCI-DSS), and 0% policy violations.",
+  "public": true,
+  "default_permissions": {
+    "contents": "write",
+    "pull_requests": "write",
+    "workflows": "write",
+    "actions": "read",
+    "metadata": "read",
+    "copilot_chat": "read"
+  },
+  "default_events": [
+    "push",
+    "pull_request",
+    "workflow_run"
+  ]
+}
