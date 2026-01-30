@@ -47,22 +47,23 @@ See `src/agent_os/integrations/` for the adapter pattern.
 agent-os/
 ├── src/agent_os/        # Main package (re-exports everything)
 │   ├── __init__.py      # Unified imports
-│   ├── cli.py           # agentctl CLI
+│   ├── cli.py           # agentos CLI
 │   └── integrations/    # Framework adapters
-├── packages/            # Individual kernel modules
+├── modules/             # Individual kernel modules
 │   ├── primitives/      # L1: Base types
-│   ├── cmvk/            # L1: Verification
+│   ├── cmvk/            # L2: Verification
 │   ├── iatp/            # L2: Trust protocol
 │   ├── control-plane/   # L3: Kernel
 │   └── scak/            # L4: Self-correction
+├── extensions/          # IDE extensions
+│   ├── vscode/          # VS Code extension
+│   ├── copilot/         # GitHub Copilot extension
+│   └── cursor/          # Cursor IDE extension
 ├── examples/            # Working demos
-│   ├── carbon-auditor/
-│   ├── grid-balancing/
-│   ├── defi-sentinel/
-│   └── pharma-compliance/
+│   ├── getting-started/ # Hello world, chat, tools
+│   └── production/      # Full demos with observability
 ├── docs/                # Documentation
-├── tests/               # Integration tests
-└── gh-extension/        # GitHub CLI extension
+└── tests/               # Integration tests
 ```
 
 ## 🧪 Testing
@@ -75,9 +76,10 @@ pytest tests/ -v
 pytest tests/test_layer1_primitives.py -v
 
 # Run with coverage
-pytest tests/ --cov=src --cov-report=html
+pytest tests/ --cov=modules --cov-report=html
 
 # Run demos (integration test)
+python examples/hello-world/agent.py
 python examples/carbon-auditor/demo.py --scenario both
 python examples/grid-balancing/demo.py --agents 10
 python examples/defi-sentinel/demo.py --attack all

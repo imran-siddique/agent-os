@@ -1,0 +1,28 @@
+# Agent OS - Core dependencies
+# Install with: pip install -r requirements.txt
+
+# Core
+pydantic>=2.0.0
+typing-extensions>=4.0.0
+
+# Async support
+aiohttp>=3.8.0
+asyncio-throttle>=1.0.0
+
+# CLI
+typer>=0.9.0
+rich>=13.0.0
+
+# Observability (optional but recommended)
+prometheus-client>=0.17.0
+opentelemetry-api>=1.20.0
+opentelemetry-sdk>=1.20.0
+
+# Testing (dev)
+pytest>=7.0.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.0.0
+
+# Linting (dev)
+ruff>=0.1.0
+mypy>=1.0.0

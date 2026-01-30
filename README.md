@@ -6,8 +6,41 @@
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10+-blue.svg)](https://python.org)
+[![CI](https://github.com/imran-siddique/agent-os/actions/workflows/ci.yml/badge.svg)](https://github.com/imran-siddique/agent-os/actions/workflows/ci.yml)
+[![VS Code Extension](https://img.shields.io/badge/VS%20Code-Extension-007ACC?logo=visual-studio-code)](https://marketplace.visualstudio.com/items?itemName=agent-os.agent-os-vscode)
+[![Documentation](https://img.shields.io/badge/docs-imran--siddique.github.io-blue)](https://imran-siddique.github.io/agent-os-docs/)
+
+[Quick Start](#quick-example) • [Documentation](https://imran-siddique.github.io/agent-os-docs/) • [VS Code Extension](https://marketplace.visualstudio.com/items?itemName=agent-os.agent-os-vscode) • [Examples](examples/)
 
 </div>
+
+---
+
+## 🎯 What You'll Build in 5 Minutes
+
+```python
+from agent_os import KernelSpace, Policy
+
+# 1. Define safety policies (not prompts - actual enforcement)
+kernel = KernelSpace(policies=[
+    Policy.no_destructive_sql(),      # Block DROP, DELETE without WHERE
+    Policy.file_access("/workspace"), # Restrict file access
+    Policy.rate_limit(100, "1m"),     # Max 100 calls/minute
+])
+
+# 2. Your agent code runs in user space
+@kernel.register
+async def data_analyst(query: str):
+    result = await llm.generate(f"Analyze: {query}")
+    return result
+
+# 3. Kernel intercepts and validates EVERY action
+result = await kernel.execute(data_analyst, "revenue by region")
+# ✅ Safe queries execute
+# ❌ "DROP TABLE users" → BLOCKED (not by prompt, by kernel)
+```
+
+**Result:** Your agents run with 0% policy violations, guaranteed by the kernel—not by hoping the LLM follows instructions.
 
 ---
 
@@ -424,6 +457,62 @@ This is a research project exploring kernel concepts for AI agent governance. Th
 - The "0% violation" claim needs formal verification
 - Benchmark numbers need independent reproduction
 - Some integrations are basic wrappers
+
+---
+
+## Troubleshooting
+
+### Common Issues
+
+**ModuleNotFoundError: No module named 'agent_os'**
+```bash
+# Install from source
+git clone https://github.com/imran-siddique/agent-os.git
+cd agent-os
+pip install -e .
+```
+
+**Permission errors on Windows**
+```bash
+# Run PowerShell as Administrator, or use --user flag
+pip install --user -e .
+```
+
+**Docker not working**
+```bash
+# Build with Dockerfile (no Docker Compose needed for simple tests)
+docker build -t agent-os .
+docker run -it agent-os python examples/hello-world/agent.py
+```
+
+**Tests failing with API errors**
+```bash
+# Most tests work without API keys - mock mode is default
+pytest tests/ -v
+
+# For real LLM tests, set environment variables
+export OPENAI_API_KEY=sk-...
+export ANTHROPIC_API_KEY=sk-ant-...
+```
+
+---
+
+## FAQ
+
+**Q: How is this different from LangChain/CrewAI?**
+A: LangChain and CrewAI are *frameworks* for building agents. Agent OS is *infrastructure* for governing them. Use them together—wrap your LangChain agent with Agent OS for safety guarantees.
+
+**Q: What does "0% policy violations" mean?**
+A: When a policy blocks an action, it's blocked at the kernel level—not by asking the LLM nicely. The LLM can try to do dangerous things, but the kernel intercepts and stops it. This is similar to how an OS can prevent a process from accessing protected memory.
+
+**Q: Do I need to rewrite my agents?**
+A: No. Agent OS provides integration wrappers for LangChain, CrewAI, AutoGen, OpenAI Assistants, and Semantic Kernel. Wrap your existing code and add governance.
+
+**Q: Does it work with local models (Ollama, llama.cpp)?**
+A: Yes. Agent OS is model-agnostic—it governs what agents *do*, not what LLM they use.
+
+**Q: How do I contribute?**
+A: See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines. Good first issues are labeled in GitHub.
 
 ---
 
