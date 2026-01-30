@@ -33,7 +33,7 @@ jobs:
       
       - name: Run tests with coverage
         run: |
-          pytest tests/ -v --cov=packages --cov-report=xml --cov-report=term
+          pytest tests/ -v --cov=modules --cov-report=xml --cov-report=term
       
       - name: Upload coverage to Codecov
         if: matrix.python-version == '3.11'
@@ -69,7 +69,7 @@ jobs:
         run: ruff check . --exit-zero
       
       - name: Run MyPy (type checking)
-        run: mypy packages/primitives packages/control-plane --ignore-missing-imports --exit-zero
+        run: mypy modules/primitives modules/control-plane --ignore-missing-imports --exit-zero
 
   # ==========================================================================
   # Security Scanning (Bandit + pip-audit)
@@ -88,7 +88,7 @@ jobs:
         run: pip install bandit pip-audit
       
       - name: Run Bandit (SAST)
-        run: bandit -r packages/ -ll --exit-zero
+        run: bandit -r modules/ -ll --exit-zero
       
       - name: Run pip-audit (CVE scan)
         run: |
@@ -118,7 +118,7 @@ jobs:
           python -c "
           import time
           import sys
-          sys.path.insert(0, 'packages/control-plane/src')
+          sys.path.insert(0, 'modules/control-plane/src')
           from agent_control_plane import PolicyEngine, KernelSpace
           
           # Benchmark policy enforcement
