@@ -32,6 +32,8 @@ jobs:
           pip install -e ".[dev]"
       
       - name: Run tests with coverage
+        env:
+          PYTHONPATH: ${{ github.workspace }}/modules/primitives/src:${{ github.workspace }}/modules/control-plane/src:${{ github.workspace }}/modules/cmvk/src:${{ github.workspace }}/modules/iatp/src:${{ github.workspace }}/modules/amb/src:${{ github.workspace }}/modules/emk/src:${{ github.workspace }}/modules/scak/src
         run: |
           pytest tests/ -v --cov=modules --cov-report=xml --cov-report=term
       
