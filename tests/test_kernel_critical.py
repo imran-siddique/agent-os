@@ -25,18 +25,23 @@ class TestSignalEnforcement:
         
         dispatcher = SignalDispatcher(agent_id="test-agent")
         
-        # Try to register a handler for SIGKILL
+        # Try to set a custom handler for SIGKILL
         handler_called = False
-        def handler(sig):
+        def handler(sig_info):
             nonlocal handler_called
             handler_called = True
         
-        # SIGKILL handlers should be ignored
-        dispatcher.register_handler(AgentSignal.SIGKILL, handler)
-        dispatcher.send_signal("test-agent", AgentSignal.SIGKILL)
+        # SIGKILL handlers should not be changeable
+        result = dispatcher.set_handler(AgentSignal.SIGKILL, handler)
         
-        # Handler should NOT be called - SIGKILL is non-catchable
-        assert not handler_called or True  # Note: current impl may differ
+        # set_handler returns None for SIGKILL (cannot override)
+        assert result is None
+        
+        # Send SIGKILL - default handler should be used
+        dispatcher.signal(AgentSignal.SIGKILL)
+        
+        # Custom handler should NOT be called - SIGKILL uses kernel handler
+        assert not handler_called
     
     def test_sigstop_pauses_execution(self):
         """SIGSTOP should pause agent execution."""
@@ -47,14 +52,15 @@ class TestSignalEnforcement:
         dispatcher = SignalDispatcher(agent_id="test-agent")
         state = {"paused": False}
         
-        def stop_handler(sig):
+        def stop_handler(sig_info):
             state["paused"] = True
         
-        dispatcher.register_handler(AgentSignal.SIGSTOP, stop_handler)
-        dispatcher.send_signal("test-agent", AgentSignal.SIGSTOP)
+        # Set custom handler for SIGSTOP
+        dispatcher.set_handler(AgentSignal.SIGSTOP, stop_handler)
+        dispatcher.signal(AgentSignal.SIGSTOP)
         
-        # SIGSTOP can be handled
-        assert state["paused"] or True  # Verify handler was called
+        # SIGSTOP can be handled with custom handler
+        assert state["paused"]
     
     def test_sigint_allows_graceful_shutdown(self):
         """SIGINT should allow graceful interrupt."""
@@ -65,15 +71,15 @@ class TestSignalEnforcement:
         dispatcher = SignalDispatcher(agent_id="test-agent")
         cleanup_done = {"value": False}
         
-        def int_handler(sig):
+        def int_handler(sig_info):
             # Perform cleanup
             cleanup_done["value"] = True
         
-        dispatcher.register_handler(AgentSignal.SIGINT, int_handler)
-        dispatcher.send_signal("test-agent", AgentSignal.SIGINT)
+        dispatcher.set_handler(AgentSignal.SIGINT, int_handler)
+        dispatcher.signal(AgentSignal.SIGINT)
         
         # Verify graceful shutdown was triggered
-        assert cleanup_done["value"] or True
+        assert cleanup_done["value"]
 
 
 class TestPolicyEnforcementLatency:
