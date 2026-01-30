@@ -1,9 +1,5 @@
 # Awesome List PR Submissions for AgentOS
 
-Ready-to-submit PR descriptions for high-traffic AI agent aggregators.
-
----
-
 ## 1. slavakurilyak/awesome-ai-agents (⭐ The Big One)
 
 **PR Title:** `Add AgentOS - Visual Agent Development Platform with Safety-First Design`
@@ -236,12 +232,3 @@ code --install-extension agent-os.agent-os-vscode
 
 ---
 
-## Tips for PR Acceptance
-
-1. **Match the format** of existing entries exactly
-2. **Don't oversell** - be factual about features
-3. **Include working links** - test all URLs before submitting
-4. **Be patient** - maintainers are volunteers
-5. **Engage** - if they have questions, respond promptly
-
-Good luck! 🚀
