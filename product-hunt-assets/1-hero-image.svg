@@ -1,0 +1,157 @@
+<svg width="1270" height="760" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f172a"/>
+      <stop offset="50%" style="stop-color:#1e3a2e"/>
+      <stop offset="100%" style="stop-color:#1e1e2e"/>
+    </linearGradient>
+    <linearGradient id="greenGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#10b981"/>
+      <stop offset="100%" style="stop-color:#059669"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1270" height="760" fill="url(#bgGrad)"/>
+  
+  <!-- Grid pattern -->
+  <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#10b981" stroke-width="0.5" opacity="0.1"/>
+  </pattern>
+  <rect width="1270" height="760" fill="url(#grid)"/>
+  
+  <!-- VS Code Window Mock -->
+  <g transform="translate(80, 100)">
+    <!-- Window frame -->
+    <rect width="700" height="500" rx="12" fill="#1e1e1e" stroke="#3c3c3c" stroke-width="2"/>
+    
+    <!-- Title bar -->
+    <rect width="700" height="35" rx="12" fill="#323232"/>
+    <rect y="25" width="700" height="10" fill="#323232"/>
+    
+    <!-- Traffic lights -->
+    <circle cx="20" cy="17" r="6" fill="#ff5f56"/>
+    <circle cx="40" cy="17" r="6" fill="#ffbd2e"/>
+    <circle cx="60" cy="17" r="6" fill="#27ca40"/>
+    
+    <!-- Title -->
+    <text x="350" y="22" fill="#cccccc" font-family="system-ui" font-size="13" text-anchor="middle">Agent OS - VS Code Extension</text>
+    
+    <!-- Sidebar -->
+    <rect x="0" y="35" width="50" height="465" fill="#252526"/>
+    
+    <!-- Sidebar icons -->
+    <text x="25" y="70" fill="#858585" font-size="20" text-anchor="middle">📁</text>
+    <text x="25" y="110" fill="#858585" font-size="20" text-anchor="middle">🔍</text>
+    <text x="25" y="150" fill="#10b981" font-size="20" text-anchor="middle">🛡️</text>
+    <text x="25" y="190" fill="#858585" font-size="20" text-anchor="middle">🧪</text>
+    
+    <!-- Explorer panel -->
+    <rect x="50" y="35" width="180" height="465" fill="#252526"/>
+    <text x="60" y="60" fill="#cccccc" font-family="system-ui" font-size="12" font-weight="bold">AGENT OS</text>
+    <text x="70" y="85" fill="#858585" font-family="system-ui" font-size="11">📋 Policies</text>
+    <text x="70" y="105" fill="#858585" font-family="system-ui" font-size="11">📚 Templates</text>
+    <text x="70" y="125" fill="#858585" font-family="system-ui" font-size="11">✅ Compliance</text>
+    <text x="70" y="145" fill="#10b981" font-family="system-ui" font-size="11">▶ my-agent.py</text>
+    
+    <!-- Main editor area -->
+    <rect x="230" y="35" width="470" height="465" fill="#1e1e1e"/>
+    
+    <!-- Code content -->
+    <text x="245" y="65" fill="#569cd6" font-family="monospace" font-size="12">from</text>
+    <text x="280" y="65" fill="#dcdcaa" font-family="monospace" font-size="12">agent_os</text>
+    <text x="355" y="65" fill="#569cd6" font-family="monospace" font-size="12">import</text>
+    <text x="405" y="65" fill="#4ec9b0" font-family="monospace" font-size="12">Agent, Policy</text>
+    
+    <text x="245" y="95" fill="#6a9955" font-family="monospace" font-size="12"># Create agent with safety policies</text>
+    
+    <text x="245" y="125" fill="#dcdcaa" font-family="monospace" font-size="12">agent</text>
+    <text x="285" y="125" fill="#d4d4d4" font-family="monospace" font-size="12">=</text>
+    <text x="300" y="125" fill="#4ec9b0" font-family="monospace" font-size="12">Agent</text>
+    <text x="340" y="125" fill="#d4d4d4" font-family="monospace" font-size="12">(</text>
+    
+    <text x="260" y="145" fill="#9cdcfe" font-family="monospace" font-size="12">name</text>
+    <text x="295" y="145" fill="#d4d4d4" font-family="monospace" font-size="12">=</text>
+    <text x="310" y="145" fill="#ce9178" font-family="monospace" font-size="12">"api-monitor"</text>
+    <text x="410" y="145" fill="#d4d4d4" font-family="monospace" font-size="12">,</text>
+    
+    <text x="260" y="165" fill="#9cdcfe" font-family="monospace" font-size="12">policies</text>
+    <text x="320" y="165" fill="#d4d4d4" font-family="monospace" font-size="12">=[</text>
+    <text x="340" y="165" fill="#ce9178" font-family="monospace" font-size="12">"gdpr"</text>
+    <text x="385" y="165" fill="#d4d4d4" font-family="monospace" font-size="12">,</text>
+    <text x="395" y="165" fill="#ce9178" font-family="monospace" font-size="12">"no-destructive-sql"</text>
+    <text x="545" y="165" fill="#d4d4d4" font-family="monospace" font-size="12">]</text>
+    
+    <!-- Green checkmark overlay -->
+    <g transform="translate(550, 200)">
+      <circle r="50" fill="#10b981" opacity="0.2"/>
+      <circle r="35" fill="#10b981" opacity="0.3"/>
+      <text x="0" y="12" fill="#10b981" font-size="40" text-anchor="middle" filter="url(#glow)">✓</text>
+    </g>
+    
+    <!-- Status bar -->
+    <rect y="485" width="700" height="15" fill="#007acc"/>
+    <text x="10" y="496" fill="white" font-family="system-ui" font-size="10">Agent OS v1.0.0</text>
+    <text x="600" y="496" fill="white" font-family="system-ui" font-size="10">0 Policy Violations</text>
+  </g>
+  
+  <!-- Right side content -->
+  <g transform="translate(850, 120)">
+    <!-- Logo -->
+    <text x="0" y="0" fill="#10b981" font-size="60" filter="url(#glow)">🤖</text>
+    
+    <!-- Title -->
+    <text x="0" y="80" fill="white" font-family="system-ui" font-size="42" font-weight="bold">Agent OS</text>
+    
+    <!-- Tagline -->
+    <text x="0" y="120" fill="#94a3b8" font-family="system-ui" font-size="18">Build Safe AI Agents</text>
+    <text x="0" y="145" fill="#94a3b8" font-family="system-ui" font-size="18">with Visual Studio Code</text>
+    
+    <!-- Features -->
+    <g transform="translate(0, 190)">
+      <text x="0" y="0" fill="#10b981" font-size="16">✓</text>
+      <text x="25" y="0" fill="#e2e8f0" font-family="system-ui" font-size="16">Visual Policy Editor</text>
+      
+      <text x="0" y="35" fill="#10b981" font-size="16">✓</text>
+      <text x="25" y="35" fill="#e2e8f0" font-family="system-ui" font-size="16">Multi-Model Verification</text>
+      
+      <text x="0" y="70" fill="#10b981" font-size="16">✓</text>
+      <text x="25" y="70" fill="#e2e8f0" font-family="system-ui" font-size="16">GDPR, HIPAA, SOC2</text>
+      
+      <text x="0" y="105" fill="#10b981" font-size="16">✓</text>
+      <text x="25" y="105" fill="#e2e8f0" font-family="system-ui" font-size="16">50+ Agent Templates</text>
+      
+      <text x="0" y="140" fill="#10b981" font-size="16">✓</text>
+      <text x="25" y="140" fill="#e2e8f0" font-family="system-ui" font-size="16">GitHub Actions Deploy</text>
+    </g>
+    
+    <!-- CTA Button -->
+    <rect x="0" y="370" width="220" height="50" rx="8" fill="url(#greenGrad)"/>
+    <text x="110" y="402" fill="white" font-family="system-ui" font-size="16" font-weight="bold" text-anchor="middle">Open Source 🚀</text>
+  </g>
+  
+  <!-- Bottom stats -->
+  <g transform="translate(0, 680)">
+    <rect width="1270" height="80" fill="#0f172a" opacity="0.8"/>
+    <g transform="translate(200, 45)">
+      <text x="0" y="0" fill="#10b981" font-family="system-ui" font-size="24" font-weight="bold">50+</text>
+      <text x="0" y="20" fill="#64748b" font-family="system-ui" font-size="12">Templates</text>
+    </g>
+    <g transform="translate(400, 45)">
+      <text x="0" y="0" fill="#10b981" font-family="system-ui" font-size="24" font-weight="bold">4</text>
+      <text x="0" y="20" fill="#64748b" font-family="system-ui" font-size="12">Compliance Frameworks</text>
+    </g>
+    <g transform="translate(650, 45)">
+      <text x="0" y="0" fill="#10b981" font-family="system-ui" font-size="24" font-weight="bold">0%</text>
+      <text x="0" y="20" fill="#64748b" font-family="system-ui" font-size="12">Policy Violations</text>
+    </g>
+    <g transform="translate(900, 45)">
+      <text x="0" y="0" fill="#10b981" font-family="system-ui" font-size="24" font-weight="bold">3</text>
+      <text x="0" y="20" fill="#64748b" font-family="system-ui" font-size="12">Languages (Python, TS, Go)</text>
+    </g>
+  </g>
+</svg>

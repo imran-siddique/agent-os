@@ -1,0 +1,94 @@
+<svg width="1270" height="760" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f172a"/>
+      <stop offset="100%" style="stop-color:#1e293b"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1270" height="760" fill="url(#bgGrad3)"/>
+  
+  <!-- Title -->
+  <text x="635" y="60" fill="white" font-family="system-ui" font-size="36" font-weight="bold" text-anchor="middle">🔍 CMVK: Multi-Model Verification</text>
+  <text x="635" y="95" fill="#94a3b8" font-family="system-ui" font-size="18" text-anchor="middle">Consensus verification using GPT-4 + Claude + Gemini before risky actions</text>
+  
+  <!-- Center - Agent Action -->
+  <g transform="translate(535, 160)">
+    <rect width="200" height="80" rx="12" fill="#1e293b" stroke="#f59e0b" stroke-width="2"/>
+    <text x="100" y="35" fill="#fbbf24" font-family="system-ui" font-size="14" font-weight="bold" text-anchor="middle">🤖 Agent Action</text>
+    <text x="100" y="58" fill="#94a3b8" font-family="system-ui" font-size="11" text-anchor="middle">"Deploy to production"</text>
+  </g>
+  
+  <!-- Arrow down -->
+  <path d="M 635 250 L 635 290" stroke="#f59e0b" stroke-width="3" fill="none"/>
+  <polygon points="635,300 625,285 645,285" fill="#f59e0b"/>
+  
+  <!-- CMVK Box -->
+  <g transform="translate(435, 310)">
+    <rect width="400" height="60" rx="12" fill="#10b981" opacity="0.2" stroke="#10b981" stroke-width="2"/>
+    <text x="200" y="38" fill="#10b981" font-family="system-ui" font-size="16" font-weight="bold" text-anchor="middle">🛡️ CMVK Verification Engine</text>
+  </g>
+  
+  <!-- Three arrows to models -->
+  <path d="M 535 380 L 250 440" stroke="#10b981" stroke-width="2" fill="none"/>
+  <path d="M 635 380 L 635 440" stroke="#10b981" stroke-width="2" fill="none"/>
+  <path d="M 735 380 L 1020 440" stroke="#10b981" stroke-width="2" fill="none"/>
+  
+  <!-- Model 1 - GPT-4 -->
+  <g transform="translate(100, 450)">
+    <rect width="280" height="140" rx="16" fill="#1e293b" stroke="#10b981" stroke-width="2"/>
+    <text x="140" y="35" fill="#10b981" font-size="28" text-anchor="middle">🧠</text>
+    <text x="140" y="65" fill="white" font-family="system-ui" font-size="16" font-weight="bold" text-anchor="middle">GPT-4</text>
+    <text x="140" y="90" fill="#94a3b8" font-family="system-ui" font-size="12" text-anchor="middle">Analysis: Safe to deploy</text>
+    <rect x="90" y="105" width="100" height="25" rx="12" fill="#10b981"/>
+    <text x="140" y="122" fill="white" font-family="system-ui" font-size="12" font-weight="bold" text-anchor="middle">✓ APPROVE</text>
+  </g>
+  
+  <!-- Model 2 - Claude -->
+  <g transform="translate(495, 450)">
+    <rect width="280" height="140" rx="16" fill="#1e293b" stroke="#10b981" stroke-width="2"/>
+    <text x="140" y="35" fill="#10b981" font-size="28" text-anchor="middle">🤖</text>
+    <text x="140" y="65" fill="white" font-family="system-ui" font-size="16" font-weight="bold" text-anchor="middle">Claude</text>
+    <text x="140" y="90" fill="#94a3b8" font-family="system-ui" font-size="12" text-anchor="middle">Analysis: Verified safe</text>
+    <rect x="90" y="105" width="100" height="25" rx="12" fill="#10b981"/>
+    <text x="140" y="122" fill="white" font-family="system-ui" font-size="12" font-weight="bold" text-anchor="middle">✓ APPROVE</text>
+  </g>
+  
+  <!-- Model 3 - Gemini -->
+  <g transform="translate(890, 450)">
+    <rect width="280" height="140" rx="16" fill="#1e293b" stroke="#10b981" stroke-width="2"/>
+    <text x="140" y="35" fill="#10b981" font-size="28" text-anchor="middle">✨</text>
+    <text x="140" y="65" fill="white" font-family="system-ui" font-size="16" font-weight="bold" text-anchor="middle">Gemini</text>
+    <text x="140" y="90" fill="#94a3b8" font-family="system-ui" font-size="12" text-anchor="middle">Analysis: No risks found</text>
+    <rect x="90" y="105" width="100" height="25" rx="12" fill="#10b981"/>
+    <text x="140" y="122" fill="white" font-family="system-ui" font-size="12" font-weight="bold" text-anchor="middle">✓ APPROVE</text>
+  </g>
+  
+  <!-- Arrows back to consensus -->
+  <path d="M 240 600 L 535 650" stroke="#10b981" stroke-width="2" fill="none"/>
+  <path d="M 635 600 L 635 650" stroke="#10b981" stroke-width="2" fill="none"/>
+  <path d="M 1030 600 L 735 650" stroke="#10b981" stroke-width="2" fill="none"/>
+  
+  <!-- Consensus Result -->
+  <g transform="translate(385, 660)">
+    <rect width="500" height="70" rx="16" fill="#10b981" stroke="#6ee7b7" stroke-width="2"/>
+    <text x="250" y="30" fill="white" font-size="28" text-anchor="middle">✓</text>
+    <text x="250" y="52" fill="white" font-family="system-ui" font-size="16" font-weight="bold" text-anchor="middle">CONSENSUS REACHED: 3/3 Models Approve</text>
+  </g>
+  
+  <!-- Side info -->
+  <g transform="translate(50, 320)">
+    <text x="0" y="0" fill="#94a3b8" font-family="system-ui" font-size="12">Why CMVK?</text>
+    <text x="0" y="25" fill="#64748b" font-family="system-ui" font-size="11">• Single model can hallucinate</text>
+    <text x="0" y="45" fill="#64748b" font-family="system-ui" font-size="11">• Consensus reduces errors</text>
+    <text x="0" y="65" fill="#64748b" font-family="system-ui" font-size="11">• Critical for production</text>
+  </g>
+  
+  <g transform="translate(1050, 320)">
+    <text x="0" y="0" fill="#94a3b8" font-family="system-ui" font-size="12">Configurable:</text>
+    <text x="0" y="25" fill="#64748b" font-family="system-ui" font-size="11">• 2/3 or 3/3 consensus</text>
+    <text x="0" y="45" fill="#64748b" font-family="system-ui" font-size="11">• Choose which models</text>
+    <text x="0" y="65" fill="#64748b" font-family="system-ui" font-size="11">• Set confidence threshold</text>
+  </g>
+</svg>

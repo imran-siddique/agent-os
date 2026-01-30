@@ -1,0 +1,37 @@
+<svg width="240" height="240" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="thumbBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f172a"/>
+      <stop offset="50%" style="stop-color:#1e3a2e"/>
+      <stop offset="100%" style="stop-color:#1e1e2e"/>
+    </linearGradient>
+    <linearGradient id="thumbGreen" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10b981"/>
+      <stop offset="100%" style="stop-color:#059669"/>
+    </linearGradient>
+    <filter id="thumbGlow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="240" height="240" rx="24" fill="url(#thumbBg)"/>
+  
+  <!-- Grid pattern -->
+  <pattern id="thumbGrid" width="20" height="20" patternUnits="userSpaceOnUse">
+    <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#10b981" stroke-width="0.5" opacity="0.1"/>
+  </pattern>
+  <rect width="240" height="240" rx="24" fill="url(#thumbGrid)"/>
+  
+  <!-- Shield icon -->
+  <g transform="translate(70, 40)">
+    <path d="M50 0 L100 20 L100 60 C100 90 75 110 50 120 C25 110 0 90 0 60 L0 20 Z" 
+          fill="url(#thumbGreen)" filter="url(#thumbGlow)"/>
+    <text x="50" y="75" fill="white" font-size="40" text-anchor="middle" font-weight="bold">🤖</text>
+  </g>
+  
+  <!-- Text -->
+  <text x="120" y="190" fill="white" font-family="system-ui" font-size="24" font-weight="bold" text-anchor="middle">Agent OS</text>
+  <text x="120" y="215" fill="#10b981" font-family="system-ui" font-size="12" text-anchor="middle">Safety-First AI Agents</text>
+</svg>

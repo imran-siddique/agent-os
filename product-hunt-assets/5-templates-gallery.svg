@@ -1,0 +1,196 @@
+<svg width="1270" height="760" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad5" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f172a"/>
+      <stop offset="100%" style="stop-color:#1e293b"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1270" height="760" fill="url(#bgGrad5)"/>
+  
+  <!-- Title -->
+  <text x="635" y="60" fill="white" font-family="system-ui" font-size="36" font-weight="bold" text-anchor="middle">📚 50+ Agent Templates</text>
+  <text x="635" y="95" fill="#94a3b8" font-family="system-ui" font-size="18" text-anchor="middle">Pre-built templates across 8 categories - customize and deploy in minutes</text>
+  
+  <!-- Category tabs -->
+  <g transform="translate(60, 130)">
+    <rect width="140" height="40" rx="8" fill="#10b981"/>
+    <text x="70" y="26" fill="white" font-family="system-ui" font-size="12" font-weight="bold" text-anchor="middle">Data Processing</text>
+  </g>
+  <g transform="translate(210, 130)">
+    <rect width="100" height="40" rx="8" fill="#1e293b" stroke="#334155"/>
+    <text x="50" y="26" fill="#94a3b8" font-family="system-ui" font-size="12" text-anchor="middle">DevOps</text>
+  </g>
+  <g transform="translate(320, 130)">
+    <rect width="100" height="40" rx="8" fill="#1e293b" stroke="#334155"/>
+    <text x="50" y="26" fill="#94a3b8" font-family="system-ui" font-size="12" text-anchor="middle">Security</text>
+  </g>
+  <g transform="translate(430, 130)">
+    <rect width="120" height="40" rx="8" fill="#1e293b" stroke="#334155"/>
+    <text x="60" y="26" fill="#94a3b8" font-family="system-ui" font-size="12" text-anchor="middle">Customer Support</text>
+  </g>
+  <g transform="translate(560, 130)">
+    <rect width="100" height="40" rx="8" fill="#1e293b" stroke="#334155"/>
+    <text x="50" y="26" fill="#94a3b8" font-family="system-ui" font-size="12" text-anchor="middle">Content</text>
+  </g>
+  <g transform="translate(670, 130)">
+    <rect width="80" height="40" rx="8" fill="#1e293b" stroke="#334155"/>
+    <text x="40" y="26" fill="#94a3b8" font-family="system-ui" font-size="12" text-anchor="middle">BI</text>
+  </g>
+  <g transform="translate(760, 130)">
+    <rect width="100" height="40" rx="8" fill="#1e293b" stroke="#334155"/>
+    <text x="50" y="26" fill="#94a3b8" font-family="system-ui" font-size="12" text-anchor="middle">Integration</text>
+  </g>
+  <g transform="translate(870, 130)">
+    <rect width="100" height="40" rx="8" fill="#1e293b" stroke="#334155"/>
+    <text x="50" y="26" fill="#94a3b8" font-family="system-ui" font-size="12" text-anchor="middle">Automation</text>
+  </g>
+  
+  <!-- Template Cards Row 1 -->
+  <g transform="translate(60, 200)">
+    <rect width="280" height="160" rx="12" fill="#1e293b" stroke="#10b981" stroke-width="2"/>
+    <text x="20" y="35" fill="#10b981" font-size="28">📊</text>
+    <text x="60" y="38" fill="white" font-family="system-ui" font-size="14" font-weight="bold">ETL Pipeline Agent</text>
+    <text x="20" y="65" fill="#94a3b8" font-family="system-ui" font-size="11">Extract, transform, and load data</text>
+    <text x="20" y="82" fill="#94a3b8" font-family="system-ui" font-size="11">from multiple sources to your warehouse</text>
+    <g transform="translate(20, 100)">
+      <rect width="60" height="20" rx="10" fill="#10b981" opacity="0.2"/>
+      <text x="30" y="14" fill="#10b981" font-family="system-ui" font-size="9" text-anchor="middle">Python</text>
+      <rect x="70" width="50" height="20" rx="10" fill="#10b981" opacity="0.2"/>
+      <text x="95" y="14" fill="#10b981" font-family="system-ui" font-size="9" text-anchor="middle">GDPR</text>
+      <rect x="130" width="70" height="20" rx="10" fill="#10b981" opacity="0.2"/>
+      <text x="165" y="14" fill="#10b981" font-family="system-ui" font-size="9" text-anchor="middle">Scheduled</text>
+    </g>
+    <rect x="20" y="130" width="100" height="25" rx="6" fill="#10b981"/>
+    <text x="70" y="147" fill="white" font-family="system-ui" font-size="11" font-weight="bold" text-anchor="middle">Use Template</text>
+  </g>
+  
+  <g transform="translate(360, 200)">
+    <rect width="280" height="160" rx="12" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+    <text x="20" y="35" fill="#10b981" font-size="28">📈</text>
+    <text x="60" y="38" fill="white" font-family="system-ui" font-size="14" font-weight="bold">Real-time Analytics</text>
+    <text x="20" y="65" fill="#94a3b8" font-family="system-ui" font-size="11">Stream processing for real-time</text>
+    <text x="20" y="82" fill="#94a3b8" font-family="system-ui" font-size="11">dashboards and alerting</text>
+    <g transform="translate(20, 100)">
+      <rect width="80" height="20" rx="10" fill="#3b82f6" opacity="0.2"/>
+      <text x="40" y="14" fill="#3b82f6" font-family="system-ui" font-size="9" text-anchor="middle">TypeScript</text>
+      <rect x="90" width="60" height="20" rx="10" fill="#f59e0b" opacity="0.2"/>
+      <text x="120" y="14" fill="#f59e0b" font-family="system-ui" font-size="9" text-anchor="middle">SOC2</text>
+    </g>
+    <rect x="20" y="130" width="100" height="25" rx="6" fill="#334155"/>
+    <text x="70" y="147" fill="#94a3b8" font-family="system-ui" font-size="11" text-anchor="middle">Use Template</text>
+  </g>
+  
+  <g transform="translate(660, 200)">
+    <rect width="280" height="160" rx="12" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+    <text x="20" y="35" fill="#10b981" font-size="28">🔄</text>
+    <text x="60" y="38" fill="white" font-family="system-ui" font-size="14" font-weight="bold">Data Sync Agent</text>
+    <text x="20" y="65" fill="#94a3b8" font-family="system-ui" font-size="11">Bidirectional sync between</text>
+    <text x="20" y="82" fill="#94a3b8" font-family="system-ui" font-size="11">databases and APIs</text>
+    <g transform="translate(20, 100)">
+      <rect width="60" height="20" rx="10" fill="#10b981" opacity="0.2"/>
+      <text x="30" y="14" fill="#10b981" font-family="system-ui" font-size="9" text-anchor="middle">Python</text>
+      <rect x="70" width="50" height="20" rx="10" fill="#ec4899" opacity="0.2"/>
+      <text x="95" y="14" fill="#ec4899" font-family="system-ui" font-size="9" text-anchor="middle">HIPAA</text>
+    </g>
+    <rect x="20" y="130" width="100" height="25" rx="6" fill="#334155"/>
+    <text x="70" y="147" fill="#94a3b8" font-family="system-ui" font-size="11" text-anchor="middle">Use Template</text>
+  </g>
+  
+  <g transform="translate(960, 200)">
+    <rect width="250" height="160" rx="12" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+    <text x="20" y="35" fill="#10b981" font-size="28">🧹</text>
+    <text x="60" y="38" fill="white" font-family="system-ui" font-size="14" font-weight="bold">Data Cleaner</text>
+    <text x="20" y="65" fill="#94a3b8" font-family="system-ui" font-size="11">Automated data quality</text>
+    <text x="20" y="82" fill="#94a3b8" font-family="system-ui" font-size="11">and deduplication</text>
+    <g transform="translate(20, 100)">
+      <rect width="40" height="20" rx="10" fill="#f59e0b" opacity="0.2"/>
+      <text x="20" y="14" fill="#f59e0b" font-family="system-ui" font-size="9" text-anchor="middle">Go</text>
+    </g>
+    <rect x="20" y="130" width="100" height="25" rx="6" fill="#334155"/>
+    <text x="70" y="147" fill="#94a3b8" font-family="system-ui" font-size="11" text-anchor="middle">Use Template</text>
+  </g>
+  
+  <!-- Template Cards Row 2 -->
+  <g transform="translate(60, 380)">
+    <rect width="280" height="160" rx="12" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+    <text x="20" y="35" fill="#10b981" font-size="28">📝</text>
+    <text x="60" y="38" fill="white" font-family="system-ui" font-size="14" font-weight="bold">Report Generator</text>
+    <text x="20" y="65" fill="#94a3b8" font-family="system-ui" font-size="11">Automated daily, weekly,</text>
+    <text x="20" y="82" fill="#94a3b8" font-family="system-ui" font-size="11">monthly reports with charts</text>
+    <g transform="translate(20, 100)">
+      <rect width="60" height="20" rx="10" fill="#10b981" opacity="0.2"/>
+      <text x="30" y="14" fill="#10b981" font-family="system-ui" font-size="9" text-anchor="middle">Python</text>
+    </g>
+    <rect x="20" y="130" width="100" height="25" rx="6" fill="#334155"/>
+    <text x="70" y="147" fill="#94a3b8" font-family="system-ui" font-size="11" text-anchor="middle">Use Template</text>
+  </g>
+  
+  <g transform="translate(360, 380)">
+    <rect width="280" height="160" rx="12" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+    <text x="20" y="35" fill="#10b981" font-size="28">🔍</text>
+    <text x="60" y="38" fill="white" font-family="system-ui" font-size="14" font-weight="bold">Anomaly Detector</text>
+    <text x="20" y="65" fill="#94a3b8" font-family="system-ui" font-size="11">ML-powered outlier detection</text>
+    <text x="20" y="82" fill="#94a3b8" font-family="system-ui" font-size="11">with instant alerts</text>
+    <g transform="translate(20, 100)">
+      <rect width="60" height="20" rx="10" fill="#10b981" opacity="0.2"/>
+      <text x="30" y="14" fill="#10b981" font-family="system-ui" font-size="9" text-anchor="middle">Python</text>
+      <rect x="70" width="40" height="20" rx="10" fill="#8b5cf6" opacity="0.2"/>
+      <text x="90" y="14" fill="#8b5cf6" font-family="system-ui" font-size="9" text-anchor="middle">ML</text>
+    </g>
+    <rect x="20" y="130" width="100" height="25" rx="6" fill="#334155"/>
+    <text x="70" y="147" fill="#94a3b8" font-family="system-ui" font-size="11" text-anchor="middle">Use Template</text>
+  </g>
+  
+  <g transform="translate(660, 380)">
+    <rect width="280" height="160" rx="12" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+    <text x="20" y="35" fill="#10b981" font-size="28">📧</text>
+    <text x="60" y="38" fill="white" font-family="system-ui" font-size="14" font-weight="bold">Data Export Agent</text>
+    <text x="20" y="65" fill="#94a3b8" font-family="system-ui" font-size="11">Export data to CSV, Excel,</text>
+    <text x="20" y="82" fill="#94a3b8" font-family="system-ui" font-size="11">JSON with scheduling</text>
+    <g transform="translate(20, 100)">
+      <rect width="80" height="20" rx="10" fill="#3b82f6" opacity="0.2"/>
+      <text x="40" y="14" fill="#3b82f6" font-family="system-ui" font-size="9" text-anchor="middle">TypeScript</text>
+    </g>
+    <rect x="20" y="130" width="100" height="25" rx="6" fill="#334155"/>
+    <text x="70" y="147" fill="#94a3b8" font-family="system-ui" font-size="11" text-anchor="middle">Use Template</text>
+  </g>
+  
+  <!-- More templates indicator -->
+  <g transform="translate(960, 380)">
+    <rect width="250" height="160" rx="12" fill="#10b981" opacity="0.1" stroke="#10b981" stroke-width="2" stroke-dasharray="5,5"/>
+    <text x="125" y="70" fill="#10b981" font-size="36" text-anchor="middle">+44</text>
+    <text x="125" y="100" fill="#10b981" font-family="system-ui" font-size="14" font-weight="bold" text-anchor="middle">More Templates</text>
+    <text x="125" y="120" fill="#6ee7b7" font-family="system-ui" font-size="11" text-anchor="middle">Browse all categories</text>
+  </g>
+  
+  <!-- Bottom info -->
+  <g transform="translate(60, 580)">
+    <rect width="1150" height="140" rx="12" fill="#1e293b" stroke="#334155"/>
+    <text x="30" y="35" fill="#e2e8f0" font-family="system-ui" font-size="16" font-weight="bold">How to Use Templates</text>
+    
+    <g transform="translate(30, 60)">
+      <text x="0" y="15" fill="#10b981" font-family="monospace" font-size="13">@agentos templates data-processing</text>
+      <text x="350" y="15" fill="#64748b" font-family="system-ui" font-size="12">Browse category</text>
+    </g>
+    <g transform="translate(30, 85)">
+      <text x="0" y="15" fill="#10b981" font-family="monospace" font-size="13">@agentos use etl-pipeline --name my-etl</text>
+      <text x="350" y="15" fill="#64748b" font-family="system-ui" font-size="12">Create from template</text>
+    </g>
+    <g transform="translate(30, 110)">
+      <text x="0" y="15" fill="#10b981" font-family="monospace" font-size="13">@agentos deploy</text>
+      <text x="350" y="15" fill="#64748b" font-family="system-ui" font-size="12">Deploy to GitHub Actions</text>
+    </g>
+    
+    <g transform="translate(600, 50)">
+      <text x="0" y="15" fill="#e2e8f0" font-family="system-ui" font-size="14" font-weight="bold">All templates include:</text>
+      <text x="0" y="40" fill="#10b981" font-size="12">✓</text><text x="20" y="40" fill="#94a3b8" font-family="system-ui" font-size="12">Pre-configured safety policies</text>
+      <text x="0" y="60" fill="#10b981" font-size="12">✓</text><text x="20" y="60" fill="#94a3b8" font-family="system-ui" font-size="12">Error handling & retry logic</text>
+      <text x="0" y="80" fill="#10b981" font-size="12">✓</text><text x="20" y="80" fill="#94a3b8" font-family="system-ui" font-size="12">GitHub Actions workflow</text>
+      <text x="250" y="40" fill="#10b981" font-size="12">✓</text><text x="270" y="40" fill="#94a3b8" font-family="system-ui" font-size="12">Audit logging</text>
+      <text x="250" y="60" fill="#10b981" font-size="12">✓</text><text x="270" y="60" fill="#94a3b8" font-family="system-ui" font-size="12">Documentation</text>
+      <text x="250" y="80" fill="#10b981" font-size="12">✓</text><text x="270" y="80" fill="#94a3b8" font-family="system-ui" font-size="12">Test examples</text>
+    </g>
+  </g>
+</svg>

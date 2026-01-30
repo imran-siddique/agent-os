@@ -1,0 +1,133 @@
+<svg width="1270" height="760" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f172a"/>
+      <stop offset="100%" style="stop-color:#1e293b"/>
+    </linearGradient>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e293b"/>
+      <stop offset="100%" style="stop-color:#0f172a"/>
+    </linearGradient>
+    <linearGradient id="greenGrad2" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#10b981"/>
+      <stop offset="100%" style="stop-color:#059669"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1270" height="760" fill="url(#bgGrad2)"/>
+  
+  <!-- Title -->
+  <text x="635" y="60" fill="white" font-family="system-ui" font-size="36" font-weight="bold" text-anchor="middle">🛡️ Policy-Based Safety Controls</text>
+  <text x="635" y="95" fill="#94a3b8" font-family="system-ui" font-size="18" text-anchor="middle">Define once, enforce everywhere - zero policy violations guaranteed</text>
+  
+  <!-- Policy Editor Card -->
+  <g transform="translate(60, 140)">
+    <rect width="550" height="480" rx="16" fill="url(#cardGrad)" stroke="#10b981" stroke-width="2" opacity="0.8"/>
+    
+    <!-- Header -->
+    <rect width="550" height="50" rx="16" fill="#10b981" opacity="0.2"/>
+    <rect y="40" width="550" height="10" fill="#10b981" opacity="0.2"/>
+    <text x="25" y="33" fill="#10b981" font-family="system-ui" font-size="18" font-weight="bold">📋 Visual Policy Editor</text>
+    
+    <!-- Policy content -->
+    <g transform="translate(25, 80)">
+      <!-- Policy item 1 -->
+      <rect width="500" height="70" rx="8" fill="#1e1e2e" stroke="#334155" stroke-width="1"/>
+      <text x="20" y="25" fill="#10b981" font-size="20">🔒</text>
+      <text x="55" y="28" fill="#e2e8f0" font-family="system-ui" font-size="14" font-weight="bold">No Destructive SQL</text>
+      <text x="55" y="48" fill="#94a3b8" font-family="system-ui" font-size="12">Block DROP, TRUNCATE, DELETE without WHERE</text>
+      <rect x="400" y="20" width="80" height="30" rx="15" fill="#10b981"/>
+      <text x="440" y="40" fill="white" font-family="system-ui" font-size="12" font-weight="bold" text-anchor="middle">Active</text>
+      
+      <!-- Policy item 2 -->
+      <g transform="translate(0, 85)">
+        <rect width="500" height="70" rx="8" fill="#1e1e2e" stroke="#334155" stroke-width="1"/>
+        <text x="20" y="25" fill="#10b981" font-size="20">📁</text>
+        <text x="55" y="28" fill="#e2e8f0" font-family="system-ui" font-size="14" font-weight="bold">File System Restrictions</text>
+        <text x="55" y="48" fill="#94a3b8" font-family="system-ui" font-size="12">Limit access to /workspace and /tmp only</text>
+        <rect x="400" y="20" width="80" height="30" rx="15" fill="#10b981"/>
+        <text x="440" y="40" fill="white" font-family="system-ui" font-size="12" font-weight="bold" text-anchor="middle">Active</text>
+      </g>
+      
+      <!-- Policy item 3 -->
+      <g transform="translate(0, 170)">
+        <rect width="500" height="70" rx="8" fill="#1e1e2e" stroke="#334155" stroke-width="1"/>
+        <text x="20" y="25" fill="#10b981" font-size="20">🌐</text>
+        <text x="55" y="28" fill="#e2e8f0" font-family="system-ui" font-size="14" font-weight="bold">Network Allowlist</text>
+        <text x="55" y="48" fill="#94a3b8" font-family="system-ui" font-size="12">Only allow api.github.com, api.openai.com</text>
+        <rect x="400" y="20" width="80" height="30" rx="15" fill="#10b981"/>
+        <text x="440" y="40" fill="white" font-family="system-ui" font-size="12" font-weight="bold" text-anchor="middle">Active</text>
+      </g>
+      
+      <!-- Policy item 4 -->
+      <g transform="translate(0, 255)">
+        <rect width="500" height="70" rx="8" fill="#1e1e2e" stroke="#334155" stroke-width="1"/>
+        <text x="20" y="25" fill="#10b981" font-size="20">⏱️</text>
+        <text x="55" y="28" fill="#e2e8f0" font-family="system-ui" font-size="14" font-weight="bold">Execution Limits</text>
+        <text x="55" y="48" fill="#94a3b8" font-family="system-ui" font-size="12">Max 5 min runtime, 512MB memory</text>
+        <rect x="400" y="20" width="80" height="30" rx="15" fill="#10b981"/>
+        <text x="440" y="40" fill="white" font-family="system-ui" font-size="12" font-weight="bold" text-anchor="middle">Active</text>
+      </g>
+    </g>
+    
+    <!-- Add policy button -->
+    <rect x="175" y="420" width="200" height="40" rx="8" fill="url(#greenGrad2)"/>
+    <text x="275" y="446" fill="white" font-family="system-ui" font-size="14" font-weight="bold" text-anchor="middle">+ Add New Policy</text>
+  </g>
+  
+  <!-- Right side - How it works -->
+  <g transform="translate(660, 140)">
+    <rect width="550" height="480" rx="16" fill="url(#cardGrad)" stroke="#334155" stroke-width="1" opacity="0.8"/>
+    
+    <!-- Header -->
+    <text x="25" y="40" fill="#e2e8f0" font-family="system-ui" font-size="18" font-weight="bold">How It Works</text>
+    
+    <!-- Step 1 -->
+    <g transform="translate(25, 70)">
+      <circle cx="25" cy="25" r="25" fill="#10b981"/>
+      <text x="25" y="32" fill="white" font-family="system-ui" font-size="18" font-weight="bold" text-anchor="middle">1</text>
+      <text x="70" y="20" fill="#e2e8f0" font-family="system-ui" font-size="14" font-weight="bold">Agent Proposes Action</text>
+      <text x="70" y="40" fill="#94a3b8" font-family="system-ui" font-size="12">"Execute SQL: DELETE FROM users"</text>
+    </g>
+    
+    <!-- Arrow -->
+    <text x="50" y="145" fill="#10b981" font-size="24">↓</text>
+    
+    <!-- Step 2 -->
+    <g transform="translate(25, 160)">
+      <circle cx="25" cy="25" r="25" fill="#10b981"/>
+      <text x="25" y="32" fill="white" font-family="system-ui" font-size="18" font-weight="bold" text-anchor="middle">2</text>
+      <text x="70" y="20" fill="#e2e8f0" font-family="system-ui" font-size="14" font-weight="bold">Policy Engine Checks</text>
+      <text x="70" y="40" fill="#94a3b8" font-family="system-ui" font-size="12">Validates against all active policies</text>
+    </g>
+    
+    <!-- Arrow -->
+    <text x="50" y="235" fill="#10b981" font-size="24">↓</text>
+    
+    <!-- Step 3 -->
+    <g transform="translate(25, 250)">
+      <circle cx="25" cy="25" r="25" fill="#ef4444"/>
+      <text x="25" y="32" fill="white" font-family="system-ui" font-size="18" font-weight="bold" text-anchor="middle">✗</text>
+      <text x="70" y="20" fill="#e2e8f0" font-family="system-ui" font-size="14" font-weight="bold">Violation Detected!</text>
+      <text x="70" y="40" fill="#f87171" font-family="system-ui" font-size="12">"DELETE without WHERE clause blocked"</text>
+    </g>
+    
+    <!-- Arrow -->
+    <text x="50" y="325" fill="#10b981" font-size="24">↓</text>
+    
+    <!-- Step 4 -->
+    <g transform="translate(25, 340)">
+      <circle cx="25" cy="25" r="25" fill="#10b981"/>
+      <text x="25" y="32" fill="white" font-family="system-ui" font-size="18" font-weight="bold" text-anchor="middle">4</text>
+      <text x="70" y="20" fill="#e2e8f0" font-family="system-ui" font-size="14" font-weight="bold">Safe Alternative Suggested</text>
+      <text x="70" y="40" fill="#10b981" font-family="system-ui" font-size="12">"DELETE FROM users WHERE id = ?"</text>
+    </g>
+    
+    <!-- Result box -->
+    <rect x="25" y="400" width="500" height="60" rx="8" fill="#10b981" opacity="0.1" stroke="#10b981" stroke-width="1"/>
+    <text x="50" y="425" fill="#10b981" font-size="20">✓</text>
+    <text x="80" y="428" fill="#10b981" font-family="system-ui" font-size="14" font-weight="bold">Result: 0% Policy Violations</text>
+    <text x="80" y="448" fill="#6ee7b7" font-family="system-ui" font-size="12">All agent actions validated before execution</text>
+  </g>
+</svg>

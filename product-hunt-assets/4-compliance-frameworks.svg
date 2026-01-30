@@ -1,0 +1,153 @@
+<svg width="1270" height="760" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f172a"/>
+      <stop offset="100%" style="stop-color:#1e293b"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1270" height="760" fill="url(#bgGrad4)"/>
+  
+  <!-- Title -->
+  <text x="635" y="60" fill="white" font-family="system-ui" font-size="36" font-weight="bold" text-anchor="middle">📋 Built-in Compliance Frameworks</text>
+  <text x="635" y="95" fill="#94a3b8" font-family="system-ui" font-size="18" text-anchor="middle">GDPR, HIPAA, SOC2, PCI-DSS - compliance checking out of the box</text>
+  
+  <!-- GDPR Card -->
+  <g transform="translate(60, 140)">
+    <rect width="270" height="280" rx="16" fill="#1e293b" stroke="#3b82f6" stroke-width="2"/>
+    <rect width="270" height="50" rx="16" fill="#3b82f6" opacity="0.3"/>
+    <rect y="40" width="270" height="10" fill="#3b82f6" opacity="0.3"/>
+    <text x="135" y="35" fill="#60a5fa" font-family="system-ui" font-size="18" font-weight="bold" text-anchor="middle">🇪🇺 GDPR</text>
+    
+    <g transform="translate(20, 70)">
+      <text x="0" y="20" fill="#e2e8f0" font-family="system-ui" font-size="13" font-weight="bold">Data Protection</text>
+      <text x="0" y="45" fill="#10b981" font-size="12">✓</text><text x="20" y="45" fill="#94a3b8" font-family="system-ui" font-size="11">Data minimization</text>
+      <text x="0" y="65" fill="#10b981" font-size="12">✓</text><text x="20" y="65" fill="#94a3b8" font-family="system-ui" font-size="11">Consent validation</text>
+      <text x="0" y="85" fill="#10b981" font-size="12">✓</text><text x="20" y="85" fill="#94a3b8" font-family="system-ui" font-size="11">Right to erasure</text>
+      <text x="0" y="105" fill="#10b981" font-size="12">✓</text><text x="20" y="105" fill="#94a3b8" font-family="system-ui" font-size="11">Data portability</text>
+      <text x="0" y="125" fill="#10b981" font-size="12">✓</text><text x="20" y="125" fill="#94a3b8" font-family="system-ui" font-size="11">Breach notification</text>
+    </g>
+    
+    <rect x="60" y="230" width="150" height="35" rx="8" fill="#3b82f6"/>
+    <text x="135" y="253" fill="white" font-family="system-ui" font-size="12" font-weight="bold" text-anchor="middle">Score: 98%</text>
+  </g>
+  
+  <!-- HIPAA Card -->
+  <g transform="translate(360, 140)">
+    <rect width="270" height="280" rx="16" fill="#1e293b" stroke="#ec4899" stroke-width="2"/>
+    <rect width="270" height="50" rx="16" fill="#ec4899" opacity="0.3"/>
+    <rect y="40" width="270" height="10" fill="#ec4899" opacity="0.3"/>
+    <text x="135" y="35" fill="#f472b6" font-family="system-ui" font-size="18" font-weight="bold" text-anchor="middle">🏥 HIPAA</text>
+    
+    <g transform="translate(20, 70)">
+      <text x="0" y="20" fill="#e2e8f0" font-family="system-ui" font-size="13" font-weight="bold">Healthcare Data</text>
+      <text x="0" y="45" fill="#10b981" font-size="12">✓</text><text x="20" y="45" fill="#94a3b8" font-family="system-ui" font-size="11">PHI protection</text>
+      <text x="0" y="65" fill="#10b981" font-size="12">✓</text><text x="20" y="65" fill="#94a3b8" font-family="system-ui" font-size="11">Access controls</text>
+      <text x="0" y="85" fill="#10b981" font-size="12">✓</text><text x="20" y="85" fill="#94a3b8" font-family="system-ui" font-size="11">Audit logging</text>
+      <text x="0" y="105" fill="#10b981" font-size="12">✓</text><text x="20" y="105" fill="#94a3b8" font-family="system-ui" font-size="11">Encryption at rest</text>
+      <text x="0" y="125" fill="#10b981" font-size="12">✓</text><text x="20" y="125" fill="#94a3b8" font-family="system-ui" font-size="11">Business associates</text>
+    </g>
+    
+    <rect x="60" y="230" width="150" height="35" rx="8" fill="#ec4899"/>
+    <text x="135" y="253" fill="white" font-family="system-ui" font-size="12" font-weight="bold" text-anchor="middle">Score: 95%</text>
+  </g>
+  
+  <!-- SOC2 Card -->
+  <g transform="translate(660, 140)">
+    <rect width="270" height="280" rx="16" fill="#1e293b" stroke="#f59e0b" stroke-width="2"/>
+    <rect width="270" height="50" rx="16" fill="#f59e0b" opacity="0.3"/>
+    <rect y="40" width="270" height="10" fill="#f59e0b" opacity="0.3"/>
+    <text x="135" y="35" fill="#fbbf24" font-family="system-ui" font-size="18" font-weight="bold" text-anchor="middle">🔐 SOC 2</text>
+    
+    <g transform="translate(20, 70)">
+      <text x="0" y="20" fill="#e2e8f0" font-family="system-ui" font-size="13" font-weight="bold">Security Controls</text>
+      <text x="0" y="45" fill="#10b981" font-size="12">✓</text><text x="20" y="45" fill="#94a3b8" font-family="system-ui" font-size="11">Security policies</text>
+      <text x="0" y="65" fill="#10b981" font-size="12">✓</text><text x="20" y="65" fill="#94a3b8" font-family="system-ui" font-size="11">Availability SLAs</text>
+      <text x="0" y="85" fill="#10b981" font-size="12">✓</text><text x="20" y="85" fill="#94a3b8" font-family="system-ui" font-size="11">Processing integrity</text>
+      <text x="0" y="105" fill="#10b981" font-size="12">✓</text><text x="20" y="105" fill="#94a3b8" font-family="system-ui" font-size="11">Confidentiality</text>
+      <text x="0" y="125" fill="#10b981" font-size="12">✓</text><text x="20" y="125" fill="#94a3b8" font-family="system-ui" font-size="11">Privacy controls</text>
+    </g>
+    
+    <rect x="60" y="230" width="150" height="35" rx="8" fill="#f59e0b"/>
+    <text x="135" y="253" fill="white" font-family="system-ui" font-size="12" font-weight="bold" text-anchor="middle">Score: 97%</text>
+  </g>
+  
+  <!-- PCI-DSS Card -->
+  <g transform="translate(960, 140)">
+    <rect width="270" height="280" rx="16" fill="#1e293b" stroke="#10b981" stroke-width="2"/>
+    <rect width="270" height="50" rx="16" fill="#10b981" opacity="0.3"/>
+    <rect y="40" width="270" height="10" fill="#10b981" opacity="0.3"/>
+    <text x="135" y="35" fill="#6ee7b7" font-family="system-ui" font-size="18" font-weight="bold" text-anchor="middle">💳 PCI-DSS</text>
+    
+    <g transform="translate(20, 70)">
+      <text x="0" y="20" fill="#e2e8f0" font-family="system-ui" font-size="13" font-weight="bold">Payment Security</text>
+      <text x="0" y="45" fill="#10b981" font-size="12">✓</text><text x="20" y="45" fill="#94a3b8" font-family="system-ui" font-size="11">Network security</text>
+      <text x="0" y="65" fill="#10b981" font-size="12">✓</text><text x="20" y="65" fill="#94a3b8" font-family="system-ui" font-size="11">Data protection</text>
+      <text x="0" y="85" fill="#10b981" font-size="12">✓</text><text x="20" y="85" fill="#94a3b8" font-family="system-ui" font-size="11">Access management</text>
+      <text x="0" y="105" fill="#10b981" font-size="12">✓</text><text x="20" y="105" fill="#94a3b8" font-family="system-ui" font-size="11">Monitoring & testing</text>
+      <text x="0" y="125" fill="#10b981" font-size="12">✓</text><text x="20" y="125" fill="#94a3b8" font-family="system-ui" font-size="11">Security policies</text>
+    </g>
+    
+    <rect x="60" y="230" width="150" height="35" rx="8" fill="#10b981"/>
+    <text x="135" y="253" fill="white" font-family="system-ui" font-size="12" font-weight="bold" text-anchor="middle">Score: 99%</text>
+  </g>
+  
+  <!-- Bottom section -->
+  <g transform="translate(60, 460)">
+    <rect width="1150" height="260" rx="16" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+    
+    <text x="30" y="40" fill="#e2e8f0" font-family="system-ui" font-size="18" font-weight="bold">How Compliance Checking Works</text>
+    
+    <!-- Step 1 -->
+    <g transform="translate(30, 70)">
+      <circle cx="20" cy="20" r="20" fill="#10b981"/>
+      <text x="20" y="26" fill="white" font-family="system-ui" font-size="14" font-weight="bold" text-anchor="middle">1</text>
+      <text x="55" y="18" fill="#e2e8f0" font-family="system-ui" font-size="13" font-weight="bold">Select Framework</text>
+      <text x="55" y="36" fill="#94a3b8" font-family="system-ui" font-size="11">@agentos compliance gdpr</text>
+    </g>
+    
+    <!-- Arrow -->
+    <text x="280" y="100" fill="#10b981" font-size="20">→</text>
+    
+    <!-- Step 2 -->
+    <g transform="translate(320, 70)">
+      <circle cx="20" cy="20" r="20" fill="#10b981"/>
+      <text x="20" y="26" fill="white" font-family="system-ui" font-size="14" font-weight="bold" text-anchor="middle">2</text>
+      <text x="55" y="18" fill="#e2e8f0" font-family="system-ui" font-size="13" font-weight="bold">Auto-Scan Code</text>
+      <text x="55" y="36" fill="#94a3b8" font-family="system-ui" font-size="11">Analyzes all data flows</text>
+    </g>
+    
+    <!-- Arrow -->
+    <text x="570" y="100" fill="#10b981" font-size="20">→</text>
+    
+    <!-- Step 3 -->
+    <g transform="translate(610, 70)">
+      <circle cx="20" cy="20" r="20" fill="#10b981"/>
+      <text x="20" y="26" fill="white" font-family="system-ui" font-size="14" font-weight="bold" text-anchor="middle">3</text>
+      <text x="55" y="18" fill="#e2e8f0" font-family="system-ui" font-size="13" font-weight="bold">Generate Report</text>
+      <text x="55" y="36" fill="#94a3b8" font-family="system-ui" font-size="11">Violations + fixes</text>
+    </g>
+    
+    <!-- Arrow -->
+    <text x="860" y="100" fill="#10b981" font-size="20">→</text>
+    
+    <!-- Step 4 -->
+    <g transform="translate(900, 70)">
+      <circle cx="20" cy="20" r="20" fill="#10b981"/>
+      <text x="20" y="26" fill="white" font-family="system-ui" font-size="14" font-weight="bold" text-anchor="middle">4</text>
+      <text x="55" y="18" fill="#e2e8f0" font-family="system-ui" font-size="13" font-weight="bold">Auto-Fix</text>
+      <text x="55" y="36" fill="#94a3b8" font-family="system-ui" font-size="11">One-click remediation</text>
+    </g>
+    
+    <!-- Example output -->
+    <rect x="30" y="130" width="1090" height="100" rx="8" fill="#0f172a"/>
+    <text x="50" y="160" fill="#10b981" font-family="monospace" font-size="12">$ @agentos compliance gdpr</text>
+    <text x="50" y="185" fill="#6ee7b7" font-family="monospace" font-size="12">✓ Data minimization: PASS</text>
+    <text x="50" y="205" fill="#6ee7b7" font-family="monospace" font-size="12">✓ Consent tracking: PASS</text>
+    <text x="350" y="185" fill="#6ee7b7" font-family="monospace" font-size="12">✓ Encryption: PASS</text>
+    <text x="350" y="205" fill="#6ee7b7" font-family="monospace" font-size="12">✓ Audit logging: PASS</text>
+    <text x="650" y="185" fill="#fbbf24" font-family="monospace" font-size="12">⚠ Data retention: NEEDS REVIEW</text>
+    <text x="650" y="205" fill="#10b981" font-family="monospace" font-size="12">Overall Score: 98% COMPLIANT</text>
+  </g>
+</svg>
