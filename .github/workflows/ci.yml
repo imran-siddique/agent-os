@@ -69,7 +69,7 @@ jobs:
         run: ruff check . --exit-zero
       
       - name: Run MyPy (type checking)
-        run: mypy modules/primitives modules/control-plane --ignore-missing-imports --exit-zero
+        run: mypy modules/primitives modules/control-plane --ignore-missing-imports || true
 
   # ==========================================================================
   # Security Scanning (Bandit + pip-audit)
@@ -126,13 +126,13 @@ jobs:
           
           # Warm up
           for _ in range(100):
-              kernel.check_policy({'action': 'test', 'resource': '/tmp/file'})
+              kernel._check_policy({'action': 'test', 'resource': '/tmp/file'})
           
           # Actual benchmark
           iterations = 1000
           start = time.perf_counter()
           for _ in range(iterations):
-              kernel.check_policy({'action': 'test', 'resource': '/tmp/file'})
+              kernel._check_policy({'action': 'test', 'resource': '/tmp/file'})
           elapsed = time.perf_counter() - start
           
           avg_ms = (elapsed / iterations) * 1000

@@ -22,6 +22,12 @@
 
 ---
 
+<p align="center">
+  <img src="assets/demo-terminal.svg" alt="Agent OS Terminal Demo" width="700"/>
+</p>
+
+---
+
 ## 🎯 What You'll Build in 5 Minutes
 
 ```python
