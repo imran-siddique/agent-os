@@ -1,20 +1,6 @@
 {
   "version": 2,
-  "name": "agentos-copilot",
-  "builds": [
-    {
-      "src": "dist/index.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "dist/index.js"
-    }
-  ],
-  "env": {
-    "NODE_ENV": "production",
-    "VERCEL": "1"
-  }
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/api" }
+  ]
 }
