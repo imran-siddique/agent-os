@@ -2,6 +2,8 @@
 
 > **"Your AI agent tried to `rm -rf`. We said no."**
 
+![Agent OS Demo](demo.svg)
+
 Visual demos showing Agent OS blocking dangerous AI agent operations in real-time.
 
 ## 🎬 Available Demos
@@ -146,4 +148,6 @@ safe_agent.invoke({"input": "Do something"})
 |------|-------------|
 | `crewai_safe_mode.py` | CrewAI demo (standalone) |
 | `langchain_safe_mode.py` | LangChain demo (standalone) |
+| `demo.svg` | Animated SVG for README/social |
+| `demo.tape` | VHS script (for Linux/WSL GIF recording) |
 | `README.md` | This file |
