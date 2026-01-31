@@ -1,171 +1,170 @@
-# Agent OS Chrome DevTools Extension
+# Agent OS Browser Extension
 
-> **Monitor inter-agent communication (AMB) and trust protocols (IATP) directly in Chrome DevTools.**
+> **Part of [Agent OS](https://github.com/imran-siddique/agent-os)** - Kernel-level governance for AI agents
+
+**Safe AI agents for GitHub, Jira, AWS Console, and more - directly in your browser.**
+
+## What's New in v1.0
+
+- 🤖 **Universal Agent Bar** - Access agents from any supported page
+- 🐙 **GitHub Integration** - PR reviews, policy checks, auto-merge
+- 📋 **Jira Integration** - Issue automation, sprint planning
+- ☁️ **AWS Console Integration** - Cost monitoring, security alerts
+- ⚙️ **Settings Page** - Full configuration UI
 
 ## Features
 
-### 🔍 AMB Message Monitor
-Real-time capture and inspection of Agent Message Bus traffic:
-- View all agent-to-agent messages
-- Filter by sender, recipient, or content
-- Inspect message signatures
-- Export message logs
+### 🐙 GitHub Integration
 
-### 🛡️ IATP Trust Inspector
-Monitor the Inter-Agent Trust Protocol:
-- View registered agents and trust levels
-- Track signature verifications
-- See trust revocations in real-time
-- Inspect public keys
+- **PR Policy Tab** - See policy check results on every pull request
+- **Auto-merge** - Merge safe PRs automatically
+- **Issue Labeler** - Auto-label issues based on content
+- **Security Scan** - Check code for vulnerabilities
 
-### 🕸️ Agent Network Visualizer
-Interactive graph of agent relationships:
-- See which agents are communicating
-- Color-coded by trust level
-- Real-time connection updates
+### 📋 Jira Integration
 
-### 📊 Statistics Dashboard
-Track key metrics:
-- Messages sent/received
-- Active agents
-- Verification success/failure rates
-- Policy violations
+- **Break into Subtasks** - Auto-decompose epics and stories
+- **Story Point Estimation** - AI-powered estimates
+- **Find Related PRs** - Link issues to code changes
+- **Sprint Planning** - Optimize sprint assignments
+
+### ☁️ AWS Console Integration
+
+- **Cost Alerts** - Get notified of budget overruns
+- **Security Scan** - Audit security groups and IAM policies
+- **Resource Optimization** - Suggestions for right-sizing
+- **Compliance Check** - Verify against SOC2, HIPAA, etc.
+
+### 🤖 Universal Agent Bar
+
+Floating action button on every supported page:
+- Create agents for the current page
+- View running agents
+- Access audit logs
+- Quick settings
 
 ## Installation
 
-### From Chrome Web Store (Coming Soon)
-1. Visit the Chrome Web Store
-2. Search for "Agent OS DevTools"
+### From Chrome Web Store
+
+1. Visit the [Chrome Web Store](https://chrome.google.com/webstore)
+2. Search for "AgentOS"
 3. Click "Add to Chrome"
 
 ### Manual Installation (Developer Mode)
+
 1. Clone the repository:
    ```bash
    git clone https://github.com/imran-siddique/agent-os.git
    cd agent-os/extensions/chrome
    ```
 
-2. Open Chrome and go to `chrome://extensions/`
+2. Install dependencies and build:
+   ```bash
+   npm install
+   npm run build
+   ```
 
-3. Enable "Developer mode" (toggle in top right)
+3. Open Chrome and go to `chrome://extensions/`
 
-4. Click "Load unpacked" and select the `chrome` folder
+4. Enable "Developer mode" (toggle in top right)
 
-5. The extension will appear in your extensions list
+5. Click "Load unpacked" and select the `dist` folder
 
-## Usage
+## Quick Start
 
-1. Open Chrome DevTools (F12 or Right-click → Inspect)
+1. **Click the extension icon** to open the popup
+2. **Sign in** with your AgentOS account (or create one)
+3. **Enable platforms** in Settings (GitHub, Jira, AWS)
+4. **Visit a supported site** and see agents in action
 
-2. Look for the "Agent OS" tab in DevTools
+## Popup Interface
 
-3. The extension automatically detects Agent OS instances on the page
+The popup shows:
+- **Status Banner** - AgentOS active/disabled
+- **Current Page** - Detected platform
+- **Active Agents** - Running agents with controls
+- **Suggested Agents** - Recommendations for the page
 
-4. Use the tabs to switch between:
-   - **AMB Messages**: View message traffic
-   - **IATP Trust**: Monitor trust relationships
-   - **Agent Network**: Visual graph of agents
-   - **Statistics**: Performance metrics
+## Configuration
 
-## Integration with Your App
+Click the ⚙️ icon to access settings:
 
-For the extension to detect your Agent OS instance, expose it on the window object:
+| Setting | Default | Description |
+|---------|---------|-------------|
+| Enable AgentOS | true | Master on/off switch |
+| Notifications | true | Browser notifications |
+| Auto-run Agents | false | Run agents automatically |
+| GitHub | true | Enable GitHub integration |
+| Jira | true | Enable Jira integration |
+| AWS | false | Enable AWS Console integration |
 
-```javascript
-import { KernelSpace, TrustRegistry, MessageBus } from 'agent-os';
+## Platform Support
 
-// Make Agent OS discoverable by the extension
-window.__AGENT_OS__ = {
-  kernel: new KernelSpace(policy),
-  trustRegistry: new TrustRegistry(),
-  messageBus: new MessageBus(),
-  
-  // Optional: emit method for real-time monitoring
-  emit(event, data) {
-    // The extension hooks into this
-    console.log(`[Agent OS] ${event}:`, data);
-  },
-  
-  // Helper for trust info lookup
-  getTrustInfo(agentId) {
-    return this.trustRegistry.getAgent(agentId);
-  }
-};
-```
+### Supported Platforms
 
-## DevTools API
+| Platform | Status | Features |
+|----------|--------|----------|
+| GitHub | ✅ Full | PR reviews, issue automation, security |
+| Jira | ✅ Full | Sprint planning, estimation, breakdown |
+| AWS Console | ✅ Full | Cost, security, optimization |
+| GitLab | 🚧 Coming | Similar to GitHub |
+| Linear | 🚧 Coming | Similar to Jira |
 
-The extension provides a JavaScript API accessible from the DevTools console:
+### Browser Support
 
-```javascript
-// Get message history
-__AGENT_OS_DEVTOOLS__.getMessages()
+| Browser | Status |
+|---------|--------|
+| Chrome | ✅ Supported |
+| Edge | ✅ Supported |
+| Brave | ✅ Supported |
+| Firefox | 🚧 Coming soon |
+| Safari | 🚧 Planned |
 
-// Get registered agents
-__AGENT_OS_DEVTOOLS__.getAgents()
+## Privacy & Security
 
-// Export logs
-__AGENT_OS_DEVTOOLS__.exportLogs()
-
-// Clear captured data
-__AGENT_OS_DEVTOOLS__.clear()
-```
-
-## Keyboard Shortcuts
-
-| Shortcut | Action |
-|----------|--------|
-| `Ctrl+Shift+F` | Filter messages |
-| `Ctrl+K` | Clear messages |
-| `Ctrl+R` | Refresh trust table |
-| `Ctrl+E` | Export logs |
-
-## Privacy
-
-- **Local-only**: All data stays in your browser
-- **No network calls**: Extension never sends data externally
-- **Session-only**: Data is not persisted between sessions
-- **Inspect the source**: Fully open source
+- **Minimal Permissions** - Only requests what's needed
+- **Local-first** - Agent configs stored locally
+- **Optional Cloud Sync** - Encrypted if enabled
+- **No Tracking** - No analytics without consent
+- **Open Source** - Inspect the code yourself
 
 ## Development
 
 ```bash
-# Install dependencies (if any)
+# Install dependencies
 npm install
 
-# Build (if using TypeScript)
+# Development build (watch mode)
+npm run dev
+
+# Production build
 npm run build
 
-# Load extension in Chrome
-# chrome://extensions → Load unpacked → select this folder
+# Type checking
+npm run type-check
+
+# Linting
+npm run lint
 ```
 
-### File Structure
+### Project Structure
 
 ```
 chrome/
+├── src/
+│   ├── background/      # Service worker
+│   ├── content/         # Platform content scripts
+│   │   ├── github.ts
+│   │   ├── jira.ts
+│   │   └── aws.ts
+│   ├── popup/           # Extension popup (React)
+│   ├── options/         # Settings page (React)
+│   └── shared/          # Shared utilities
 ├── manifest.json        # Extension manifest
-├── background.js        # Service worker
-├── content.js          # Content script injected into pages
-├── injected.js         # Script injected into page context
-├── devtools/
-│   ├── devtools.html   # DevTools page entry
-│   ├── devtools.js     # DevTools panel registration
-│   ├── panel.html      # Main panel UI
-│   └── panel.js        # Panel logic
-├── popup/
-│   ├── popup.html      # Toolbar popup
-│   └── popup.js        # Popup logic
-└── icons/              # Extension icons
+├── webpack.config.js    # Build configuration
+└── package.json
 ```
-
-## Browser Support
-
-- ✅ Chrome 88+
-- ✅ Edge 88+
-- ✅ Brave 1.20+
-- ❌ Firefox (coming soon - requires WebExtensions port)
-- ❌ Safari (not planned)
 
 ## Contributing
 
@@ -174,6 +173,12 @@ See [CONTRIBUTING.md](../../CONTRIBUTING.md) for guidelines.
 ## License
 
 MIT License - see [LICENSE](../../LICENSE).
+
+---
+
+**Made with 🛡️ by the Agent OS team**
+
+[GitHub](https://github.com/imran-siddique/agent-os) | [Documentation](https://agent-os.dev/docs) | [Report Issue](https://github.com/imran-siddique/agent-os/issues)
 
 ---
 

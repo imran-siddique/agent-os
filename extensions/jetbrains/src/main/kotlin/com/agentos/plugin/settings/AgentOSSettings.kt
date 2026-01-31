@@ -18,6 +18,11 @@ class AgentOSSettings : PersistentStateComponent<AgentOSSettings.State> {
         var enabled: Boolean = true,
         var mode: String = "basic",  // basic, enhanced, enterprise
         
+        // API Configuration
+        var apiKey: String = "",
+        var apiEndpoint: String = "https://api.agent-os.dev/v1",
+        var organizationId: String = "",
+        
         // Policies
         var blockDestructiveSQL: Boolean = true,
         var blockFileDeletes: Boolean = true,
@@ -38,7 +43,17 @@ class AgentOSSettings : PersistentStateComponent<AgentOSSettings.State> {
         
         // Notifications
         var showBlockedNotifications: Boolean = true,
-        var showWarningNotifications: Boolean = true
+        var showWarningNotifications: Boolean = true,
+        
+        // Agent Settings
+        var autoSyncAgents: Boolean = true,
+        var agentRunConfirmation: Boolean = true,
+        var defaultApprovalMode: String = "none",  // none, single, multi, auto
+        
+        // Enterprise
+        var policyRepositoryUrl: String = "",
+        var teamTemplatesUrl: String = "",
+        var complianceFrameworks: List<String> = emptyList()
     )
     
     private var myState = State()

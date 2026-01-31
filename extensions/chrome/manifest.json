@@ -1,28 +1,53 @@
 {
   "manifest_version": 3,
-  "name": "Agent OS DevTools",
-  "version": "0.1.0",
-  "description": "Developer tools for monitoring Agent OS inter-agent communication (AMB) and trust protocols (IATP)",
+  "name": "AgentOS - Safe AI Agents",
+  "version": "1.0.0",
+  "description": "Build and run safe AI agents across GitHub, Jira, AWS Console and more",
   "author": "Agent OS Team",
   "homepage_url": "https://github.com/imran-siddique/agent-os",
   "permissions": [
     "activeTab",
     "storage",
+    "notifications",
     "webNavigation"
   ],
   "host_permissions": [
-    "<all_urls>"
+    "https://github.com/*",
+    "https://*.atlassian.net/*",
+    "https://jira.*/*",
+    "https://*.console.aws.amazon.com/*",
+    "https://gitlab.com/*",
+    "https://linear.app/*"
   ],
-  "devtools_page": "devtools/devtools.html",
   "background": {
     "service_worker": "background.js",
     "type": "module"
   },
+  "action": {
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png"
+    },
+    "default_title": "AgentOS",
+    "default_popup": "popup.html"
+  },
+  "options_page": "options.html",
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"],
-      "run_at": "document_start"
+      "matches": ["https://github.com/*"],
+      "js": ["content/github.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://*.atlassian.net/*", "https://jira.*/*"],
+      "js": ["content/jira.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://*.console.aws.amazon.com/*"],
+      "js": ["content/aws.js"],
+      "run_at": "document_idle"
     }
   ],
   "icons": {
@@ -31,14 +56,7 @@
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "action": {
-    "default_icon": {
-      "16": "icons/icon16.png",
-      "32": "icons/icon32.png"
-    },
-    "default_title": "Agent OS DevTools",
-    "default_popup": "popup/popup.html"
-  },
+  "devtools_page": "devtools/devtools.html",
   "web_accessible_resources": [
     {
       "resources": ["injected.js"],

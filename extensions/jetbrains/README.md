@@ -2,7 +2,15 @@
 
 > **Part of [Agent OS](https://github.com/imran-siddique/agent-os)** - Kernel-level governance for AI agents
 
-**Kernel-level safety for AI coding assistants in IntelliJ, PyCharm, WebStorm, and all JetBrains IDEs.**
+**Enterprise-grade AI agent safety for IntelliJ, PyCharm, WebStorm, and all JetBrains IDEs.**
+
+## What's New in v1.0
+
+- 🤖 **Agent Creation Wizard** - Build agents with a few clicks using templates
+- ⚙️ **.agentos.yml Support** - Git-tracked project configuration
+- ▶️ **Run/Debug Agents** - Native IDE run configurations
+- 📋 **Enhanced Tool Window** - Tabbed UI with agent management
+- 🎯 **Context Menu Actions** - Create agents from selected code
 
 ## The Problem
 
@@ -20,6 +28,7 @@ Agent OS wraps your AI assistant with a kernel that provides:
 - 🔍 **Multi-model code review (CMVK)** - Verify code with GPT-4, Claude, and Gemini
 - 📋 **Complete audit trail** - Log every AI suggestion and your decisions
 - 👥 **Team-shared policies** - Consistent safety across your organization
+- 🤖 **Agent management** - Create, run, and monitor AI agents from the IDE
 
 ## Installation
 
@@ -35,11 +44,58 @@ Agent OS wraps your AI assistant with a kernel that provides:
 2. Open Settings/Preferences → Plugins → ⚙️ → Install Plugin from Disk
 3. Select the downloaded file
 
+## Quick Start
+
+1. **Open Agent OS Tool Window**: View → Tool Windows → Agent OS
+2. **Create Your First Agent**: Click "+ Create Agent" and follow the wizard
+3. **Configure Policies**: Settings → Tools → Agent OS
+4. **Generate Config File**: Tools → Agent OS → Generate .agentos.yml
+
 ## Features
 
-### 1. Real-Time Code Analysis
+### 1. Agent Creation Wizard
 
-Agent OS analyzes code as you type and highlights dangerous patterns:
+Build agents in minutes with templates:
+
+- 🔄 **Data Processing** - Process files and streams
+- 🌐 **API Integration** - Connect to external APIs
+- 🧪 **Test Generator** - Auto-generate unit tests
+- 🔍 **Code Reviewer** - Review PRs for quality
+- 📦 **Deployment** - CI/CD automation
+- 🛡️ **Security Scanner** - Scan for vulnerabilities
+
+### 2. Project Configuration (.agentos.yml)
+
+```yaml
+# .agentos.yml - Git-tracked agent configuration
+organization: acme-corp
+policies:
+  - production-safety
+  - secret-exposure
+
+agents:
+  code-reviewer:
+    language: kotlin
+    trigger: git_push
+    policies:
+      - code-quality
+    approval: auto
+
+  test-generator:
+    language: java
+    trigger: on_file_save
+    approval: none
+```
+
+### 3. Run/Debug Agents
+
+Native IDE integration:
+- Create run configurations for agents
+- Debug agents with breakpoints
+- View agent output in console
+- Stop/pause agents from toolbar
+
+### 4. Real-Time Code Analysis
 
 | Policy | Default | Description |
 |--------|---------|-------------|
@@ -49,58 +105,35 @@ Agent OS analyzes code as you type and highlights dangerous patterns:
 | Privilege Escalation | ✅ On | Block sudo, chmod 777 |
 | Unsafe Network | ❌ Off | Block HTTP (non-HTTPS) calls |
 
-### 2. Inline Warnings
+### 5. Context Menu Actions
 
-Dangerous code is highlighted directly in the editor with gutter icons:
+Right-click on code to access:
+- **Create Agent from Selection** - Turn code into an agent
+- **Convert to Safe Agent** - Add safety checks
+- **Add Policy Check Here** - Insert validation
+- **Review with CMVK** - Multi-model verification
 
-```
-🛡️ Line 42: Destructive SQL operation detected
-   DELETE FROM users WHERE active = false
-   
-   [Allow Once] [Add to Allowlist] [Learn More]
-```
+### 6. Enhanced Tool Window
 
-### 3. CMVK Multi-Model Review
+Three tabs for complete visibility:
+- **Agents** - List, start, stop, pause agents
+- **Audit Log** - See all actions and policy checks
+- **Policies** - View and configure safety rules
 
-Right-click on code and select **"Agent OS → Review with CMVK"**:
+### 7. CMVK Multi-Model Review
+
+Get consensus from multiple AI models:
 
 ```
 🛡️ Agent OS Code Review
 
-Consensus: 66% Agreement
+Consensus: 100% Agreement
 
-✅ GPT-4:     No issues
-✅ Claude:    No issues  
-⚠️  Gemini:   Potential SQL injection (Line 42)
+✅ GPT-4:   No issues
+✅ Claude:  No issues  
+✅ Gemini:  No issues
 
-Recommendations:
-1. Use parameterized queries to prevent SQL injection
-```
-
-### 4. Tool Window
-
-The Agent OS tool window shows:
-- Safety status overview
-- Recent blocked operations
-- Audit log
-- Policy configuration
-
-### 5. Team Policies
-
-Share policies via `.idea/agent-os.xml` or `.agent-os/config.yaml`:
-
-```yaml
-# .agent-os/config.yaml
-policies:
-  blockDestructiveSQL: true
-  blockFileDeletes: true
-  blockSecretExposure: true
-  
-customRules:
-  - name: no_console_log
-    pattern: "console\\.log"
-    message: "Remove console.log before committing"
-    severity: warning
+Code appears safe.
 ```
 
 ## Configuration
@@ -110,11 +143,11 @@ Open Settings/Preferences → Tools → Agent OS:
 | Setting | Default | Description |
 |---------|---------|-------------|
 | Enable Agent OS | true | Enable/disable all checks |
-| Mode | basic | basic, enhanced (CMVK), enterprise |
+| API Key | - | Your AgentOS API key |
+| API Endpoint | api.agent-os.dev | API server URL |
 | CMVK Enabled | false | Enable multi-model verification |
-| CMVK Models | GPT-4, Claude, Gemini | Models for verification |
-| Consensus Threshold | 80% | Required agreement |
-| Audit Retention | 7 days | Days to keep logs |
+| Auto-sync Agents | true | Sync with cloud backend |
+| Agent Run Confirmation | true | Confirm before running agents |
 
 ## Supported IDEs
 
@@ -129,16 +162,17 @@ Open Settings/Preferences → Tools → Agent OS:
 - DataGrip
 - Android Studio
 
-**Requires IDE version 2023.1 or later**
+**Requires IDE version 2024.1 or later**
 
-## Actions
+## Actions & Shortcuts
 
 | Action | Shortcut | Description |
 |--------|----------|-------------|
+| Create New Agent | `Ctrl+Shift+N` | Open agent wizard |
 | Review with CMVK | `Ctrl+Shift+R` | Multi-model code review |
 | Toggle Agent OS | `Ctrl+Shift+A` | Enable/disable protection |
 | Show Audit Log | - | Open audit log tool window |
-| Configure Policies | - | Open settings |
+| Generate .agentos.yml | - | Create config file |
 
 ## Privacy
 
@@ -151,6 +185,8 @@ Open Settings/Preferences → Tools → Agent OS:
 
 ```bash
 cd extensions/jetbrains
+
+# Build the plugin
 ./gradlew build
 
 # Run in sandbox IDE
@@ -166,7 +202,7 @@ See [CONTRIBUTING.md](../../CONTRIBUTING.md) for guidelines.
 
 ## License
 
-MIT License - see [LICENSE](LICENSE).
+MIT License - see [LICENSE](../../LICENSE).
 
 ---
 

@@ -13,6 +13,9 @@
             <li>🔍 Multi-model code review (CMVK)</li>
             <li>📋 Complete audit trail</li>
             <li>👥 Team-shared policies</li>
+            <li>🤖 Agent creation wizard</li>
+            <li>⚙️ .agentos.yml configuration support</li>
+            <li>▶️ Run/debug agents from IDE</li>
         </ul>
     ]]></description>
 
@@ -36,6 +39,26 @@
         
         <applicationService 
             serviceImplementation="com.agentos.plugin.settings.AgentOSSettings"/>
+        
+        <!-- Project-level Agent Service -->
+        <projectService 
+            serviceImplementation="com.agentos.plugin.agents.AgentService"/>
+        
+        <!-- API Service -->
+        <applicationService 
+            serviceImplementation="com.agentos.plugin.services.AgentOSApiService"/>
+        
+        <!-- Run Configuration -->
+        <configurationType 
+            implementation="com.agentos.plugin.runconfig.AgentRunConfigurationType"/>
+        
+        <!-- File Type for .agentos.yml -->
+        <fileType 
+            name="AgentOS Config"
+            implementationClass="com.intellij.openapi.fileTypes.PlainTextFileType"
+            fieldName="INSTANCE"
+            language="yaml"
+            extensions="agentos.yml;agentos.yaml"/>
         
         <!-- Code Inspections -->
         <localInspection 
@@ -97,6 +120,14 @@
         <group id="AgentOS.MainMenu" text="Agent OS" description="Agent OS actions">
             <add-to-group group-id="ToolsMenu" anchor="last"/>
             
+            <action id="AgentOS.CreateAgent" 
+                    class="com.agentos.plugin.actions.CreateAgentAction"
+                    text="Create New Agent..." 
+                    description="Create a new AgentOS agent"
+                    icon="/icons/add.svg">
+                <keyboard-shortcut keymap="$default" first-keystroke="ctrl shift N"/>
+            </action>
+            
             <action id="AgentOS.ReviewWithCMVK" 
                     class="com.agentos.plugin.actions.ReviewWithCMVKAction"
                     text="Review with CMVK" 
@@ -123,13 +154,48 @@
                     class="com.agentos.plugin.actions.ConfigurePoliciesAction"
                     text="Configure Policies" 
                     description="Open Agent OS settings"/>
+            
+            <separator/>
+            
+            <action id="AgentOS.GenerateConfigFile" 
+                    class="com.agentos.plugin.actions.GenerateConfigFileAction"
+                    text="Generate .agentos.yml" 
+                    description="Generate a default AgentOS configuration file"/>
         </group>
         
         <!-- Editor Context Menu -->
-        <group id="AgentOS.EditorPopupMenu">
+        <group id="AgentOS.EditorPopupMenu" text="AgentOS">
             <add-to-group group-id="EditorPopupMenu" anchor="last"/>
             <separator/>
+            
+            <action id="AgentOS.CreateAgentFromSelection" 
+                    class="com.agentos.plugin.actions.CreateAgentFromSelectionAction"
+                    text="Create Agent from Selection" 
+                    description="Create a new agent using the selected code"/>
+            
+            <action id="AgentOS.ConvertToSafeAgent" 
+                    class="com.agentos.plugin.actions.ConvertToSafeAgentAction"
+                    text="Convert to Safe Agent" 
+                    description="Add safety checks to the selected code"/>
+            
+            <action id="AgentOS.AddPolicyCheck" 
+                    class="com.agentos.plugin.actions.AddPolicyCheckAction"
+                    text="Add Policy Check Here" 
+                    description="Add a policy check at the current location"/>
+            
+            <separator/>
             <reference ref="AgentOS.ReviewWithCMVK"/>
+        </group>
+        
+        <!-- Project View Context Menu -->
+        <group id="AgentOS.ProjectViewMenu">
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
+            <separator/>
+            
+            <action id="AgentOS.DeployAsAgent" 
+                    class="com.agentos.plugin.actions.DeployAsAgentAction"
+                    text="Deploy as AgentOS Agent" 
+                    description="Deploy the selected file/folder as an agent"/>
         </group>
     </actions>
 </idea-plugin>
