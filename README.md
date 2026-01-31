@@ -52,13 +52,15 @@ result = await kernel.execute(data_analyst, "revenue by region")
 # ❌ "DROP TABLE users" → BLOCKED (not by prompt, by kernel)
 ```
 
-**Result:** Your agents run with 0% policy violations, guaranteed by the kernel—not by hoping the LLM follows instructions.
+**Result:** Defined policies are deterministically enforced by the kernel—not by hoping the LLM follows instructions.
 
 ---
 
 ## What is Agent OS?
 
-Agent OS applies operating system concepts to AI agent governance. Instead of relying on prompts to enforce safety ("please don't do dangerous things"), it provides kernel-level enforcement where policy violations are blocked before execution.
+Agent OS applies operating system concepts to AI agent governance. Instead of relying on prompts to enforce safety ("please don't do dangerous things"), it provides application-level middleware that intercepts and validates agent actions before execution.
+
+> **Note:** This is application-level enforcement (Python middleware), not OS kernel-level isolation. Agents run in the same process. For true isolation, run agents in containers.
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -264,15 +266,18 @@ See [integrations documentation](docs/integrations.md) for full details.
 
 ---
 
-## How It Differs from LangChain/CrewAI
+## How It Differs from Other Tools
 
-LangChain and CrewAI are frameworks for building agents. Agent OS is infrastructure for governing them.
+**Agent Frameworks** (LangChain, CrewAI): Build agents. Agent OS governs them. Use together.
 
-| | LangChain/CrewAI | Agent OS |
-|---|------------------|----------|
-| **Purpose** | Build agents | Govern agents |
-| **Layer** | Application | Infrastructure |
-| **Safety** | Prompt-based | Kernel-enforced |
+**Safety Tools** (NeMo Guardrails, LlamaGuard): Input/output filtering. Agent OS intercepts actions mid-execution.
+
+| Tool | Focus | When it acts |
+|------|-------|--------------|
+| LangChain/CrewAI | Building agents | N/A (framework) |
+| NeMo Guardrails | Input/output filtering | Before/after LLM call |
+| LlamaGuard | Content classification | Before/after LLM call |
+| **Agent OS** | Action interception | During execution |
 
 You can use them together:
 
@@ -480,8 +485,9 @@ This is a research project exploring kernel concepts for AI agent governance. Th
 - **Safe tool plugins: HTTP client, file reader, calculator, JSON parser, datetime, text**
 
 **What's experimental:**
-- The "0% violation" claim needs formal verification
-- Benchmark numbers need independent reproduction
+- Policy enforcement is deterministic for defined rules, but novel attack vectors may bypass blocklist-style policies
+- Benchmark (N=60 prompts) needs independent reproduction with adversarial datasets (AdvBench, HarmBench)
+- "Kernel" is application-level middleware, not OS-level isolation
 - Some integrations are basic wrappers
 
 ---
@@ -528,8 +534,8 @@ export ANTHROPIC_API_KEY=sk-ant-...
 **Q: How is this different from LangChain/CrewAI?**
 A: LangChain and CrewAI are *frameworks* for building agents. Agent OS is *infrastructure* for governing them. Use them together—wrap your LangChain agent with Agent OS for safety guarantees.
 
-**Q: What does "0% policy violations" mean?**
-A: When a policy blocks an action, it's blocked at the kernel level—not by asking the LLM nicely. The LLM can try to do dangerous things, but the kernel intercepts and stops it. This is similar to how an OS can prevent a process from accessing protected memory.
+**Q: What does "deterministic enforcement" mean?**
+A: When a policy matches an action, that action is blocked—not by asking the LLM nicely. The middleware intercepts and stops it. However, this only works for patterns the policy engine knows about. Novel attacks that don't match defined rules will pass through.
 
 **Q: Do I need to rewrite my agents?**
 A: No. Agent OS provides integration wrappers for LangChain, CrewAI, AutoGen, OpenAI Assistants, and Semantic Kernel. Wrap your existing code and add governance.
