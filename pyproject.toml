@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "agent-os"
-version = "1.1.0"
-description = "A kernel architecture for governing autonomous AI agents"
+version = "1.2.0"
+description = "A kernel architecture for governing autonomous AI agents with Nexus Trust Exchange"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.9"
@@ -61,6 +61,8 @@ iatp = [
     "fastapi>=0.100.0",
     "uvicorn>=0.20.0",
     "httpx>=0.24.0",
+    "cryptography>=42.0.0",
+    "pynacl>=1.5.0",
 ]
 
 amb = [
@@ -78,9 +80,15 @@ mcp = [
     "mcp>=1.0.0",
 ]
 
+nexus = [
+    "agent-os[iatp]",
+    "pyyaml>=6.0.0",
+    "structlog>=24.1.0",
+]
+
 # Bundles
 full = [
-    "agent-os[cmvk,iatp,amb,observability,mcp]",
+    "agent-os[cmvk,iatp,amb,observability,mcp,nexus]",
 ]
 
 # Development (includes all optional deps for full testing)
@@ -104,12 +112,13 @@ dev = [
 agent-os = "agent_os.cli:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/agent_os"]
+packages = ["src/agent_os", "modules"]
 
 [tool.hatch.build.targets.sdist]
 include = [
     "/src",
     "/modules",
+    "/services",
     "/docs",
     "/README.md",
     "/LICENSE",
