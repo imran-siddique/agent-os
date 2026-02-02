@@ -1,19 +1,29 @@
-# AgentOS MCP Server for Claude Desktop
+# AgentOS MCP Server
 
 > **Build safe AI agents with natural language and 0% policy violations**
 
-[![npm version](https://badge.fury.io/js/@agentos%2Fmcp-server.svg)](https://www.npmjs.com/package/@agentos/mcp-server)
+[![npm version](https://badge.fury.io/js/agentos-mcp-server.svg)](https://www.npmjs.com/package/agentos-mcp-server)
+[![MCP Registry](https://img.shields.io/badge/MCP%20Registry-io.github.imran--siddique%2Fagentos-blue)](https://registry.modelcontextprotocol.io/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 **Part of [Agent OS](https://github.com/imran-siddique/agent-os)** - Kernel-level governance for AI agents
 
+## 🚀 Quick Install
+
+```bash
+npx agentos-mcp-server
+```
+
+**npm:** [`agentos-mcp-server`](https://www.npmjs.com/package/agentos-mcp-server)  
+**MCP Registry:** `io.github.imran-siddique/agentos`
+
 ## Overview
 
-AgentOS MCP Server brings the complete Agent OS safety framework directly into Claude Desktop via the Model Context Protocol (MCP). Create, deploy, and manage policy-compliant autonomous agents through natural conversation with Claude.
+AgentOS MCP Server brings the complete Agent OS safety framework to any MCP-compatible AI assistant including **Claude Desktop**, **GitHub Copilot**, **Cursor**, and more. Create, deploy, and manage policy-compliant autonomous agents through natural conversation.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                     Claude Desktop                           │
+│           Claude Desktop / Copilot / Cursor                  │
 │  ┌────────────────────────────────────────────────────────┐ │
 │  │            "Create an agent that..."                    │ │
 │  └──────────────────────┬─────────────────────────────────┘ │
@@ -105,7 +115,7 @@ Add to your `claude_desktop_config.json`:
   "mcpServers": {
     "agentos": {
       "command": "npx",
-      "args": ["-y", "@agentos/mcp-server"],
+      "args": ["-y", "agentos-mcp-server"],
       "env": {
         "AGENTOS_POLICY_MODE": "strict"
       }

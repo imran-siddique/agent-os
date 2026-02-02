@@ -1,5 +1,52 @@
 # AgentOS for GitHub Copilot
 
+> ⚠️ **DEPRECATED**: GitHub Copilot Extensions (GitHub Apps) were deprecated on November 10, 2025.
+> 
+> **Use the MCP Server instead:** [`extensions/mcp-server`](../mcp-server/)
+> 
+> See: [GitHub's deprecation announcement](https://github.blog/changelog/2025-09-24-deprecate-github-copilot-extensions-github-apps/)
+
+---
+
+## Migration to MCP
+
+The Model Context Protocol (MCP) is now the standard for extending AI assistants like GitHub Copilot, Claude Desktop, and Cursor.
+
+### Quick Start with MCP
+
+Install from npm:
+```bash
+npx agentos-mcp-server
+```
+
+Or add to your Claude Desktop config (`%APPDATA%\Claude\claude_desktop_config.json`):
+```json
+{
+  "mcpServers": {
+    "agentos": {
+      "command": "npx",
+      "args": ["-y", "agentos-mcp-server"]
+    }
+  }
+}
+```
+
+**MCP Registry:** `io.github.imran-siddique/agentos`
+
+**npm Package:** [`agentos-mcp-server`](https://www.npmjs.com/package/agentos-mcp-server)
+
+**Documentation:** [`extensions/mcp-server/README.md`](../mcp-server/README.md)
+
+---
+
+## Legacy Documentation (Archived)
+
+The content below is preserved for historical reference only. This approach no longer works.
+
+---
+
+# AgentOS for GitHub Copilot (DEPRECATED)
+
 > **Build safe AI agents with natural language and 0% policy violations**
 
 [![npm version](https://badge.fury.io/js/@agent-os%2Fcopilot-extension.svg)](https://www.npmjs.com/package/@agent-os/copilot-extension)

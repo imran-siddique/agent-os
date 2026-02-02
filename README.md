@@ -106,9 +106,9 @@ agent-os/
 │   ├── mute-agent/           # Layer 4: Face/Hands architecture
 │   └── mcp-kernel-server/    # Integration: MCP protocol support
 ├── extensions/               # IDE & AI Assistant Extensions
+│   ├── mcp-server/           # ⭐ MCP Server (Copilot, Claude, Cursor)
 │   ├── vscode/               # VS Code extension
-│   ├── mcp-server/           # Claude Desktop MCP Server
-│   ├── copilot/              # GitHub Copilot integration
+│   ├── copilot/              # GitHub Copilot (DEPRECATED - use mcp-server)
 │   ├── jetbrains/            # IntelliJ/PyCharm plugin
 │   ├── cursor/               # Cursor IDE extension
 │   ├── chrome/               # Chrome extension
@@ -149,11 +149,11 @@ agent-os/
 
 | Extension | Description |
 |-----------|-------------|
+| [`mcp-server`](extensions/mcp-server/) | ⭐ **MCP Server** - Works with Claude, Copilot, Cursor (`npx agentos-mcp-server`) |
 | [`vscode`](extensions/vscode/) | VS Code extension with real-time policy checks |
 | [`jetbrains`](extensions/jetbrains/) | IntelliJ, PyCharm, WebStorm plugin |
 | [`cursor`](extensions/cursor/) | Cursor IDE extension (Composer integration) |
-| [`copilot`](extensions/copilot/) | GitHub Copilot safety layer |
-| [`mcp-server`](extensions/mcp-server/) | **NEW** MCP Server for Claude Desktop |
+| [`copilot`](extensions/copilot/) | ~~GitHub Copilot safety layer~~ (DEPRECATED - use mcp-server) |
 | [`github-cli`](extensions/github-cli/) | `gh agent-os` CLI extension |
 | [`chrome`](extensions/chrome/) | Chrome extension for web agents |
 
@@ -404,31 +404,35 @@ agentos init
 
 ---
 
-## MCP Integration (Claude Desktop)
+## MCP Integration (Claude Desktop, GitHub Copilot, Cursor)
 
-Agent OS provides an MCP server for Claude Desktop integration:
+Agent OS provides an MCP server that works with any MCP-compatible AI assistant:
 
 ```bash
-# Install
-pip install agent-os[mcp]
+# Quick install via npx
+npx agentos-mcp-server
+```
 
-# Run MCP server
-mcp-kernel-server --stdio
+**npm:** [`agentos-mcp-server`](https://www.npmjs.com/package/agentos-mcp-server)  
+**MCP Registry:** `io.github.imran-siddique/agentos`
 
-# Or add to claude_desktop_config.json:
+Add to your config file:
+
+**Claude Desktop** (`%APPDATA%\Claude\claude_desktop_config.json` on Windows):
+```json
 {
   "mcpServers": {
-    "agent-os": {
-      "command": "mcp-kernel-server",
-      "args": ["--stdio"]
+    "agentos": {
+      "command": "npx",
+      "args": ["-y", "agentos-mcp-server"]
     }
   }
 }
 ```
 
-Exposes tools: `cmvk_verify`, `kernel_execute`, `iatp_sign`, `iatp_verify`
+**Features:** 10 tools for agent creation, policy enforcement, compliance checking (SOC 2, GDPR, HIPAA), human-in-the-loop approvals, and audit logging.
 
-See [MCP server documentation](modules/mcp-kernel-server/README.md).
+See [MCP server documentation](extensions/mcp-server/README.md) for full details.
 
 ---
 

@@ -1,0 +1,37 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.imran-siddique/agentos",
+  "description": "Build and manage policy-compliant AI agents with safety enforcement and compliance checking",
+  "repository": {
+    "url": "https://github.com/imran-siddique/agent-os",
+    "source": "github",
+    "subfolder": "extensions/mcp-server"
+  },
+  "version": "1.0.1",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "agentos-mcp-server",
+      "version": "1.0.1",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "description": "Policy enforcement mode: strict (block all violations) or permissive (warn only)",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false,
+          "name": "AGENTOS_POLICY_MODE"
+        },
+        {
+          "description": "Log level: debug, info, warn, or error",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false,
+          "name": "AGENTOS_LOG_LEVEL"
+        }
+      ]
+    }
+  ]
+}

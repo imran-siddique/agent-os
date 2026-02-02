@@ -154,3 +154,6 @@ experiments/outputs/
 experiments/logs/
 
 node_modules/
+
+# MCP Registry tokens
+.mcpregistry_*
