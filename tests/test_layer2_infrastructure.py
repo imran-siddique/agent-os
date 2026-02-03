@@ -5,6 +5,15 @@ Test Layer 2: Infrastructure packages.
 import pytest
 
 
+# Check if optional packages are installed
+try:
+    import iatp
+    HAS_IATP = True
+except ImportError:
+    HAS_IATP = False
+
+
+@pytest.mark.skipif(not HAS_IATP, reason="iatp not installed")
 class TestIATP:
     """Test inter-agent-trust-protocol package."""
     

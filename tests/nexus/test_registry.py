@@ -111,7 +111,8 @@ class TestAgentRegistry:
         with pytest.raises(IATPUnverifiedPeerException) as exc:
             await registry.verify_peer("did:nexus:unknown")
         
-        assert "registration_url" in str(exc.value.registration_url)
+        assert "unknown" in str(exc.value)
+        assert exc.value.registration_url.startswith("https://nexus.agent-os.dev/register")
     
     @pytest.mark.asyncio
     async def test_verify_low_trust_peer(self):
@@ -188,7 +189,7 @@ class TestIATPExceptions:
         exc = IATPUnverifiedPeerException("unknown-agent")
         
         assert "unknown-agent" in str(exc)
-        assert "registration_url" in exc.registration_url
+        assert exc.registration_url.startswith("https://nexus.agent-os.dev/register")
         assert exc.code == "IATP_UNVERIFIED_PEER"
     
     def test_unverified_peer_iatp_error(self):

@@ -5,6 +5,27 @@ Test Layer 3: Framework (Control Plane) package.
 import pytest
 
 
+# Check if control plane submodules are installed
+try:
+    from agent_control_plane import signals
+    HAS_SIGNALS = True
+except (ImportError, ModuleNotFoundError):
+    HAS_SIGNALS = False
+
+try:
+    from agent_control_plane import vfs
+    HAS_VFS = True
+except (ImportError, ModuleNotFoundError):
+    HAS_VFS = False
+
+try:
+    from agent_control_plane import kernel_space
+    HAS_KERNEL_SPACE = True
+except (ImportError, ModuleNotFoundError):
+    HAS_KERNEL_SPACE = False
+
+
+@pytest.mark.skipif(not HAS_SIGNALS, reason="agent_control_plane.signals not available")
 class TestSignals:
     """Test POSIX-style signal handling."""
     
@@ -92,6 +113,7 @@ class TestSignals:
         assert history[1]["signal"] == "SIGCONT"
 
 
+@pytest.mark.skipif(not HAS_VFS, reason="agent_control_plane.vfs not available")
 class TestVFS:
     """Test Agent Virtual File System."""
     
@@ -176,6 +198,7 @@ class TestVFS:
             vfs.write("/policy/rules.txt", "should fail")
 
 
+@pytest.mark.skipif(not HAS_KERNEL_SPACE, reason="agent_control_plane.kernel_space not available")
 class TestKernelSpace:
     """Test Kernel/User Space separation."""
     

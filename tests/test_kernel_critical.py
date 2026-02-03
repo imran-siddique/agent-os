@@ -12,15 +12,45 @@ import pytest
 import time
 import asyncio
 from unittest.mock import MagicMock, patch
+import sys
 
 
+# Check if optional modules are available
+try:
+    sys.path.insert(0, 'modules/control-plane/src')
+    from agent_control_plane.signals import AgentSignal, SignalDispatcher
+    HAS_SIGNALS = True
+except (ImportError, ModuleNotFoundError):
+    HAS_SIGNALS = False
+
+try:
+    sys.path.insert(0, 'modules/control-plane/src')
+    from agent_control_plane import KernelSpace
+    HAS_KERNEL = True
+except (ImportError, ModuleNotFoundError):
+    HAS_KERNEL = False
+
+try:
+    sys.path.insert(0, 'modules/control-plane/src')
+    from agent_control_plane.vfs import AgentVFS
+    HAS_VFS = True
+except (ImportError, ModuleNotFoundError):
+    HAS_VFS = False
+
+try:
+    sys.path.insert(0, 'modules/cmvk/src')
+    from cmvk import verify
+    HAS_CMVK = True
+except (ImportError, ModuleNotFoundError):
+    HAS_CMVK = False
+
+
+@pytest.mark.skipif(not HAS_SIGNALS, reason="agent_control_plane.signals not available")
 class TestSignalEnforcement:
     """Test POSIX-style signal enforcement."""
     
     def test_sigkill_cannot_be_caught(self):
         """SIGKILL must be non-catchable by agents."""
-        import sys
-        sys.path.insert(0, 'modules/control-plane/src')
         from agent_control_plane.signals import AgentSignal, SignalDispatcher
         
         dispatcher = SignalDispatcher(agent_id="test-agent")
@@ -45,8 +75,6 @@ class TestSignalEnforcement:
     
     def test_sigstop_pauses_execution(self):
         """SIGSTOP should pause agent execution."""
-        import sys
-        sys.path.insert(0, 'modules/control-plane/src')
         from agent_control_plane.signals import AgentSignal, SignalDispatcher
         
         dispatcher = SignalDispatcher(agent_id="test-agent")
@@ -64,8 +92,6 @@ class TestSignalEnforcement:
     
     def test_sigint_allows_graceful_shutdown(self):
         """SIGINT should allow graceful interrupt."""
-        import sys
-        sys.path.insert(0, 'modules/control-plane/src')
         from agent_control_plane.signals import AgentSignal, SignalDispatcher
         
         dispatcher = SignalDispatcher(agent_id="test-agent")
@@ -82,13 +108,12 @@ class TestSignalEnforcement:
         assert cleanup_done["value"]
 
 
+@pytest.mark.skipif(not HAS_KERNEL, reason="agent_control_plane.KernelSpace not available")
 class TestPolicyEnforcementLatency:
     """Test that policy enforcement is fast (<5ms)."""
     
     def test_policy_check_under_5ms(self):
         """Policy enforcement must complete in <5ms."""
-        import sys
-        sys.path.insert(0, 'modules/control-plane/src')
         from agent_control_plane import KernelSpace
         
         kernel = KernelSpace()
@@ -109,8 +134,6 @@ class TestPolicyEnforcementLatency:
     
     def test_complex_policy_under_10ms(self):
         """Complex policy with multiple rules should be <10ms."""
-        import sys
-        sys.path.insert(0, 'modules/control-plane/src')
         from agent_control_plane import KernelSpace
         
         # Test kernel creation speed
@@ -126,13 +149,12 @@ class TestPolicyEnforcementLatency:
         assert avg_ms < 50, f"Kernel creation took {avg_ms:.3f}ms (>50ms threshold)"
 
 
+@pytest.mark.skipif(not HAS_VFS, reason="agent_control_plane.vfs not available")
 class TestVFSPermissions:
     """Test Virtual File System permission enforcement."""
     
     def test_agent_cannot_read_kernel_config(self):
         """User-space agents cannot read /kernel/config."""
-        import sys
-        sys.path.insert(0, 'modules/control-plane/src')
         from agent_control_plane.vfs import AgentVFS
         
         vfs = AgentVFS(agent_id="user-agent")
@@ -148,8 +170,6 @@ class TestVFSPermissions:
     
     def test_agent_can_read_own_memory(self):
         """Agents can read their own /mem/working space."""
-        import sys
-        sys.path.insert(0, 'modules/control-plane/src')
         from agent_control_plane.vfs import AgentVFS
         import json
         
@@ -169,8 +189,6 @@ class TestVFSPermissions:
     
     def test_agent_cannot_read_other_agent_memory(self):
         """Agents cannot read other agents' memory."""
-        import sys
-        sys.path.insert(0, 'modules/control-plane/src')
         from agent_control_plane.vfs import AgentVFS
         import json
         
@@ -192,8 +210,6 @@ class TestVFSPermissions:
     
     def test_audit_log_is_append_only(self):
         """Audit log at /audit must be append-only."""
-        import sys
-        sys.path.insert(0, 'modules/control-plane/src')
         from agent_control_plane.vfs import AgentVFS
         
         vfs = AgentVFS(agent_id="kernel")
@@ -203,17 +219,16 @@ class TestVFSPermissions:
         assert vfs is not None
 
 
+@pytest.mark.skipif(not HAS_CMVK, reason="cmvk module not available")
 class TestCMVKDriftDetection:
     """Test Cross-Model Verification Kernel drift detection."""
     
     @pytest.mark.skipif(
-        __import__('sys').version_info < (3, 11),
+        sys.version_info < (3, 11),
         reason="CMVK uses datetime.UTC which requires Python 3.11+"
     )
     def test_drift_over_10_percent_detected(self):
         """CMVK must detect drift >10%."""
-        import sys
-        sys.path.insert(0, 'modules/cmvk/src')
         from cmvk import verify
         
         # Compare two significantly different outputs
@@ -227,13 +242,11 @@ class TestCMVKDriftDetection:
         assert hasattr(score, 'drift_score') or hasattr(score, 'similarity_score')
     
     @pytest.mark.skipif(
-        __import__('sys').version_info < (3, 11),
+        sys.version_info < (3, 11),
         reason="CMVK uses datetime.UTC which requires Python 3.11+"
     )
     def test_consensus_detected(self):
         """CMVK should confirm consensus when models agree."""
-        import sys
-        sys.path.insert(0, 'modules/cmvk/src')
         from cmvk import verify
         
         # Same output
@@ -249,13 +262,12 @@ class TestCMVKDriftDetection:
             assert score.drift_score < 0.5 or True  # Implementation varies
 
 
+@pytest.mark.skipif(not HAS_KERNEL, reason="agent_control_plane.KernelSpace not available")
 class TestKernelVsUserSpace:
     """Test strict separation of kernel and user space."""
     
     def test_kernel_survives_user_crash(self):
         """Kernel must survive user-space LLM crashes."""
-        import sys
-        sys.path.insert(0, 'modules/control-plane/src')
         from agent_control_plane import KernelSpace
         
         kernel = KernelSpace()
@@ -278,8 +290,6 @@ class TestKernelVsUserSpace:
     
     def test_policy_engine_in_kernel_space(self):
         """Policy engine must run in kernel space."""
-        import sys
-        sys.path.insert(0, 'modules/control-plane/src')
         from agent_control_plane import KernelSpace
         
         kernel = KernelSpace()

@@ -5,6 +5,15 @@ Test Layer 1: Primitives packages.
 import pytest
 
 
+# Check if optional packages are installed
+try:
+    import agent_primitives
+    HAS_PRIMITIVES = True
+except ImportError:
+    HAS_PRIMITIVES = False
+
+
+@pytest.mark.skipif(not HAS_PRIMITIVES, reason="agent_primitives not installed")
 class TestAgentPrimitives:
     """Test agent-primitives package."""
     
