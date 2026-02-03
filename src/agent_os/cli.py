@@ -8,6 +8,7 @@ Usage:
     agentos status                         Show kernel status
     agentos check <file>                   Check file for safety violations
     agentos review <file> [--cmvk]         Multi-model code review
+    agentos validate [files]               Validate policy YAML files
     agentos install-hooks                  Install git pre-commit hooks
 """
 
@@ -877,6 +878,123 @@ def cmd_status(args):
     return 0
 
 
+def cmd_validate(args):
+    """Validate policy YAML files."""
+    import yaml
+    
+    print(f"\n{Colors.BOLD}🔍 Validating Policy Files{Colors.RESET}\n")
+    
+    # Find files to validate
+    files_to_check = []
+    if args.files:
+        files_to_check = [Path(f) for f in args.files]
+    else:
+        # Default: check .agents/*.yaml
+        agents_dir = Path(".agents")
+        if agents_dir.exists():
+            files_to_check = list(agents_dir.glob("*.yaml")) + list(agents_dir.glob("*.yml"))
+        if not files_to_check:
+            print(f"{Colors.YELLOW}No policy files found.{Colors.RESET}")
+            print(f"Run 'agentos init' to create default policies, or specify files to validate.")
+            return 0
+    
+    # Required fields for policy files
+    REQUIRED_FIELDS = ['version', 'name']
+    OPTIONAL_FIELDS = ['description', 'rules', 'constraints', 'signals', 'allowed_actions', 'blocked_actions']
+    VALID_RULE_TYPES = ['allow', 'deny', 'audit', 'require']
+    
+    errors = []
+    warnings = []
+    valid_count = 0
+    
+    for filepath in files_to_check:
+        if not filepath.exists():
+            errors.append(f"{filepath}: File not found")
+            continue
+            
+        print(f"  Checking {filepath}...", end=" ")
+        
+        try:
+            with open(filepath) as f:
+                content = yaml.safe_load(f)
+            
+            if content is None:
+                errors.append(f"{filepath}: Empty file")
+                print(f"{Colors.RED}EMPTY{Colors.RESET}")
+                continue
+            
+            file_errors = []
+            file_warnings = []
+            
+            # Check required fields
+            for field in REQUIRED_FIELDS:
+                if field not in content:
+                    file_errors.append(f"Missing required field: '{field}'")
+            
+            # Validate version format
+            if 'version' in content:
+                version = str(content['version'])
+                if not re.match(r'^\d+(\.\d+)*$', version):
+                    file_warnings.append(f"Version '{version}' should be numeric (e.g., '1.0')")
+            
+            # Validate rules if present
+            if 'rules' in content:
+                rules = content['rules']
+                if not isinstance(rules, list):
+                    file_errors.append("'rules' must be a list")
+                else:
+                    for i, rule in enumerate(rules):
+                        if not isinstance(rule, dict):
+                            file_errors.append(f"Rule {i+1}: must be a dict")
+                        elif 'type' in rule and rule['type'] not in VALID_RULE_TYPES:
+                            file_warnings.append(f"Rule {i+1}: unknown type '{rule['type']}'")
+            
+            # Strict mode: warn about unknown fields
+            if args.strict:
+                known_fields = REQUIRED_FIELDS + OPTIONAL_FIELDS
+                for field in content.keys():
+                    if field not in known_fields:
+                        file_warnings.append(f"Unknown field: '{field}'")
+            
+            if file_errors:
+                errors.extend([f"{filepath}: {e}" for e in file_errors])
+                print(f"{Colors.RED}INVALID{Colors.RESET}")
+            elif file_warnings:
+                warnings.extend([f"{filepath}: {w}" for w in file_warnings])
+                print(f"{Colors.YELLOW}OK (warnings){Colors.RESET}")
+                valid_count += 1
+            else:
+                print(f"{Colors.GREEN}OK{Colors.RESET}")
+                valid_count += 1
+                
+        except yaml.YAMLError as e:
+            errors.append(f"{filepath}: Invalid YAML - {e}")
+            print(f"{Colors.RED}PARSE ERROR{Colors.RESET}")
+        except Exception as e:
+            errors.append(f"{filepath}: {e}")
+            print(f"{Colors.RED}ERROR{Colors.RESET}")
+    
+    print()
+    
+    # Print summary
+    if warnings:
+        print(f"{Colors.YELLOW}Warnings:{Colors.RESET}")
+        for w in warnings:
+            print(f"  ⚠️  {w}")
+        print()
+    
+    if errors:
+        print(f"{Colors.RED}Errors:{Colors.RESET}")
+        for e in errors:
+            print(f"  ❌ {e}")
+        print()
+        print(f"{Colors.RED}Validation failed.{Colors.RESET} {valid_count}/{len(files_to_check)} files valid.")
+        return 1
+    
+    print(f"{Colors.GREEN}✓ All {valid_count} policy file(s) valid.{Colors.RESET}")
+    return 0
+
+
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(
@@ -888,6 +1006,7 @@ Examples:
   agentos check src/app.py           Check file for safety violations
   agentos check --staged             Check staged git files
   agentos review src/app.py --cmvk   Multi-model code review
+  agentos validate                   Validate policy YAML files
   agentos install-hooks              Install git pre-commit hook
   agentos init                       Initialize Agent OS in project
 
@@ -941,6 +1060,11 @@ Documentation: https://github.com/imran-siddique/agent-os
     hooks_parser.add_argument("--force", action="store_true", help="Overwrite existing hook")
     hooks_parser.add_argument("--append", action="store_true", help="Append to existing hook")
     
+    # validate command (policy YAML validation)
+    validate_parser = subparsers.add_parser("validate", help="Validate policy YAML files")
+    validate_parser.add_argument("files", nargs="*", help="Policy files to validate (default: .agents/*.yaml)")
+    validate_parser.add_argument("--strict", action="store_true", help="Strict validation mode")
+    
     args = parser.parse_args()
     
     # Handle CI mode
@@ -969,6 +1093,8 @@ Documentation: https://github.com/imran-siddique/agent-os
         return cmd_review(args)
     elif args.command == "install-hooks":
         return cmd_install_hooks(args)
+    elif args.command == "validate":
+        return cmd_validate(args)
     else:
         parser.print_help()
         return 0
