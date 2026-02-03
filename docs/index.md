@@ -42,6 +42,7 @@ Learn by doing with our Jupyter notebooks:
 - [Framework Integrations](integrations.md) - LangChain, OpenAI, CrewAI
 - [Dependencies](dependencies.md) - Package dependencies
 - [Security Specification](security-spec.md) - Security model
+- [FAQ](faq.md) - Common questions and answers
 
 ### 📋 RFCs
 

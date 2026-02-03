@@ -583,24 +583,6 @@ export ANTHROPIC_API_KEY=sk-ant-...
 
 ---
 
-## FAQ
-
-**Q: How is this different from LangChain/CrewAI?**
-A: LangChain and CrewAI are *frameworks* for building agents. Agent OS is *infrastructure* for governing them. Use them together—wrap your LangChain agent with Agent OS for safety guarantees.
-
-**Q: What does "deterministic enforcement" mean?**
-A: When a policy matches an action, that action is blocked—not by asking the LLM nicely. The middleware intercepts and stops it. However, this only works for patterns the policy engine knows about. Novel attacks that don't match defined rules will pass through.
-
-**Q: Do I need to rewrite my agents?**
-A: No. Agent OS provides integration wrappers for LangChain, CrewAI, AutoGen, OpenAI Assistants, and Semantic Kernel. Wrap your existing code and add governance.
-
-**Q: Does it work with local models (Ollama, llama.cpp)?**
-A: Yes. Agent OS is model-agnostic—it governs what agents *do*, not what LLM they use.
-
-**Q: How do I contribute?**
-A: See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines. Good first issues are labeled in GitHub.
-
----
 
 ## Contributing
 
