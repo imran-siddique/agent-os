@@ -89,6 +89,46 @@ This is the same principle operating systems use: applications request resources
 
 ## Architecture
 
+```mermaid
+graph TB
+    subgraph "Layer 4: Execution"
+        SCAK[Self-Correcting Agent Kernel]
+        MUTE[Mute Agent]
+        ATR[Agent Tool Registry]
+    end
+    
+    subgraph "Layer 3: Control Plane"
+        KERNEL[🎯 THE KERNEL<br/>Policy Engine + Signals]
+        OBS[Observability<br/>Prometheus + OTEL]
+    end
+    
+    subgraph "Layer 2: Communication"
+        AMB[Agent Message Bus]
+        IATP[Inter-Agent Trust Protocol]
+        CMVK[Cross-Model Verification]
+        EMK[Episodic Memory Kernel]
+    end
+    
+    subgraph "Layer 1: Primitives"
+        PRIM[Base Types + Failures]
+        CAAS[Context-as-a-Service]
+    end
+    
+    SCAK --> KERNEL
+    MUTE --> KERNEL
+    ATR --> KERNEL
+    KERNEL --> AMB
+    KERNEL --> IATP
+    KERNEL --> OBS
+    AMB --> PRIM
+    IATP --> CMVK
+    CMVK --> EMK
+    EMK --> PRIM
+    CAAS --> PRIM
+```
+
+### Directory Structure
+
 ```
 agent-os/
 ├── src/agent_os/             # Core Python package
