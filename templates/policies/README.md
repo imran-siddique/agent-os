@@ -1,6 +1,6 @@
 # Policy Templates
 
-Pre-built policy templates for common use cases.
+Pre-built policy templates for common use cases. Import and customize for your needs.
 
 ## Available Templates
 
@@ -8,6 +8,9 @@ Pre-built policy templates for common use cases.
 |----------|-------------|----------|
 | [secure-coding.yaml](secure-coding.yaml) | Prevents common security vulnerabilities | All development |
 | [data-protection.yaml](data-protection.yaml) | PII protection and data handling | Apps handling user data |
+| [cost-controls.yaml](cost-controls.yaml) | Rate limiting and spend controls | Prevent runaway API costs |
+| [api-gateway.yaml](api-gateway.yaml) | External API access controls | Secure external API calls |
+| [multi-tenant.yaml](multi-tenant.yaml) | Tenant isolation for SaaS | Multi-tenant deployments |
 | [enterprise.yaml](enterprise.yaml) | Comprehensive enterprise governance | Production deployments |
 
 ## Quick Start
@@ -32,19 +35,25 @@ cp templates/policies/secure-coding.yaml .agents/security.md
 
 ## Template Comparison
 
-| Feature | Secure Coding | Data Protection | Enterprise |
-|---------|--------------|-----------------|------------|
-| SQL Injection Prevention | ✅ | ⚪ | ✅ |
-| Destructive SQL Blocking | ✅ | ⚪ | ✅ |
-| Hardcoded Secrets | ✅ | ✅ | ✅ |
-| PII Detection | ⚪ | ✅ | ✅ |
-| Financial Data | ⚪ | ✅ | ✅ |
-| Health Data (HIPAA) | ⚪ | ✅ | ✅ |
-| Rate Limiting | ⚪ | ⚪ | ✅ |
-| Cost Controls | ⚪ | ⚪ | ✅ |
-| Approval Workflows | ⚪ | ⚪ | ✅ |
-| SIEM Integration | ⚪ | ⚪ | ✅ |
-| SSO Support | ⚪ | ⚪ | ✅ |
+| Feature | Secure Coding | Data Protection | Cost Controls | API Gateway | Multi-Tenant | Enterprise |
+|---------|--------------|-----------------|---------------|-------------|--------------|------------|
+| SQL Injection Prevention | ✅ | ⚪ | ⚪ | ⚪ | ⚪ | ✅ |
+| Destructive SQL Blocking | ✅ | ⚪ | ⚪ | ⚪ | ⚪ | ✅ |
+| Hardcoded Secrets | ✅ | ✅ | ⚪ | ⚪ | ⚪ | ✅ |
+| PII Detection | ⚪ | ✅ | ⚪ | ⚪ | ⚪ | ✅ |
+| Financial Data | ⚪ | ✅ | ⚪ | ⚪ | ⚪ | ✅ |
+| Health Data (HIPAA) | ⚪ | ✅ | ⚪ | ⚪ | ⚪ | ✅ |
+| Rate Limiting | ⚪ | ⚪ | ✅ | ✅ | ✅ | ✅ |
+| Cost Controls | ⚪ | ⚪ | ✅ | ⚪ | ✅ | ✅ |
+| Spend Limits | ⚪ | ⚪ | ✅ | ⚪ | ⚪ | ✅ |
+| Domain Allowlisting | ⚪ | ⚪ | ⚪ | ✅ | ⚪ | ✅ |
+| SSRF Prevention | ⚪ | ⚪ | ⚪ | ✅ | ⚪ | ✅ |
+| Request Validation | ⚪ | ⚪ | ⚪ | ✅ | ⚪ | ✅ |
+| Tenant Isolation | ⚪ | ⚪ | ⚪ | ⚪ | ✅ | ✅ |
+| Resource Quotas | ⚪ | ⚪ | ⚪ | ⚪ | ✅ | ✅ |
+| Approval Workflows | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ | ✅ |
+| SIEM Integration | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ | ✅ |
+| SSO Support | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ | ✅ |
 
 ## Customization
 

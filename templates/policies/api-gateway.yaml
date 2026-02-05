@@ -1,0 +1,218 @@
+# API Gateway Policy Template
+# Controls external API access for AI agents
+
+kernel:
+  version: "1.0"
+  mode: strict
+  template: api-gateway
+
+description: |
+  Policy for controlling external API access. Implements allowlisting,
+  rate limiting, and output validation for API calls.
+
+# ============================================
+# Domain Allowlist
+# ============================================
+network:
+  # Explicitly allowed domains
+  allowlist:
+    # AI/LLM APIs
+    - api.openai.com
+    - api.anthropic.com
+    - generativelanguage.googleapis.com
+    - api.groq.com
+    
+    # Common development tools
+    - api.github.com
+    - gitlab.com
+    - api.bitbucket.org
+    
+    # Documentation & Search
+    - api.duckduckgo.com
+    - serpapi.com
+    
+    # Cloud providers (for storage, etc)
+    - s3.amazonaws.com
+    - storage.googleapis.com
+    - blob.core.windows.net
+  
+  # Explicitly blocked domains
+  blocklist:
+    - '*.onion'          # Tor
+    - 'pastebin.com'     # Often used for exfiltration
+    - '*.ngrok.io'       # Tunneling
+    - '*.localtunnel.me' # Tunneling
+  
+  # Block all domains not in allowlist
+  default_action: deny
+
+# ============================================
+# Request Policies
+# ============================================
+policies:
+  # ============================================
+  # Request Size Limits
+  # ============================================
+  - name: request_size_limit
+    description: Limit request payload sizes
+    type: size_limit
+    max_request_body_bytes: 1048576  # 1MB
+    max_response_body_bytes: 10485760  # 10MB
+    action: SIGSTOP
+    message: "Request/response size exceeds limit"
+
+  # ============================================
+  # Timeout Controls
+  # ============================================
+  - name: request_timeout
+    description: Enforce request timeouts
+    type: timeout
+    connect_timeout_seconds: 10
+    read_timeout_seconds: 60
+    total_timeout_seconds: 120
+    action: SIGKILL
+    message: "Request timeout exceeded"
+
+  # ============================================
+  # Method Restrictions
+  # ============================================
+  - name: http_method_control
+    description: Control allowed HTTP methods
+    type: method_whitelist
+    allowed_methods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+    blocked_methods:
+      - DELETE  # Require explicit approval
+    action: SIGSTOP
+    message: "HTTP method requires approval"
+
+  # ============================================
+  # Header Validation
+  # ============================================
+  - name: header_validation
+    description: Validate and sanitize headers
+    type: header_check
+    required_headers:
+      - User-Agent
+    blocked_headers:
+      - X-Forwarded-For  # Prevent header injection
+      - X-Real-IP
+    max_header_size_bytes: 8192
+    action: SIGSTOP
+    message: "Header validation failed"
+
+  # ============================================
+  # URL Validation
+  # ============================================
+  - name: url_validation
+    description: Validate URL patterns
+    deny:
+      - patterns:
+          # SSRF patterns
+          - '(?i)localhost'
+          - '127\.0\.0\.1'
+          - '0\.0\.0\.0'
+          - '169\.254\.\d+\.\d+'  # Link-local
+          - '10\.\d+\.\d+\.\d+'   # Private
+          - '172\.(1[6-9]|2[0-9]|3[0-1])\.\d+\.\d+' # Private
+          - '192\.168\.\d+\.\d+'  # Private
+          - 'file://'
+          - 'gopher://'
+    exceptions:
+      - 'localhost:3000'  # Local dev allowed
+    action: SIGKILL
+    message: "URL validation failed - possible SSRF attempt"
+
+  # ============================================
+  # Response Validation
+  # ============================================
+  - name: response_validation
+    description: Validate API responses
+    type: response_check
+    # Check for sensitive data in responses
+    block_if_contains:
+      - '(?i)BEGIN (RSA|DSA|EC|OPENSSH) PRIVATE KEY'
+      - '(?i)aws_secret_access_key'
+      - '(?i)-----BEGIN CERTIFICATE-----'
+    action: SIGKILL
+    message: "Response contains sensitive data"
+
+  # ============================================
+  # Rate Limiting (per domain)
+  # ============================================
+  - name: per_domain_rate_limit
+    description: Rate limit by domain
+    type: rate_limit
+    limits:
+      default:
+        requests_per_minute: 60
+      "api.github.com":
+        requests_per_minute: 30  # GitHub has lower limits
+      "api.openai.com":
+        requests_per_minute: 100
+    action: SIGSTOP
+    message: "Rate limit exceeded for domain"
+
+  # ============================================
+  # Credential Handling
+  # ============================================
+  - name: credential_protection
+    description: Prevent credential exposure in URLs
+    type: credential_check
+    deny:
+      - patterns:
+          # Credentials in URL
+          - '(?i)(api[_-]?key|token|password|secret)=[^&]+'
+    action: SIGKILL
+    message: "Credentials detected in URL - use headers instead"
+
+# ============================================
+# TLS Configuration
+# ============================================
+tls:
+  min_version: "1.2"
+  verify_certificates: true
+  allowed_cipher_suites:
+    - TLS_AES_128_GCM_SHA256
+    - TLS_AES_256_GCM_SHA384
+    - TLS_CHACHA20_POLY1305_SHA256
+
+# ============================================
+# Retry Policy
+# ============================================
+retry:
+  max_retries: 3
+  retry_on_status:
+    - 429  # Too Many Requests
+    - 502  # Bad Gateway
+    - 503  # Service Unavailable
+    - 504  # Gateway Timeout
+  backoff:
+    initial_delay_ms: 1000
+    max_delay_ms: 30000
+    multiplier: 2.0
+
+# ============================================
+# Caching
+# ============================================
+cache:
+  enabled: true
+  ttl_seconds: 300  # 5 minutes
+  max_size_mb: 100
+  cache_methods:
+    - GET
+  no_cache_patterns:
+    - '/api/v1/realtime/'
+    - '/stream/'
+
+audit:
+  enabled: true
+  log_path: "./logs/api-gateway-audit.log"
+  include:
+    - all_requests
+    - blocked_requests
+    - rate_limit_events
+  retention_days: 30
