@@ -1,0 +1,183 @@
+# Cost Controls Policy Template
+# Prevents runaway API costs and resource usage
+
+kernel:
+  version: "1.0"
+  mode: strict
+  template: cost-controls
+
+description: |
+  Policy for controlling AI agent costs and preventing unexpected charges.
+  Essential for production deployments using paid APIs.
+
+# ============================================
+# Rate Limiting Configuration
+# ============================================
+rate_limits:
+  # Global rate limits
+  global:
+    requests_per_minute: 100
+    requests_per_hour: 1000
+    requests_per_day: 10000
+  
+  # Per-provider limits
+  providers:
+    openai:
+      requests_per_minute: 60
+      tokens_per_minute: 90000
+      max_tokens_per_request: 4096
+      daily_spend_limit_usd: 50.0
+    
+    anthropic:
+      requests_per_minute: 50
+      tokens_per_minute: 100000
+      max_tokens_per_request: 4096
+      daily_spend_limit_usd: 50.0
+    
+    google:
+      requests_per_minute: 60
+      tokens_per_minute: 120000
+      max_tokens_per_request: 8192
+      daily_spend_limit_usd: 50.0
+
+# ============================================
+# Cost Policies
+# ============================================
+policies:
+  # ============================================
+  # Token Usage Controls
+  # ============================================
+  - name: max_tokens_per_request
+    description: Limit tokens per individual request
+    type: token_limit
+    max_input_tokens: 8000
+    max_output_tokens: 4000
+    action: SIGSTOP
+    message: "Request exceeds token limit. Consider chunking or summarizing."
+
+  - name: daily_token_budget
+    description: Enforce daily token budget
+    type: budget
+    daily_limit_tokens: 1000000
+    warning_threshold: 0.8  # Warn at 80%
+    action: SIGKILL
+    message: "Daily token budget exhausted"
+
+  # ============================================
+  # Spend Controls
+  # ============================================
+  - name: daily_spend_limit
+    description: Maximum daily spend across all providers
+    type: spend_limit
+    daily_limit_usd: 100.0
+    warning_threshold: 0.75
+    action: SIGKILL
+    message: "Daily spend limit reached"
+
+  - name: per_request_cost_limit
+    description: Flag expensive individual requests
+    type: cost_check
+    max_cost_per_request_usd: 1.0
+    action: SIGSTOP
+    message: "Request would cost more than $1. Requires approval."
+
+  # ============================================
+  # Model Selection Controls
+  # ============================================
+  - name: model_tier_control
+    description: Control which model tiers can be used
+    type: model_whitelist
+    allowed_models:
+      - gpt-4o-mini
+      - gpt-4o
+      - claude-3-haiku
+      - claude-3-sonnet
+    blocked_models:
+      - gpt-4-turbo  # Expensive
+      - claude-3-opus  # Very expensive
+    action: SIGSTOP
+    message: "Model not in approved list. Use allowed_models."
+
+  # ============================================
+  # Retry & Loop Prevention
+  # ============================================
+  - name: retry_budget
+    description: Limit retries to prevent cost spirals
+    type: retry_limit
+    max_retries: 3
+    retry_cooldown_seconds: 5
+    action: SIGKILL
+    message: "Retry limit exceeded"
+
+  - name: loop_detection
+    description: Detect and stop infinite loops
+    type: loop_detection
+    max_identical_requests: 5
+    time_window_seconds: 60
+    action: SIGKILL
+    message: "Loop detected - identical requests repeated"
+
+  # ============================================
+  # Batch & Bulk Controls
+  # ============================================
+  - name: batch_size_limit
+    description: Limit batch operation sizes
+    type: batch_limit
+    max_batch_size: 100
+    action: SIGSTOP
+    message: "Batch too large. Split into smaller batches."
+
+# ============================================
+# Cost Tracking & Alerts
+# ============================================
+cost_tracking:
+  enabled: true
+  storage: "./logs/cost-tracking.db"
+  
+  # Track costs by
+  dimensions:
+    - agent_id
+    - model
+    - task_type
+    - date
+  
+  # Real-time metrics
+  metrics:
+    export: prometheus
+    port: 9090
+    path: /metrics
+
+alerts:
+  # Email alerts
+  email:
+    enabled: false
+    recipients: []
+    on_threshold: 0.8  # Alert at 80% of limit
+  
+  # Slack alerts
+  slack:
+    enabled: false
+    webhook_url: null
+    channel: "#ai-costs"
+  
+  # Webhook alerts
+  webhook:
+    enabled: false
+    url: null
+
+# ============================================
+# Budget Reset Schedule
+# ============================================
+budget_reset:
+  daily_reset_time: "00:00 UTC"
+  monthly_budget_usd: 3000.0
+  carry_over: false  # Don't carry unused budget
+
+audit:
+  enabled: true
+  log_path: "./logs/cost-audit.log"
+  include:
+    - all_requests
+    - cost_calculations
+    - limit_breaches
+  retention_days: 90
