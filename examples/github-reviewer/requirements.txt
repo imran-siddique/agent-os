@@ -1,0 +1,12 @@
+# GitHub Code Review Agent Dependencies
+# Core
+pydantic>=2.0.0
+
+# GitHub API
+httpx>=0.24.0
+
+# For LLM-based analysis (optional)
+openai>=1.0.0
+
+# Agent OS
+agent-os-kernel>=1.0.0
