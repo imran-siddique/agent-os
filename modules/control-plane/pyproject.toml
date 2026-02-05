@@ -70,6 +70,11 @@ dev = [
     "pre-commit>=3.0.0",
 ]
 
+# SQL AST parsing for robust policy enforcement (recommended)
+sql = [
+    "sqlglot>=23.0.0",
+]
+
 # Hugging Face Hub integration (for datasets and model cards)
 hf = [
     "huggingface_hub>=0.20.0",
