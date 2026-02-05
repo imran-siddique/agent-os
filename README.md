@@ -26,6 +26,28 @@
 
 ---
 
+## ⚡ Quick Start in 30 Seconds
+
+```bash
+pip install agent-control-plane
+```
+
+```python
+from agent_control_plane import ControlPlane
+
+# Create a governed agent in 3 lines
+plane = ControlPlane()
+plane.add_policy("no_destructive_sql")  # Block DROP/DELETE/TRUNCATE
+
+# Your agent runs with policy enforcement
+result = plane.execute("SELECT * FROM users")  # ✅ Allowed
+result = plane.execute("DROP TABLE users")     # ❌ Blocked by kernel
+```
+
+That's it! Your agent now has deterministic policy enforcement. [Learn more →](#what-is-agent-os)
+
+---
+
 <p align="center">
   <img src="assets/demo-terminal.svg" alt="Agent OS Terminal Demo" width="700"/>
 </p>
