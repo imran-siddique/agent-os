@@ -9,6 +9,7 @@ Pre-built policy templates for common use cases.
 | [secure-coding.yaml](secure-coding.yaml) | Prevents common security vulnerabilities | All development |
 | [data-protection.yaml](data-protection.yaml) | PII protection and data handling | Apps handling user data |
 | [enterprise.yaml](enterprise.yaml) | Comprehensive enterprise governance | Production deployments |
+| [rate-limiting.yaml](rate-limiting.yaml) | API call rate limiting with per-domain limits | API-heavy applications |
 
 ## Quick Start
 
