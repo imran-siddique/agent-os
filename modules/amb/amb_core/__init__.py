@@ -59,7 +59,7 @@ For more information, see: https://github.com/imran-siddique/amb
 
 from __future__ import annotations
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 __author__ = "Imran Siddique"
 __license__ = "MIT"
 

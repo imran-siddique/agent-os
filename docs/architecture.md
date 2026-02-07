@@ -38,6 +38,10 @@ Agent OS is a safety-first kernel for autonomous AI agents, providing POSIX-insp
 │  │  - Signals: SIGSTOP, SIGKILL, SIGPOLICY                  │   │
 │  │  - Syscalls: SYS_READ, SYS_WRITE, SYS_EXEC               │   │
 │  └──────────────────────────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │  Observability                                            │   │
+│  │  - Prometheus metrics, OpenTelemetry tracing              │   │
+│  └──────────────────────────────────────────────────────────┘   │
 ├─────────────────────────────────────────────────────────────────┤
 │                      LAYER 2: INFRASTRUCTURE                     │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐      │
@@ -80,6 +84,7 @@ Agent OS is a safety-first kernel for autonomous AI agents, providing POSIX-insp
 | Package | PyPI Name | Description |
 |---------|-----------|-------------|
 | **control-plane** | `agent-control-plane` | Governance kernel with signals, VFS, kernel/user space separation |
+| **observability** | `agent-os-observability` | Prometheus metrics, OpenTelemetry tracing, dashboards |
 
 ### Layer 4: Intelligence
 
@@ -161,7 +166,7 @@ Ring 3 (User Space):
 ### Scale by Subtraction
 
 - **Kernel, not SaaS**: We build Linux for Agents, not ServiceNow
-- **CLI-first**: Engineers prefer `agentctl` over drag-and-drop
+- **CLI-first**: Engineers prefer `agent-os` over drag-and-drop
 - **Safety over Speed**: Kernel panic on violation, not graceful degradation
 - **POSIX-inspired**: Familiar primitives (signals, VFS, pipes)
 

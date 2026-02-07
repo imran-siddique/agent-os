@@ -12,7 +12,7 @@ An agent that uses safe, kernel-governed tools to accomplish tasks.
 ## Prerequisites
 
 ```bash
-pip install agent-os[full]
+pip install agent-os-kernel[full]
 export OPENAI_API_KEY=your-key-here
 ```
 

@@ -7,17 +7,21 @@ Run with: pytest tests/ -v
 import sys
 from pathlib import Path
 
-# Add packages to path for testing
+# Add modules to path for testing
 REPO_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(REPO_ROOT / "src"))
-sys.path.insert(0, str(REPO_ROOT / "packages" / "primitives"))
-sys.path.insert(0, str(REPO_ROOT / "packages" / "control-plane" / "src"))
-sys.path.insert(0, str(REPO_ROOT / "packages" / "iatp"))
-sys.path.insert(0, str(REPO_ROOT / "packages" / "cmvk" / "src"))
-sys.path.insert(0, str(REPO_ROOT / "packages" / "caas" / "src"))
-sys.path.insert(0, str(REPO_ROOT / "packages" / "emk"))
-sys.path.insert(0, str(REPO_ROOT / "packages" / "amb"))
-sys.path.insert(0, str(REPO_ROOT / "packages" / "atr"))
-sys.path.insert(0, str(REPO_ROOT / "packages" / "scak"))
-sys.path.insert(0, str(REPO_ROOT / "packages" / "mute-agent" / "src"))
-sys.path.insert(0, str(REPO_ROOT / "packages" / "mute-agent"))
+sys.path.insert(0, str(REPO_ROOT / "modules" / "primitives"))
+sys.path.insert(0, str(REPO_ROOT / "modules" / "control-plane" / "src"))
+sys.path.insert(0, str(REPO_ROOT / "modules" / "iatp"))
+sys.path.insert(0, str(REPO_ROOT / "modules" / "cmvk" / "src"))
+sys.path.insert(0, str(REPO_ROOT / "modules" / "caas" / "src"))
+sys.path.insert(0, str(REPO_ROOT / "modules" / "emk"))
+sys.path.insert(0, str(REPO_ROOT / "modules" / "amb"))
+sys.path.insert(0, str(REPO_ROOT / "modules" / "atr"))
+sys.path.insert(0, str(REPO_ROOT / "modules" / "scak"))
+sys.path.insert(0, str(REPO_ROOT / "modules" / "scak" / "src"))
+sys.path.insert(0, str(REPO_ROOT / "modules" / "mute-agent" / "src"))
+sys.path.insert(0, str(REPO_ROOT / "modules" / "mute-agent"))
+sys.path.insert(0, str(REPO_ROOT / "modules" / "observability"))
+sys.path.insert(0, str(REPO_ROOT / "modules" / "nexus"))
+sys.path.insert(0, str(REPO_ROOT / "modules" / "mcp-kernel-server"))

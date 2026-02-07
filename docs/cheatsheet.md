@@ -5,10 +5,10 @@ Quick reference for Agent OS.
 ## Installation
 
 ```bash
-pip install agent-os              # Core
-pip install agent-os[cmvk]        # + Cross-model verification
-pip install agent-os[observability] # + Prometheus/OpenTelemetry
-pip install agent-os[full]        # Everything
+pip install agent-os-kernel              # Core
+pip install agent-os-kernel[cmvk]        # + Cross-model verification
+pip install agent-os-kernel[observability] # + Prometheus/OpenTelemetry
+pip install agent-os-kernel[full]        # Everything
 ```
 
 ## Basic Usage

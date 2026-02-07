@@ -64,7 +64,7 @@ Learn by doing with our Jupyter notebooks:
 pip install agent-os
 
 # With all features
-pip install agent-os[full]
+pip install agent-os-kernel[full]
 ```
 
 ## One-Command Quickstart

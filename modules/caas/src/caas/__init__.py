@@ -49,7 +49,7 @@ Note:
 
 from typing import TYPE_CHECKING
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 __author__ = "Imran Siddique"
 __email__ = "imran.siddique@microsoft.com"
 __license__ = "MIT"

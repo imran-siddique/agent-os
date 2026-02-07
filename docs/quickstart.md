@@ -4,19 +4,19 @@
 
 ## Prerequisites
 
-- Python 3.10+
+- Python 3.9+
 - pip
 
 ## Installation
 
 ```bash
-pip install agent-control-plane
+pip install agent-os-kernel
 ```
 
 Or install all Agent-OS packages:
 
 ```bash
-pip install agent-os[full]
+pip install agent-os-kernel[full]
 ```
 
 ## Your First Governed Agent
@@ -239,7 +239,7 @@ else:
 ### "Module not found: agent_control_plane"
 
 ```bash
-pip install agent-control-plane
+pip install agent-os-kernel
 ```
 
 ### "Policy violation but I expected it to pass"

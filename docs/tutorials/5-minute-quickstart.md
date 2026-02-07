@@ -36,9 +36,9 @@ pip install agent-os
 **Optional extras:**
 
 ```bash
-pip install agent-os[cmvk]           # Cross-model verification
-pip install agent-os[observability]  # Prometheus/OpenTelemetry
-pip install agent-os[full]           # Everything
+pip install agent-os-kernel[cmvk]           # Cross-model verification
+pip install agent-os-kernel[observability]  # Prometheus/OpenTelemetry
+pip install agent-os-kernel[full]           # Everything
 ```
 
 ## Step 2: Create Your First Agent

@@ -52,9 +52,9 @@ Common issues and solutions for Agent OS.
 
 **Solution:** Install the specific extra:
 ```bash
-pip install agent-os[redis]
-pip install agent-os[kafka]
-pip install agent-os[full]  # All extras
+pip install agent-os-kernel[redis]
+pip install agent-os-kernel[kafka]
+pip install agent-os-kernel[full]  # All extras
 ```
 
 ---

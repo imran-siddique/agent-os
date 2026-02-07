@@ -5,7 +5,7 @@
 ## 🚀 Getting Started
 
 ```bash
-pip install agent-os[full] jupyter
+pip install agent-os-kernel[full] jupyter
 jupyter notebook
 ```
 
@@ -48,19 +48,19 @@ Each notebook lists its specific dependencies, but here's a quick reference:
 
 ```bash
 # Minimal (notebooks 01, 06)
-pip install agent-os
+pip install agent-os-kernel
 
 # Episodic Memory (notebook 02)
-pip install agent-os emk
+pip install agent-os-kernel emk
 
 # Cross-Model Verification (notebook 04)
-pip install agent-os[cmvk]
+pip install agent-os-kernel[cmvk]
 
 # Multi-Agent Coordination (notebook 05)
-pip install agent-os[iatp]
+pip install agent-os-kernel[iatp]
 
 # Everything
-pip install agent-os[full]
+pip install agent-os-kernel[full]
 ```
 
 ## 🔧 Running Notebooks

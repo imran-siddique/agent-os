@@ -30,7 +30,7 @@ Installation:
     pip install agent-os-kernel        # Core
 """
 
-__version__ = "1.3.0"
+__version__ = "1.3.1"
 __author__ = "Imran Siddique"
 __license__ = "MIT"
 
@@ -260,7 +260,7 @@ def check_installation():
         print(f"  {pkg:15} {status}")
     print("=" * 40)
     print(f"\nInstall missing packages with:")
-    print("  pip install agent-os[full]")
+    print("  pip install agent-os-kernel[full]")
 
 
 # ============================================================================

@@ -33,7 +33,7 @@ Agent OS MCP Server provides safety verification that Claude calls **before** ex
 
 1. Install the server:
 ```bash
-pip install agent-os[mcp]
+pip install agent-os-kernel[mcp]
 ```
 
 2. Add to Claude Desktop config:

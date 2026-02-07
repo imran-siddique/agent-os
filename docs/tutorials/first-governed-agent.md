@@ -13,7 +13,7 @@ A document analysis agent that:
 ## Prerequisites
 
 ```bash
-pip install agent-os[full]
+pip install agent-os-kernel[full]
 ```
 
 ## Step 1: Project Structure

@@ -1,10 +1,5 @@
-agent-control-plane>=1.2.0
-amb-core>=0.2.0
-cmvk>=0.2.0
-agent-tool-registry>=0.2.0
-numpy>=1.24.0
+numpy>=1.20.0
 pydantic>=2.0.0
 
 [dev]
 pytest>=7.0.0
-pytest-asyncio>=0.21.0

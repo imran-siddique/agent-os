@@ -16,7 +16,7 @@ from mcp_kernel_server.tools import (
 )
 from mcp_kernel_server.resources import VFSResource
 
-__version__ = "0.1.0"
+__version__ = "1.2.0"
 __all__ = [
     "KernelMCPServer",
     "CMVKVerifyTool",

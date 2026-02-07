@@ -6,7 +6,7 @@
 
 - Completed [5-Minute Quickstart](5-minute-quickstart.md)
 - Python 3.10+
-- `pip install agent-os[full]`
+- `pip install agent-os-kernel[full]`
 
 ---
 

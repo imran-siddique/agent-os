@@ -12,7 +12,7 @@ An interactive conversational agent with memory, governed by Agent OS.
 ## Prerequisites
 
 ```bash
-pip install agent-os[full]
+pip install agent-os-kernel[full]
 export OPENAI_API_KEY=your-key-here
 ```
 
