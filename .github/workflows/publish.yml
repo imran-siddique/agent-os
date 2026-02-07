@@ -41,10 +41,8 @@ jobs:
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-        # Uses trusted publishing - no token needed if configured on PyPI
-        # Fallback to token if trusted publishing not set up:
-        # with:
-        #   password: ${{ secrets.PYPI_API_TOKEN }}
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
 
       - name: Create GitHub Release Notes
         if: github.event_name == 'workflow_dispatch'
