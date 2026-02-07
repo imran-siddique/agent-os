@@ -12,6 +12,7 @@ Pre-built policy templates for common use cases. Import and customize for your n
 | [api-gateway.yaml](api-gateway.yaml) | External API access controls | Secure external API calls |
 | [multi-tenant.yaml](multi-tenant.yaml) | Tenant isolation for SaaS | Multi-tenant deployments |
 | [enterprise.yaml](enterprise.yaml) | Comprehensive enterprise governance | Production deployments |
+| [rate-limiting.yaml](rate-limiting.yaml) | API call rate limiting with per-domain limits | API-heavy applications |
 
 ## Quick Start
 
