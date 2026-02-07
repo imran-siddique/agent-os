@@ -7,6 +7,8 @@
 | Document | Description |
 |----------|-------------|
 | [Architecture](architecture.md) | This file - layer overview, package descriptions |
+| [Quickstart](quickstart.md) | Getting started with governed agents |
+| [Policy Schema](policy-schema.md) | **Policy definition reference for contributors** |
 | [Kernel Internals](kernel-internals.md) | Deep dive - execution model, policy engine, signals |
 | [Security Spec](security-spec.md) | `.agents/security.md` format specification |
 | [AAIF Proposal](AAIF_PROPOSAL.md) | Foundation membership proposal |
