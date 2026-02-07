@@ -201,6 +201,9 @@ class KernelSpace:
         self._signal_dispatchers: Dict[str, SignalDispatcher] = {}
         self._vfs_instances: Dict[str, AgentVFS] = {}
         
+        # Tool registry - maps tool names to callable executors
+        self._tool_registry: Dict[str, Callable[..., Any]] = {}
+        
         # Syscall handlers
         self._syscall_handlers: Dict[SyscallType, Callable] = {}
         self._init_syscall_handlers()
@@ -295,15 +298,14 @@ class KernelSpace:
         start_time = datetime.now(timezone.utc)
         self._metrics.syscall_count += 1
         
-        # Log to flight recorder
+        # Log to flight recorder using start_trace API
+        trace_id = None
         if self._flight_recorder:
-            self._flight_recorder.record({
-                "type": "syscall",
-                "syscall": request.syscall.name,
-                "agent_id": ctx.agent_id,
-                "args": request.args,
-                "timestamp": request.timestamp.isoformat(),
-            })
+            trace_id = self._flight_recorder.start_trace(
+                agent_id=ctx.agent_id,
+                tool_name=f"syscall_{request.syscall.name}",
+                tool_args=request.args,
+            )
         
         # Check if agent is in valid state
         dispatcher = self._signal_dispatchers.get(ctx.agent_id)
@@ -381,9 +383,67 @@ class KernelSpace:
             Tuple of (allowed, error_message). If allowed is True, error_message is None.
             If allowed is False, error_message contains actionable details.
         """
-        # Integration with PolicyEngine would go here
-        # For now, allow all
+        self._metrics.policy_checks += 1
+        
+        # If no policy engine, allow (permissive mode)
+        if not self._policy_engine:
+            logger.debug(f"[Kernel] No policy engine - allowing {request.syscall.name}")
+            return (True, None)
+        
+        # For SYS_EXEC, check the actual tool name (not "code_execute")
+        # This avoids double-checking at both syscall and tool level
+        if request.syscall == SyscallType.SYS_EXEC:
+            tool_name = request.args.get("tool", "unknown_tool")
+        else:
+            # Map syscall to tool_name for policy check
+            tool_name = self._syscall_to_tool_name(request.syscall)
+        
+        # Build args from syscall request
+        tool_args = request.args.copy()
+        tool_args["_syscall"] = request.syscall.name
+        tool_args["_ring"] = request.caller_ring.name
+        
+        # Check violation using policy engine (positional args: agent_role, tool_name, args)
+        violation = self._policy_engine.check_violation(
+            ctx.agent_id,  # agent_role
+            tool_name,     # tool_name
+            tool_args,     # args
+        )
+        
+        if violation:
+            self._metrics.policy_violations += 1
+            logger.warning(f"[Kernel] Policy violation for {ctx.agent_id}: {violation}")
+            
+            # Record to flight recorder
+            if self._flight_recorder:
+                trace_id = self._flight_recorder.start_trace(
+                    agent_id=ctx.agent_id,
+                    tool_name=tool_name,
+                    tool_args=tool_args,
+                )
+                self._flight_recorder.log_violation(trace_id, violation)
+            
+            return (False, violation)
+        
         return (True, None)
+    
+    def _syscall_to_tool_name(self, syscall: SyscallType) -> str:
+        """Map syscall type to a tool name for policy engine."""
+        mapping = {
+            SyscallType.SYS_READ: "file_read",
+            SyscallType.SYS_WRITE: "file_write",
+            SyscallType.SYS_EXEC: "code_execute",
+            SyscallType.SYS_OPEN: "file_open",
+            SyscallType.SYS_CLOSE: "file_close",
+            SyscallType.SYS_FORK: "agent_spawn",
+            SyscallType.SYS_EXIT: "agent_exit",
+            SyscallType.SYS_SIGNAL: "signal_send",
+            SyscallType.SYS_SEND: "ipc_send",
+            SyscallType.SYS_RECV: "ipc_recv",
+            SyscallType.SYS_MMAP: "memory_map",
+            SyscallType.SYS_MUNMAP: "memory_unmap",
+        }
+        return mapping.get(syscall, f"syscall_{syscall.name.lower()}")
     
     # ========== Syscall Implementations ==========
     
@@ -494,13 +554,49 @@ class KernelSpace:
         request: SyscallRequest,
         ctx: "AgentContext",
     ) -> SyscallResult:
-        """SYS_CHECKPOLICY: Check if an action is allowed."""
+        """SYS_CHECKPOLICY: Check if an action is allowed before attempting it."""
         action = request.args.get("action")
         target = request.args.get("target")
+        tool_args = request.args.get("args", {})
         
-        # This would integrate with the policy engine
-        # For now, return allowed
-        return SyscallResult(success=True, return_value=True)
+        if not action:
+            return SyscallResult(
+                success=False,
+                error_code=1,
+                error_message="No action specified",
+            )
+        
+        # If no policy engine, allow all
+        if not self._policy_engine:
+            return SyscallResult(success=True, return_value={"allowed": True})
+        
+        # Check violation using policy engine (positional args)
+        args_to_check = {**tool_args, "target": target} if target else tool_args
+        violation = self._policy_engine.check_violation(
+            ctx.agent_id,   # agent_role
+            action,         # tool_name
+            args_to_check,  # args
+        )
+        
+        if violation:
+            return SyscallResult(
+                success=True,  # The check succeeded, but action would be denied
+                return_value={
+                    "allowed": False,
+                    "reason": violation,
+                    "action": action,
+                    "agent_id": ctx.agent_id,
+                },
+            )
+        
+        return SyscallResult(
+            success=True,
+            return_value={
+                "allowed": True,
+                "action": action,
+                "agent_id": ctx.agent_id,
+            },
+        )
     
     async def _sys_exit(
         self,
@@ -522,17 +618,124 @@ class KernelSpace:
         request: SyscallRequest,
         ctx: "AgentContext",
     ) -> SyscallResult:
-        """SYS_EXEC: Execute a tool."""
+        """
+        SYS_EXEC: Execute a tool through the kernel.
+        
+        This is the critical choke point - ALL tool execution goes through here.
+        The kernel:
+        1. Checks policy
+        2. Records to flight recorder
+        3. Executes the tool
+        4. Returns result or error
+        """
         tool_name = request.args.get("tool")
         tool_args = request.args.get("args", {})
+        input_prompt = request.args.get("input_prompt")
         
-        # This would integrate with the tool registry
-        # For now, return not implemented
-        return SyscallResult(
-            success=False,
-            error_code=-99,
-            error_message="Tool execution not implemented in kernel space",
-        )
+        if not tool_name:
+            return SyscallResult(
+                success=False,
+                error_code=1,
+                error_message="No tool specified",
+            )
+        
+        # Start trace in flight recorder
+        trace_id = None
+        if self._flight_recorder:
+            trace_id = self._flight_recorder.start_trace(
+                agent_id=ctx.agent_id,
+                tool_name=tool_name,
+                tool_args=tool_args,
+                input_prompt=input_prompt,
+            )
+        
+        # NOTE: Policy check already happened at syscall level in syscall()
+        # We skip the double-check here for efficiency
+        
+        # Look up tool in registry
+        executor = self._tool_registry.get(tool_name)
+        if not executor:
+            error_msg = f"Tool '{tool_name}' not registered in kernel"
+            if self._flight_recorder and trace_id:
+                self._flight_recorder.log_error(trace_id, error_msg)
+            
+            return SyscallResult(
+                success=False,
+                error_code=-404,
+                error_message=error_msg,
+            )
+        
+        # Execute the tool
+        start_time = datetime.now(timezone.utc)
+        try:
+            # Check if executor is async
+            if asyncio.iscoroutinefunction(executor):
+                result = await executor(**tool_args)
+            else:
+                result = executor(**tool_args)
+            
+            execution_time_ms = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+            
+            if self._flight_recorder and trace_id:
+                self._flight_recorder.log_success(trace_id, result, execution_time_ms)
+            
+            logger.info(f"[Kernel] ALLOWED: {ctx.agent_id} executed {tool_name}")
+            
+            return SyscallResult(
+                success=True,
+                return_value=result,
+                execution_time_ms=execution_time_ms,
+            )
+            
+        except Exception as e:
+            execution_time_ms = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+            error_msg = f"{type(e).__name__}: {str(e)}"
+            
+            if self._flight_recorder and trace_id:
+                self._flight_recorder.log_error(trace_id, error_msg)
+            
+            logger.error(f"[Kernel] Tool execution failed: {error_msg}")
+            
+            return SyscallResult(
+                success=False,
+                error_code=-500,
+                error_message=error_msg,
+                execution_time_ms=execution_time_ms,
+            )
+    
+    def register_tool(
+        self,
+        tool_name: str,
+        executor: Callable[..., Any],
+        description: Optional[str] = None,
+    ) -> None:
+        """
+        Register a tool in the kernel.
+        
+        Args:
+            tool_name: Name of the tool (e.g., "read_file", "web_search")
+            executor: Callable that executes the tool
+            description: Optional description for audit
+        """
+        self._tool_registry[tool_name] = executor
+        logger.info(f"[Kernel] Registered tool: {tool_name}")
+    
+    def unregister_tool(self, tool_name: str) -> bool:
+        """
+        Unregister a tool from the kernel.
+        
+        Returns:
+            True if tool was unregistered, False if not found.
+        """
+        if tool_name in self._tool_registry:
+            del self._tool_registry[tool_name]
+            logger.info(f"[Kernel] Unregistered tool: {tool_name}")
+            return True
+        return False
+    
+    def list_tools(self) -> List[str]:
+        """List all registered tools."""
+        return list(self._tool_registry.keys())
     
     # ========== Kernel Control ==========
     
@@ -547,14 +750,14 @@ class KernelSpace:
         
         logger.critical(f"[KERNEL PANIC] {reason}")
         
-        # Record to flight recorder
+        # Record to flight recorder using error API
         if self._flight_recorder:
-            self._flight_recorder.record({
-                "type": "kernel_panic",
-                "reason": reason,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "metrics": self._metrics.to_dict(),
-            })
+            trace_id = self._flight_recorder.start_trace(
+                agent_id="kernel",
+                tool_name="kernel_panic",
+                tool_args={"reason": reason, "metrics": self._metrics.to_dict()},
+            )
+            self._flight_recorder.log_error(trace_id, f"KERNEL PANIC: {reason}")
         
         raise AgentKernelPanic(
             agent_id="kernel",
