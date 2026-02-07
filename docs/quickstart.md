@@ -10,10 +10,10 @@
 ## Installation
 
 ```bash
-pip install agent-os
+pip install agent-control-plane
 ```
 
-Or with all extras:
+Or install all Agent-OS packages:
 
 ```bash
 pip install agent-os[full]
@@ -21,131 +21,193 @@ pip install agent-os[full]
 
 ## Your First Governed Agent
 
-### Step 1: Initialize
-
-```bash
-agentos init my-first-agent
-cd my-first-agent
-```
-
-This creates:
-
-```
-my-first-agent/
-├── .agents/
-│   ├── agents.md        # Agent instructions (AGENTS.md compatible)
-│   └── security.md      # Kernel policies
-├── agent.py             # Your agent code
-└── pyproject.toml
-```
-
-### Step 2: Review the Policies
-
-```yaml
-# .agents/security.md
-kernel:
-  version: "1.0"
-  mode: strict
-
-signals:
-  - SIGSTOP   # Pause for inspection
-  - SIGKILL   # Terminate on violation
-
-policies:
-  - name: read_only
-    blocked_actions:
-      - file_write
-      - database_write
-      - send_email
-  
-  - name: no_pii
-    blocked_patterns:
-      - "\\bssn\\b"
-      - "\\bcredit.card\\b"
-```
-
-### Step 3: Write Your Agent
+### Step 1: Basic Setup
 
 ```python
-# agent.py
-from agent_os import KernelSpace
+# governed_agent.py
+from agent_control_plane.kernel_space import KernelSpace, SyscallRequest, SyscallType
+from agent_control_plane.policy_engine import PolicyEngine
+from agent_control_plane.flight_recorder import FlightRecorder
+import asyncio
 
-kernel = KernelSpace(policy="strict")
+# 1. Create policy engine with allow-list
+policy = PolicyEngine()
+policy.add_constraint("my-agent", [
+    "echo",           # Our custom tool
+    "file_read",      # For reading files
+])
 
-@kernel.register
-async def my_agent(task: str):
-    # Your LLM code here
-    from openai import OpenAI
-    client = OpenAI()
-    
-    response = client.chat.completions.create(
-        model="gpt-4",
-        messages=[{"role": "user", "content": task}]
+# 2. Create flight recorder for audit logging
+recorder = FlightRecorder("audit.db")
+
+# 3. Initialize kernel with governance
+kernel = KernelSpace(
+    policy_engine=policy,
+    flight_recorder=recorder,
+)
+
+# 4. Register your tools
+def echo_tool(message: str) -> str:
+    """A simple echo tool."""
+    return f"Echo: {message}"
+
+kernel.register_tool("echo", echo_tool)
+
+# 5. Create agent context
+ctx = kernel.create_agent_context("my-agent")
+
+# 6. Execute tools through the kernel
+async def main():
+    # This will be ALLOWED (echo is in the allow-list)
+    request = SyscallRequest(
+        syscall=SyscallType.SYS_EXEC,
+        args={"tool": "echo", "args": {"message": "Hello, World!"}},
     )
-    return response.choices[0].message.content
-
-# Run with governance
-if __name__ == "__main__":
-    import asyncio
-    result = asyncio.run(kernel.execute(my_agent, "Summarize this document"))
-    print(result)
-```
-
-### Step 4: Run It
-
-```bash
-agentos run
-```
-
-### What Just Happened?
-
-1. **`agentos init`** created a `.agents/` directory with default policies
-2. **`agentos run`** started the kernel with your agent in user space
-3. If your agent tries anything unsafe → **automatic SIGKILL**
-
-```
-┌─────────────────────────────────────────────────────────┐
-│              USER SPACE (Your Agent)                    │
-│   my_agent() runs here. Can crash, hallucinate, etc.   │
-├─────────────────────────────────────────────────────────┤
-│              KERNEL SPACE (Agent OS)                    │
-│   Policy Engine checks every action before execution    │
-│   If policy violated → SIGKILL (non-catchable)         │
-└─────────────────────────────────────────────────────────┘
-```
-
----
-
-## Try a Dangerous Action
-
-Edit `agent.py` to attempt a blocked action:
-
-```python
-@kernel.register
-async def my_agent(task: str):
-    # This will be blocked by read_only policy!
-    import os
-    os.remove("/important/file.txt")  # ← SIGKILL
-    return "Done"
+    result = await kernel.syscall(request, ctx)
+    print(f"Result: {result.return_value}")
+    
+asyncio.run(main())
 ```
 
 Run it:
 
 ```bash
-agentos run
+python governed_agent.py
+# Output: Result: Echo: Hello, World!
 ```
 
-Output:
+### What Just Happened?
+
+1. **PolicyEngine** defines which tools each agent can use (allow-list)
+2. **FlightRecorder** logs every action with tamper-proof audit trail
+3. **KernelSpace** enforces policies and executes tools
+4. All tool execution goes through `SYS_EXEC` syscalls
 
 ```
-⚠️  POLICY VIOLATION DETECTED
-⚠️  Signal: SIGKILL
-⚠️  Agent: my_agent
-⚠️  Action: file_write
-⚠️  Policy: read_only
-⚠️  Status: TERMINATED
+┌─────────────────────────────────────────────────────────┐
+│              USER SPACE (Your Agent)                    │
+│   Agent makes syscalls. Can crash, hallucinate, etc.   │
+├─────────────────────────────────────────────────────────┤
+│              KERNEL SPACE (Agent OS)                    │
+│   Policy Engine checks every action before execution    │
+│   If policy violated → SIGKILL (non-catchable)         │
+│   Flight Recorder logs everything for audit            │
+└─────────────────────────────────────────────────────────┘
+```
 
-The kernel blocked the dangerous action before it executed.
+---
+
+## Try a Blocked Action
+
+```python
+# This will be BLOCKED (file_write is not in the allow-list)
+async def try_blocked():
+    kernel.register_tool("file_write", lambda path, data: open(path, "w").write(data))
+    
+    request = SyscallRequest(
+        syscall=SyscallType.SYS_EXEC,
+        args={"tool": "file_write", "args": {"path": "/tmp/test.txt", "data": "danger"}},
+    )
+    
+    try:
+        result = await kernel.syscall(request, ctx)
+    except Exception as e:
+        print(f"Blocked: {e}")
+
+asyncio.run(try_blocked())
+# Output: Blocked: Agent terminated: Policy violation...
+```
+
+---
+
+## Using the Higher-Level AgentKernel
+
+For simpler use cases, use `AgentKernel` with tool interception:
+
+```python
+from agent_control_plane.agent_kernel import AgentKernel
+from agent_control_plane.policy_engine import PolicyEngine
+from agent_control_plane.flight_recorder import FlightRecorder
+
+# Setup
+policy = PolicyEngine()
+policy.add_constraint("my-agent", ["search", "calculate"])
+
+recorder = FlightRecorder("audit.db")
+
+kernel = AgentKernel(
+    policy_engine=policy,
+    audit_logger=recorder,
+    shadow_mode=False,  # Set True to simulate without executing
+)
+
+# Intercept tool calls before execution
+def my_tool_executor(tool_name: str, args: dict):
+    """Your actual tool execution logic."""
+    if tool_name == "search":
+        return f"Search results for: {args.get('query')}"
+    return "Unknown tool"
+
+# Before calling any tool, check with kernel
+result = kernel.intercept_tool_execution(
+    agent_id="my-agent",
+    tool_name="search",
+    tool_args={"query": "Agent OS documentation"},
+)
+
+if result is None:
+    # ALLOWED - proceed with execution
+    output = my_tool_executor("search", {"query": "Agent OS documentation"})
+    print(output)
+elif result.get("status") == "blocked":
+    # BLOCKED - policy violation
+    print(f"Blocked: {result.get('error')}")
+elif result.get("status") == "simulated":
+    # SHADOW MODE - simulated execution
+    print(f"Simulated: {result.get('result')}")
+```
+
+---
+
+## Adding Conditional Permissions (ABAC)
+
+For fine-grained access control based on context:
+
+```python
+from agent_control_plane.policy_engine import PolicyEngine, Condition, ConditionalPermission
+
+policy = PolicyEngine()
+
+# Basic allow-list
+policy.add_constraint("support-agent", ["refund", "lookup_order"])
+
+# Add conditional permission: refunds only for verified users, max $500
+policy.add_conditional_permission("support-agent", ConditionalPermission(
+    tool_name="refund",
+    conditions=[
+        Condition(attribute_path="context.user_verified", operator="eq", value=True),
+        Condition(attribute_path="args.amount", operator="lte", value=500),
+    ],
+    require_all=True,  # Both conditions must pass
+))
+
+# Set context for this agent
+policy.set_agent_context("support-agent", {
+    "user_verified": True,
+    "department": "customer-service",
+})
+
+# Check if action is allowed
+violation = policy.check_violation(
+    agent_role="support-agent",
+    tool_name="refund",
+    args={"amount": 100, "order_id": "12345"},
+)
+
+if violation:
+    print(f"Denied: {violation}")
+else:
+    print("Allowed!")
 ```
 
 ---
@@ -156,71 +218,52 @@ The kernel blocked the dangerous action before it executed.
 |---------|-------------|
 | `agentos init <name>` | Initialize new agent project |
 | `agentos run` | Run agent with kernel governance |
-| `agentos secure` | Validate security configuration |
-| `agentos audit` | Audit security policies |
-| `agentos status` | Show kernel status |
-
-### Templates
-
-```bash
-# Strict mode (default) - blocks writes, PII, shell
-agentos init my-agent --template strict
-
-# Permissive mode - logging only, no blocking
-agentos init my-agent --template permissive
-
-# Audit mode - logs everything, blocks nothing
-agentos init my-agent --template audit
-```
+| `agentos audit` | Query flight recorder audit logs |
+| `agentos status` | Show kernel metrics |
 
 ---
 
 ## Next Steps
 
-| Tutorial | Description | Time |
-|----------|-------------|------|
-| [Carbon Auditor](../examples/carbon-auditor/) | Build a multi-agent fraud detection system | 15 min |
-| [MCP Integration](mcp-integration.md) | Use Agent OS with Claude Desktop | 10 min |
-| [Observability](observability.md) | Add Prometheus metrics and Grafana | 10 min |
-| [Multi-Agent](multi-agent.md) | Connect agents with IATP trust protocol | 20 min |
+| Guide | Description |
+|-------|-------------|
+| [Policy Schema](policy-schema.md) | Complete policy definition reference |
+| [Kernel Internals](kernel-internals.md) | Deep dive into syscalls and signals |
+| [Security Spec](security-spec.md) | YAML policy format for `.agents/security.md` |
+| [Architecture](architecture.md) | Full system overview |
 
 ---
 
 ## Common Issues
 
-### "Command not found: agentos"
+### "Module not found: agent_control_plane"
 
 ```bash
-# Ensure the package is installed
-pip install agent-os
-
-# Or check your PATH
-python -m agent_os.cli --help
+pip install agent-control-plane
 ```
 
 ### "Policy violation but I expected it to pass"
 
-Check your `.agents/security.md`:
+Check your allow-list:
 
-```bash
-agentos audit
+```python
+# Ensure the tool is in the allow-list
+policy.add_constraint("my-agent", ["the_tool_name"])
 ```
-
-This shows which policies are active and what they block.
 
 ### "Agent runs but nothing happens"
 
-Ensure you're using `@kernel.register`:
+Ensure you're executing through the kernel:
 
 ```python
-# ✗ Wrong - not governed
-async def my_agent(task):
-    return llm(task)
+# ✗ Wrong - bypasses governance
+result = my_tool()
 
-# ✓ Correct - governed by kernel
-@kernel.register
-async def my_agent(task):
-    return llm(task)
+# ✓ Correct - goes through kernel
+result = await kernel.syscall(
+    SyscallRequest(syscall=SyscallType.SYS_EXEC, args={"tool": "my_tool", "args": {}}),
+    ctx
+)
 ```
 
 ---
@@ -229,14 +272,4 @@ async def my_agent(task):
 
 - [GitHub Issues](https://github.com/imran-siddique/agent-os/issues)
 - [Documentation](https://github.com/imran-siddique/agent-os/tree/main/docs)
-- [Examples](https://github.com/imran-siddique/agent-os/tree/main/examples)
-
----
-
-<div align="center">
-
-**Ready to build something real?**
-
-[Carbon Auditor Tutorial →](../examples/carbon-auditor/)
-
-</div>
+- [Policy Schema Reference](policy-schema.md)
