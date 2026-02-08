@@ -5,7 +5,7 @@
 ## TL;DR
 
 ```bash
-pip install agent-os
+pip install agent-os-kernel
 ```
 
 ```python
@@ -30,7 +30,7 @@ That's it. Your agent now runs with kernel-level policy enforcement.
 ## Step 1: Install
 
 ```bash
-pip install agent-os
+pip install agent-os-kernel
 ```
 
 **Optional extras:**
