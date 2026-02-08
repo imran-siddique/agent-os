@@ -312,6 +312,7 @@ def cmd_init(args):
     
     if agents_dir.exists() and not args.force:
         print(f"Error: {agents_dir} already exists. Use --force to overwrite.")
+        print(f"  {Colors.DIM}Hint: agentos init --force{Colors.RESET}")
         return 1
     
     agents_dir.mkdir(parents=True, exist_ok=True)
@@ -430,11 +431,13 @@ def cmd_secure(args):
     
     if not agents_dir.exists():
         print(f"Error: No .agents/ directory found. Run 'agentos init' first.")
+        print(f"  {Colors.DIM}Hint: agentos init --template strict{Colors.RESET}")
         return 1
     
     security_md = agents_dir / "security.md"
     if not security_md.exists():
         print(f"Error: No security.md found. Run 'agentos init' first.")
+        print(f"  {Colors.DIM}Hint: agentos init && agentos secure{Colors.RESET}")
         return 1
     
     print(f"Securing agents in {root}...")
@@ -761,6 +764,7 @@ def cmd_install_hooks(args):
     
     if not git_dir.exists():
         print(f"{Colors.RED}Error:{Colors.RESET} Not a git repository. Run 'git init' first.")
+        print(f"  {Colors.DIM}Hint: git init && agentos install-hooks{Colors.RESET}")
         return 1
     
     hooks_dir = git_dir / 'hooks'
@@ -1022,48 +1026,92 @@ Documentation: https://github.com/imran-siddique/agent-os
     subparsers = parser.add_subparsers(dest="command", help="Commands")
     
     # init command
-    init_parser = subparsers.add_parser("init", help="Initialize .agents/ directory")
-    init_parser.add_argument("--path", "-p", help="Path to initialize (default: current)")
+    init_parser = subparsers.add_parser(
+        "init",
+        help="Initialize .agents/ directory with policy templates",
+        description="Create the .agents/ directory with default safety policies. "
+                    "Choose a template: 'strict' blocks destructive operations, "
+                    "'permissive' allows with logging, 'audit' logs everything.",
+    )
+    init_parser.add_argument("--path", "-p", help="Path to initialize (default: current directory)")
     init_parser.add_argument("--template", "-t", choices=["strict", "permissive", "audit"],
-                            default="strict", help="Policy template")
-    init_parser.add_argument("--force", "-f", action="store_true", help="Overwrite existing")
+                            default="strict", help="Policy template (default: strict)")
+    init_parser.add_argument("--force", "-f", action="store_true", help="Overwrite existing .agents/ directory")
     
     # secure command
-    secure_parser = subparsers.add_parser("secure", help="Enable kernel governance")
-    secure_parser.add_argument("--path", "-p", help="Path to secure (default: current)")
-    secure_parser.add_argument("--verify", action="store_true", help="Verify only")
+    secure_parser = subparsers.add_parser(
+        "secure",
+        help="Enable kernel governance on an existing project",
+        description="Add governance configuration (security.md, policies) to a project. "
+                    "Use --verify to check if governance is already enabled.",
+    )
+    secure_parser.add_argument("--path", "-p", help="Path to secure (default: current directory)")
+    secure_parser.add_argument("--verify", action="store_true", help="Only verify, don't modify")
     
     # audit command
-    audit_parser = subparsers.add_parser("audit", help="Audit security configuration")
-    audit_parser.add_argument("--path", "-p", help="Path to audit (default: current)")
-    audit_parser.add_argument("--format", "-f", choices=["text", "json"], default="text")
+    audit_parser = subparsers.add_parser(
+        "audit",
+        help="Audit agent security configuration and policies",
+        description="Analyze .agents/ directory for missing policies, weak rules, "
+                    "and configuration issues. Use --format json for CI pipelines.",
+    )
+    audit_parser.add_argument("--path", "-p", help="Path to audit (default: current directory)")
+    audit_parser.add_argument("--format", "-f", choices=["text", "json"], default="text",
+                             help="Output format: text (human-readable) or json (machine-readable)")
     
     # status command
-    subparsers.add_parser("status", help="Show kernel status")
+    subparsers.add_parser(
+        "status",
+        help="Show kernel status, loaded policies, and agent health",
+        description="Display the current kernel state including active policies, "
+                    "registered agents, and recent activity summary.",
+    )
     
-    # check command (NEW)
-    check_parser = subparsers.add_parser("check", help="Check file(s) for safety violations")
-    check_parser.add_argument("files", nargs="*", help="Files to check")
-    check_parser.add_argument("--staged", action="store_true", help="Check staged git files")
-    check_parser.add_argument("--ci", action="store_true", help="CI mode (no colors, machine output)")
+    # check command
+    check_parser = subparsers.add_parser(
+        "check",
+        help="Check file(s) for safety violations (SQL injection, secrets, etc.)",
+        description="Scan source files for policy violations including destructive SQL, "
+                    "hardcoded secrets, privilege escalation, and unsafe operations. "
+                    "Use --staged to check only git-staged files (ideal for pre-commit hooks).",
+    )
+    check_parser.add_argument("files", nargs="*", help="Files to check (omit to check all)")
+    check_parser.add_argument("--staged", action="store_true", help="Check only git-staged files")
+    check_parser.add_argument("--ci", action="store_true", help="CI mode (no colors, exit code 1 on violations)")
     check_parser.add_argument("--format", choices=["text", "json"], default="text", help="Output format")
     
-    # review command (NEW)
-    review_parser = subparsers.add_parser("review", help="Multi-model code review")
+    # review command
+    review_parser = subparsers.add_parser(
+        "review",
+        help="Multi-model code review with CMVK consensus",
+        description="Review a file using one or more AI models. With --cmvk, the "
+                    "Consensus Multi-model Verification Kernel sends the code to multiple "
+                    "models and returns issues agreed upon by majority vote.",
+    )
     review_parser.add_argument("file", help="File to review")
-    review_parser.add_argument("--cmvk", action="store_true", help="Use CMVK multi-model review")
-    review_parser.add_argument("--models", help="Comma-separated list of models (default: gpt-4,claude-sonnet-4,gemini-pro)")
+    review_parser.add_argument("--cmvk", action="store_true", help="Use CMVK multi-model consensus review")
+    review_parser.add_argument("--models", help="Comma-separated models (default: gpt-4,claude-sonnet-4,gemini-pro)")
     review_parser.add_argument("--format", choices=["text", "json"], default="text", help="Output format")
     
-    # install-hooks command (NEW)
-    hooks_parser = subparsers.add_parser("install-hooks", help="Install git pre-commit hooks")
-    hooks_parser.add_argument("--force", action="store_true", help="Overwrite existing hook")
-    hooks_parser.add_argument("--append", action="store_true", help="Append to existing hook")
+    # install-hooks command
+    hooks_parser = subparsers.add_parser(
+        "install-hooks",
+        help="Install git pre-commit hooks for automatic safety checks",
+        description="Add a pre-commit hook that runs 'agentos check --staged' before "
+                    "every commit. Blocks commits containing policy violations.",
+    )
+    hooks_parser.add_argument("--force", action="store_true", help="Overwrite existing pre-commit hook")
+    hooks_parser.add_argument("--append", action="store_true", help="Append to existing pre-commit hook")
     
-    # validate command (policy YAML validation)
-    validate_parser = subparsers.add_parser("validate", help="Validate policy YAML files")
+    # validate command
+    validate_parser = subparsers.add_parser(
+        "validate",
+        help="Validate policy YAML files for syntax and schema errors",
+        description="Check policy YAML files for valid syntax, required fields, "
+                    "and correct rule structure. Catches errors before deployment.",
+    )
     validate_parser.add_argument("files", nargs="*", help="Policy files to validate (default: .agents/*.yaml)")
-    validate_parser.add_argument("--strict", action="store_true", help="Strict validation mode")
+    validate_parser.add_argument("--strict", action="store_true", help="Strict mode: treat warnings as errors")
     
     args = parser.parse_args()
     

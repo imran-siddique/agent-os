@@ -50,6 +50,69 @@ result = await kernel.execute(
 
 That's it! Your agent now has deterministic policy enforcement. [Learn more →](#what-is-agent-os)
 
+<details>
+<summary><b>📋 More examples (click to expand)</b></summary>
+
+### Policy enforcement with custom rules
+
+```python
+from agent_os import StatelessKernel
+
+kernel = StatelessKernel()
+kernel.load_policy_yaml("""
+version: "1.0"
+name: api-safety
+rules:
+  - name: block-destructive-sql
+    condition: "action == 'database_query'"
+    action: deny
+    pattern: "DROP|TRUNCATE|DELETE FROM .* WHERE 1=1"
+  - name: rate-limit-api
+    condition: "action == 'api_call'"
+    limit: "100/hour"
+""")
+
+result = await kernel.execute(action="database_query", params={"query": "DROP TABLE users"})
+# ❌ Blocked: Matched rule 'block-destructive-sql'
+```
+
+### Audit logging
+
+```python
+from agent_os import KernelSpace
+
+kernel = KernelSpace()
+
+# Every kernel action is automatically recorded
+result = await kernel.execute(action="read_file", params={"path": "/data/report.csv"})
+
+# Query the flight recorder
+entries = kernel.flight_recorder.query(agent_id="agent-001", limit=10)
+for entry in entries:
+    print(f"{entry.timestamp} | {entry.action} | {entry.outcome}")
+```
+
+### Governed chatbot with memory
+
+```python
+from agent_os import KernelSpace
+from agent_os.emk import EpisodicMemory
+
+kernel = KernelSpace(policy_file="policies.yaml")
+memory = EpisodicMemory(max_turns=50)
+
+@kernel.register
+async def chat(message: str, conversation_id: str = "default") -> str:
+    history = memory.get_history(conversation_id)
+    response = await call_llm(history + [{"role": "user", "content": message}])
+    memory.add_turn(conversation_id, message, response)
+    return response
+# Outputs are checked against content policies; violations trigger SIGSTOP
+```
+
+See [examples/](examples/) for 20+ runnable demos including SQL agents, GitHub reviewers, and compliance bots.
+</details>
+
 ---
 
 <p align="center">
