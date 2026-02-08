@@ -1,51 +1,9 @@
 # AgentOS for GitHub Copilot
 
-> ⚠️ **DEPRECATED**: GitHub Copilot Extensions (GitHub Apps) were deprecated on November 10, 2025.
-> 
-> **Use the MCP Server instead:** [`extensions/mcp-server`](../mcp-server/)
-> 
-> See: [GitHub's deprecation announcement](https://github.blog/changelog/2025-09-24-deprecate-github-copilot-extensions-github-apps/)
+> **Note:** GitHub also supports extending Copilot via the Model Context Protocol (MCP).
+> See [`extensions/mcp-server`](../mcp-server/) for the MCP-based alternative.
 
 ---
-
-## Migration to MCP
-
-The Model Context Protocol (MCP) is now the standard for extending AI assistants like GitHub Copilot, Claude Desktop, and Cursor.
-
-### Quick Start with MCP
-
-Install from npm:
-```bash
-npx agentos-mcp-server
-```
-
-Or add to your Claude Desktop config (`%APPDATA%\Claude\claude_desktop_config.json`):
-```json
-{
-  "mcpServers": {
-    "agentos": {
-      "command": "npx",
-      "args": ["-y", "agentos-mcp-server"]
-    }
-  }
-}
-```
-
-**MCP Registry:** `io.github.imran-siddique/agentos`
-
-**npm Package:** [`agentos-mcp-server`](https://www.npmjs.com/package/agentos-mcp-server)
-
-**Documentation:** [`extensions/mcp-server/README.md`](../mcp-server/README.md)
-
----
-
-## Legacy Documentation (Archived)
-
-The content below is preserved for historical reference only. This approach no longer works.
-
----
-
-# AgentOS for GitHub Copilot (DEPRECATED)
 
 > **Build safe AI agents with natural language and 0% policy violations**
 
@@ -220,9 +178,8 @@ Create `.github/agent-os.json`:
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/api/filter` | POST | Filter Copilot suggestions |
-| `/api/chat` | POST | Handle @agentos commands |
-| `/api/annotate` | POST | Get safety annotations |
+| `/api/copilot` | POST | Handle @agentos chat commands |
+| `/api/webhook` | POST | GitHub webhook endpoint |
 | `/api/templates` | GET | List agent templates |
 | `/api/templates/:id` | GET | Get template by ID |
 | `/api/compliance` | GET | List compliance frameworks |
@@ -231,6 +188,8 @@ Create `.github/agent-os.json`:
 | `/api/policy` | GET/POST | Manage policies |
 | `/api/status` | GET | Service status |
 | `/health` | GET | Health check |
+| `/setup` | GET | Setup page |
+| `/auth/callback` | GET | OAuth callback |
 
 ## Generated Agent Structure
 
