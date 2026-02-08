@@ -115,7 +115,45 @@ dev = [
 agent-os = "agent_os.cli:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/agent_os", "modules"]
+packages = [
+    "src/agent_os",
+    # Layer 1 – Primitives
+    "modules/primitives/agent_primitives",
+    "modules/cmvk/src/cmvk",
+    "modules/caas/src/caas",
+    "modules/emk/emk",
+    # Layer 2 – Infrastructure
+    "modules/iatp/iatp",
+    "modules/amb/amb_core",
+    "modules/atr/atr",
+    # Layer 3 – Framework
+    "modules/control-plane/src/agent_control_plane",
+    "modules/observability/src/agent_os_observability",
+    "modules/nexus",
+    # Layer 4 – Intelligence
+    "modules/scak/agent_kernel",
+    "modules/mute-agent/mute_agent",
+    # Servers
+    "modules/mcp-kernel-server/src/mcp_kernel_server",
+]
+
+# Remap source paths so each subpackage installs at the wheel root.
+# Without this, hatch preserves intermediate dirs (e.g. control-plane/src/).
+[tool.hatch.build.targets.wheel.sources]
+"src" = ""
+"modules/primitives" = ""
+"modules/cmvk/src" = ""
+"modules/caas/src" = ""
+"modules/emk" = ""
+"modules/iatp" = ""
+"modules/amb" = ""
+"modules/atr" = ""
+"modules/control-plane/src" = ""
+"modules/observability/src" = ""
+"modules/nexus" = "nexus"
+"modules/scak" = ""
+"modules/mute-agent" = ""
+"modules/mcp-kernel-server/src" = ""
 
 [tool.hatch.build.targets.sdist]
 include = [
