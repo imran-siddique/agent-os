@@ -11,10 +11,12 @@
 [![CI](https://github.com/imran-siddique/agent-os/actions/workflows/ci.yml/badge.svg)](https://github.com/imran-siddique/agent-os/actions/workflows/ci.yml)
 [![VS Code Extension](https://img.shields.io/badge/VS%20Code-Extension-007ACC?logo=visual-studio-code)](https://marketplace.visualstudio.com/items?itemName=agent-os.agent-os-vscode)
 [![Documentation](https://img.shields.io/badge/docs-imran--siddique.github.io-blue)](https://imran-siddique.github.io/agent-os-docs/)
+[![Featured in awesome-llm-apps](https://img.shields.io/badge/Featured%20in-awesome--llm--apps-orange)](https://github.com/Shubhamsaboo/awesome-llm-apps)
+[![awesome-mcp-servers](https://img.shields.io/badge/awesome--mcp--servers-listed-blue)](https://github.com/punkpeye/awesome-mcp-servers)
 
 > ⭐ **If this project helps you, please star it!** It helps others discover Agent OS.
 
-[Quick Start](#quick-example) • [Documentation](https://imran-siddique.github.io/agent-os-docs/) • [VS Code Extension](https://marketplace.visualstudio.com/items?itemName=agent-os.agent-os-vscode) • [Examples](examples/)
+[Quick Start](#quick-example) • [Documentation](https://imran-siddique.github.io/agent-os-docs/) • [VS Code Extension](https://marketplace.visualstudio.com/items?itemName=agent-os.agent-os-vscode) • [Examples](examples/) • [AgentMesh (Multi-Agent Trust)](https://github.com/imran-siddique/agent-mesh)
 
 <br/>
 
