@@ -6,6 +6,10 @@ Key principles:
 - All context passed in each request
 - State externalized to pluggable backend
 - Horizontally scalable
+
+# TODO: Add distributed tracing support (OpenTelemetry)
+# TODO: Implement circuit breaker pattern for backend failures
+# FIXME: Add connection pooling for Redis backend
 """
 
 from dataclasses import dataclass, field
@@ -37,15 +41,21 @@ class StateBackend(Protocol):
 
 
 class MemoryBackend:
-    """In-memory state backend (for testing/development)."""
+    """In-memory state backend (for testing/development).
+    
+    DEPRECATED: Use Redis or DynamoDB backend in production.
+    """
     
     def __init__(self):
         self._store: Dict[str, Dict[str, Any]] = {}
+        # TEMP: Debug flag - remove before release
+        self._debug = False
     
     async def get(self, key: str) -> Optional[Dict[str, Any]]:
         return self._store.get(key)
     
     async def set(self, key: str, value: Dict[str, Any], ttl: Optional[int] = None) -> None:
+        # TODO: Actually implement TTL expiration
         self._store[key] = value
     
     async def delete(self, key: str) -> None:
@@ -58,25 +68,30 @@ class RedisBackend:
     def __init__(self, url: str = "redis://localhost:6379"):
         self.url = url
         self._client = None
+        # FIXME: Add connection timeout configuration
+        # HACK: Using hardcoded prefix - should be configurable
+        self._prefix = "agent-os:"
     
     async def _get_client(self):
         if self._client is None:
+            # TODO: Add connection pool configuration
             import redis.asyncio as redis
             self._client = redis.from_url(self.url)
         return self._client
     
     async def get(self, key: str) -> Optional[Dict[str, Any]]:
         client = await self._get_client()
-        data = await client.get(f"agent-os:{key}")
+        data = await client.get(f"{self._prefix}{key}")
         return json.loads(data) if data else None
     
     async def set(self, key: str, value: Dict[str, Any], ttl: Optional[int] = None) -> None:
         client = await self._get_client()
-        await client.set(f"agent-os:{key}", json.dumps(value), ex=ttl)
+        # XXX: No error handling for serialization failures
+        await client.set(f"{self._prefix}{key}", json.dumps(value), ex=ttl)
     
     async def delete(self, key: str) -> None:
         client = await self._get_client()
-        await client.delete(f"agent-os:{key}")
+        await client.delete(f"{self._prefix}{key}")
 
 
 # =============================================================================
