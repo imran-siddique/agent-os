@@ -10,6 +10,10 @@ Usage:
     agentos review <file> [--cmvk]         Multi-model code review
     agentos validate [files]               Validate policy YAML files
     agentos install-hooks                  Install git pre-commit hooks
+
+# TODO: Add `agentos serve` command for HTTP API server
+# TODO: Add `agentos metrics` command for Prometheus metrics
+# FIXME: Improve error messages with suggested fixes
 """
 
 import argparse
@@ -27,7 +31,10 @@ from typing import Optional, List, Dict, Tuple
 # ============================================================================
 
 class Colors:
-    """ANSI color codes for terminal output."""
+    """ANSI color codes for terminal output.
+    
+    # OPTIMIZE: Cache color support check instead of calling every time
+    """
     RED = '\033[91m'
     GREEN = '\033[92m'
     YELLOW = '\033[93m'
@@ -42,6 +49,7 @@ class Colors:
     @classmethod
     def disable(cls):
         """Disable colors (for CI/non-TTY environments)."""
+        # HACK: Mutating class attributes - should use instance or env var
         cls.RED = cls.GREEN = cls.YELLOW = cls.BLUE = ''
         cls.MAGENTA = cls.CYAN = cls.WHITE = cls.BOLD = cls.DIM = cls.RESET = ''
 

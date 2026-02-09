@@ -40,6 +40,8 @@ class PolicyDecision(Enum):
     ALLOW = "allow"
     DENY = "deny"
     AUDIT = "audit"  # Allow but log for review
+    # TODO: Add ESCALATE decision for human-in-the-loop scenarios
+    # TODO: Add DEFER decision for async policy evaluation
 
 
 @dataclass
@@ -56,6 +58,8 @@ class AgentConfig:
     policies: List[str] = field(default_factory=list)
     metadata: Dict[str, Any] = field(default_factory=dict)
     state_backend: Optional[StateBackend] = None
+    # FIXME: Add validation for agent_id format (should be alphanumeric with dashes)
+    # TODO: Support loading config from YAML/JSON file
 
 
 @dataclass
@@ -120,6 +124,8 @@ class BaseAgent(ABC):
             backend=config.state_backend or MemoryBackend()
         )
         self._audit_log: List[AuditEntry] = []
+        # HACK: Hardcoded max audit log size - should be configurable
+        self._max_audit_entries = 10000
     
     @property
     def agent_id(self) -> str:
@@ -140,6 +146,7 @@ class BaseAgent(ABC):
         Returns:
             Fresh ExecutionContext with agent's default settings
         """
+        # XXX: Potential memory leak if metadata contains large objects
         metadata = {**self._config.metadata, **extra_metadata}
         return ExecutionContext(
             agent_id=self._config.agent_id,
