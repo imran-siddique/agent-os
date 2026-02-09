@@ -13,7 +13,10 @@ Usage:
     result = governed_crew.kickoff()
 """
 
+import logging
 from typing import Any, Optional
+
+logger = logging.getLogger(__name__)
 
 from .base import BaseIntegration, GovernancePolicy, ExecutionContext
 
