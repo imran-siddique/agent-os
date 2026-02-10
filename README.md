@@ -54,6 +54,11 @@ result = await kernel.execute(
 
 That's it! Your agent now has deterministic policy enforcement. [Learn more →](#what-is-agent-os)
 
+**🎬 See all features in action:**
+```bash
+git clone https://github.com/imran-siddique/agent-os && python agent-os/demo.py
+```
+
 <details>
 <summary><b>📋 More examples (click to expand)</b></summary>
 
