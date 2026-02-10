@@ -214,6 +214,14 @@ from agent_os.mute import (
     CapabilityViolation,
 )
 
+# Semantic Policy Engine — intent-based enforcement (always available)
+from agent_os.semantic_policy import (
+    SemanticPolicyEngine,
+    IntentCategory,
+    IntentClassification,
+    PolicyDenied,
+)
+
 # ============================================================================
 # Local Components (Always Available)
 # ============================================================================
@@ -386,4 +394,10 @@ __all__ = [
     "AgentsConfig",
     "AgentSkill",
     "discover_agents",
+    
+    # Semantic Policy Engine
+    "SemanticPolicyEngine",
+    "IntentCategory",
+    "IntentClassification",
+    "PolicyDenied",
 ]
