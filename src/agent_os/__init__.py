@@ -190,7 +190,7 @@ try:
 except ImportError:
     _SCAK_AVAILABLE = False
 
-# Mute Agent
+# Mute Agent (external module)
 try:
     from mute_agent import (
         MuteAgent,
@@ -200,6 +200,19 @@ try:
     _MUTE_AGENT_AVAILABLE = True
 except ImportError:
     _MUTE_AGENT_AVAILABLE = False
+
+# Mute Agent Primitives — Face/Hands kernel-level decorators (always available)
+from agent_os.mute import (
+    face_agent,
+    mute_agent,
+    pipe,
+    ActionStep,
+    ActionStatus,
+    ExecutionPlan,
+    StepResult,
+    PipelineResult,
+    CapabilityViolation,
+)
 
 # ============================================================================
 # Local Components (Always Available)
@@ -340,6 +353,17 @@ __all__ = [
     "MuteAgent",
     "ReasoningAgent",
     "ExecutionAgent",
+    
+    # Mute Agent Primitives (Face/Hands kernel-level decorators)
+    "face_agent",
+    "mute_agent",
+    "pipe",
+    "ActionStep",
+    "ActionStatus",
+    "ExecutionPlan",
+    "StepResult",
+    "PipelineResult",
+    "CapabilityViolation",
     
     # Stateless API (MCP June 2026)
     "StatelessKernel",
