@@ -222,6 +222,15 @@ from agent_os.semantic_policy import (
     PolicyDenied,
 )
 
+# Context Budget Scheduler — token budget as a kernel primitive (always available)
+from agent_os.context_budget import (
+    ContextScheduler,
+    ContextWindow,
+    ContextPriority,
+    AgentSignal,
+    BudgetExceeded,
+)
+
 # ============================================================================
 # Local Components (Always Available)
 # ============================================================================
@@ -400,4 +409,11 @@ __all__ = [
     "IntentCategory",
     "IntentClassification",
     "PolicyDenied",
+    
+    # Context Budget Scheduler
+    "ContextScheduler",
+    "ContextWindow",
+    "ContextPriority",
+    "AgentSignal",
+    "BudgetExceeded",
 ]
