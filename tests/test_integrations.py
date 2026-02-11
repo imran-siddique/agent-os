@@ -139,6 +139,96 @@ class TestGovernancePolicy:
 
 
 # =============================================================================
+# GovernancePolicy input validation
+# =============================================================================
+
+
+class TestGovernancePolicyValidation:
+    """Tests for GovernancePolicy.validate() input validation."""
+
+    def test_default_policy_passes_validation(self):
+        p = GovernancePolicy()
+        p.validate()  # should not raise
+
+    def test_max_tokens_zero_raises(self):
+        with pytest.raises(ValueError, match="max_tokens must be a positive integer"):
+            GovernancePolicy(max_tokens=0)
+
+    def test_max_tokens_negative_raises(self):
+        with pytest.raises(ValueError, match="max_tokens must be a positive integer"):
+            GovernancePolicy(max_tokens=-1)
+
+    def test_max_tool_calls_negative_raises(self):
+        with pytest.raises(ValueError, match="max_tool_calls must be a non-negative integer"):
+            GovernancePolicy(max_tool_calls=-1)
+
+    def test_max_tool_calls_zero_allowed(self):
+        p = GovernancePolicy(max_tool_calls=0)
+        assert p.max_tool_calls == 0
+
+    def test_timeout_seconds_zero_raises(self):
+        with pytest.raises(ValueError, match="timeout_seconds must be a positive integer"):
+            GovernancePolicy(timeout_seconds=0)
+
+    def test_timeout_seconds_negative_raises(self):
+        with pytest.raises(ValueError, match="timeout_seconds must be a positive integer"):
+            GovernancePolicy(timeout_seconds=-10)
+
+    def test_max_concurrent_zero_raises(self):
+        with pytest.raises(ValueError, match="max_concurrent must be a positive integer"):
+            GovernancePolicy(max_concurrent=0)
+
+    def test_checkpoint_frequency_zero_raises(self):
+        with pytest.raises(ValueError, match="checkpoint_frequency must be a positive integer"):
+            GovernancePolicy(checkpoint_frequency=0)
+
+    def test_confidence_threshold_negative_raises(self):
+        with pytest.raises(ValueError, match="confidence_threshold must be a float between 0.0 and 1.0"):
+            GovernancePolicy(confidence_threshold=-0.1)
+
+    def test_confidence_threshold_above_one_raises(self):
+        with pytest.raises(ValueError, match="confidence_threshold must be a float between 0.0 and 1.0"):
+            GovernancePolicy(confidence_threshold=1.5)
+
+    def test_drift_threshold_negative_raises(self):
+        with pytest.raises(ValueError, match="drift_threshold must be a float between 0.0 and 1.0"):
+            GovernancePolicy(drift_threshold=-0.01)
+
+    def test_drift_threshold_above_one_raises(self):
+        with pytest.raises(ValueError, match="drift_threshold must be a float between 0.0 and 1.0"):
+            GovernancePolicy(drift_threshold=2.0)
+
+    def test_allowed_tools_non_string_raises(self):
+        with pytest.raises(ValueError, match="allowed_tools\\[0\\] must be a string"):
+            GovernancePolicy(allowed_tools=[123])
+
+    def test_allowed_tools_mixed_types_raises(self):
+        with pytest.raises(ValueError, match="allowed_tools\\[1\\] must be a string"):
+            GovernancePolicy(allowed_tools=["valid", 42])
+
+    def test_blocked_patterns_non_string_raises(self):
+        with pytest.raises(ValueError, match="blocked_patterns\\[0\\] must be a string"):
+            GovernancePolicy(blocked_patterns=[None])
+
+    def test_valid_string_lists_pass(self):
+        p = GovernancePolicy(
+            allowed_tools=["tool_a", "tool_b"],
+            blocked_patterns=["secret", "password"],
+        )
+        assert p.allowed_tools == ["tool_a", "tool_b"]
+        assert p.blocked_patterns == ["secret", "password"]
+
+    def test_boundary_thresholds_pass(self):
+        p = GovernancePolicy(confidence_threshold=0.0, drift_threshold=1.0)
+        assert p.confidence_threshold == 0.0
+        assert p.drift_threshold == 1.0
+
+    def test_adapter_with_invalid_policy_raises(self):
+        with pytest.raises(ValueError, match="max_tokens must be a positive integer"):
+            LangChainKernel(policy=GovernancePolicy(max_tokens=-5))
+
+
+# =============================================================================
 # ExecutionContext
 # =============================================================================
 
