@@ -703,6 +703,32 @@ See [GitHub Issues](https://github.com/imran-siddique/agent-os/issues) for the f
 
 ---
 
+## FAQ
+
+### How is this different from prompt-based safety?
+
+Prompt-based safety relies on instructing the LLM to follow rules via system prompts. This approach is probabilistic — the model may still produce unsafe outputs under certain conditions.
+
+Agent OS enforces policies at the middleware layer. Actions are intercepted and validated before execution, making enforcement deterministic rather than dependent on model compliance.
+
+### What frameworks are supported?
+
+Agent OS can wrap and govern agents built with popular frameworks including LangChain, CrewAI, AutoGen, Semantic Kernel, and the OpenAI SDK. It also supports MCP-based integrations.
+
+### Can I use this in production?
+
+Core components such as the **StatelessKernel** and **Policy Engine** are production-ready. However, Agent OS provides application-level enforcement. For high-security environments, it should be combined with infrastructure isolation (e.g., containers).
+
+### How do I write custom policies?
+
+Custom policies can be defined programmatically in Python or declaratively using YAML. Policies define rules that inspect and allow or deny agent actions before execution.
+
+### What is the performance overhead?
+
+Policy checks are lightweight and typically introduce only minimal latency per action. The overhead depends on the number and complexity of rules configured.
+
+---
+
 ## Troubleshooting
 
 ### Common Issues
