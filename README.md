@@ -16,6 +16,7 @@
 [![Featured in awesome-llm-apps](https://img.shields.io/badge/Featured%20in-awesome--llm--apps-orange)](https://github.com/Shubhamsaboo/awesome-llm-apps)
 [![awesome-mcp-servers](https://img.shields.io/badge/awesome--mcp--servers-listed-blue)](https://github.com/punkpeye/awesome-mcp-servers)
 [![Integrated in agent-lightning](https://img.shields.io/badge/Microsoft-agent--lightning-purple?logo=microsoft)](https://github.com/microsoft/agent-lightning/tree/main/contrib/recipes/agentos)
+[![Integrated in LlamaIndex](https://img.shields.io/badge/LlamaIndex-integrated-purple)](https://github.com/run-llama/llama_index/pull/20644)
 
 > ⭐ **If this project helps you, please star it!** It helps others discover Agent OS.
 
