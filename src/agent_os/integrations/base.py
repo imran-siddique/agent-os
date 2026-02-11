@@ -32,6 +32,13 @@ class GovernancePolicy:
     max_concurrent: int = 10
     backpressure_threshold: int = 8  # Start slowing down at this level
 
+    def __repr__(self) -> str:
+        return (
+            f"GovernancePolicy(max_tokens={self.max_tokens!r}, "
+            f"max_tool_calls={self.max_tool_calls!r}, "
+            f"require_human_approval={self.require_human_approval!r})"
+        )
+
 
 @dataclass
 class ExecutionContext:
@@ -43,6 +50,9 @@ class ExecutionContext:
     call_count: int = 0
     tool_calls: list[dict] = field(default_factory=list)
     checkpoints: list[str] = field(default_factory=list)
+
+    def __repr__(self) -> str:
+        return f"ExecutionContext(agent_id={self.agent_id!r}, session_id={self.session_id!r})"
 
 
 # ── Abstract Tool Call Interceptor ────────────────────────────
@@ -56,6 +66,9 @@ class ToolCallRequest:
     agent_id: str = ""
     metadata: Dict[str, Any] = field(default_factory=dict)
 
+    def __repr__(self) -> str:
+        return f"ToolCallRequest(tool_name={self.tool_name!r}, call_id={self.call_id!r})"
+
 
 @dataclass
 class ToolCallResult:
@@ -64,6 +77,9 @@ class ToolCallResult:
     reason: Optional[str] = None
     modified_arguments: Optional[Dict[str, Any]] = None  # For argument sanitization
     audit_entry: Optional[Dict[str, Any]] = None
+
+    def __repr__(self) -> str:
+        return f"ToolCallResult(allowed={self.allowed!r}, reason={self.reason!r})"
 
 
 class ToolCallInterceptor(Protocol):

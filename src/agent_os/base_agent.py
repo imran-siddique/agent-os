@@ -61,6 +61,9 @@ class AgentConfig:
     # FIXME: Add validation for agent_id format (should be alphanumeric with dashes)
     # TODO: Support loading config from YAML/JSON file
 
+    def __repr__(self) -> str:
+        return f"AgentConfig(agent_id={self.agent_id!r}, policies={self.policies!r})"
+
 
 @dataclass
 class AuditEntry:
@@ -73,7 +76,13 @@ class AuditEntry:
     decision: PolicyDecision
     result_success: Optional[bool] = None
     error: Optional[str] = None
-    
+
+    def __repr__(self) -> str:
+        return (
+            f"AuditEntry(agent_id={self.agent_id!r}, action={self.action!r}, "
+            f"decision={self.decision!r})"
+        )
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "timestamp": self.timestamp.isoformat(),
