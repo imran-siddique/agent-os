@@ -39,6 +39,61 @@ class GovernancePolicy:
             f"require_human_approval={self.require_human_approval!r})"
         )
 
+    def __post_init__(self):
+        """Validate policy fields on construction."""
+        self.validate()
+
+    def validate(self):
+        """Validate all policy fields and raise ValueError for invalid inputs."""
+        # Validate positive integers (must be > 0)
+        for field_name in (
+            "max_tokens", "timeout_seconds",
+            "max_concurrent", "backpressure_threshold", "checkpoint_frequency",
+        ):
+            value = getattr(self, field_name)
+            if not isinstance(value, int) or value <= 0:
+                raise ValueError(
+                    f"{field_name} must be a positive integer, got {value!r}"
+                )
+
+        # Validate non-negative integers (>= 0 allowed)
+        for field_name in ("max_tool_calls",):
+            value = getattr(self, field_name)
+            if not isinstance(value, int) or value < 0:
+                raise ValueError(
+                    f"{field_name} must be a non-negative integer, got {value!r}"
+                )
+
+        # Validate float thresholds are in [0.0, 1.0]
+        for field_name in ("confidence_threshold", "drift_threshold"):
+            value = getattr(self, field_name)
+            if not isinstance(value, (int, float)) or not (0.0 <= value <= 1.0):
+                raise ValueError(
+                    f"{field_name} must be a float between 0.0 and 1.0, got {value!r}"
+                )
+
+        # Validate allowed_tools entries are strings
+        if not isinstance(self.allowed_tools, list):
+            raise ValueError(
+                f"allowed_tools must be a list, got {type(self.allowed_tools).__name__}"
+            )
+        for i, tool in enumerate(self.allowed_tools):
+            if not isinstance(tool, str):
+                raise ValueError(
+                    f"allowed_tools[{i}] must be a string, got {type(tool).__name__}: {tool!r}"
+                )
+
+        # Validate blocked_patterns entries are strings
+        if not isinstance(self.blocked_patterns, list):
+            raise ValueError(
+                f"blocked_patterns must be a list, got {type(self.blocked_patterns).__name__}"
+            )
+        for i, pattern in enumerate(self.blocked_patterns):
+            if not isinstance(pattern, str):
+                raise ValueError(
+                    f"blocked_patterns[{i}] must be a string, got {type(pattern).__name__}: {pattern!r}"
+                )
+
 
 @dataclass
 class ExecutionContext:
