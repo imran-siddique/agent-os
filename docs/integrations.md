@@ -18,9 +18,11 @@ All operations now go through Agent OS governance.
 | Framework | Adapter | Status |
 |-----------|---------|--------|
 | LangChain | `LangChainKernel` | ✅ Stable |
+| LlamaIndex | `LlamaIndexKernel` | ✅ Stable |
 | CrewAI | `CrewAIKernel` | ✅ Stable |
 | AutoGen | `AutoGenKernel` | ✅ Stable |
 | OpenAI Assistants | `OpenAIKernel` | ✅ Stable |
+| OpenAI Agents SDK | `OpenAIAgentsKernel` | ✅ Stable |
 | Semantic Kernel | `SemanticKernelWrapper` | ✅ Stable |
 
 ---
@@ -52,6 +54,42 @@ result = governed_agent.invoke({"input": "Analyze this data"})
 - `run()` / `arun()` - Agent execution
 - `batch()` / `abatch()` - Batch execution
 - `stream()` / `astream()` - Streaming
+
+---
+
+## LlamaIndex
+
+```python
+from llama_index.core import VectorStoreIndex
+from agent_os.integrations import LlamaIndexKernel, GovernancePolicy
+
+# Create your LlamaIndex query engine
+index = VectorStoreIndex.from_documents(documents)
+query_engine = index.as_query_engine()
+
+# Wrap with Agent OS
+kernel = LlamaIndexKernel(policy=GovernancePolicy(
+    max_tool_calls=20,
+    blocked_patterns=["password", "secret"]
+))
+governed_engine = kernel.wrap(query_engine)
+
+# Use as normal - now governed!
+result = governed_engine.query("What are the key findings?")
+```
+
+**Supported methods:**
+- `query()` / `aquery()` - Query execution
+- `chat()` / `achat()` - Chat engine
+- `stream_chat()` - Streaming chat
+- `retrieve()` - Retriever
+
+**Signal handling:**
+```python
+kernel.signal("llamaindex-engine-id", "SIGSTOP")   # Pause
+kernel.signal("llamaindex-engine-id", "SIGCONT")   # Resume
+kernel.signal("llamaindex-engine-id", "SIGKILL")   # Terminate
+```
 
 ---
 
@@ -181,10 +219,52 @@ kernel = AutoGenKernel(policy=GovernancePolicy(
     max_tokens=50000,
     confidence_threshold=0.9
 ))
-kernel.govern([assistant, user_proxy])
+kernel.govern(assistant, user_proxy)
 
 # Chat - now governed!
 user_proxy.initiate_chat(assistant, message="Solve this problem")
+```
+
+**Signal handling:**
+```python
+kernel.signal("assistant", "SIGSTOP")   # Pause agent
+kernel.signal("assistant", "SIGCONT")   # Resume agent
+kernel.signal("assistant", "SIGKILL")   # Unwrap agent
+
+# Restore original ungoverned agent
+kernel.unwrap(assistant)
+```
+
+---
+
+## OpenAI Agents SDK
+
+```python
+from agents import Agent, Runner
+from agent_os.integrations.openai_agents_sdk import OpenAIAgentsKernel
+
+# Create your OpenAI Agent
+agent = Agent(name="analyst", instructions="You analyze data")
+
+# Wrap with Agent OS governance
+kernel = OpenAIAgentsKernel(policy={
+    "blocked_patterns": ["password", "secret"],
+    "allowed_tools": ["file_search", "code_interpreter"],
+    "max_tool_calls": 10,
+})
+
+# Add tool guards
+@kernel.tool_guard
+async def safe_query(sql: str):
+    return db.execute(sql)
+
+# Use GovernedRunner for automatic governance
+governed = kernel.wrap_runner(Runner)
+result = await governed.run(agent, "Analyze Q4 revenue")
+
+# Access audit log
+for entry in kernel.get_audit_log():
+    print(f"{entry['event']}: {entry['timestamp']}")
 ```
 
 ---
