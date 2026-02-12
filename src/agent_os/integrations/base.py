@@ -4,6 +4,7 @@ Base Integration Interface
 All framework adapters inherit from this base class.
 """
 
+import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Protocol
@@ -95,6 +96,9 @@ class GovernancePolicy:
                 )
 
 
+_AGENT_ID_RE = re.compile(r"^[a-zA-Z0-9_-]+$")
+
+
 @dataclass
 class ExecutionContext:
     """Context passed through the governance layer"""
@@ -103,11 +107,59 @@ class ExecutionContext:
     policy: GovernancePolicy
     start_time: datetime = field(default_factory=datetime.now)
     call_count: int = 0
+    total_tokens: int = 0
     tool_calls: list[dict] = field(default_factory=list)
     checkpoints: list[str] = field(default_factory=list)
 
     def __repr__(self) -> str:
         return f"ExecutionContext(agent_id={self.agent_id!r}, session_id={self.session_id!r})"
+
+    def __post_init__(self):
+        """Validate context fields on construction."""
+        self.validate()
+
+    def validate(self):
+        """Validate all context fields and raise ValueError for invalid inputs."""
+        # Validate agent_id is a non-empty string matching allowed pattern
+        if not isinstance(self.agent_id, str) or not self.agent_id:
+            raise ValueError(
+                f"agent_id must be a non-empty string, got {self.agent_id!r}"
+            )
+        if not _AGENT_ID_RE.match(self.agent_id):
+            raise ValueError(
+                f"agent_id must match ^[a-zA-Z0-9_-]+$, got {self.agent_id!r}"
+            )
+
+        # Validate session_id is a non-empty string
+        if not isinstance(self.session_id, str) or not self.session_id:
+            raise ValueError(
+                f"session_id must be a non-empty string, got {self.session_id!r}"
+            )
+
+        # Validate policy is a GovernancePolicy instance
+        if not isinstance(self.policy, GovernancePolicy):
+            raise ValueError(
+                f"policy must be a GovernancePolicy instance, got {type(self.policy).__name__}"
+            )
+
+        # Validate non-negative integers
+        for field_name in ("call_count", "total_tokens"):
+            value = getattr(self, field_name)
+            if not isinstance(value, int) or value < 0:
+                raise ValueError(
+                    f"{field_name} must be a non-negative integer, got {value!r}"
+                )
+
+        # Validate checkpoints is a list of strings
+        if not isinstance(self.checkpoints, list):
+            raise ValueError(
+                f"checkpoints must be a list, got {type(self.checkpoints).__name__}"
+            )
+        for i, cp in enumerate(self.checkpoints):
+            if not isinstance(cp, str):
+                raise ValueError(
+                    f"checkpoints[{i}] must be a string, got {type(cp).__name__}: {cp!r}"
+                )
 
 
 # ── Abstract Tool Call Interceptor ────────────────────────────
