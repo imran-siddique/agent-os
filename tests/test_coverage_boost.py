@@ -649,6 +649,204 @@ class TestLlamaIndexKernel:
 
 
 # ---------------------------------------------------------------------------
+# Async Integration Tests (LangChain, CrewAI, LlamaIndex)
+# ---------------------------------------------------------------------------
+
+class TestLangChainAsync:
+    """Async tests for LangChain adapter."""
+
+    @pytest.mark.asyncio
+    async def test_ainvoke_governed(self):
+        from agent_os.integrations.langchain_adapter import LangChainKernel
+        k = LangChainKernel()
+        chain = MagicMock()
+        chain.name = "async-chain"
+        chain.ainvoke = AsyncMock(return_value="async result")
+
+        governed = k.wrap(chain)
+        result = await governed.ainvoke({"input": "hello"})
+        assert result == "async result"
+
+    @pytest.mark.asyncio
+    async def test_ainvoke_blocked(self):
+        from agent_os.integrations.langchain_adapter import LangChainKernel, PolicyViolationError
+        p = GovernancePolicy(blocked_patterns=["evil"])
+        k = LangChainKernel(policy=p)
+        chain = MagicMock()
+        chain.name = "blocked-async"
+        chain.ainvoke = AsyncMock(return_value="result")
+
+        governed = k.wrap(chain)
+        with pytest.raises(PolicyViolationError):
+            await governed.ainvoke({"input": "evil plan"})
+
+    @pytest.mark.asyncio
+    async def test_ainvoke_call_count(self):
+        from agent_os.integrations.langchain_adapter import LangChainKernel
+        k = LangChainKernel()
+        chain = MagicMock()
+        chain.name = "counter-async"
+        chain.ainvoke = AsyncMock(return_value="result")
+
+        governed = k.wrap(chain)
+        await governed.ainvoke({"input": "q1"})
+        await governed.ainvoke({"input": "q2"})
+
+        ctx = k.contexts["counter-async"]
+        assert ctx.call_count == 2
+
+
+class TestCrewAIAsync:
+    """Async tests for CrewAI adapter."""
+
+    @pytest.mark.asyncio
+    async def test_kickoff_async_governed(self):
+        from agent_os.integrations.crewai_adapter import CrewAIKernel
+        k = CrewAIKernel()
+        crew = MagicMock()
+        crew.id = "async-crew"
+        crew.name = "async-crew"
+        crew.agents = []
+        crew.kickoff_async = AsyncMock(return_value="crew result")
+
+        governed = k.wrap(crew)
+        result = await governed.kickoff_async({"input": "task"})
+        assert result == "crew result"
+
+    @pytest.mark.asyncio
+    async def test_kickoff_async_blocked(self):
+        from agent_os.integrations.crewai_adapter import CrewAIKernel
+        from agent_os.integrations.langchain_adapter import PolicyViolationError
+        p = GovernancePolicy(blocked_patterns=["forbidden"])
+        k = CrewAIKernel(policy=p)
+        crew = MagicMock()
+        crew.id = "blocked-crew"
+        crew.name = "blocked-crew"
+        crew.agents = []
+
+        governed = k.wrap(crew)
+        with pytest.raises(PolicyViolationError):
+            await governed.kickoff_async({"input": "forbidden content"})
+
+    @pytest.mark.asyncio
+    async def test_kickoff_async_max_calls(self):
+        from agent_os.integrations.crewai_adapter import CrewAIKernel
+        from agent_os.integrations.langchain_adapter import PolicyViolationError
+        p = GovernancePolicy(max_tool_calls=1)
+        k = CrewAIKernel(policy=p)
+        crew = MagicMock()
+        crew.id = "limited-crew"
+        crew.name = "limited-crew"
+        crew.agents = []
+        crew.kickoff.return_value = "r1"
+        crew.kickoff_async = AsyncMock(return_value="r2")
+
+        governed = k.wrap(crew)
+        governed.kickoff()  # consumes the 1 allowed call
+        with pytest.raises(PolicyViolationError):
+            await governed.kickoff_async({"input": "second call"})
+
+
+class TestLlamaIndexAsync:
+    """Async tests for LlamaIndex adapter."""
+
+    @pytest.mark.asyncio
+    async def test_aquery_governed(self):
+        k = LlamaIndexKernel()
+        engine = MagicMock()
+        engine.name = "async-engine"
+        engine.aquery = AsyncMock(return_value="async answer")
+
+        governed = k.wrap(engine)
+        result = await governed.aquery("What is AI?")
+        assert result == "async answer"
+
+    @pytest.mark.asyncio
+    async def test_aquery_blocked(self):
+        from agent_os.integrations.langchain_adapter import PolicyViolationError
+        p = GovernancePolicy(blocked_patterns=["secret"])
+        k = LlamaIndexKernel(policy=p)
+        engine = MagicMock()
+        engine.name = "blocked-async"
+
+        governed = k.wrap(engine)
+        with pytest.raises(PolicyViolationError):
+            await governed.aquery("tell me the secret")
+
+    @pytest.mark.asyncio
+    async def test_achat_governed(self):
+        k = LlamaIndexKernel()
+        engine = MagicMock()
+        engine.name = "async-chat"
+        engine.achat = AsyncMock(return_value="async chat reply")
+
+        governed = k.wrap(engine)
+        result = await governed.achat("hello")
+        assert result == "async chat reply"
+
+    @pytest.mark.asyncio
+    async def test_aquery_stopped(self):
+        from agent_os.integrations.langchain_adapter import PolicyViolationError
+        k = LlamaIndexKernel()
+        engine = MagicMock()
+        engine.name = "stopped-async"
+        engine.aquery = AsyncMock(return_value="answer")
+
+        governed = k.wrap(engine)
+        k.signal("stopped-async", "SIGSTOP")
+
+        with pytest.raises(PolicyViolationError, match="stopped"):
+            await governed.aquery("hello")
+
+
+class TestCrossAdapterSignals:
+    """Cross-adapter signal tests."""
+
+    def test_langchain_signal_not_shared_with_llamaindex(self):
+        """Signals are isolated per adapter instance."""
+        from agent_os.integrations.langchain_adapter import LangChainKernel
+        lc = LangChainKernel()
+        li = LlamaIndexKernel()
+
+        chain = MagicMock()
+        chain.name = "lc-agent"
+        chain.invoke = MagicMock(return_value="result")
+
+        engine = MagicMock()
+        engine.name = "li-agent"
+        engine.query = MagicMock(return_value="answer")
+
+        lc_governed = lc.wrap(chain)
+        li_governed = li.wrap(engine)
+
+        # Stop LangChain agent - LlamaIndex should still work
+        li.signal("li-agent", "SIGSTOP")
+        result = lc_governed.invoke({"input": "test"})
+        assert result == "result"
+
+    def test_autogen_signal_isolated(self):
+        """AutoGen signals don't affect other adapters."""
+        from agent_os.integrations.langchain_adapter import LangChainKernel
+        lc = LangChainKernel()
+        ag = AutoGenKernel()
+
+        chain = MagicMock()
+        chain.name = "lc-agent"
+        chain.invoke = MagicMock(return_value="result")
+
+        agent = MagicMock()
+        agent.name = "ag-agent"
+
+        lc_governed = lc.wrap(chain)
+        ag.govern(agent)
+
+        ag.signal("ag-agent", "SIGSTOP")
+        # LangChain should still work
+        result = lc_governed.invoke({"input": "test"})
+        assert result == "result"
+
+
+# ---------------------------------------------------------------------------
 # 3. Semantic Kernel Adapter
 # ---------------------------------------------------------------------------
 from agent_os.integrations.semantic_kernel_adapter import (
