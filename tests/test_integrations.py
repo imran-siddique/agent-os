@@ -241,9 +241,77 @@ class TestExecutionContext:
             policy=GovernancePolicy(),
         )
         assert ctx.call_count == 0
+        assert ctx.total_tokens == 0
         assert ctx.tool_calls == []
         assert ctx.checkpoints == []
         assert isinstance(ctx.start_time, datetime)
+
+
+class TestExecutionContextValidation:
+    """Tests for ExecutionContext.validate() input validation."""
+
+    def test_valid_context_passes_validation(self):
+        ctx = ExecutionContext(
+            agent_id="agent-1_test",
+            session_id="sess-abc",
+            policy=GovernancePolicy(),
+        )
+        ctx.validate()  # should not raise
+
+    def test_empty_agent_id_raises(self):
+        with pytest.raises(ValueError, match="agent_id must be a non-empty string"):
+            ExecutionContext(agent_id="", session_id="s1", policy=GovernancePolicy())
+
+    def test_non_string_agent_id_raises(self):
+        with pytest.raises(ValueError, match="agent_id must be a non-empty string"):
+            ExecutionContext(agent_id=123, session_id="s1", policy=GovernancePolicy())
+
+    def test_agent_id_with_invalid_chars_raises(self):
+        with pytest.raises(ValueError, match=r"agent_id must match"):
+            ExecutionContext(agent_id="agent id!", session_id="s1", policy=GovernancePolicy())
+
+    def test_agent_id_valid_patterns_pass(self):
+        for aid in ("a1", "my-agent", "Agent_01", "test-agent-v2"):
+            ctx = ExecutionContext(agent_id=aid, session_id="s1", policy=GovernancePolicy())
+            assert ctx.agent_id == aid
+
+    def test_empty_session_id_raises(self):
+        with pytest.raises(ValueError, match="session_id must be a non-empty string"):
+            ExecutionContext(agent_id="a1", session_id="", policy=GovernancePolicy())
+
+    def test_non_string_session_id_raises(self):
+        with pytest.raises(ValueError, match="session_id must be a non-empty string"):
+            ExecutionContext(agent_id="a1", session_id=None, policy=GovernancePolicy())
+
+    def test_policy_not_governance_policy_raises(self):
+        with pytest.raises(ValueError, match="policy must be a GovernancePolicy instance"):
+            ExecutionContext(agent_id="a1", session_id="s1", policy="not-a-policy")
+
+    def test_negative_call_count_raises(self):
+        with pytest.raises(ValueError, match="call_count must be a non-negative integer"):
+            ExecutionContext(agent_id="a1", session_id="s1", policy=GovernancePolicy(), call_count=-1)
+
+    def test_negative_total_tokens_raises(self):
+        with pytest.raises(ValueError, match="total_tokens must be a non-negative integer"):
+            ExecutionContext(agent_id="a1", session_id="s1", policy=GovernancePolicy(), total_tokens=-5)
+
+    def test_zero_call_count_and_total_tokens_pass(self):
+        ctx = ExecutionContext(agent_id="a1", session_id="s1", policy=GovernancePolicy(), call_count=0, total_tokens=0)
+        assert ctx.call_count == 0
+        assert ctx.total_tokens == 0
+
+    def test_checkpoints_non_string_entry_raises(self):
+        with pytest.raises(ValueError, match=r"checkpoints\[0\] must be a string"):
+            ExecutionContext(agent_id="a1", session_id="s1", policy=GovernancePolicy(), checkpoints=[42])
+
+    def test_valid_checkpoints_pass(self):
+        ctx = ExecutionContext(
+            agent_id="a1",
+            session_id="s1",
+            policy=GovernancePolicy(),
+            checkpoints=["cp-1", "cp-2"],
+        )
+        assert ctx.checkpoints == ["cp-1", "cp-2"]
 
 
 # =============================================================================
