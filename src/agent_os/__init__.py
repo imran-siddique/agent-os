@@ -34,6 +34,9 @@ __version__ = "1.3.1"
 __author__ = "Imran Siddique"
 __license__ = "MIT"
 
+import logging
+logger = logging.getLogger(__name__)
+
 # ============================================================================
 # Layer 1: Primitives
 # ============================================================================
@@ -283,14 +286,14 @@ AVAILABLE_PACKAGES = {
 
 def check_installation():
     """Check which Agent OS packages are installed."""
-    print("Agent OS Installation Status:")
-    print("=" * 40)
+    logger.info("Agent OS Installation Status:")
+    logger.info("=" * 40)
     for pkg, available in AVAILABLE_PACKAGES.items():
         status = "✓ Installed" if available else "✗ Not installed"
-        print(f"  {pkg:15} {status}")
-    print("=" * 40)
-    print(f"\nInstall missing packages with:")
-    print("  pip install agent-os-kernel[full]")
+        logger.info(f"  {pkg:15} {status}")
+    logger.info("=" * 40)
+    logger.info(f"\nInstall missing packages with:")
+    logger.info("  pip install agent-os-kernel[full]")
 
 
 # ============================================================================
