@@ -94,6 +94,45 @@ class GovernancePolicy:
                     f"blocked_patterns[{i}] must be a string, got {type(pattern).__name__}: {pattern!r}"
                 )
 
+    def detect_conflicts(self) -> list[str]:
+        """
+        Detect conflicting or contradictory policy settings.
+
+        Returns:
+            A list of human-readable warning strings describing each conflict.
+        """
+        warnings: list[str] = []
+
+        # Backpressure will never trigger if threshold is >= max_concurrent
+        if self.backpressure_threshold >= self.max_concurrent:
+            warnings.append(
+                f"backpressure_threshold ({self.backpressure_threshold}) "
+                f"is greater than or equal to max_concurrent ({self.max_concurrent}); "
+                "backpressure will never trigger."
+            )
+
+        # Tools are allowed but max_tool_calls blocks any tool calls
+        if self.max_tool_calls == 0 and self.allowed_tools:
+            warnings.append(
+                "max_tool_calls is set to 0 while allowed_tools is non-empty; "
+                "all tool calls will be blocked."
+            )
+
+        # Confidence checks effectively disabled
+        if self.confidence_threshold == 0.0:
+            warnings.append(
+                "confidence_threshold is equal to 0.0; confidence checking is effectively disabled."
+            )
+
+        # timeout_seconds is too low for reasonable execution (< 5s warning)
+        if self.timeout_seconds < 5:
+            warnings.append(
+                f"timeout_seconds ({self.timeout_seconds}) is less than 5 seconds; "
+                "executions may time out prematurely."
+            )
+
+        return warnings
+
 
 @dataclass
 class ExecutionContext:

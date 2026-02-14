@@ -265,3 +265,129 @@ class TestCLIMain:
             assert result == 0
         finally:
             sys.argv = original_argv
+
+
+class TestCLIValidate:
+    """Test agentos validate command."""
+
+    def test_validate_without_check_conflicts(self, capsys):
+        """Validate a minimal policy YAML (schema-only)."""
+        from agent_os.cli import cmd_validate
+        import os
+        from textwrap import dedent
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            policy_path = Path(tmpdir) / "policy.yml"
+            policy_path.write_text(dedent("""
+                version: "1.0"
+                name: test
+                rules:
+                  - type: allow
+                    action: read_only
+            """))
+
+            class Args:
+                files = [str(policy_path)]
+                strict = False
+                check_conflicts = False
+
+            cwd = os.getcwd()
+            try:
+                os.chdir(tmpdir)
+                result = cmd_validate(Args())
+            finally:
+                os.chdir(cwd)
+
+            out = capsys.readouterr().out
+            assert result == 0
+            assert "All 1 policy file(s) valid" in out
+
+    def test_validate_check_conflicts_emits_governance_warnings(self, capsys):
+        """--check-conflicts should report GovernancePolicy conflict warnings when fields exist."""
+        from agent_os.cli import cmd_validate
+        import os
+        from textwrap import dedent
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            gp_path = Path(tmpdir) / "gp.yml"
+            gp_path.write_text(dedent("""
+                version: "1.0"
+                name: gp-test
+                max_concurrent: 5
+                backpressure_threshold: 5
+                max_tool_calls: 0
+                allowed_tools: [search]
+                confidence_threshold: 0.0
+                timeout_seconds: 3
+            """))
+
+            class Args:
+                files = [str(gp_path)]
+                strict = False
+                check_conflicts = True
+
+            cwd = os.getcwd()
+            try:
+                os.chdir(tmpdir)
+                result = cmd_validate(Args())
+            finally:
+                os.chdir(cwd)
+
+            out = capsys.readouterr().out
+            assert result == 0
+            assert "[GovernancePolicy]" in out
+            assert "backpressure_threshold" in out
+            assert "max_tool_calls" in out
+            assert "confidence_threshold" in out
+            assert "timeout_seconds" in out
+
+    def test_validate_check_conflicts_invalid_governance_policy_is_error(self, capsys):
+        """Invalid GovernancePolicy values should surface as validation errors."""
+        from agent_os.cli import cmd_validate
+        import os
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            bad_path = Path(tmpdir) / "bad.yml"
+            bad_path.write_text("max_concurrent: 0\n")  # invalid (must be > 0)
+
+            class Args:
+                files = [str(bad_path)]
+                strict = False
+                check_conflicts = True
+
+            cwd = os.getcwd()
+            try:
+                os.chdir(tmpdir)
+                result = cmd_validate(Args())
+            finally:
+                os.chdir(cwd)
+
+            out = capsys.readouterr().out
+            assert result == 1
+            assert "Errors:" in out
+            assert "[GovernancePolicy]" in out
+
+    def test_validate_check_conflicts_no_governance_fields_no_extra_warnings(self, capsys):
+        """If YAML has no GovernancePolicy fields, --check-conflicts should be a no-op."""
+        from agent_os.cli import cmd_validate
+        import os
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            policy_path = Path(tmpdir) / "policy.yml"
+            policy_path.write_text('version: "1.0"\nname: test\n')
+
+            class Args:
+                files = [str(policy_path)]
+                strict = False
+                check_conflicts = True
+
+            cwd = os.getcwd()
+            try:
+                os.chdir(tmpdir)
+                result = cmd_validate(Args())
+            finally:
+                os.chdir(cwd)
+
+            out = capsys.readouterr().out
+            assert result == 0
+            assert "[GovernancePolicy]" not in out

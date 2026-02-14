@@ -960,7 +960,24 @@ def cmd_validate(args):
                             file_errors.append(f"Rule {i+1}: must be a dict")
                         elif 'type' in rule and rule['type'] not in VALID_RULE_TYPES:
                             file_warnings.append(f"Rule {i+1}: unknown type '{rule['type']}'")
-            
+
+            # Optional: GovernancePolicy conflict detection
+            if args.check_conflicts and isinstance(content, dict):
+                from agent_os.integrations.base import GovernancePolicy
+
+                policy_fields = set(GovernancePolicy.__dataclass_fields__.keys())
+                gp_kwargs = {k: v for k, v in content.items() if k in policy_fields}
+
+                # Only run conflict detection if this YAML looks like a GovernancePolicy config
+                if gp_kwargs:
+                    try:
+                        gp = GovernancePolicy(**gp_kwargs)
+                    except ValueError as e:
+                        file_errors.append(f"[GovernancePolicy] {e}")
+                    else:
+                        for w in gp.detect_conflicts():
+                            file_warnings.append(f"[GovernancePolicy] {w}")
+
             # Strict mode: warn about unknown fields
             if args.strict:
                 known_fields = REQUIRED_FIELDS + OPTIONAL_FIELDS
@@ -1120,7 +1137,11 @@ Documentation: https://github.com/imran-siddique/agent-os
     )
     validate_parser.add_argument("files", nargs="*", help="Policy files to validate (default: .agents/*.yaml)")
     validate_parser.add_argument("--strict", action="store_true", help="Strict mode: treat warnings as errors")
-    
+    validate_parser.add_argument(
+        "--check-conflicts",
+        action="store_true",
+        help="Check GovernancePolicy configs for conflicting settings (diagnostic warnings)"
+    )
     args = parser.parse_args()
     
     # Handle CI mode
