@@ -1,0 +1,125 @@
+{
+  "version": "1.2.0",
+  "generated_at": "2026-02-14T20:27:54.188830",
+  "python_version": "3.13.12 (tags/v3.13.12:1cbe481, Feb  3 2026, 18:22:25) [MSC v.1944 64 bit (AMD64)]",
+  "platform": "win32",
+  "environment_hash": "0ddc0836b6d8b1cf",
+  "experiments": [
+    {
+      "experiment_name": "red_team_benchmark",
+      "seed": 42,
+      "start_time": "2026-02-14T20:27:54.189295",
+      "end_time": "2026-02-14T20:27:54.433955",
+      "duration_seconds": 0.24466,
+      "metrics": {
+        "violation_rate": {
+          "name": "violation_rate",
+          "value": 0.0,
+          "unit": "percent",
+          "description": "Percentage of attacks that bypassed protection"
+        },
+        "false_positive_rate": {
+          "name": "false_positive_rate",
+          "value": 0.0,
+          "unit": "percent",
+          "description": "Percentage of legitimate actions incorrectly blocked"
+        },
+        "avg_latency": {
+          "name": "avg_latency",
+          "value": 0.10426000226289034,
+          "unit": "milliseconds",
+          "description": "Average time per policy check"
+        },
+        "total_blocked": {
+          "name": "total_blocked",
+          "value": 10.0,
+          "unit": "count",
+          "description": "Number of actions blocked"
+        }
+      },
+      "config": {
+        "total_tests": 10,
+        "quick_mode": false
+      },
+      "success": true,
+      "error": null
+    },
+    {
+      "experiment_name": "latency_benchmark",
+      "seed": 42,
+      "start_time": "2026-02-14T20:27:54.434400",
+      "end_time": "2026-02-14T20:27:54.445536",
+      "duration_seconds": 0.011136,
+      "metrics": {
+        "simple_avg_latency": {
+          "name": "simple_avg_latency",
+          "value": 0.028950993437319994,
+          "unit": "milliseconds",
+          "description": "Average latency for simple policy checks"
+        },
+        "simple_p99_latency": {
+          "name": "simple_p99_latency",
+          "value": 0.08280016481876373,
+          "unit": "milliseconds",
+          "description": "P99 latency for simple policy checks"
+        },
+        "complex_avg_latency": {
+          "name": "complex_avg_latency",
+          "value": 0.04476400092244148,
+          "unit": "milliseconds",
+          "description": "Average latency for complex constraint checks"
+        },
+        "complex_p99_latency": {
+          "name": "complex_p99_latency",
+          "value": 0.1876999158412218,
+          "unit": "milliseconds",
+          "description": "P99 latency for complex constraint checks"
+        }
+      },
+      "config": {
+        "iterations": 100,
+        "quick_mode": false
+      },
+      "success": true,
+      "error": null
+    },
+    {
+      "experiment_name": "token_efficiency",
+      "seed": 42,
+      "start_time": "2026-02-14T20:27:54.446178",
+      "end_time": "2026-02-14T20:27:54.448443",
+      "duration_seconds": 0.002265,
+      "metrics": {
+        "traditional_tokens": {
+          "name": "traditional_tokens",
+          "value": 174.0,
+          "unit": "tokens",
+          "description": "Token count for traditional verbose refusals"
+        },
+        "acp_tokens": {
+          "name": "acp_tokens",
+          "value": 45.0,
+          "unit": "tokens",
+          "description": "Token count for ACP deterministic responses"
+        },
+        "token_reduction_percent": {
+          "name": "token_reduction_percent",
+          "value": 74.13793103448276,
+          "unit": "percent",
+          "description": "Percentage reduction in token usage (Scale by Subtraction)"
+        }
+      },
+      "config": {
+        "num_scenarios": 3
+      },
+      "success": true,
+      "error": null
+    }
+  ],
+  "summary": {
+    "total_experiments": 3,
+    "successful": 3,
+    "failed": 0,
+    "total_duration_seconds": 0.258061
+  }
+}

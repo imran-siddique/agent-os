@@ -1,0 +1,71 @@
+{
+  "metadata": {
+    "timestamp": "2026-02-15T03:52:44.279220+00:00",
+    "atr_version": "0.2.0",
+    "python_version": "3.13.12",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "seed": 42
+  },
+  "experiments": {
+    "registration_benchmark": {
+      "name": "registration_benchmark",
+      "duration_seconds": 0.2593726001214236,
+      "iterations": 1000,
+      "success_count": 1000,
+      "failure_count": 0,
+      "avg_latency_ms": 0.24794260179623961,
+      "min_latency_ms": 0.11910009197890759,
+      "max_latency_ms": 6.015700055286288,
+      "p50_latency_ms": 0.15929993242025375,
+      "p95_latency_ms": 0.6001000292599201,
+      "p99_latency_ms": 1.2314000632613897,
+      "throughput_ops_per_sec": 3855.4573595354964,
+      "memory_mb": 0.0,
+      "extra": {
+        "tools_registered": 1000
+      }
+    },
+    "discovery_benchmark": {
+      "name": "discovery_benchmark",
+      "duration_seconds": 1.9619178001303226,
+      "iterations": 500,
+      "success_count": 500,
+      "failure_count": 0,
+      "avg_latency_ms": 3.9138019969686866,
+      "min_latency_ms": 1.4319999609142542,
+      "max_latency_ms": 9.388800011947751,
+      "p50_latency_ms": 3.7267999723553658,
+      "p95_latency_ms": 5.770199932157993,
+      "p99_latency_ms": 7.428899873048067,
+      "throughput_ops_per_sec": 254.8526752582534,
+      "memory_mb": 0.0,
+      "extra": {
+        "avg_results_per_search": 547.102
+      }
+    },
+    "schema_conversion": {
+      "name": "schema_conversion",
+      "duration_seconds": 0.0009121999610215425,
+      "iterations": 100,
+      "success_count": 100,
+      "failure_count": 0,
+      "avg_latency_ms": 0.008126995526254177,
+      "min_latency_ms": 0.001800013706088066,
+      "max_latency_ms": 0.48670009709894657,
+      "p50_latency_ms": 0.002699904143810272,
+      "p95_latency_ms": 0.004600035026669502,
+      "p99_latency_ms": 0.48670009709894657,
+      "throughput_ops_per_sec": 109625.08690310983,
+      "memory_mb": 0.0,
+      "extra": {
+        "schema_validity_rate": 1.0
+      }
+    }
+  },
+  "summary": {
+    "total_duration_seconds": 2.2314184999559075,
+    "experiments_run": 3,
+    "total_iterations": 1600,
+    "overall_success_rate": 1.0
+  }
+}
