@@ -156,7 +156,7 @@ class DisputeReceipt(BaseModel):
         ...,
         description="Unique dispute identifier"
     )
-    original_receipt: SignedReceipt
+    original_receipt: Optional[SignedReceipt] = None
     
     # Dispute details
     disputing_party: Literal["requester", "provider"] = Field(

@@ -340,13 +340,22 @@ class PolicyEngine:
         if tool_name in ["write_file", "read_file", "delete_file"] and "path" in args:
             path = args.get("path", "")
 
+            # Reject paths with control characters (newlines, etc.) — prompt injection vector
+            if any(c in path for c in ["\n", "\r", "\x00"]):
+                return "Path Validation Error: Control characters in path"
+
+            # Check raw path against protected paths (cross-platform)
+            for protected in self.protected_paths:
+                if path.startswith(protected):
+                    return f"Path Violation: Cannot access protected directory {protected}"
+
             # Normalize path to resolve '..' and symbolic links
             try:
                 normalized_path = os.path.normpath(os.path.abspath(path))
             except (ValueError, OSError):
                 return "Path Validation Error: Invalid path format"
 
-            # Check against protected paths
+            # Check normalized path against protected paths
             for protected in self.protected_paths:
                 if normalized_path.startswith(os.path.normpath(protected)):
                     return f"Path Violation: Cannot access protected directory {protected}"
@@ -359,6 +368,24 @@ class PolicyEngine:
             for pattern in self.dangerous_code_patterns:
                 if pattern.search(code_or_cmd):
                     return f"Dangerous pattern detected: {pattern.pattern}"
+
+        # 3c. SQL injection / destructive query validation
+        if tool_name in ["database_query", "database_write"]:
+            query = args.get("query", "")
+            destructive_patterns = [
+                r"\bDROP\s+", r"\bDELETE\s+FROM\b", r"\bTRUNCATE\s+",
+                r"\bALTER\s+TABLE\b.*\bDROP\b", r"\bUPDATE\s+.*\bSET\b.*\bWHERE\s+1\s*=\s*1",
+            ]
+            import re as _re
+            for pat in destructive_patterns:
+                if _re.search(pat, query, _re.IGNORECASE):
+                    return f"Destructive SQL blocked: {pat}"
+
+        # 3d. Internal endpoint protection
+        if tool_name == "api_call":
+            endpoint = args.get("endpoint", "")
+            if endpoint.startswith("internal://"):
+                return f"Internal endpoint blocked: {endpoint}"
 
         return None
 

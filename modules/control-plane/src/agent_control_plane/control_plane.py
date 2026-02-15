@@ -164,6 +164,9 @@ class AgentControlPlane:
         self.policy_engine = PolicyEngine()
         self.execution_engine = ExecutionEngine()
         
+        # Wire the policy engine into the kernel so intercept_tool_execution works
+        self.kernel.policy_engine = self.policy_engine
+        
         # Shadow Mode for simulation
         self.shadow_mode_enabled = enable_shadow_mode
         self.shadow_executor = ShadowModeExecutor(ShadowModeConfig(enabled=enable_shadow_mode))

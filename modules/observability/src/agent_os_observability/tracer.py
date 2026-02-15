@@ -203,6 +203,10 @@ class SpanContext:
         """Record an exception."""
         self.span.record_exception(exception)
 
+    def set_status(self, status):
+        """Set the span status."""
+        self.span.set_status(status)
+
 
 def trace_operation(
     tracer: KernelTracer,
