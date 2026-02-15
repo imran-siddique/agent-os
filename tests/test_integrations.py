@@ -7,20 +7,22 @@ Uses mock objects — no real API calls.
 Run with: python -m pytest tests/test_integrations.py -v --tb=short
 """
 
+import time
 from datetime import datetime, timedelta
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch, PropertyMock
 
 import pytest
 
 from agent_os.integrations.base import (
+    BaseIntegration,
     ExecutionContext,
     GovernancePolicy,
 )
-from agent_os.integrations.crewai_adapter import CrewAIKernel
 from agent_os.integrations.langchain_adapter import (
     LangChainKernel,
     PolicyViolationError,
 )
+from agent_os.integrations.crewai_adapter import CrewAIKernel
 from agent_os.integrations.openai_adapter import (
     AssistantContext,
     GovernedAssistant,
@@ -30,6 +32,7 @@ from agent_os.integrations.openai_adapter import (
 from agent_os.integrations.openai_adapter import (
     PolicyViolationError as OpenAIPolicyViolationError,
 )
+
 
 # =============================================================================
 # Helpers
@@ -213,15 +216,11 @@ class TestGovernancePolicyValidation:
             GovernancePolicy(checkpoint_frequency=0)
 
     def test_confidence_threshold_negative_raises(self):
-        with pytest.raises(
-            ValueError, match="confidence_threshold must be a float between 0.0 and 1.0"
-        ):
+        with pytest.raises(ValueError, match="confidence_threshold must be a float between 0.0 and 1.0"):
             GovernancePolicy(confidence_threshold=-0.1)
 
     def test_confidence_threshold_above_one_raises(self):
-        with pytest.raises(
-            ValueError, match="confidence_threshold must be a float between 0.0 and 1.0"
-        ):
+        with pytest.raises(ValueError, match="confidence_threshold must be a float between 0.0 and 1.0"):
             GovernancePolicy(confidence_threshold=1.5)
 
     def test_drift_threshold_negative_raises(self):
@@ -323,28 +322,20 @@ class TestExecutionContextValidation:
 
     def test_negative_call_count_raises(self):
         with pytest.raises(ValueError, match="call_count must be a non-negative integer"):
-            ExecutionContext(
-                agent_id="a1", session_id="s1", policy=GovernancePolicy(), call_count=-1
-            )
+            ExecutionContext(agent_id="a1", session_id="s1", policy=GovernancePolicy(), call_count=-1)
 
     def test_negative_total_tokens_raises(self):
         with pytest.raises(ValueError, match="total_tokens must be a non-negative integer"):
-            ExecutionContext(
-                agent_id="a1", session_id="s1", policy=GovernancePolicy(), total_tokens=-5
-            )
+            ExecutionContext(agent_id="a1", session_id="s1", policy=GovernancePolicy(), total_tokens=-5)
 
     def test_zero_call_count_and_total_tokens_pass(self):
-        ctx = ExecutionContext(
-            agent_id="a1", session_id="s1", policy=GovernancePolicy(), call_count=0, total_tokens=0
-        )
+        ctx = ExecutionContext(agent_id="a1", session_id="s1", policy=GovernancePolicy(), call_count=0, total_tokens=0)
         assert ctx.call_count == 0
         assert ctx.total_tokens == 0
 
     def test_checkpoints_non_string_entry_raises(self):
         with pytest.raises(ValueError, match=r"checkpoints\[0\] must be a string"):
-            ExecutionContext(
-                agent_id="a1", session_id="s1", policy=GovernancePolicy(), checkpoints=[42]
-            )
+            ExecutionContext(agent_id="a1", session_id="s1", policy=GovernancePolicy(), checkpoints=[42])
 
     def test_valid_checkpoints_pass(self):
         ctx = ExecutionContext(

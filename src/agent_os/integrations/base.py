@@ -7,29 +7,28 @@ All framework adapters inherit from this base class.
 import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+from typing import Any, Callable, Dict, List, Optional, Protocol
 from datetime import datetime
-from typing import Any, Callable, Optional, Protocol
 
 
 @dataclass
 class GovernancePolicy:
     """Policy configuration for governed agents"""
-
     max_tokens: int = 4096
     max_tool_calls: int = 10
     allowed_tools: list[str] = field(default_factory=list)
     blocked_patterns: list[str] = field(default_factory=list)
     require_human_approval: bool = False
     timeout_seconds: int = 300
-
+    
     # Safety thresholds
     confidence_threshold: float = 0.8
     drift_threshold: float = 0.15
-
+    
     # Audit settings
     log_all_calls: bool = True
     checkpoint_frequency: int = 5  # Every N calls
-
+    
     # Concurrency limits
     max_concurrent: int = 10
     backpressure_threshold: int = 8  # Start slowing down at this level
@@ -67,27 +66,30 @@ class GovernancePolicy:
         """Validate all policy fields and raise ValueError for invalid inputs."""
         # Validate positive integers (must be > 0)
         for field_name in (
-            "max_tokens",
-            "timeout_seconds",
-            "max_concurrent",
-            "backpressure_threshold",
-            "checkpoint_frequency",
+            "max_tokens", "timeout_seconds",
+            "max_concurrent", "backpressure_threshold", "checkpoint_frequency",
         ):
             value = getattr(self, field_name)
             if not isinstance(value, int) or value <= 0:
-                raise ValueError(f"{field_name} must be a positive integer, got {value!r}")
+                raise ValueError(
+                    f"{field_name} must be a positive integer, got {value!r}"
+                )
 
         # Validate non-negative integers (>= 0 allowed)
         for field_name in ("max_tool_calls",):
             value = getattr(self, field_name)
             if not isinstance(value, int) or value < 0:
-                raise ValueError(f"{field_name} must be a non-negative integer, got {value!r}")
+                raise ValueError(
+                    f"{field_name} must be a non-negative integer, got {value!r}"
+                )
 
         # Validate float thresholds are in [0.0, 1.0]
         for field_name in ("confidence_threshold", "drift_threshold"):
             value = getattr(self, field_name)
             if not isinstance(value, (int, float)) or not (0.0 <= value <= 1.0):
-                raise ValueError(f"{field_name} must be a float between 0.0 and 1.0, got {value!r}")
+                raise ValueError(
+                    f"{field_name} must be a float between 0.0 and 1.0, got {value!r}"
+                )
 
         # Validate allowed_tools entries are strings
         if not isinstance(self.allowed_tools, list):
@@ -118,7 +120,6 @@ _AGENT_ID_RE = re.compile(r"^[a-zA-Z0-9_-]+$")
 @dataclass
 class ExecutionContext:
     """Context passed through the governance layer"""
-
     agent_id: str
     session_id: str
     policy: GovernancePolicy
@@ -139,13 +140,19 @@ class ExecutionContext:
         """Validate all context fields and raise ValueError for invalid inputs."""
         # Validate agent_id is a non-empty string matching allowed pattern
         if not isinstance(self.agent_id, str) or not self.agent_id:
-            raise ValueError(f"agent_id must be a non-empty string, got {self.agent_id!r}")
+            raise ValueError(
+                f"agent_id must be a non-empty string, got {self.agent_id!r}"
+            )
         if not _AGENT_ID_RE.match(self.agent_id):
-            raise ValueError(f"agent_id must match ^[a-zA-Z0-9_-]+$, got {self.agent_id!r}")
+            raise ValueError(
+                f"agent_id must match ^[a-zA-Z0-9_-]+$, got {self.agent_id!r}"
+            )
 
         # Validate session_id is a non-empty string
         if not isinstance(self.session_id, str) or not self.session_id:
-            raise ValueError(f"session_id must be a non-empty string, got {self.session_id!r}")
+            raise ValueError(
+                f"session_id must be a non-empty string, got {self.session_id!r}"
+            )
 
         # Validate policy is a GovernancePolicy instance
         if not isinstance(self.policy, GovernancePolicy):
@@ -157,11 +164,15 @@ class ExecutionContext:
         for field_name in ("call_count", "total_tokens"):
             value = getattr(self, field_name)
             if not isinstance(value, int) or value < 0:
-                raise ValueError(f"{field_name} must be a non-negative integer, got {value!r}")
+                raise ValueError(
+                    f"{field_name} must be a non-negative integer, got {value!r}"
+                )
 
         # Validate checkpoints is a list of strings
         if not isinstance(self.checkpoints, list):
-            raise ValueError(f"checkpoints must be a list, got {type(self.checkpoints).__name__}")
+            raise ValueError(
+                f"checkpoints must be a list, got {type(self.checkpoints).__name__}"
+            )
         for i, cp in enumerate(self.checkpoints):
             if not isinstance(cp, str):
                 raise ValueError(
@@ -171,16 +182,14 @@ class ExecutionContext:
 
 # ── Abstract Tool Call Interceptor ────────────────────────────
 
-
 @dataclass
 class ToolCallRequest:
     """Vendor-neutral representation of a tool/function call."""
-
     tool_name: str
-    arguments: dict[str, Any]
+    arguments: Dict[str, Any]
     call_id: str = ""
     agent_id: str = ""
-    metadata: dict[str, Any] = field(default_factory=dict)
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
     def __repr__(self) -> str:
         return f"ToolCallRequest(tool_name={self.tool_name!r}, call_id={self.call_id!r})"
@@ -189,11 +198,10 @@ class ToolCallRequest:
 @dataclass
 class ToolCallResult:
     """Result of intercepting a tool call."""
-
     allowed: bool
     reason: Optional[str] = None
-    modified_arguments: Optional[dict[str, Any]] = None  # For argument sanitization
-    audit_entry: Optional[dict[str, Any]] = None
+    modified_arguments: Optional[Dict[str, Any]] = None  # For argument sanitization
+    audit_entry: Optional[Dict[str, Any]] = None
 
     def __repr__(self) -> str:
         return f"ToolCallResult(allowed={self.allowed!r}, reason={self.reason!r})"
@@ -263,8 +271,8 @@ class PolicyInterceptor:
 class CompositeInterceptor:
     """Chain multiple interceptors. All must allow for the call to proceed."""
 
-    def __init__(self, interceptors: Optional[list[Any]] = None):
-        self.interceptors: list[Any] = interceptors or []
+    def __init__(self, interceptors: Optional[List[Any]] = None):
+        self.interceptors: List[Any] = interceptors or []
 
     def add(self, interceptor: Any) -> "CompositeInterceptor":
         self.interceptors.append(interceptor)
@@ -279,7 +287,6 @@ class CompositeInterceptor:
 
 
 # ── Bounded Concurrency ──────────────────────────────────────
-
 
 class BoundedSemaphore:
     """
@@ -327,7 +334,7 @@ class BoundedSemaphore:
     def available(self) -> int:
         return max(0, self.max_concurrent - self._active)
 
-    def stats(self) -> dict[str, Any]:
+    def stats(self) -> Dict[str, Any]:
         return {
             "active": self._active,
             "max_concurrent": self.max_concurrent,
@@ -341,86 +348,89 @@ class BoundedSemaphore:
 class BaseIntegration(ABC):
     """
     Base class for framework integrations.
-
+    
     Wraps any agent framework with Agent OS governance:
     - Pre-execution policy checks
     - Post-execution validation
     - Flight recording
     - Signal handling
     """
-
+    
     def __init__(self, policy: Optional[GovernancePolicy] = None):
         self.policy = policy or GovernancePolicy()
         self.contexts: dict[str, ExecutionContext] = {}
         self._signal_handlers: dict[str, Callable] = {}
-
+    
     @abstractmethod
     def wrap(self, agent: Any) -> Any:
         """
         Wrap an agent with governance.
-
+        
         Returns a governed version of the agent that:
         - Enforces policy on all operations
         - Records execution to flight recorder
         - Responds to signals (SIGSTOP, SIGKILL, etc.)
         """
         pass
-
+    
     @abstractmethod
     def unwrap(self, governed_agent: Any) -> Any:
         """Remove governance wrapper and return original agent"""
         pass
-
+    
     def create_context(self, agent_id: str) -> ExecutionContext:
         """Create execution context for an agent"""
         from uuid import uuid4
-
-        ctx = ExecutionContext(agent_id=agent_id, session_id=str(uuid4())[:8], policy=self.policy)
+        ctx = ExecutionContext(
+            agent_id=agent_id,
+            session_id=str(uuid4())[:8],
+            policy=self.policy
+        )
         self.contexts[agent_id] = ctx
         return ctx
-
+    
     def pre_execute(self, ctx: ExecutionContext, input_data: Any) -> tuple[bool, Optional[str]]:
         """
         Pre-execution policy check.
-
+        
         Returns (allowed, reason) tuple.
         """
         # Check call count
         if ctx.call_count >= self.policy.max_tool_calls:
             return False, f"Max tool calls exceeded ({self.policy.max_tool_calls})"
-
+        
         # Check timeout
         elapsed = (datetime.now() - ctx.start_time).total_seconds()
         if elapsed > self.policy.timeout_seconds:
             return False, f"Timeout exceeded ({self.policy.timeout_seconds}s)"
-
+        
         # Check blocked patterns
         input_str = str(input_data)
         for pattern in self.policy.blocked_patterns:
             if pattern.lower() in input_str.lower():
                 return False, f"Blocked pattern detected: {pattern}"
-
+        
         return True, None
-
+    
     def post_execute(self, ctx: ExecutionContext, output_data: Any) -> tuple[bool, Optional[str]]:
         """
         Post-execution validation.
-
+        
         Returns (valid, reason) tuple.
         """
         ctx.call_count += 1
-
+        
         # Checkpoint if needed
         if ctx.call_count % self.policy.checkpoint_frequency == 0:
             checkpoint_id = f"checkpoint-{ctx.call_count}"
             ctx.checkpoints.append(checkpoint_id)
-
+        
         return True, None
-
+    
     def on_signal(self, signal: str, handler: Callable):
         """Register a signal handler"""
         self._signal_handlers[signal] = handler
-
+    
     def signal(self, agent_id: str, signal: str):
         """Send signal to agent"""
         if signal in self._signal_handlers:
