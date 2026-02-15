@@ -40,6 +40,24 @@ class GovernancePolicy:
             f"require_human_approval={self.require_human_approval!r})"
         )
 
+    def __hash__(self) -> int:
+        return hash(
+            (
+                self.max_tokens,
+                self.max_tool_calls,
+                tuple(self.allowed_tools),
+                tuple(self.blocked_patterns),
+                self.require_human_approval,
+                self.timeout_seconds,
+                self.confidence_threshold,
+                self.drift_threshold,
+                self.log_all_calls,
+                self.checkpoint_frequency,
+                self.max_concurrent,
+                self.backpressure_threshold,
+            )
+        )
+
     def __post_init__(self):
         """Validate policy fields on construction."""
         self.validate()
