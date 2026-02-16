@@ -1,0 +1,69 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "agent-hypervisor"
+version = "1.0.0"
+description = "Agent Hypervisor - Runtime supervisor for multi-agent Shared Sessions with Verified Intent, Joint Liability, and Execution Rings"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+authors = [
+    {name = "Imran Siddique", email = "imran.siddique@microsoft.com"},
+]
+keywords = [
+    "ai", "agents", "hypervisor", "trust", "multi-agent",
+    "shared-sessions", "liability", "execution-rings", "saga",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "pydantic>=2.0.0",
+    "structlog>=24.1.0",
+    "nexus-trust-exchange>=0.1.0",
+    "inter-agent-trust-protocol>=0.4.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-cov>=4.0.0",
+    "hypothesis>=6.0.0",
+    "ruff>=0.4.0",
+    "mypy>=1.8.0",
+]
+blockchain = [
+    "web3>=6.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/imran-siddique/agent-os"
+Repository = "https://github.com/imran-siddique/agent-os/tree/main/modules/hypervisor"
+Documentation = "https://imransiddique.com/agent-os-docs/modules/hypervisor/"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/hypervisor"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true

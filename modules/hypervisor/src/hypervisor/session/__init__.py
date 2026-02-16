@@ -1,0 +1,172 @@
+"""Shared Session Object — lifecycle manager for multi-agent sessions."""
+
+from __future__ import annotations
+
+import uuid
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from typing import Any, Optional
+
+from hypervisor.models import (
+    ConsistencyMode,
+    ExecutionRing,
+    SessionConfig,
+    SessionParticipant,
+    SessionState,
+)
+
+
+class SharedSessionObject:
+    """
+    Encapsulates a multi-agent interaction.
+
+    Every Shared Session has:
+    - SessionID: UUID bound to a DID
+    - ConsistencyMode: Strong (consensus) or Eventual (gossip)
+    - StateSubstrate: A VFS representing the shared world
+    - LiabilityMatrix: Registry of who vouches for whom
+
+    Lifecycle: created → handshaking → active → terminating → archived
+    """
+
+    def __init__(
+        self,
+        config: SessionConfig,
+        creator_did: str,
+        session_id: Optional[str] = None,
+    ):
+        self.session_id = session_id or f"session:{uuid.uuid4()}"
+        self.creator_did = creator_did
+        self.config = config
+        self.state = SessionState.CREATED
+        self.consistency_mode = config.consistency_mode
+
+        # Participants
+        self._participants: dict[str, SessionParticipant] = {}
+
+        # VFS state substrate (namespace for this session)
+        self.vfs_namespace = f"/sessions/{self.session_id}"
+        self._vfs_snapshots: dict[str, Any] = {}
+
+        # Timestamps
+        self.created_at = datetime.now(timezone.utc)
+        self.terminated_at: Optional[datetime] = None
+
+    @property
+    def participants(self) -> list[SessionParticipant]:
+        """Active participants in this session."""
+        return [p for p in self._participants.values() if p.is_active]
+
+    @property
+    def participant_count(self) -> int:
+        return len(self.participants)
+
+    def _assert_state(self, *allowed: SessionState) -> None:
+        if self.state not in allowed:
+            raise SessionLifecycleError(
+                f"Operation not allowed in state {self.state.value}. "
+                f"Allowed: {[s.value for s in allowed]}"
+            )
+
+    def begin_handshake(self) -> None:
+        """Transition to handshaking phase."""
+        self._assert_state(SessionState.CREATED)
+        self.state = SessionState.HANDSHAKING
+
+    def activate(self) -> None:
+        """Transition to active execution phase."""
+        self._assert_state(SessionState.HANDSHAKING)
+        if not self._participants:
+            raise SessionLifecycleError("Cannot activate session with no participants")
+        self.state = SessionState.ACTIVE
+
+    def join(
+        self,
+        agent_did: str,
+        sigma_raw: float = 0.0,
+        sigma_eff: float = 0.0,
+        ring: ExecutionRing = ExecutionRing.RING_3_SANDBOX,
+    ) -> SessionParticipant:
+        """Add an agent to this session."""
+        self._assert_state(SessionState.HANDSHAKING, SessionState.ACTIVE)
+
+        if agent_did in self._participants:
+            raise SessionParticipantError(f"Agent {agent_did} already in session")
+        if self.participant_count >= self.config.max_participants:
+            raise SessionParticipantError(
+                f"Session at capacity ({self.config.max_participants})"
+            )
+        if sigma_eff < self.config.min_sigma_eff and ring != ExecutionRing.RING_3_SANDBOX:
+            raise SessionParticipantError(
+                f"σ_eff {sigma_eff:.2f} below minimum {self.config.min_sigma_eff:.2f}"
+            )
+
+        participant = SessionParticipant(
+            agent_did=agent_did,
+            ring=ring,
+            sigma_raw=sigma_raw,
+            sigma_eff=sigma_eff,
+        )
+        self._participants[agent_did] = participant
+        return participant
+
+    def leave(self, agent_did: str) -> None:
+        """Remove an agent from this session."""
+        if agent_did not in self._participants:
+            raise SessionParticipantError(f"Agent {agent_did} not in session")
+        self._participants[agent_did].is_active = False
+
+    def get_participant(self, agent_did: str) -> SessionParticipant:
+        """Get a participant by DID."""
+        if agent_did not in self._participants:
+            raise SessionParticipantError(f"Agent {agent_did} not in session")
+        return self._participants[agent_did]
+
+    def update_ring(self, agent_did: str, new_ring: ExecutionRing) -> None:
+        """Update an agent's ring level (escalation or demotion)."""
+        participant = self.get_participant(agent_did)
+        participant.ring = new_ring
+
+    def force_consistency_mode(self, mode: ConsistencyMode) -> None:
+        """Force a consistency mode (e.g., when non-reversible actions are detected)."""
+        self.consistency_mode = mode
+
+    def terminate(self) -> None:
+        """Begin session termination."""
+        self._assert_state(SessionState.ACTIVE, SessionState.HANDSHAKING)
+        self.state = SessionState.TERMINATING
+        self.terminated_at = datetime.now(timezone.utc)
+
+    def archive(self) -> None:
+        """Archive the session after audit commitment."""
+        self._assert_state(SessionState.TERMINATING)
+        self.state = SessionState.ARCHIVED
+
+    def create_vfs_snapshot(self, snapshot_id: Optional[str] = None) -> str:
+        """Create a VFS state snapshot for rollback."""
+        self._assert_state(SessionState.ACTIVE)
+        sid = snapshot_id or f"snap:{uuid.uuid4()}"
+        self._vfs_snapshots[sid] = {
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "participant_states": {
+                did: {"ring": p.ring.value, "sigma_eff": p.sigma_eff}
+                for did, p in self._participants.items()
+            },
+        }
+        return sid
+
+    def __repr__(self) -> str:
+        return (
+            f"SharedSessionObject(id={self.session_id!r}, "
+            f"state={self.state.value}, "
+            f"participants={self.participant_count}, "
+            f"mode={self.consistency_mode.value})"
+        )
+
+
+class SessionLifecycleError(Exception):
+    """Raised when a session lifecycle transition is invalid."""
+
+
+class SessionParticipantError(Exception):
+    """Raised for participant-related errors."""
