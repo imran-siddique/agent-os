@@ -3,7 +3,9 @@ Test Stateless Kernel (MCP June 2026 compliant).
 """
 
 import pytest
+import json
 from typing import Dict, Any
+from unittest.mock import AsyncMock
 
 
 class TestStatelessKernel:
@@ -194,6 +196,68 @@ class TestMemoryBackend:
         result = await backend.get("nonexistent")
         
         assert result is None
+
+
+class TestRedisBackend:
+    """Test Redis state backend logic."""
+
+    def test_default_prefix(self):
+        """Test that the default prefix is set correctly."""
+        from agent_os.stateless import RedisBackend
+        
+        backend = RedisBackend()
+        assert backend._prefix == "agent-os:"
+
+    def test_custom_prefix(self):
+        """Test that a custom prefix is set correctly."""
+        from agent_os.stateless import RedisBackend
+        
+        custom_prefix = "my-custom-app:"
+        backend = RedisBackend(key_prefix=custom_prefix)
+        assert backend._prefix == custom_prefix
+
+    def test_none_prefix_raises_error(self):
+        """Test that None prefix raises TypeError."""
+        from agent_os.stateless import RedisBackend
+        
+        with pytest.raises(TypeError):
+            RedisBackend(key_prefix=None)
+
+    @pytest.mark.asyncio
+    async def test_operations_use_prefix(self):
+        """Test that get/set/delete operations actually use the prefix."""
+        from agent_os.stateless import RedisBackend
+        
+        # Setup backend and mock
+        prefix = "test-prefix:"
+        backend = RedisBackend(key_prefix=prefix)
+        
+        mock_client = AsyncMock()
+        
+        backend._client = mock_client
+        
+        test_key = "user-session-123"
+        test_value = {"status": "active"}
+        expected_redis_key = f"{prefix}{test_key}"
+        
+        await backend.set(test_key, test_value, ttl=60)
+        
+        mock_client.set.assert_called_with(
+            expected_redis_key, 
+            json.dumps(test_value), 
+            ex=60
+        )
+        
+        mock_client.get.return_value = json.dumps(test_value).encode('utf-8')
+        
+        result = await backend.get(test_key)
+        
+        mock_client.get.assert_called_with(expected_redis_key)
+        assert result == test_value
+        
+        await backend.delete(test_key)
+        
+        mock_client.delete.assert_called_with(expected_redis_key)
 
 
 class TestPolicyChecking:
