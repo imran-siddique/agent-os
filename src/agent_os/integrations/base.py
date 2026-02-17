@@ -4,11 +4,20 @@ Base Integration Interface
 All framework adapters inherit from this base class.
 """
 
+import fnmatch
 import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional, Protocol
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional, Protocol, Union
 from datetime import datetime
+
+
+class PatternType(Enum):
+    """Type of pattern matching for blocked_patterns."""
+    SUBSTRING = "substring"
+    REGEX = "regex"
+    GLOB = "glob"
 
 
 @dataclass
@@ -17,7 +26,7 @@ class GovernancePolicy:
     max_tokens: int = 4096
     max_tool_calls: int = 10
     allowed_tools: list[str] = field(default_factory=list)
-    blocked_patterns: list[str] = field(default_factory=list)
+    blocked_patterns: list[Union[str, tuple[str, PatternType]]] = field(default_factory=list)
     require_human_approval: bool = False
     timeout_seconds: int = 300
     
@@ -102,16 +111,56 @@ class GovernancePolicy:
                     f"allowed_tools[{i}] must be a string, got {type(tool).__name__}: {tool!r}"
                 )
 
-        # Validate blocked_patterns entries are strings
+        # Validate blocked_patterns entries and precompile regex/glob patterns
         if not isinstance(self.blocked_patterns, list):
             raise ValueError(
                 f"blocked_patterns must be a list, got {type(self.blocked_patterns).__name__}"
             )
+        self._compiled_patterns: list[tuple[str, PatternType, Optional[re.Pattern]]] = []
         for i, pattern in enumerate(self.blocked_patterns):
-            if not isinstance(pattern, str):
+            if isinstance(pattern, str):
+                self._compiled_patterns.append((pattern, PatternType.SUBSTRING, None))
+            elif isinstance(pattern, tuple) and len(pattern) == 2:
+                pat_str, pat_type = pattern
+                if not isinstance(pat_str, str):
+                    raise ValueError(
+                        f"blocked_patterns[{i}][0] must be a string, got {type(pat_str).__name__}: {pat_str!r}"
+                    )
+                if not isinstance(pat_type, PatternType):
+                    raise ValueError(
+                        f"blocked_patterns[{i}][1] must be a PatternType, got {type(pat_type).__name__}: {pat_type!r}"
+                    )
+                compiled = None
+                if pat_type == PatternType.REGEX:
+                    try:
+                        compiled = re.compile(pat_str, re.IGNORECASE)
+                    except re.error as e:
+                        raise ValueError(
+                            f"blocked_patterns[{i}] has invalid regex '{pat_str}': {e}"
+                        )
+                elif pat_type == PatternType.GLOB:
+                    try:
+                        compiled = re.compile(fnmatch.translate(pat_str), re.IGNORECASE)
+                    except re.error as e:
+                        raise ValueError(
+                            f"blocked_patterns[{i}] has invalid glob '{pat_str}': {e}"
+                        )
+                self._compiled_patterns.append((pat_str, pat_type, compiled))
+            else:
                 raise ValueError(
-                    f"blocked_patterns[{i}] must be a string, got {type(pattern).__name__}: {pattern!r}"
+                    f"blocked_patterns[{i}] must be a string or (string, PatternType) tuple, got {type(pattern).__name__}: {pattern!r}"
                 )
+
+    def matches_pattern(self, text: str) -> list[str]:
+        """Return all blocked patterns that match the given text."""
+        matches = []
+        for pat_str, pat_type, compiled in self._compiled_patterns:
+            if pat_type == PatternType.SUBSTRING:
+                if pat_str.lower() in text.lower():
+                    matches.append(pat_str)
+            elif compiled is not None and compiled.search(text):
+                matches.append(pat_str)
+        return matches
 
 
 _AGENT_ID_RE = re.compile(r"^[a-zA-Z0-9_-]+$")
@@ -250,13 +299,13 @@ class PolicyInterceptor:
             )
 
         # Check blocked patterns
-        args_str = str(request.arguments).lower()
-        for pattern in self.policy.blocked_patterns:
-            if pattern.lower() in args_str:
-                return ToolCallResult(
-                    allowed=False,
-                    reason=f"Blocked pattern '{pattern}' detected in tool arguments",
-                )
+        args_str = str(request.arguments)
+        matched = self.policy.matches_pattern(args_str)
+        if matched:
+            return ToolCallResult(
+                allowed=False,
+                reason=f"Blocked pattern '{matched[0]}' detected in tool arguments",
+            )
 
         # Check call count
         if self.context and self.context.call_count >= self.policy.max_tool_calls:
@@ -406,9 +455,9 @@ class BaseIntegration(ABC):
         
         # Check blocked patterns
         input_str = str(input_data)
-        for pattern in self.policy.blocked_patterns:
-            if pattern.lower() in input_str.lower():
-                return False, f"Blocked pattern detected: {pattern}"
+        matched = self.policy.matches_pattern(input_str)
+        if matched:
+            return False, f"Blocked pattern detected: {matched[0]}"
         
         return True, None
     

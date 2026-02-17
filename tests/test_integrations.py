@@ -17,6 +17,7 @@ from agent_os.integrations.base import (
     BaseIntegration,
     ExecutionContext,
     GovernancePolicy,
+    PatternType,
 )
 from agent_os.integrations.langchain_adapter import (
     LangChainKernel,
@@ -242,6 +243,53 @@ class TestGovernancePolicyValidation:
     def test_blocked_patterns_non_string_raises(self):
         with pytest.raises(ValueError, match="blocked_patterns\\[0\\] must be a string"):
             GovernancePolicy(blocked_patterns=[None])
+
+    def test_blocked_patterns_regex_type(self):
+        p = GovernancePolicy(
+            blocked_patterns=[("\\d{3}-\\d{2}-\\d{4}", PatternType.REGEX)]
+        )
+        assert p.matches_pattern("SSN: 123-45-6789") == ["\\d{3}-\\d{2}-\\d{4}"]
+        assert p.matches_pattern("no numbers here") == []
+
+    def test_blocked_patterns_glob_type(self):
+        p = GovernancePolicy(
+            blocked_patterns=[("*.exe", PatternType.GLOB)]
+        )
+        assert p.matches_pattern("run malware.exe") == ["*.exe"]
+        assert p.matches_pattern("document.pdf") == []
+
+    def test_blocked_patterns_mixed_types(self):
+        p = GovernancePolicy(
+            blocked_patterns=[
+                "password",
+                ("\\bDROP\\s+TABLE\\b", PatternType.REGEX),
+                ("*.pem", PatternType.GLOB),
+            ]
+        )
+        assert p.matches_pattern("my password is abc") == ["password"]
+        assert p.matches_pattern("DROP TABLE users") == ["\\bDROP\\s+TABLE\\b"]
+        assert p.matches_pattern("key.pem") == ["*.pem"]
+        assert p.matches_pattern("safe input") == []
+
+    def test_blocked_patterns_backward_compat(self):
+        p = GovernancePolicy(blocked_patterns=["secret", "token"])
+        assert p.matches_pattern("my secret key") == ["secret"]
+        assert p.matches_pattern("bearer TOKEN here") == ["token"]
+        assert p.matches_pattern("nothing blocked") == []
+
+    def test_blocked_patterns_invalid_regex_raises(self):
+        with pytest.raises(ValueError, match="invalid regex"):
+            GovernancePolicy(blocked_patterns=[("[invalid", PatternType.REGEX)])
+
+    def test_blocked_patterns_invalid_tuple_type_raises(self):
+        with pytest.raises(ValueError, match="must be a PatternType"):
+            GovernancePolicy(blocked_patterns=[("pattern", "regex")])
+
+    def test_blocked_patterns_multiple_matches(self):
+        p = GovernancePolicy(
+            blocked_patterns=["secret", ("\\bapi.key\\b", PatternType.REGEX)]
+        )
+        assert sorted(p.matches_pattern("secret api_key data")) == sorted(["secret", "\\bapi.key\\b"])
 
     def test_valid_string_lists_pass(self):
         p = GovernancePolicy(
