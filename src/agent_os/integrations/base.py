@@ -20,6 +20,15 @@ class PatternType(Enum):
     GLOB = "glob"
 
 
+class GovernanceEventType(Enum):
+    """Event types emitted by the governance layer."""
+    POLICY_CHECK = "policy_check"
+    POLICY_VIOLATION = "policy_violation"
+    TOOL_CALL_BLOCKED = "tool_call_blocked"
+    CHECKPOINT_CREATED = "checkpoint_created"
+    DRIFT_DETECTED = "drift_detected"
+
+
 @dataclass
 class GovernancePolicy:
     """Policy configuration for governed agents"""
@@ -545,6 +554,7 @@ class BaseIntegration(ABC):
         self.policy = policy or GovernancePolicy()
         self.contexts: dict[str, ExecutionContext] = {}
         self._signal_handlers: dict[str, Callable] = {}
+        self._event_listeners: dict[GovernanceEventType, list[Callable]] = {}
     
     @abstractmethod
     def wrap(self, agent: Any) -> Any:
@@ -573,6 +583,18 @@ class BaseIntegration(ABC):
         )
         self.contexts[agent_id] = ctx
         return ctx
+
+    def on(self, event_type: GovernanceEventType, callback: Callable) -> None:
+        """Register a callback for a governance event type."""
+        self._event_listeners.setdefault(event_type, []).append(callback)
+
+    def emit(self, event_type: GovernanceEventType, data: dict) -> None:
+        """Fire all registered callbacks for an event type."""
+        for cb in self._event_listeners.get(event_type, []):
+            try:
+                cb(data)
+            except Exception:
+                pass  # Don't let listener errors break governance flow
     
     def pre_execute(self, ctx: ExecutionContext, input_data: Any) -> tuple[bool, Optional[str]]:
         """
@@ -580,20 +602,30 @@ class BaseIntegration(ABC):
         
         Returns (allowed, reason) tuple.
         """
+        event_base = {"agent_id": ctx.agent_id, "timestamp": datetime.now().isoformat()}
+
+        self.emit(GovernanceEventType.POLICY_CHECK, {**event_base, "phase": "pre_execute"})
+
         # Check call count
         if ctx.call_count >= self.policy.max_tool_calls:
-            return False, f"Max tool calls exceeded ({self.policy.max_tool_calls})"
+            reason = f"Max tool calls exceeded ({self.policy.max_tool_calls})"
+            self.emit(GovernanceEventType.POLICY_VIOLATION, {**event_base, "reason": reason})
+            return False, reason
         
         # Check timeout
         elapsed = (datetime.now() - ctx.start_time).total_seconds()
         if elapsed > self.policy.timeout_seconds:
-            return False, f"Timeout exceeded ({self.policy.timeout_seconds}s)"
+            reason = f"Timeout exceeded ({self.policy.timeout_seconds}s)"
+            self.emit(GovernanceEventType.POLICY_VIOLATION, {**event_base, "reason": reason})
+            return False, reason
         
         # Check blocked patterns
         input_str = str(input_data)
         matched = self.policy.matches_pattern(input_str)
         if matched:
-            return False, f"Blocked pattern detected: {matched[0]}"
+            reason = f"Blocked pattern detected: {matched[0]}"
+            self.emit(GovernanceEventType.TOOL_CALL_BLOCKED, {**event_base, "reason": reason, "pattern": matched[0]})
+            return False, reason
         
         return True, None
     
@@ -609,6 +641,12 @@ class BaseIntegration(ABC):
         if ctx.call_count % self.policy.checkpoint_frequency == 0:
             checkpoint_id = f"checkpoint-{ctx.call_count}"
             ctx.checkpoints.append(checkpoint_id)
+            self.emit(GovernanceEventType.CHECKPOINT_CREATED, {
+                "agent_id": ctx.agent_id,
+                "timestamp": datetime.now().isoformat(),
+                "checkpoint_id": checkpoint_id,
+                "call_count": ctx.call_count,
+            })
         
         return True, None
     

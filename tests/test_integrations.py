@@ -16,6 +16,7 @@ import pytest
 from agent_os.integrations.base import (
     BaseIntegration,
     ExecutionContext,
+    GovernanceEventType,
     GovernancePolicy,
     PatternType,
 )
@@ -666,6 +667,73 @@ class TestBaseIntegrationSignals:
     def test_unregistered_signal_is_noop(self):
         k = LangChainKernel()
         k.signal("agent-1", "SIGFOO")  # should not raise
+
+
+# =============================================================================
+# Governance Event Hooks
+# =============================================================================
+
+
+class TestGovernanceEventHooks:
+    def test_register_and_fire_policy_check(self):
+        k = LangChainKernel()
+        events = []
+        k.on(GovernanceEventType.POLICY_CHECK, lambda d: events.append(d))
+        ctx = k.create_context("a1")
+        k.pre_execute(ctx, "hello")
+        assert len(events) == 1
+        assert events[0]["agent_id"] == "a1"
+        assert events[0]["phase"] == "pre_execute"
+
+    def test_policy_violation_event_on_max_calls(self):
+        k = LangChainKernel(policy=GovernancePolicy(max_tool_calls=0))
+        events = []
+        k.on(GovernanceEventType.POLICY_VIOLATION, lambda d: events.append(d))
+        ctx = k.create_context("a1")
+        k.pre_execute(ctx, "hello")
+        assert len(events) == 1
+        assert "Max tool calls" in events[0]["reason"]
+
+    def test_tool_call_blocked_event(self):
+        k = LangChainKernel(policy=GovernancePolicy(blocked_patterns=["secret"]))
+        events = []
+        k.on(GovernanceEventType.TOOL_CALL_BLOCKED, lambda d: events.append(d))
+        ctx = k.create_context("a1")
+        k.pre_execute(ctx, "my secret data")
+        assert len(events) == 1
+        assert events[0]["pattern"] == "secret"
+
+    def test_checkpoint_event(self):
+        k = LangChainKernel(policy=GovernancePolicy(checkpoint_frequency=1))
+        events = []
+        k.on(GovernanceEventType.CHECKPOINT_CREATED, lambda d: events.append(d))
+        ctx = k.create_context("a1")
+        k.post_execute(ctx, "result")
+        assert len(events) == 1
+        assert events[0]["checkpoint_id"] == "checkpoint-1"
+
+    def test_multiple_listeners(self):
+        k = LangChainKernel()
+        log1, log2 = [], []
+        k.on(GovernanceEventType.POLICY_CHECK, lambda d: log1.append(d))
+        k.on(GovernanceEventType.POLICY_CHECK, lambda d: log2.append(d))
+        ctx = k.create_context("a1")
+        k.pre_execute(ctx, "hello")
+        assert len(log1) == 1
+        assert len(log2) == 1
+
+    def test_listener_error_does_not_break_flow(self):
+        k = LangChainKernel()
+        k.on(GovernanceEventType.POLICY_CHECK, lambda d: 1 / 0)
+        ctx = k.create_context("a1")
+        allowed, _ = k.pre_execute(ctx, "hello")
+        assert allowed is True
+
+    def test_no_listeners_is_fine(self):
+        k = LangChainKernel()
+        ctx = k.create_context("a1")
+        allowed, _ = k.pre_execute(ctx, "hello")
+        assert allowed is True
 
 
 # =============================================================================
