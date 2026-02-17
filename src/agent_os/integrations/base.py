@@ -51,11 +51,15 @@ class GovernancePolicy:
     max_concurrent: int = 10
     backpressure_threshold: int = 8  # Start slowing down at this level
 
+    # Version tracking
+    version: str = "1.0.0"
+
     def __repr__(self) -> str:
         return (
             f"GovernancePolicy(max_tokens={self.max_tokens!r}, "
             f"max_tool_calls={self.max_tool_calls!r}, "
-            f"require_human_approval={self.require_human_approval!r})"
+            f"require_human_approval={self.require_human_approval!r}, "
+            f"version={self.version!r})"
         )
 
     def __hash__(self) -> int:
@@ -73,6 +77,7 @@ class GovernancePolicy:
                 self.checkpoint_frequency,
                 self.max_concurrent,
                 self.backpressure_threshold,
+                self.version,
             )
         )
 
@@ -125,6 +130,13 @@ class GovernancePolicy:
             raise ValueError(
                 f"blocked_patterns must be a list, got {type(self.blocked_patterns).__name__}"
             )
+
+        # Validate version is a non-empty string
+        if not isinstance(self.version, str) or not self.version:
+            raise ValueError(
+                f"version must be a non-empty string, got {self.version!r}"
+            )
+
         self._compiled_patterns: list[tuple[str, PatternType, Optional[re.Pattern]]] = []
         for i, pattern in enumerate(self.blocked_patterns):
             if isinstance(pattern, str):
@@ -209,6 +221,40 @@ class GovernancePolicy:
                 matches.append(pat_str)
         return matches
 
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize policy to a dictionary."""
+        return {
+            "max_tokens": self.max_tokens,
+            "max_tool_calls": self.max_tool_calls,
+            "allowed_tools": self.allowed_tools,
+            "blocked_patterns": [
+                {"pattern": p, "type": t.value} if t != PatternType.SUBSTRING
+                else p
+                for p, t, _ in self._compiled_patterns
+            ],
+            "require_human_approval": self.require_human_approval,
+            "timeout_seconds": self.timeout_seconds,
+            "confidence_threshold": self.confidence_threshold,
+            "drift_threshold": self.drift_threshold,
+            "log_all_calls": self.log_all_calls,
+            "checkpoint_frequency": self.checkpoint_frequency,
+            "max_concurrent": self.max_concurrent,
+            "backpressure_threshold": self.backpressure_threshold,
+            "version": self.version,
+        }
+
+    def compare_versions(self, other: "GovernancePolicy") -> dict:
+        """Compare this policy with another, including version info.
+
+        Returns a dict with version details and field-level changes.
+        """
+        return {
+            "old_version": self.version,
+            "new_version": other.version,
+            "versions_differ": self.version != other.version,
+            "changes": self.diff(other),
+        }
+
     def to_yaml(self) -> str:
         """Serialize policy to YAML string."""
         import yaml
@@ -230,6 +276,7 @@ class GovernancePolicy:
             "checkpoint_frequency": self.checkpoint_frequency,
             "max_concurrent": self.max_concurrent,
             "backpressure_threshold": self.backpressure_threshold,
+            "version": self.version,
         }
         return yaml.dump(data, default_flow_style=False, sort_keys=False)
 
@@ -263,7 +310,7 @@ class GovernancePolicy:
             "max_tokens", "max_tool_calls", "allowed_tools", "blocked_patterns",
             "require_human_approval", "timeout_seconds", "confidence_threshold",
             "drift_threshold", "log_all_calls", "checkpoint_frequency",
-            "max_concurrent", "backpressure_threshold",
+            "max_concurrent", "backpressure_threshold", "version",
         }
         filtered = {k: v for k, v in data.items() if k in valid_fields}
         return cls(**filtered)
@@ -290,7 +337,7 @@ class GovernancePolicy:
             "max_tokens", "max_tool_calls", "allowed_tools", "blocked_patterns",
             "require_human_approval", "timeout_seconds", "confidence_threshold",
             "drift_threshold", "log_all_calls", "checkpoint_frequency",
-            "max_concurrent", "backpressure_threshold",
+            "max_concurrent", "backpressure_threshold", "version",
         ]
         for f in fields:
             v_self = getattr(self, f)

@@ -517,6 +517,85 @@ class TestGovernancePolicyDiff:
 
 
 # =============================================================================
+# GovernancePolicy Version Tracking
+# =============================================================================
+
+
+class TestGovernancePolicyVersion:
+    def test_default_version(self):
+        p = GovernancePolicy()
+        assert p.version == "1.0.0"
+
+    def test_custom_version(self):
+        p = GovernancePolicy(version="2.3.1")
+        assert p.version == "2.3.1"
+
+    def test_version_in_to_dict(self):
+        p = GovernancePolicy(version="1.2.0")
+        d = p.to_dict()
+        assert "version" in d
+        assert d["version"] == "1.2.0"
+
+    def test_version_in_to_yaml(self):
+        p = GovernancePolicy(version="3.0.0")
+        yaml_str = p.to_yaml()
+        assert "version" in yaml_str
+        assert "3.0.0" in yaml_str
+
+    def test_version_yaml_roundtrip(self):
+        p = GovernancePolicy(version="2.1.0")
+        p2 = GovernancePolicy.from_yaml(p.to_yaml())
+        assert p2.version == "2.1.0"
+
+    def test_version_in_repr(self):
+        p = GovernancePolicy(version="1.5.0")
+        assert "1.5.0" in repr(p)
+
+    def test_version_in_diff(self):
+        p1 = GovernancePolicy(version="1.0.0")
+        p2 = GovernancePolicy(version="2.0.0")
+        d = p1.diff(p2)
+        assert "version" in d
+        assert d["version"] == ("1.0.0", "2.0.0")
+
+    def test_version_same_no_diff(self):
+        p1 = GovernancePolicy(version="1.0.0")
+        p2 = GovernancePolicy(version="1.0.0")
+        d = p1.diff(p2)
+        assert "version" not in d
+
+    def test_compare_versions_different(self):
+        p1 = GovernancePolicy(version="1.0.0", max_tokens=4096)
+        p2 = GovernancePolicy(version="2.0.0", max_tokens=2048)
+        result = p1.compare_versions(p2)
+        assert result["old_version"] == "1.0.0"
+        assert result["new_version"] == "2.0.0"
+        assert result["versions_differ"] is True
+        assert "max_tokens" in result["changes"]
+        assert "version" in result["changes"]
+
+    def test_compare_versions_same(self):
+        p1 = GovernancePolicy(version="1.0.0")
+        p2 = GovernancePolicy(version="1.0.0")
+        result = p1.compare_versions(p2)
+        assert result["old_version"] == "1.0.0"
+        assert result["new_version"] == "1.0.0"
+        assert result["versions_differ"] is False
+        assert result["changes"] == {}
+
+    def test_version_in_hash(self):
+        p1 = GovernancePolicy(version="1.0.0")
+        p2 = GovernancePolicy(version="2.0.0")
+        assert hash(p1) != hash(p2)
+
+    def test_version_backward_compat(self):
+        """Existing code without version arg still works."""
+        p = GovernancePolicy(max_tokens=2048)
+        assert p.version == "1.0.0"
+        assert p.max_tokens == 2048
+
+
+# =============================================================================
 # ExecutionContext
 # =============================================================================
 
