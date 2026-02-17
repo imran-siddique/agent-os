@@ -49,6 +49,9 @@ from .base import (
     CompositeInterceptor,
     BoundedSemaphore,
 )
+from .token_budget import TokenBudgetTracker, TokenBudgetStatus
+from .dry_run import DryRunPolicy, DryRunResult, DryRunDecision, DryRunCollector
+from .rate_limiter import RateLimiter, RateLimitStatus
 
 __all__ = [
     # Base
@@ -77,4 +80,15 @@ __all__ = [
     # Semantic Kernel
     "SemanticKernelWrapper",
     "GovernedSemanticKernel",
+    # Token Budget Tracking
+    "TokenBudgetTracker",
+    "TokenBudgetStatus",
+    # Dry Run
+    "DryRunPolicy",
+    "DryRunResult",
+    "DryRunDecision",
+    "DryRunCollector",
+    # Rate Limiting
+    "RateLimiter",
+    "RateLimitStatus",
 ]
