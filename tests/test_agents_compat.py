@@ -245,3 +245,176 @@ class TestAgentConfig:
         assert config.name == "my-agent"
         assert len(config.skills) == 1
         assert config.policies == ["strict"]
+
+
+# ── AGENTS.md Generator Tests ────────────────────────────────────────────────
+
+import yaml
+
+
+class TestGenerateAgentsMd:
+    """Test generate_agents_md function."""
+
+    def test_minimal_config(self):
+        """generate_agents_md with just a name produces valid markdown."""
+        from agent_os.agents_compat import AgentMdConfig, generate_agents_md
+
+        md = generate_agents_md(AgentMdConfig(name="my-agent"))
+        assert "# my-agent" in md
+        assert "## Commit Style" in md
+        # Should NOT have optional sections
+        assert "## Project Overview" not in md
+        assert "## Governance" not in md
+
+    def test_full_config(self):
+        """generate_agents_md with all fields populated."""
+        from agent_os.agents_compat import AgentMdConfig, generate_agents_md
+        from agent_os.integrations.base import GovernancePolicy
+
+        cfg = AgentMdConfig(
+            name="full-agent",
+            description="A fully-configured test agent.",
+            tools=["grep", "git"],
+            policy=GovernancePolicy(allowed_tools=["grep", "git"]),
+            role="admin",
+            build_commands=["pip install -e ."],
+            test_commands=["pytest tests/ -v"],
+            lint_commands=["ruff check ."],
+            boundaries=["Never commit secrets"],
+            code_style={"formatter": "ruff", "line_length": "100"},
+        )
+        md = generate_agents_md(cfg)
+
+        assert "## Project Overview" in md
+        assert "A fully-configured test agent." in md
+        assert "## Build & Test Commands" in md
+        assert "pip install -e ." in md
+        assert "pytest tests/ -v" in md
+        assert "ruff check ." in md
+        assert "## Code Style" in md
+        assert "**formatter:** ruff" in md
+        assert "## Governance" in md
+        assert "## Boundaries" in md
+        assert "Never commit secrets" in md
+        assert "## Commit Style" in md
+
+    def test_governance_renders_correctly(self):
+        """GovernancePolicy renders as YAML inside the Governance section."""
+        from agent_os.agents_compat import AgentMdConfig, generate_agents_md
+        from agent_os.integrations.base import GovernancePolicy
+
+        policy = GovernancePolicy(
+            max_tokens=2048,
+            max_tool_calls=5,
+            require_human_approval=True,
+        )
+        md = generate_agents_md(AgentMdConfig(name="gov", policy=policy))
+
+        assert "max_tokens: 2048" in md
+        assert "max_tool_calls: 5" in md
+        assert "require_human_approval: true" in md
+
+    def test_boundaries_render(self):
+        """Boundaries section renders each item as a bullet."""
+        from agent_os.agents_compat import AgentMdConfig, generate_agents_md
+
+        cfg = AgentMdConfig(
+            name="b",
+            boundaries=["No secrets", "No PII"],
+        )
+        md = generate_agents_md(cfg)
+        assert "- No secrets" in md
+        assert "- No PII" in md
+
+    def test_yaml_frontmatter_valid(self):
+        """YAML frontmatter is parseable by yaml.safe_load."""
+        from agent_os.agents_compat import AgentMdConfig, generate_agents_md
+
+        cfg = AgentMdConfig(
+            name="fm-test",
+            description="Frontmatter test",
+            tools=["shell", "grep"],
+            role="developer",
+        )
+        md = generate_agents_md(cfg)
+
+        # Extract frontmatter between --- markers
+        assert md.startswith("---\n")
+        end = md.index("---", 3)
+        fm_yaml = md[4:end]
+        data = yaml.safe_load(fm_yaml)
+
+        assert data["name"] == "fm-test"
+        assert data["description"] == "Frontmatter test"
+        assert data["tools"] == ["shell", "grep"]
+        assert data["role"] == "developer"
+        assert "version" in data
+
+
+class TestSaveAgentsMd:
+    """Test save_agents_md function."""
+
+    def test_save_writes_file(self, tmp_path):
+        """save_agents_md writes content to the given path."""
+        from agent_os.agents_compat import AgentMdConfig, save_agents_md
+
+        out = tmp_path / "AGENTS.md"
+        save_agents_md(AgentMdConfig(name="saved"), str(out))
+
+        assert out.exists()
+        content = out.read_text(encoding="utf-8")
+        assert "# saved" in content
+
+
+class TestRoundtrip:
+    """Test generate -> save -> load -> generate roundtrip."""
+
+    def test_roundtrip(self, tmp_path):
+        """Roundtrip: generate -> save -> load -> generate matches."""
+        from agent_os.agents_compat import (
+            AgentMdConfig,
+            generate_agents_md,
+            save_agents_md,
+            load_agents_md,
+        )
+        from agent_os.integrations.base import GovernancePolicy
+
+        cfg = AgentMdConfig(
+            name="roundtrip-agent",
+            description="Roundtrip test agent.",
+            tools=["grep", "git"],
+            role="operator",
+            build_commands=["pip install -e ."],
+            test_commands=["pytest tests/ -v"],
+            lint_commands=["ruff check ."],
+            boundaries=["Never commit secrets", "Keep backward compat"],
+            code_style={"formatter": "ruff", "line_length": "100"},
+            policy=GovernancePolicy(
+                max_tokens=2048,
+                max_tool_calls=5,
+                allowed_tools=["grep", "git"],
+            ),
+        )
+
+        path = str(tmp_path / "AGENTS.md")
+        save_agents_md(cfg, path)
+        loaded = load_agents_md(path)
+
+        # Core fields must survive roundtrip
+        assert loaded.name == cfg.name
+        assert loaded.description == cfg.description
+        assert loaded.tools == cfg.tools
+        assert loaded.role == cfg.role
+        assert loaded.boundaries == cfg.boundaries
+        assert loaded.code_style == cfg.code_style
+
+        # Governance policy core values
+        assert loaded.policy is not None
+        assert loaded.policy.max_tokens == cfg.policy.max_tokens
+        assert loaded.policy.max_tool_calls == cfg.policy.max_tool_calls
+        assert loaded.policy.allowed_tools == cfg.policy.allowed_tools
+
+        # Second generate should match first
+        md1 = generate_agents_md(cfg)
+        md2 = generate_agents_md(loaded)
+        assert md1 == md2
