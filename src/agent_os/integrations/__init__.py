@@ -55,6 +55,27 @@ from .rate_limiter import RateLimiter, RateLimitStatus
 from .templates import PolicyTemplates
 from .webhooks import WebhookConfig, WebhookEvent, WebhookNotifier, DeliveryRecord
 from .policy_compose import compose_policies, PolicyHierarchy, override_policy
+from .health import HealthChecker, HealthReport, HealthStatus, ComponentHealth
+from agent_os.exceptions import (
+    AgentOSError,
+    PolicyError,
+    PolicyViolationError,
+    PolicyDeniedError,
+    PolicyTimeoutError,
+    BudgetError,
+    BudgetExceededError,
+    BudgetWarningError,
+    IdentityError,
+    IdentityVerificationError,
+    CredentialExpiredError,
+    IntegrationError,
+    AdapterNotFoundError,
+    AdapterTimeoutError,
+    ConfigurationError,
+    InvalidPolicyError,
+    MissingConfigError,
+    RateLimitError,
+)
 
 __all__ = [
     # Base
@@ -105,4 +126,28 @@ __all__ = [
     "compose_policies",
     "PolicyHierarchy",
     "override_policy",
+    # Exceptions
+    "AgentOSError",
+    "PolicyError",
+    "PolicyViolationError",
+    "PolicyDeniedError",
+    "PolicyTimeoutError",
+    "BudgetError",
+    "BudgetExceededError",
+    "BudgetWarningError",
+    "IdentityError",
+    "IdentityVerificationError",
+    "CredentialExpiredError",
+    "IntegrationError",
+    "AdapterNotFoundError",
+    "AdapterTimeoutError",
+    "ConfigurationError",
+    "InvalidPolicyError",
+    "MissingConfigError",
+    "RateLimitError",
+    # Health Checks
+    "HealthChecker",
+    "HealthReport",
+    "HealthStatus",
+    "ComponentHealth",
 ]

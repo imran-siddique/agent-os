@@ -801,6 +801,5 @@ class AsyncGovernedWrapper:
             return result
 
 
-class PolicyViolationError(Exception):
-    """Raised when a governance policy check fails in AsyncGovernedWrapper."""
-    pass
+# Backward compatibility: import from the centralized exception hierarchy
+from agent_os.exceptions import PolicyViolationError as PolicyViolationError  # noqa: F401
