@@ -162,6 +162,76 @@ class GovernancePolicy:
                 matches.append(pat_str)
         return matches
 
+    def to_yaml(self) -> str:
+        """Serialize policy to YAML string."""
+        import yaml
+
+        data = {
+            "max_tokens": self.max_tokens,
+            "max_tool_calls": self.max_tool_calls,
+            "allowed_tools": self.allowed_tools,
+            "blocked_patterns": [
+                {"pattern": p, "type": t.value} if t != PatternType.SUBSTRING
+                else p
+                for p, t, _ in self._compiled_patterns
+            ],
+            "require_human_approval": self.require_human_approval,
+            "timeout_seconds": self.timeout_seconds,
+            "confidence_threshold": self.confidence_threshold,
+            "drift_threshold": self.drift_threshold,
+            "log_all_calls": self.log_all_calls,
+            "checkpoint_frequency": self.checkpoint_frequency,
+            "max_concurrent": self.max_concurrent,
+            "backpressure_threshold": self.backpressure_threshold,
+        }
+        return yaml.dump(data, default_flow_style=False, sort_keys=False)
+
+    @classmethod
+    def from_yaml(cls, yaml_str: str) -> "GovernancePolicy":
+        """Deserialize policy from YAML string."""
+        import yaml
+
+        data = yaml.safe_load(yaml_str)
+        if not isinstance(data, dict):
+            raise ValueError(f"Expected a YAML mapping, got {type(data).__name__}")
+
+        # Convert blocked_patterns back to tuples where needed
+        raw_patterns = data.get("blocked_patterns", [])
+        patterns: list[Union[str, tuple[str, PatternType]]] = []
+        for p in raw_patterns:
+            if isinstance(p, str):
+                patterns.append(p)
+            elif isinstance(p, dict) and "pattern" in p and "type" in p:
+                try:
+                    pt = PatternType(p["type"])
+                except ValueError:
+                    raise ValueError(f"Unknown pattern type: {p['type']!r}")
+                patterns.append((p["pattern"], pt))
+            else:
+                raise ValueError(f"Invalid blocked_pattern entry: {p!r}")
+        data["blocked_patterns"] = patterns
+
+        # Remove unknown keys
+        valid_fields = {
+            "max_tokens", "max_tool_calls", "allowed_tools", "blocked_patterns",
+            "require_human_approval", "timeout_seconds", "confidence_threshold",
+            "drift_threshold", "log_all_calls", "checkpoint_frequency",
+            "max_concurrent", "backpressure_threshold",
+        }
+        filtered = {k: v for k, v in data.items() if k in valid_fields}
+        return cls(**filtered)
+
+    def save(self, filepath: str) -> None:
+        """Save policy to a YAML file."""
+        with open(filepath, "w", encoding="utf-8") as f:
+            f.write(self.to_yaml())
+
+    @classmethod
+    def load(cls, filepath: str) -> "GovernancePolicy":
+        """Load policy from a YAML file."""
+        with open(filepath, "r", encoding="utf-8") as f:
+            return cls.from_yaml(f.read())
+
 
 _AGENT_ID_RE = re.compile(r"^[a-zA-Z0-9_-]+$")
 

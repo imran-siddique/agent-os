@@ -310,6 +310,83 @@ class TestGovernancePolicyValidation:
 
 
 # =============================================================================
+# GovernancePolicy YAML Serialization
+# =============================================================================
+
+
+class TestGovernancePolicyYAML:
+    def test_to_yaml_roundtrip(self):
+        p = GovernancePolicy(
+            max_tokens=2048,
+            max_tool_calls=5,
+            allowed_tools=["search", "calculate"],
+            blocked_patterns=["secret", "password"],
+            require_human_approval=True,
+            timeout_seconds=60,
+        )
+        yaml_str = p.to_yaml()
+        p2 = GovernancePolicy.from_yaml(yaml_str)
+        assert p2.max_tokens == 2048
+        assert p2.max_tool_calls == 5
+        assert p2.allowed_tools == ["search", "calculate"]
+        assert p2.blocked_patterns == ["secret", "password"]
+        assert p2.require_human_approval is True
+        assert p2.timeout_seconds == 60
+
+    def test_to_yaml_with_regex_patterns(self):
+        p = GovernancePolicy(
+            blocked_patterns=[
+                "plain",
+                ("\\d{3}-\\d{2}-\\d{4}", PatternType.REGEX),
+                ("*.exe", PatternType.GLOB),
+            ]
+        )
+        yaml_str = p.to_yaml()
+        p2 = GovernancePolicy.from_yaml(yaml_str)
+        assert p2.blocked_patterns[0] == "plain"
+        assert p2.blocked_patterns[1] == ("\\d{3}-\\d{2}-\\d{4}", PatternType.REGEX)
+        assert p2.blocked_patterns[2] == ("*.exe", PatternType.GLOB)
+        assert p2.matches_pattern("SSN 123-45-6789") == ["\\d{3}-\\d{2}-\\d{4}"]
+
+    def test_from_yaml_invalid_yaml(self):
+        with pytest.raises(ValueError, match="Expected a YAML mapping"):
+            GovernancePolicy.from_yaml("just a string")
+
+    def test_from_yaml_invalid_values_trigger_validation(self):
+        yaml_str = "max_tokens: -1\n"
+        with pytest.raises(ValueError, match="max_tokens must be a positive integer"):
+            GovernancePolicy.from_yaml(yaml_str)
+
+    def test_from_yaml_unknown_pattern_type(self):
+        yaml_str = """
+blocked_patterns:
+  - pattern: "test"
+    type: "unknown_type"
+"""
+        with pytest.raises(ValueError, match="Unknown pattern type"):
+            GovernancePolicy.from_yaml(yaml_str)
+
+    def test_save_and_load(self, tmp_path):
+        p = GovernancePolicy(max_tokens=1024, blocked_patterns=["key"])
+        filepath = str(tmp_path / "policy.yaml")
+        p.save(filepath)
+        p2 = GovernancePolicy.load(filepath)
+        assert p2.max_tokens == 1024
+        assert p2.blocked_patterns == ["key"]
+
+    def test_from_yaml_unknown_keys_ignored(self):
+        yaml_str = "max_tokens: 4096\nunknown_field: true\n"
+        p = GovernancePolicy.from_yaml(yaml_str)
+        assert p.max_tokens == 4096
+
+    def test_default_roundtrip(self):
+        p = GovernancePolicy()
+        p2 = GovernancePolicy.from_yaml(p.to_yaml())
+        assert p2.max_tokens == p.max_tokens
+        assert p2.confidence_threshold == p.confidence_threshold
+
+
+# =============================================================================
 # ExecutionContext
 # =============================================================================
 
