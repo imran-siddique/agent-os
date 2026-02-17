@@ -4,6 +4,7 @@ Base Integration Interface
 All framework adapters inherit from this base class.
 """
 
+import asyncio
 import fnmatch
 import re
 from abc import ABC, abstractmethod
@@ -735,6 +736,24 @@ class BaseIntegration(ABC):
         
         return True, None
     
+    async def async_pre_execute(self, ctx: ExecutionContext, input_data: Any) -> tuple[bool, Optional[str]]:
+        """
+        Async pre-execution policy check.
+
+        Defaults to calling the sync version. Override in subclasses
+        to add async-specific logic (e.g., async database lookups).
+        """
+        return self.pre_execute(ctx, input_data)
+
+    async def async_post_execute(self, ctx: ExecutionContext, output_data: Any) -> tuple[bool, Optional[str]]:
+        """
+        Async post-execution validation.
+
+        Defaults to calling the sync version. Override in subclasses
+        to add async-specific logic.
+        """
+        return self.post_execute(ctx, output_data)
+
     def on_signal(self, signal: str, handler: Callable):
         """Register a signal handler"""
         self._signal_handlers[signal] = handler
@@ -743,3 +762,44 @@ class BaseIntegration(ABC):
         """Send signal to agent"""
         if signal in self._signal_handlers:
             self._signal_handlers[signal](agent_id)
+
+
+class AsyncGovernedWrapper:
+    """
+    Async wrapper that applies governance around an async callable.
+
+    Uses asyncio.Lock for concurrent access control instead of threading.
+    Calls async_pre_execute before and async_post_execute after the wrapped callable.
+    """
+
+    def __init__(self, integration: BaseIntegration, fn: Callable, agent_id: str = "async-agent"):
+        self._integration = integration
+        self._fn = fn
+        self._ctx = integration.create_context(agent_id)
+        self._lock = asyncio.Lock()
+
+    @property
+    def context(self) -> ExecutionContext:
+        return self._ctx
+
+    async def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        async with self._lock:
+            # Pre-execution check
+            allowed, reason = await self._integration.async_pre_execute(self._ctx, (args, kwargs))
+            if not allowed:
+                raise PolicyViolationError(reason or "Policy check failed")
+
+            # Execute the wrapped callable
+            result = await self._fn(*args, **kwargs)
+
+            # Post-execution validation
+            valid, reason = await self._integration.async_post_execute(self._ctx, result)
+            if not valid:
+                raise PolicyViolationError(reason or "Post-execution validation failed")
+
+            return result
+
+
+class PolicyViolationError(Exception):
+    """Raised when a governance policy check fails in AsyncGovernedWrapper."""
+    pass

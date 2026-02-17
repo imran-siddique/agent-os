@@ -39,6 +39,7 @@ from .autogen_adapter import AutoGenKernel
 from .openai_adapter import OpenAIKernel, GovernedAssistant
 from .semantic_kernel_adapter import SemanticKernelWrapper, GovernedSemanticKernel
 from .base import (
+    AsyncGovernedWrapper,
     BaseIntegration,
     GovernancePolicy,
     ToolCallInterceptor,
@@ -51,6 +52,7 @@ from .base import (
 
 __all__ = [
     # Base
+    "AsyncGovernedWrapper",
     "BaseIntegration",
     "GovernancePolicy",
     # Tool Call Interceptor (vendor-neutral)
