@@ -232,6 +232,72 @@ class GovernancePolicy:
         with open(filepath, "r", encoding="utf-8") as f:
             return cls.from_yaml(f.read())
 
+    def diff(self, other: "GovernancePolicy") -> dict[str, tuple[Any, Any]]:
+        """Compare this policy with another, returning changed fields.
+
+        Returns a dict mapping field names to (self_value, other_value) tuples
+        for fields that differ between the two policies.
+        """
+        changes: dict[str, tuple[Any, Any]] = {}
+        fields = [
+            "max_tokens", "max_tool_calls", "allowed_tools", "blocked_patterns",
+            "require_human_approval", "timeout_seconds", "confidence_threshold",
+            "drift_threshold", "log_all_calls", "checkpoint_frequency",
+            "max_concurrent", "backpressure_threshold",
+        ]
+        for f in fields:
+            v_self = getattr(self, f)
+            v_other = getattr(other, f)
+            if v_self != v_other:
+                changes[f] = (v_self, v_other)
+        return changes
+
+    def is_stricter_than(self, other: "GovernancePolicy") -> bool:
+        """Return True if this policy is more restrictive than other.
+
+        Stricter means: lower limits, higher thresholds, more blocked patterns,
+        fewer allowed tools, and human approval required.
+        """
+        checks = [
+            self.max_tokens <= other.max_tokens,
+            self.max_tool_calls <= other.max_tool_calls,
+            self.timeout_seconds <= other.timeout_seconds,
+            self.max_concurrent <= other.max_concurrent,
+            self.backpressure_threshold <= other.backpressure_threshold,
+            self.confidence_threshold >= other.confidence_threshold,
+            self.checkpoint_frequency <= other.checkpoint_frequency,
+            len(self.blocked_patterns) >= len(other.blocked_patterns),
+            (not other.require_human_approval) or self.require_human_approval,
+        ]
+        # allowed_tools: fewer allowed tools is stricter (unless both empty)
+        if self.allowed_tools or other.allowed_tools:
+            checks.append(
+                len(self.allowed_tools) <= len(other.allowed_tools)
+                if other.allowed_tools else True
+            )
+        # Must be at least one actual difference to be considered stricter
+        has_difference = any([
+            self.max_tokens < other.max_tokens,
+            self.max_tool_calls < other.max_tool_calls,
+            self.timeout_seconds < other.timeout_seconds,
+            self.confidence_threshold > other.confidence_threshold,
+            self.require_human_approval and not other.require_human_approval,
+            len(self.blocked_patterns) > len(other.blocked_patterns),
+            len(self.allowed_tools) < len(other.allowed_tools) if other.allowed_tools else False,
+        ])
+        return all(checks) and has_difference
+
+    def format_diff(self, other: "GovernancePolicy") -> str:
+        """Return a human-readable diff between this policy and other."""
+        changes = self.diff(other)
+        if not changes:
+            return "Policies are identical."
+        lines = ["Policy Diff:", "-" * 50]
+        for field_name, (old, new) in changes.items():
+            lines.append(f"  {field_name}: {old!r} -> {new!r}")
+        lines.append("-" * 50)
+        return "\n".join(lines)
+
 
 _AGENT_ID_RE = re.compile(r"^[a-zA-Z0-9_-]+$")
 

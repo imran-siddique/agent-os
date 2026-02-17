@@ -387,6 +387,81 @@ blocked_patterns:
 
 
 # =============================================================================
+# GovernancePolicy Diff/Comparison
+# =============================================================================
+
+
+class TestGovernancePolicyDiff:
+    def test_identical_policies(self):
+        p1 = GovernancePolicy()
+        p2 = GovernancePolicy()
+        assert p1.diff(p2) == {}
+
+    def test_single_field_change(self):
+        p1 = GovernancePolicy(max_tokens=4096)
+        p2 = GovernancePolicy(max_tokens=2048)
+        d = p1.diff(p2)
+        assert d == {"max_tokens": (4096, 2048)}
+
+    def test_multiple_changes(self):
+        p1 = GovernancePolicy(max_tokens=4096, timeout_seconds=300)
+        p2 = GovernancePolicy(max_tokens=2048, timeout_seconds=60)
+        d = p1.diff(p2)
+        assert "max_tokens" in d
+        assert "timeout_seconds" in d
+        assert len(d) == 2
+
+    def test_list_field_change(self):
+        p1 = GovernancePolicy(allowed_tools=["a", "b"])
+        p2 = GovernancePolicy(allowed_tools=["a"])
+        d = p1.diff(p2)
+        assert "allowed_tools" in d
+
+    def test_format_diff_identical(self):
+        p1 = GovernancePolicy()
+        assert "identical" in p1.format_diff(GovernancePolicy()).lower()
+
+    def test_format_diff_with_changes(self):
+        p1 = GovernancePolicy(max_tokens=4096)
+        p2 = GovernancePolicy(max_tokens=2048)
+        text = p1.format_diff(p2)
+        assert "max_tokens" in text
+        assert "4096" in text
+        assert "2048" in text
+
+    def test_is_stricter_lower_limits(self):
+        strict = GovernancePolicy(max_tokens=1024, max_tool_calls=3)
+        loose = GovernancePolicy(max_tokens=4096, max_tool_calls=10)
+        assert strict.is_stricter_than(loose)
+        assert not loose.is_stricter_than(strict)
+
+    def test_is_stricter_human_approval(self):
+        strict = GovernancePolicy(require_human_approval=True)
+        loose = GovernancePolicy(require_human_approval=False)
+        assert strict.is_stricter_than(loose)
+
+    def test_is_stricter_identical_is_false(self):
+        p = GovernancePolicy()
+        assert not p.is_stricter_than(GovernancePolicy())
+
+    def test_is_stricter_mixed_not_strictly_stricter(self):
+        # Lower tokens but higher tool calls — not strictly stricter
+        p1 = GovernancePolicy(max_tokens=1024, max_tool_calls=20)
+        p2 = GovernancePolicy(max_tokens=4096, max_tool_calls=10)
+        assert not p1.is_stricter_than(p2)
+
+    def test_is_stricter_more_blocked_patterns(self):
+        strict = GovernancePolicy(blocked_patterns=["a", "b", "c"])
+        loose = GovernancePolicy(blocked_patterns=["a"])
+        assert strict.is_stricter_than(loose)
+
+    def test_is_stricter_higher_confidence_threshold(self):
+        strict = GovernancePolicy(confidence_threshold=0.95)
+        loose = GovernancePolicy(confidence_threshold=0.5)
+        assert strict.is_stricter_than(loose)
+
+
+# =============================================================================
 # ExecutionContext
 # =============================================================================
 
