@@ -33,6 +33,7 @@ class GovernanceEventType(Enum):
 @dataclass
 class GovernancePolicy:
     """Policy configuration for governed agents"""
+    name: str = "default"
     max_tokens: int = 4096
     max_tool_calls: int = 10
     allowed_tools: list[str] = field(default_factory=list)

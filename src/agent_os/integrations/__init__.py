@@ -52,6 +52,9 @@ from .base import (
 from .token_budget import TokenBudgetTracker, TokenBudgetStatus
 from .dry_run import DryRunPolicy, DryRunResult, DryRunDecision, DryRunCollector
 from .rate_limiter import RateLimiter, RateLimitStatus
+from .templates import PolicyTemplates
+from .webhooks import WebhookConfig, WebhookEvent, WebhookNotifier, DeliveryRecord
+from .policy_compose import compose_policies, PolicyHierarchy, override_policy
 
 __all__ = [
     # Base
@@ -91,4 +94,15 @@ __all__ = [
     # Rate Limiting
     "RateLimiter",
     "RateLimitStatus",
+    # Policy Templates
+    "PolicyTemplates",
+    # Webhooks
+    "WebhookConfig",
+    "WebhookEvent",
+    "WebhookNotifier",
+    "DeliveryRecord",
+    # Policy Composition
+    "compose_policies",
+    "PolicyHierarchy",
+    "override_policy",
 ]
