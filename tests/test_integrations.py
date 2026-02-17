@@ -311,6 +311,60 @@ class TestGovernancePolicyValidation:
 
 
 # =============================================================================
+# GovernancePolicy conflict detection
+# =============================================================================
+
+
+class TestGovernancePolicyConflictDetection:
+    """Tests for GovernancePolicy.detect_conflicts() diagnostic warnings."""
+
+    def test_default_returns_empty_list(self):
+        p = GovernancePolicy()
+        warnings = p.detect_conflicts()
+        assert warnings == []
+
+    # backpressure_threshold >= max_concurrent: warn
+    def test_backpressure_threshold_equal_to_max_concurrent_warns(self):
+        p = GovernancePolicy(backpressure_threshold=5, max_concurrent=5)
+        warnings = p.detect_conflicts()
+        assert any("backpressure_threshold" in w for w in warnings)
+
+    # max_tool_calls == 0 and allowed_tools is non-empty: warn
+    def test_max_tool_calls_zero_with_allowed_tools_nonempty_warns(self):
+        p = GovernancePolicy(max_tool_calls=0, allowed_tools=["search"])
+        warnings = p.detect_conflicts()
+        assert any("max_tool_calls" in w for w in warnings)
+
+    # confidence_threshold == 0.0: warn
+    def test_confidence_threshold_zero_warns(self):
+        p = GovernancePolicy(confidence_threshold=0.0)
+        warnings = p.detect_conflicts()
+        assert any("confidence_threshold" in w for w in warnings)
+
+    # timeout_seconds < 5: warn
+    def test_timeout_seconds_too_low_warns(self):
+        p = GovernancePolicy(timeout_seconds=3)
+        warnings = p.detect_conflicts()
+        assert any("timeout_seconds" in w for w in warnings)
+
+    def test_all_conflicts(self):
+        p = GovernancePolicy(
+            max_concurrent=5,
+            backpressure_threshold=5,
+            max_tool_calls=0,
+            allowed_tools=["search"],
+            confidence_threshold=0.0,
+            timeout_seconds=3,
+        )
+        warnings = p.detect_conflicts()
+        # Ensure all independent warnings are reported.
+        assert any("backpressure_threshold" in w for w in warnings)
+        assert any("max_tool_calls" in w for w in warnings)
+        assert any("confidence_threshold" in w for w in warnings)
+        assert any("timeout_seconds" in w for w in warnings)
+
+
+# =============================================================================
 # GovernancePolicy YAML Serialization
 # =============================================================================
 

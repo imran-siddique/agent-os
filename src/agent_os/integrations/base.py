@@ -160,6 +160,44 @@ class GovernancePolicy:
                     f"blocked_patterns[{i}] must be a string or (string, PatternType) tuple, got {type(pattern).__name__}: {pattern!r}"
                 )
 
+    def detect_conflicts(self) -> list[str]:
+        """
+        Detect conflicting or contradictory policy settings.
+
+        Returns:
+            A list of human-readable warning strings describing each conflict.
+        """
+        warnings: list[str] = []
+
+        # Backpressure will never trigger if threshold is >= max_concurrent
+        if self.backpressure_threshold >= self.max_concurrent:
+            warnings.append(
+                f"backpressure_threshold ({self.backpressure_threshold}) >= "
+                f"max_concurrent ({self.max_concurrent}): backpressure will never trigger"
+            )
+
+        # Tools are allowed but max_tool_calls blocks any tool calls
+        if self.max_tool_calls == 0 and self.allowed_tools:
+            warnings.append(
+                f"max_tool_calls is 0 but allowed_tools is non-empty "
+                f"({self.allowed_tools}): tools are allowed but no calls permitted"
+            )
+
+        # Confidence checks effectively disabled
+        if self.confidence_threshold == 0.0:
+            warnings.append(
+                "confidence_threshold is 0.0: effectively disables confidence checking"
+            )
+
+        # timeout_seconds is too low for reasonable execution (< 5s warning)
+        if self.timeout_seconds < 5:
+            warnings.append(
+                f"timeout_seconds ({self.timeout_seconds}) is very low (under 5s), "
+                f"may not allow reasonable execution time"
+            )
+
+        return warnings
+
     def matches_pattern(self, text: str) -> list[str]:
         """Return all blocked patterns that match the given text."""
         matches = []
