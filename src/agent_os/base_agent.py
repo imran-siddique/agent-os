@@ -19,6 +19,8 @@ Example:
 from __future__ import annotations
 
 import asyncio
+import copy
+import sys
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -53,11 +55,15 @@ class AgentConfig:
         policies: List of policy names to apply (e.g., ["read_only", "no_pii"])
         metadata: Additional metadata for the agent
         state_backend: Optional custom state backend (defaults to in-memory)
+        max_audit_log_size: Maximum number of audit log entries to retain
+        max_metadata_size_bytes: Maximum size in bytes for metadata values
     """
     agent_id: str
     policies: List[str] = field(default_factory=list)
     metadata: Dict[str, Any] = field(default_factory=dict)
     state_backend: Optional[StateBackend] = None
+    max_audit_log_size: int = 10000
+    max_metadata_size_bytes: int = 1_048_576  # 1 MB
     # FIXME: Add validation for agent_id format (should be alphanumeric with dashes)
     # TODO: Support loading config from YAML/JSON file
 
@@ -133,8 +139,7 @@ class BaseAgent(ABC):
             backend=config.state_backend or MemoryBackend()
         )
         self._audit_log: List[AuditEntry] = []
-        # HACK: Hardcoded max audit log size - should be configurable
-        self._max_audit_entries = 10000
+        self._max_audit_entries = config.max_audit_log_size
     
     @property
     def agent_id(self) -> str:
@@ -146,7 +151,7 @@ class BaseAgent(ABC):
         """Get the agent's active policies."""
         return self._config.policies.copy()
     
-    def _new_context(self, **extra_metadata) -> ExecutionContext:
+    def _new_context(self, **extra_metadata: Any) -> ExecutionContext:
         """Create a new execution context for a request.
         
         Args:
@@ -154,9 +159,20 @@ class BaseAgent(ABC):
             
         Returns:
             Fresh ExecutionContext with agent's default settings
+            
+        Raises:
+            ValueError: If any metadata value exceeds max_metadata_size_bytes
         """
-        # XXX: Potential memory leak if metadata contains large objects
         metadata = {**self._config.metadata, **extra_metadata}
+        max_size = self._config.max_metadata_size_bytes
+        for key, value in metadata.items():
+            size = sys.getsizeof(value)
+            if size > max_size:
+                raise ValueError(
+                    f"Metadata key {key!r} value size ({size} bytes) "
+                    f"exceeds limit ({max_size} bytes)"
+                )
+        metadata = copy.deepcopy(metadata)
         return ExecutionContext(
             agent_id=self._config.agent_id,
             policies=self._config.policies.copy(),
@@ -208,6 +224,8 @@ class BaseAgent(ABC):
         audit.error = result.error
         
         self._audit_log.append(audit)
+        if len(self._audit_log) > self._max_audit_entries:
+            self._audit_log = self._audit_log[-self._max_audit_entries:]
         
         return result
     
