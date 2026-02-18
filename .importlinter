@@ -1,0 +1,26 @@
+[importlinter]
+root_packages =
+    agent_os
+    agent_primitives
+    cmvk
+    emk
+    caas
+    iatp
+    amb_core
+    atr
+    agent_control_plane
+    agent_os_observability
+    nexus
+    agent_kernel
+    mute_agent
+    mcp_kernel_server
+
+[importlinter:contract:kernel-layers]
+name = Kernel 4-layer architecture
+type = layers
+layers =
+    agent_os
+    agent_kernel | mute_agent | mcp_kernel_server
+    agent_control_plane | agent_os_observability | nexus
+    iatp | amb_core | atr
+    agent_primitives | cmvk | emk | caas

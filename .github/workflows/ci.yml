@@ -36,6 +36,18 @@ jobs:
       - name: Type check
         run: mypy src/ --ignore-missing-imports || true
 
+  layer-boundaries:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -e ".[dev]" 2>/dev/null || pip install -e . && pip install import-linter
+      - name: Check layer boundaries
+        run: lint-imports
+
   security:
     runs-on: ubuntu-latest
     steps:
