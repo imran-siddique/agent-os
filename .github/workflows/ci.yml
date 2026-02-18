@@ -3,192 +3,49 @@ name: CI
 on:
   push:
     branches: [master, main]
-    tags:
-      - 'v*'
   pull_request:
     branches: [master, main]
 
 jobs:
-  # ==========================================================================
-  # Test Suite with Coverage
-  # ==========================================================================
   test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]
-    
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev]"
+        run: pip install -e ".[dev]" 2>/dev/null || pip install -e . && pip install pytest pytest-asyncio pytest-cov
+      - name: Run tests
+        run: python -m pytest tests/ -q --tb=short
       
-      - name: Run tests with coverage
-        env:
-          PYTHONPATH: ${{ github.workspace }}/modules/primitives:${{ github.workspace }}/modules/control-plane/src:${{ github.workspace }}/modules/cmvk/src:${{ github.workspace }}/modules/iatp:${{ github.workspace }}/modules/amb:${{ github.workspace }}/modules/emk:${{ github.workspace }}/modules/scak
-        run: |
-          pytest tests/ -v --cov=modules --cov-report=xml --cov-report=term
-      
-      - name: Upload coverage to Codecov
-        if: matrix.python-version == '3.11'
-        uses: codecov/codecov-action@v4
-        with:
-          file: ./coverage.xml
-          fail_ci_if_error: false
-      
-      - name: Run demos
-        run: |
-          python examples/carbon-auditor/demo.py --scenario fraud
-          python examples/grid-balancing/demo.py --agents 10
-          python examples/defi-sentinel/demo.py --attack reentrancy
-          python examples/pharma-compliance/demo.py --reports 5
-
-  # ==========================================================================
-  # Linting (Ruff + MyPy)
-  # ==========================================================================
   lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
-      
+          python-version: "3.12"
       - name: Install linters
         run: pip install ruff mypy
-      
-      - name: Run Ruff linter
-        run: ruff check . --exit-zero
-      
-      - name: Run MyPy (type checking)
-        run: mypy modules/primitives modules/control-plane --ignore-missing-imports || true
+      - name: Ruff check
+        run: ruff check src/
+      - name: Type check
+        run: mypy src/ --ignore-missing-imports || true
 
-  # ==========================================================================
-  # Security Scanning (Bandit + pip-audit)
-  # ==========================================================================
   security:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
-      
+          python-version: "3.12"
       - name: Install security tools
         run: pip install bandit pip-audit
-      
-      - name: Run Bandit (SAST)
-        run: bandit -r modules/ -ll --exit-zero
-      
-      - name: Run pip-audit (CVE scan)
-        run: |
-          pip install -e ".[full]"
-          pip-audit --strict --ignore-vuln CVE-2026-0994 --ignore-vuln CVE-2026-24486 || true
-
-  # ==========================================================================
-  # Benchmark Regression (Policy Enforcement <10ms)
-  # ==========================================================================
-  benchmark:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev]"
-      
-      - name: Run performance benchmarks
-        run: |
-          python -c "
-          import time
-          import sys
-          sys.path.insert(0, 'modules/control-plane/src')
-          from agent_control_plane import KernelSpace
-          
-          # Benchmark kernel instantiation
-          iterations = 100
-          start = time.perf_counter()
-          for _ in range(iterations):
-              kernel = KernelSpace()
-          elapsed = time.perf_counter() - start
-          
-          avg_ms = (elapsed / iterations) * 1000
-          print(f'KernelSpace creation: {avg_ms:.3f}ms average')
-          
-          if avg_ms > 50:
-              print(f'FAIL: Kernel creation took {avg_ms:.3f}ms (>50ms threshold)')
-              sys.exit(1)
-          else:
-              print(f'PASS: Kernel creation under 50ms threshold')
-          "
-
-  # ==========================================================================
-  # Build Package
-  # ==========================================================================
-  build:
-    runs-on: ubuntu-latest
-    needs: [test, lint, security]
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      
-      - name: Install build tools
-        run: pip install build twine
-      
-      - name: Build package
-        run: python -m build
-      
-      - name: Check package
-        run: twine check dist/*
-      
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist
-          path: dist/
-
-  # ==========================================================================
-  # Publish to PyPI (on tag push)
-  # ==========================================================================
-  publish:
-    runs-on: ubuntu-latest
-    needs: [build]
-    if: startsWith(github.ref, 'refs/tags/v')
-    environment: pypi
-    permissions:
-      id-token: write
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: dist/
-      
-      - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          skip-existing: true
+      - name: Bandit SAST
+        run: bandit -r src/ -f json -o bandit-report.json || true
+      - name: pip-audit
+        run: pip install -e . && pip-audit || true

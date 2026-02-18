@@ -57,6 +57,7 @@ from .webhooks import WebhookConfig, WebhookEvent, WebhookNotifier, DeliveryReco
 from .policy_compose import compose_policies, PolicyHierarchy, override_policy
 from .health import HealthChecker, HealthReport, HealthStatus, ComponentHealth
 from .logging import GovernanceLogger, JSONFormatter, get_logger
+from .config import AgentOSConfig, get_config, reset_config
 from agent_os.exceptions import (
     AgentOSError,
     PolicyError,
@@ -155,4 +156,8 @@ __all__ = [
     "GovernanceLogger",
     "JSONFormatter",
     "get_logger",
+    # Environment Configuration
+    "AgentOSConfig",
+    "get_config",
+    "reset_config",
 ]
