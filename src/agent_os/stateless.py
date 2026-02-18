@@ -7,10 +7,10 @@ Key principles:
 - State externalized to pluggable backend
 - Horizontally scalable
 
-# TODO: Add distributed tracing support (OpenTelemetry)
-# TODO: Implement circuit breaker pattern for backend failures
 # FIXME: Add connection pooling for Redis backend
 """
+
+from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Protocol
@@ -18,6 +18,21 @@ from datetime import datetime, timezone
 from abc import ABC, abstractmethod
 import hashlib
 import json
+
+from agent_os.circuit_breaker import CircuitBreaker, CircuitBreakerConfig, CircuitBreakerOpen
+
+# ---------------------------------------------------------------------------
+# Optional OpenTelemetry support
+# ---------------------------------------------------------------------------
+try:
+    from opentelemetry import trace as _otel_trace
+    from opentelemetry import context as _otel_context
+
+    _HAS_OTEL = True
+except ImportError:  # pragma: no cover
+    _otel_trace = None  # type: ignore[assignment]
+    _otel_context = None  # type: ignore[assignment]
+    _HAS_OTEL = False
 
 
 # =============================================================================
@@ -193,10 +208,18 @@ class StatelessKernel:
     def __init__(
         self,
         backend: Optional[StateBackend] = None,
-        policies: Optional[Dict[str, Any]] = None
+        policies: Optional[Dict[str, Any]] = None,
+        enable_tracing: bool = False,
+        circuit_breaker_config: Optional[CircuitBreakerConfig] = None,
     ):
         self.backend = backend or MemoryBackend()
         self.policies = {**self.DEFAULT_POLICIES, **(policies or {})}
+        self.enable_tracing = enable_tracing and _HAS_OTEL
+        self._tracer = (
+            _otel_trace.get_tracer("agent_os.stateless") if self.enable_tracing else None
+        )
+        self._backend_type = type(self.backend).__name__
+        self.circuit_breaker = CircuitBreaker(circuit_breaker_config)
     
     async def execute(
         self,
@@ -234,11 +257,30 @@ class StatelessKernel:
             ...     print(f"Blocked: {result.error}")
         """
         request = ExecutionRequest(action=action, params=params, context=context)
-        
+
+        span_ctx = self._start_span("kernel.execute", {
+            "operation": "execute",
+            "action": action,
+            "agent_id": context.agent_id,
+            "backend_type": self._backend_type,
+        })
+        try:
+            return await self._execute_inner(request, action, params, context)
+        finally:
+            self._end_span(span_ctx)
+
+    async def _execute_inner(
+        self,
+        request: ExecutionRequest,
+        action: str,
+        params: Dict[str, Any],
+        context: ExecutionContext,
+    ) -> ExecutionResult:
+        """Core execute logic, called inside an optional tracing span."""
         # 1. Load external state if referenced
-        external_state = {}
+        external_state: Dict[str, Any] = {}
         if context.state_ref:
-            external_state = await self.backend.get(context.state_ref) or {}
+            external_state = await self._backend_get(context.state_ref) or {}
         
         # 2. Check policies
         policy_result = self._check_policies(action, params, context.policies)
@@ -272,7 +314,7 @@ class StatelessKernel:
         if result.get("state_update"):
             new_state = {**external_state, **result["state_update"]}
             new_state_ref = new_state_ref or f"state:{context.agent_id}"
-            await self.backend.set(new_state_ref, new_state)
+            await self._backend_set(new_state_ref, new_state)
         
         # 5. Build updated context
         updated_context = ExecutionContext(
@@ -371,6 +413,78 @@ class StatelessKernel:
                 "result": f"Action '{action}' executed successfully"
             }
         }
+
+    # -----------------------------------------------------------------
+    # Backend wrappers (circuit breaker + tracing)
+    # -----------------------------------------------------------------
+
+    async def _backend_get(self, key: str) -> Optional[Dict[str, Any]]:
+        """Get from backend through circuit breaker with tracing."""
+        span_ctx = self._start_span("kernel.backend.get", {
+            "operation": "get",
+            "key": key,
+            "backend_type": self._backend_type,
+        })
+        try:
+            return await self.circuit_breaker.call(self.backend.get, key)
+        except CircuitBreakerOpen:
+            raise
+        finally:
+            self._end_span(span_ctx)
+
+    async def _backend_set(
+        self, key: str, value: Dict[str, Any], ttl: Optional[int] = None
+    ) -> None:
+        """Set in backend through circuit breaker with tracing."""
+        span_ctx = self._start_span("kernel.backend.set", {
+            "operation": "set",
+            "key": key,
+            "backend_type": self._backend_type,
+        })
+        try:
+            await self.circuit_breaker.call(self.backend.set, key, value, ttl)
+        except CircuitBreakerOpen:
+            raise
+        finally:
+            self._end_span(span_ctx)
+
+    async def _backend_delete(self, key: str) -> None:
+        """Delete from backend through circuit breaker with tracing."""
+        span_ctx = self._start_span("kernel.backend.delete", {
+            "operation": "delete",
+            "key": key,
+            "backend_type": self._backend_type,
+        })
+        try:
+            await self.circuit_breaker.call(self.backend.delete, key)
+        except CircuitBreakerOpen:
+            raise
+        finally:
+            self._end_span(span_ctx)
+
+    # -----------------------------------------------------------------
+    # OpenTelemetry helpers
+    # -----------------------------------------------------------------
+
+    def _start_span(
+        self, name: str, attributes: Dict[str, str]
+    ) -> Optional[Any]:
+        """Start an OTel span if tracing is enabled. Returns a context token."""
+        if not self._tracer:
+            return None
+        span = self._tracer.start_span(name, attributes=attributes)
+        ctx = _otel_trace.set_span_in_context(span)
+        token = _otel_context.attach(ctx)
+        return (span, token)
+
+    @staticmethod
+    def _end_span(span_ctx: Optional[Any]) -> None:
+        """End the OTel span if present."""
+        if span_ctx is None:
+            return
+        span, token = span_ctx
+        span.end()
+        _otel_context.detach(token)
 
 
 # =============================================================================
