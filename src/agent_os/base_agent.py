@@ -42,8 +42,47 @@ class PolicyDecision(Enum):
     ALLOW = "allow"
     DENY = "deny"
     AUDIT = "audit"  # Allow but log for review
-    # TODO: Add ESCALATE decision for human-in-the-loop scenarios
-    # TODO: Add DEFER decision for async policy evaluation
+    ESCALATE = "escalate"  # Route to human reviewer
+    DEFER = "defer"  # Async policy evaluation with callback
+
+
+@dataclass
+class EscalationRequest:
+    """A request for human review of a policy decision.
+
+    Attributes:
+        action: The action that triggered escalation
+        reason: Why the action was escalated
+        requested_by: Agent ID that requested the escalation
+        timestamp: When the escalation was created
+        status: Current status (pending/approved/rejected)
+    """
+    action: str
+    reason: str
+    requested_by: str
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    status: str = "pending"
+
+    def __post_init__(self) -> None:
+        if self.status not in ("pending", "approved", "rejected"):
+            raise ValueError(f"Invalid status: {self.status!r}")
+
+    def approve(self) -> None:
+        """Mark escalation as approved."""
+        self.status = "approved"
+
+    def reject(self) -> None:
+        """Mark escalation as rejected."""
+        self.status = "rejected"
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "action": self.action,
+            "reason": self.reason,
+            "requested_by": self.requested_by,
+            "timestamp": self.timestamp.isoformat(),
+            "status": self.status,
+        }
 
 
 @dataclass
@@ -128,11 +167,16 @@ class BaseAgent(ABC):
         >>> print(result.data)  # "Hello, World!"
     """
     
-    def __init__(self, config: AgentConfig):
+    def __init__(
+        self,
+        config: AgentConfig,
+        defer_timeout: float = 30.0,
+    ):
         """Initialize the agent.
         
         Args:
             config: Agent configuration including ID, policies, and backend
+            defer_timeout: Timeout in seconds for DEFER async callbacks (default 30s)
         """
         self._config = config
         self._kernel = StatelessKernel(
@@ -140,6 +184,11 @@ class BaseAgent(ABC):
         )
         self._audit_log: List[AuditEntry] = []
         self._max_audit_entries = config.max_audit_log_size
+        self._escalation_queue: List[EscalationRequest] = []
+        self._defer_timeout = defer_timeout
+        self._defer_callback: Optional[
+            Callable[[str, Dict[str, Any]], "asyncio.Future[PolicyDecision]"]
+        ] = None
     
     @property
     def agent_id(self) -> str:
@@ -178,6 +227,94 @@ class BaseAgent(ABC):
             policies=self._config.policies.copy(),
             metadata=metadata,
         )
+
+    def set_defer_callback(
+        self,
+        callback: Callable[[str, Dict[str, Any]], "asyncio.Future[PolicyDecision]"],
+    ) -> None:
+        """Register an async callback for DEFER policy decisions.
+
+        Args:
+            callback: Async callable receiving (action, params) and returning
+                a Future that resolves to a PolicyDecision.
+        """
+        self._defer_callback = callback
+
+    async def _enforce_policy(
+        self,
+        decision: PolicyDecision,
+        action: str,
+        params: Dict[str, Any],
+        reason: str = "",
+    ) -> ExecutionResult:
+        """Handle a policy decision, including ESCALATE and DEFER.
+
+        Args:
+            decision: The PolicyDecision to enforce
+            action: Name of the action under evaluation
+            params: Parameters for the action
+            reason: Human-readable reason for the decision
+
+        Returns:
+            ExecutionResult representing the enforcement outcome
+        """
+        if decision == PolicyDecision.ESCALATE:
+            escalation = EscalationRequest(
+                action=action,
+                reason=reason or f"Action '{action}' escalated for human review",
+                requested_by=self._config.agent_id,
+            )
+            self._escalation_queue.append(escalation)
+            return ExecutionResult(
+                success=False,
+                data=escalation.to_dict(),
+                error=None,
+                signal="ESCALATE",
+                metadata={"pending_review": True},
+            )
+
+        if decision == PolicyDecision.DEFER:
+            if self._defer_callback is None:
+                return ExecutionResult(
+                    success=False,
+                    data=None,
+                    error="DEFER requested but no callback registered",
+                    signal="DEFER",
+                )
+            try:
+                future = self._defer_callback(action, params)
+                resolved = await asyncio.wait_for(
+                    future, timeout=self._defer_timeout
+                )
+                if resolved == PolicyDecision.ALLOW:
+                    return ExecutionResult(success=True, data=None)
+                return ExecutionResult(
+                    success=False,
+                    data=None,
+                    error=f"Deferred evaluation resolved to {resolved.value}",
+                    signal=resolved.value.upper(),
+                )
+            except asyncio.TimeoutError:
+                return ExecutionResult(
+                    success=False,
+                    data=None,
+                    error=(
+                        f"DEFER timeout after {self._defer_timeout}s "
+                        f"for action '{action}'"
+                    ),
+                    signal="DEFER_TIMEOUT",
+                )
+
+        if decision == PolicyDecision.DENY:
+            return ExecutionResult(
+                success=False,
+                data=None,
+                error=reason or f"Action '{action}' denied by policy",
+                signal="SIGKILL",
+            )
+
+        # ALLOW / AUDIT — no blocking
+        return ExecutionResult(success=True, data=None)
     
     async def _execute(
         self,
@@ -220,6 +357,10 @@ class BaseAgent(ABC):
         # Update audit entry with result
         if result.signal == "SIGKILL":
             audit.decision = PolicyDecision.DENY
+        elif result.signal == "ESCALATE":
+            audit.decision = PolicyDecision.ESCALATE
+        elif result.signal in ("DEFER", "DEFER_TIMEOUT"):
+            audit.decision = PolicyDecision.DEFER
         audit.result_success = result.success
         audit.error = result.error
         
@@ -240,6 +381,10 @@ class BaseAgent(ABC):
     def clear_audit_log(self) -> None:
         """Clear the agent's audit log."""
         self._audit_log.clear()
+
+    def get_escalation_queue(self) -> List[EscalationRequest]:
+        """Get pending escalation requests."""
+        return [e for e in self._escalation_queue if e.status == "pending"]
     
     @abstractmethod
     async def run(self, *args, **kwargs) -> ExecutionResult:
