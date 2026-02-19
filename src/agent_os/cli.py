@@ -20,6 +20,8 @@ Environment variables:
     AGENTOS_REDIS_URL   Redis connection URL (default: redis://localhost:6379)
 """
 
+from __future__ import annotations
+
 import argparse
 import csv
 import io
@@ -32,7 +34,7 @@ import sys
 import time
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
-from typing import Optional, List, Dict, Tuple
+from typing import Any, Optional, List, Dict, Tuple
 
 
 # ============================================================================
@@ -215,8 +217,8 @@ def handle_connection_error(host: str, port: int) -> str:
 
 class PolicyViolation:
     """Represents a policy violation found in code."""
-    def __init__(self, line: int, code: str, violation: str, policy: str, 
-                 severity: str = 'high', suggestion: str = None):
+    def __init__(self, line: int, code: str, violation: str, policy: str,
+                 severity: str = 'high', suggestion: Optional[str] = None) -> None:
         self.line = line
         self.code = code
         self.violation = violation
@@ -228,10 +230,10 @@ class PolicyViolation:
 class PolicyChecker:
     """Local-first code policy checker."""
     
-    def __init__(self):
+    def __init__(self) -> None:
         self.rules = self._load_default_rules()
     
-    def _load_default_rules(self) -> List[Dict]:
+    def _load_default_rules(self) -> List[Dict[str, Any]]:
         """Load default safety rules."""
         return [
             # Destructive SQL
@@ -457,7 +459,7 @@ class PolicyChecker:
         return all_violations
 
 
-def cmd_init(args):
+def cmd_init(args: argparse.Namespace) -> int:
     """Initialize .agents/ directory with Agent OS support."""
     root = Path(args.path or ".")
     agents_dir = root / ".agents"
@@ -579,7 +581,7 @@ observability:
     return 0
 
 
-def cmd_secure(args):
+def cmd_secure(args: argparse.Namespace) -> int:
     """Enable kernel governance for the current directory."""
     root = Path(args.path or ".")
     agents_dir = root / ".agents"
@@ -630,7 +632,7 @@ def cmd_secure(args):
         return 1
 
 
-def cmd_audit(args):
+def cmd_audit(args: argparse.Namespace) -> int:
     """Audit agent security configuration."""
     root = Path(get_config_path(getattr(args, "path", None)))
     agents_dir = root / ".agents"
@@ -747,7 +749,7 @@ def _export_audit_csv(
 # New Commands: check, review, install-hooks
 # ============================================================================
 
-def cmd_check(args):
+def cmd_check(args: argparse.Namespace) -> int:
     """Check file(s) for safety violations."""
     checker = PolicyChecker()
     output_format = getattr(args, "format", "text")
@@ -809,7 +811,7 @@ def cmd_check(args):
     return exit_code
 
 
-def _print_violations(violations: List[PolicyViolation], args):
+def _print_violations(violations: List[PolicyViolation], args: argparse.Namespace) -> None:
     """Print violations in formatted output."""
     for v in violations:
         severity_color = {
@@ -827,7 +829,7 @@ def _print_violations(violations: List[PolicyViolation], args):
         print()
 
 
-def _output_json_from_violations(all_violations: Dict[str, List[PolicyViolation]]):
+def _output_json_from_violations(all_violations: Dict[str, List[PolicyViolation]]) -> None:
     """Output violations from a dict of {filepath: violations} as JSON."""
     results: Dict = {
         "violations": [],
@@ -848,7 +850,7 @@ def _output_json_from_violations(all_violations: Dict[str, List[PolicyViolation]
     print(json.dumps(results, indent=2))
 
 
-def _output_json(files: List[str], checker: PolicyChecker):
+def _output_json(files: List[str], checker: PolicyChecker) -> None:
     """Output violations as JSON."""
     results = {
         'violations': [],
@@ -881,7 +883,7 @@ def _output_json(files: List[str], checker: PolicyChecker):
     print(json.dumps(results, indent=2))
 
 
-def cmd_review(args):
+def cmd_review(args: argparse.Namespace) -> int:
     """Multi-model code review with CMVK."""
     filepath = args.file
     
@@ -957,7 +959,7 @@ def cmd_review(args):
     return 0 if not violations else 1
 
 
-def _simulate_cmvk_review(content: str, models: List[str]) -> Dict:
+def _simulate_cmvk_review(content: str, models: List[str]) -> Dict[str, Any]:
     """Simulate CMVK multi-model review (mock for demo)."""
     import random
     
@@ -993,7 +995,7 @@ def _simulate_cmvk_review(content: str, models: List[str]) -> Dict:
     return results
 
 
-def cmd_install_hooks(args):
+def cmd_install_hooks(args: argparse.Namespace) -> int:
     """Install git pre-commit hooks for Agent OS."""
     git_dir = Path('.git')
     
@@ -1073,7 +1075,7 @@ echo "✓ Agent OS: All checks passed"
 """
 
 
-def cmd_status(args):
+def cmd_status(args: argparse.Namespace) -> int:
     """Show kernel status."""
     output_format = getattr(args, "format", "text")
     env_cfg = get_env_config()
@@ -1160,7 +1162,7 @@ def cmd_status(args):
     return 0
 
 
-def cmd_validate(args):
+def cmd_validate(args: argparse.Namespace) -> int:
     """Validate policy YAML files."""
     import yaml
     
@@ -1286,7 +1288,7 @@ _registered_agents: Dict[str, Dict] = {}
 _kernel_operations: Dict[str, int] = {"execute": 0, "set": 0, "get": 0}
 
 
-def _get_kernel_state() -> Dict:
+def _get_kernel_state() -> Dict[str, Any]:
     """Collect kernel state for status and metrics endpoints."""
     from agent_os import __version__, AVAILABLE_PACKAGES
     from agent_os.metrics import metrics
@@ -1467,7 +1469,7 @@ def cmd_health(args: argparse.Namespace) -> int:
     return 0 if report.is_ready() else 1
 
 
-def main():
+def main() -> int:
     """Main entry point."""
     # Configure logging from environment
     env_cfg = get_env_config()

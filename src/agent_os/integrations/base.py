@@ -4,6 +4,8 @@ Base Integration Interface
 All framework adapters inherit from this base class.
 """
 
+from __future__ import annotations
+
 import asyncio
 import fnmatch
 import re
@@ -164,11 +166,11 @@ class GovernancePolicy:
             )
         )
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate policy fields on construction."""
         self.validate()
 
-    def validate(self):
+    def validate(self) -> None:
         """Validate all policy fields and raise ValueError for invalid inputs."""
         # Validate positive integers (must be > 0)
         for field_name in (
@@ -364,7 +366,7 @@ class GovernancePolicy:
         filtered = {k: v for k, v in data.items() if k in valid_fields}
         return cls(**filtered)
 
-    def compare_versions(self, other: "GovernancePolicy") -> dict:
+    def compare_versions(self, other: "GovernancePolicy") -> Dict[str, Any]:
         """Compare this policy with another, including version info.
 
         Returns a dict with version details and field-level changes.
@@ -532,11 +534,11 @@ class ExecutionContext:
     def __repr__(self) -> str:
         return f"ExecutionContext(agent_id={self.agent_id!r}, session_id={self.session_id!r})"
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate context fields on construction."""
         self.validate()
 
-    def validate(self):
+    def validate(self) -> None:
         """Validate all context fields and raise ValueError for invalid inputs."""
         # Validate agent_id is a non-empty string matching allowed pattern
         if not isinstance(self.agent_id, str) or not self.agent_id:

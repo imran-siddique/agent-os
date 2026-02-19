@@ -30,6 +30,8 @@ Installation:
     pip install agent-os-kernel        # Core
 """
 
+from __future__ import annotations
+
 __version__ = "1.3.1"
 __author__ = "Imran Siddique"
 __license__ = "MIT"
@@ -330,7 +332,7 @@ AVAILABLE_PACKAGES = {
 }
 
 
-def check_installation():
+def check_installation() -> None:
     """Check which Agent OS packages are installed."""
     logger.info("Agent OS Installation Status:")
     logger.info("=" * 40)
