@@ -198,6 +198,9 @@ known-first-party = ["agent_os"]
 testpaths = ["tests", "modules/*/tests"]
 asyncio_mode = "auto"
 addopts = "-v --tb=short"
+markers = [
+    "benchmark: performance benchmark tests",
+]
 
 # ============================================================================
 # MyPy
