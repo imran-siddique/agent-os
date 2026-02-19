@@ -894,3 +894,443 @@ class TestCLIValidateExtended:
 
             result = cmd_validate(Args())
             assert result == 1
+
+
+# ============================================================================
+# Tests for JSON output format (#172)
+# ============================================================================
+
+
+class TestJSONOutputFormat:
+    """Test --format json flag on audit, status, and check commands."""
+
+    def test_audit_json_only_outputs_json(self, capsys):
+        """Test audit --format json outputs only valid JSON, no text."""
+        from agent_os.cli import cmd_init, cmd_audit
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            class InitArgs:
+                path = tmpdir
+                template = "strict"
+                force = False
+            cmd_init(InitArgs())
+            capsys.readouterr()  # discard init output
+
+            class AuditArgs:
+                path = tmpdir
+                format = "json"
+                export = None
+                output = None
+
+            result = cmd_audit(AuditArgs())
+            assert result == 0
+            output = capsys.readouterr().out
+            # Should not contain text-mode prefixes
+            assert "Auditing" not in output
+            data = json.loads(output)
+            assert data["passed"] is True
+            assert "files" in data
+            assert "findings" in data
+
+    def test_audit_json_failure(self, capsys):
+        """Test audit --format json on missing config outputs JSON error."""
+        from agent_os.cli import cmd_audit
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            class Args:
+                path = tmpdir
+                format = "json"
+                export = None
+                output = None
+
+            result = cmd_audit(Args())
+            assert result == 1
+            output = capsys.readouterr().out
+            data = json.loads(output)
+            assert data["passed"] is False
+
+    def test_status_json_format(self, capsys):
+        """Test status --format json outputs valid JSON."""
+        from agent_os.cli import cmd_status
+
+        class Args:
+            format = "json"
+
+        result = cmd_status(Args())
+        output = capsys.readouterr().out
+        data = json.loads(output)
+        assert "version" in data
+        assert "installed" in data
+        assert "env" in data
+
+    def test_status_text_format(self, capsys):
+        """Test status --format text outputs human-readable text."""
+        from agent_os.cli import cmd_status
+
+        class Args:
+            format = "text"
+
+        result = cmd_status(Args())
+        assert result == 0
+        output = capsys.readouterr().out
+        assert "Agent OS Kernel Status" in output
+
+    def test_audit_json_with_findings(self, capsys):
+        """Test audit JSON includes findings when there are issues."""
+        from agent_os.cli import cmd_audit
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            agents_dir = Path(tmpdir) / ".agents"
+            agents_dir.mkdir()
+            (agents_dir / "agents.md").write_text("# Agent\n")
+            # No security.md
+
+            class Args:
+                path = tmpdir
+                format = "json"
+                export = None
+                output = None
+
+            result = cmd_audit(Args())
+            assert result == 1
+            output = capsys.readouterr().out
+            data = json.loads(output)
+            assert data["passed"] is False
+            assert len(data["findings"]) > 0
+
+
+# ============================================================================
+# Tests for CSV export (#176)
+# ============================================================================
+
+
+class TestCSVExport:
+    """Test audit --export csv functionality."""
+
+    def test_audit_export_csv_creates_file(self):
+        """Test audit --export csv creates a CSV file."""
+        from agent_os.cli import cmd_init, cmd_audit
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            class InitArgs:
+                path = tmpdir
+                template = "strict"
+                force = False
+            cmd_init(InitArgs())
+
+            csv_path = str(Path(tmpdir) / "audit.csv")
+
+            class AuditArgs:
+                path = tmpdir
+                format = "text"
+                export = "csv"
+                output = csv_path
+
+            result = cmd_audit(AuditArgs())
+            assert result == 0
+            assert Path(csv_path).exists()
+
+            import csv as csv_mod
+            with open(csv_path, newline="", encoding="utf-8") as f:
+                reader = csv_mod.reader(f)
+                rows = list(reader)
+
+            assert rows[0] == ["type", "name", "severity", "message"]
+            assert len(rows) >= 3  # header + at least 2 file rows
+
+    def test_audit_export_csv_with_findings(self):
+        """Test CSV export includes findings."""
+        from agent_os.cli import cmd_audit
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            agents_dir = Path(tmpdir) / ".agents"
+            agents_dir.mkdir()
+            (agents_dir / "agents.md").write_text("# Agent\n")
+
+            csv_path = str(Path(tmpdir) / "findings.csv")
+
+            class Args:
+                path = tmpdir
+                format = "text"
+                export = "csv"
+                output = csv_path
+
+            result = cmd_audit(Args())
+            assert result == 1
+            assert Path(csv_path).exists()
+
+            import csv as csv_mod
+            with open(csv_path, newline="", encoding="utf-8") as f:
+                reader = csv_mod.reader(f)
+                rows = list(reader)
+
+            finding_rows = [r for r in rows if r[0] == "finding"]
+            assert len(finding_rows) > 0
+
+    def test_audit_export_csv_default_output(self):
+        """Test CSV export defaults to audit.csv when no --output given."""
+        from agent_os.cli import cmd_init, cmd_audit
+        import os
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            class InitArgs:
+                path = tmpdir
+                template = "strict"
+                force = False
+            cmd_init(InitArgs())
+
+            old_cwd = os.getcwd()
+            try:
+                os.chdir(tmpdir)
+
+                class AuditArgs:
+                    path = tmpdir
+                    format = "text"
+                    export = "csv"
+                    output = None
+
+                result = cmd_audit(AuditArgs())
+                assert result == 0
+                assert Path("audit.csv").exists()
+            finally:
+                os.chdir(old_cwd)
+
+    def test_audit_export_csv_with_json_format(self, capsys):
+        """Test CSV export works alongside JSON format."""
+        from agent_os.cli import cmd_init, cmd_audit
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            class InitArgs:
+                path = tmpdir
+                template = "strict"
+                force = False
+            cmd_init(InitArgs())
+            capsys.readouterr()  # discard init output
+
+            csv_path = str(Path(tmpdir) / "audit.csv")
+
+            class AuditArgs:
+                path = tmpdir
+                format = "json"
+                export = "csv"
+                output = csv_path
+
+            result = cmd_audit(AuditArgs())
+            assert result == 0
+            assert Path(csv_path).exists()
+            output = capsys.readouterr().out
+            data = json.loads(output)
+            assert data["passed"] is True
+
+
+# ============================================================================
+# Tests for colored terminal output (#178)
+# ============================================================================
+
+
+class TestColoredOutput:
+    """Test colored terminal output with NO_COLOR support."""
+
+    def test_no_color_env_disables_colors(self):
+        """Test NO_COLOR environment variable disables colors."""
+        import os
+        old = os.environ.get("NO_COLOR")
+        try:
+            os.environ["NO_COLOR"] = "1"
+            from agent_os.cli import supports_color
+            assert supports_color() is False
+        finally:
+            if old is None:
+                os.environ.pop("NO_COLOR", None)
+            else:
+                os.environ["NO_COLOR"] = old
+
+    def test_colors_disabled_produces_no_ansi(self):
+        """Test Colors with disabled=True produces empty strings."""
+        from agent_os.cli import Colors as _ColorsClass
+
+        inst = _ColorsClass.__class__(enabled=False)
+        assert inst.RED == ""
+        assert inst.GREEN == ""
+        assert inst.YELLOW == ""
+        assert inst.RESET == ""
+
+    def test_colors_enabled_produces_ansi(self):
+        """Test Colors with enabled=True produces ANSI codes."""
+        from agent_os.cli import Colors as _ColorsClass
+
+        inst = _ColorsClass.__class__(enabled=True)
+        assert inst.RED == "\033[91m"
+        assert inst.GREEN == "\033[92m"
+        assert inst.YELLOW == "\033[93m"
+
+    def test_audit_text_uses_colored_symbols(self, capsys):
+        """Test audit text output uses ✓ and ✗ symbols."""
+        from agent_os.cli import cmd_init, cmd_audit
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            class InitArgs:
+                path = tmpdir
+                template = "strict"
+                force = False
+            cmd_init(InitArgs())
+
+            class AuditArgs:
+                path = tmpdir
+                format = "text"
+                export = None
+                output = None
+
+            cmd_audit(AuditArgs())
+            output = capsys.readouterr().out
+            assert "✓" in output
+
+    def test_audit_text_failure_uses_cross(self, capsys):
+        """Test audit text output uses ✗ for failures."""
+        from agent_os.cli import cmd_audit
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            agents_dir = Path(tmpdir) / ".agents"
+            agents_dir.mkdir()
+            (agents_dir / "agents.md").write_text("# Agent\n")
+
+            class Args:
+                path = tmpdir
+                format = "text"
+                export = None
+                output = None
+
+            cmd_audit(Args())
+            output = capsys.readouterr().out
+            assert "✗" in output
+
+
+# ============================================================================
+# Tests for environment variable configuration (#180)
+# ============================================================================
+
+
+class TestEnvVarConfig:
+    """Test environment variable configuration."""
+
+    def test_get_env_config_defaults(self):
+        """Test get_env_config returns defaults when no env vars set."""
+        import os
+        from agent_os.cli import get_env_config
+
+        # Clear any existing env vars
+        saved = {}
+        for key in ["AGENTOS_CONFIG", "AGENTOS_LOG_LEVEL", "AGENTOS_BACKEND", "AGENTOS_REDIS_URL"]:
+            saved[key] = os.environ.pop(key, None)
+
+        try:
+            cfg = get_env_config()
+            assert cfg["config_path"] is None
+            assert cfg["log_level"] == "WARNING"
+            assert cfg["backend"] == "memory"
+            assert cfg["redis_url"] == "redis://localhost:6379"
+        finally:
+            for key, val in saved.items():
+                if val is not None:
+                    os.environ[key] = val
+
+    def test_get_env_config_custom(self):
+        """Test get_env_config reads custom env vars."""
+        import os
+        from agent_os.cli import get_env_config
+
+        saved = {}
+        for key in ["AGENTOS_CONFIG", "AGENTOS_LOG_LEVEL", "AGENTOS_BACKEND", "AGENTOS_REDIS_URL"]:
+            saved[key] = os.environ.get(key)
+
+        try:
+            os.environ["AGENTOS_CONFIG"] = "/tmp/myconfig"
+            os.environ["AGENTOS_LOG_LEVEL"] = "DEBUG"
+            os.environ["AGENTOS_BACKEND"] = "redis"
+            os.environ["AGENTOS_REDIS_URL"] = "redis://myhost:1234"
+
+            cfg = get_env_config()
+            assert cfg["config_path"] == "/tmp/myconfig"
+            assert cfg["log_level"] == "DEBUG"
+            assert cfg["backend"] == "redis"
+            assert cfg["redis_url"] == "redis://myhost:1234"
+        finally:
+            for key, val in saved.items():
+                if val is not None:
+                    os.environ[key] = val
+                else:
+                    os.environ.pop(key, None)
+
+    def test_configure_logging_valid(self):
+        """Test configure_logging sets log level."""
+        import logging
+        from agent_os.cli import configure_logging
+
+        configure_logging("DEBUG")
+        assert logging.getLogger().level == logging.DEBUG
+
+        configure_logging("ERROR")
+        assert logging.getLogger().level == logging.ERROR
+
+    def test_configure_logging_invalid_falls_back(self):
+        """Test configure_logging falls back to WARNING for invalid input."""
+        import logging
+        from agent_os.cli import configure_logging
+
+        configure_logging("INVALID_LEVEL")
+        assert logging.getLogger().level == logging.WARNING
+
+    def test_get_config_path_from_env(self):
+        """Test get_config_path uses AGENTOS_CONFIG env var."""
+        import os
+        from agent_os.cli import get_config_path
+
+        old = os.environ.get("AGENTOS_CONFIG")
+        try:
+            os.environ["AGENTOS_CONFIG"] = "/custom/path"
+            result = get_config_path()
+            assert result == Path("/custom/path")
+        finally:
+            if old is None:
+                os.environ.pop("AGENTOS_CONFIG", None)
+            else:
+                os.environ["AGENTOS_CONFIG"] = old
+
+    def test_get_config_path_args_override_env(self):
+        """Test get_config_path prefers args over env var."""
+        import os
+        from agent_os.cli import get_config_path
+
+        old = os.environ.get("AGENTOS_CONFIG")
+        try:
+            os.environ["AGENTOS_CONFIG"] = "/env/path"
+            result = get_config_path("/args/path")
+            assert result == Path("/args/path")
+        finally:
+            if old is None:
+                os.environ.pop("AGENTOS_CONFIG", None)
+            else:
+                os.environ["AGENTOS_CONFIG"] = old
+
+    def test_status_json_shows_env_config(self, capsys):
+        """Test status --format json includes env config."""
+        from agent_os.cli import cmd_status
+
+        class Args:
+            format = "json"
+
+        cmd_status(Args())
+        output = capsys.readouterr().out
+        data = json.loads(output)
+        assert "env" in data
+        assert "backend" in data["env"]
+        assert "log_level" in data["env"]
+
+    def test_env_vars_documented(self):
+        """Test that AGENTOS_ENV_VARS dict contains all expected keys."""
+        from agent_os.cli import AGENTOS_ENV_VARS
+
+        assert "AGENTOS_CONFIG" in AGENTOS_ENV_VARS
+        assert "AGENTOS_LOG_LEVEL" in AGENTOS_ENV_VARS
+        assert "AGENTOS_BACKEND" in AGENTOS_ENV_VARS
+        assert "AGENTOS_REDIS_URL" in AGENTOS_ENV_VARS
