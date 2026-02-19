@@ -1357,3 +1357,260 @@ class TestPolicyViolationError:
         err = RunCancelledException("killed")
         assert isinstance(err, Exception)
         assert str(err) == "killed"
+
+
+# =============================================================================
+# OpenAI SIGKILL integration test (#159)
+# =============================================================================
+
+
+class TestOpenAISIGKILLIntegration:
+    """Integration test: mock OpenAI client, start governed run, SIGKILL, verify audit."""
+
+    def test_sigkill_cancels_run_and_logs_audit(self):
+        """Start a governed run, trigger SIGKILL, verify cancellation and audit."""
+        policy = GovernancePolicy(max_tokens=500)
+        kernel = OpenAIKernel(policy)
+        client = _make_mock_openai_client()
+        assistant = _make_mock_assistant()
+        governed = kernel.wrap_assistant(assistant, client)
+
+        # Create thread
+        thread = governed.create_thread()
+
+        # Set up run that stays "in_progress" until cancelled
+        in_progress_run = MagicMock()
+        in_progress_run.id = "run_sigkill"
+        in_progress_run.status = "in_progress"
+        in_progress_run.usage = None
+        client.beta.threads.runs.create.return_value = in_progress_run
+        client.beta.threads.runs.retrieve.return_value = in_progress_run
+
+        # SIGKILL the run before polling can complete
+        kernel.cancel_run(thread.id, "run_sigkill", client)
+
+        # Verify run is marked cancelled
+        assert kernel.is_cancelled("run_sigkill")
+
+        # Verify the run raises RunCancelledException during poll
+        with pytest.raises(RunCancelledException, match="SIGKILL"):
+            governed.run(thread.id)
+
+    def test_sigkill_audit_context_records_run_id(self):
+        """Verify the execution context records run IDs for audit."""
+        policy = GovernancePolicy()
+        kernel = OpenAIKernel(policy)
+        client = _make_mock_openai_client()
+        governed = kernel.wrap_assistant(_make_mock_assistant(), client)
+
+        # Set up completed run
+        completed_run = _make_completed_run("run_audit")
+        client.beta.threads.runs.create.return_value = completed_run
+        client.beta.threads.runs.retrieve.return_value = completed_run
+
+        governed.run("thread_abc")
+        ctx = governed.get_context()
+        assert "run_audit" in ctx.run_ids
+        assert ctx.agent_id == "asst_001"
+
+    def test_sigkill_multiple_runs_independent(self):
+        """Cancelling one run doesn't affect another."""
+        kernel = OpenAIKernel()
+        client = _make_mock_openai_client()
+        kernel.cancel_run("t1", "run_A", client)
+        assert kernel.is_cancelled("run_A")
+        assert not kernel.is_cancelled("run_B")
+
+
+# =============================================================================
+# LangChain batch governance test (#160)
+# =============================================================================
+
+
+class TestLangChainBatchGovernance:
+    """LangChain batch: policy-check each input, handle violations."""
+
+    def test_batch_all_inputs_policy_checked(self):
+        """Batch of 5 inputs — each goes through pre_execute."""
+        kernel = LangChainKernel(GovernancePolicy())
+        chain = _make_mock_chain()
+        chain.batch.return_value = ["r1", "r2", "r3", "r4", "r5"]
+        governed = kernel.wrap(chain)
+
+        results = governed.batch(["a", "b", "c", "d", "e"])
+        assert len(results) == 5
+        chain.batch.assert_called_once_with(["a", "b", "c", "d", "e"])
+
+    def test_batch_violation_blocks_entire_batch(self):
+        """If one input violates policy, the whole batch is rejected."""
+        policy = GovernancePolicy(blocked_patterns=["forbidden"])
+        kernel = LangChainKernel(policy)
+        chain = _make_mock_chain()
+        governed = kernel.wrap(chain)
+
+        with pytest.raises(PolicyViolationError):
+            governed.batch(["safe", "also safe", "forbidden content", "ok", "fine"])
+
+        # The underlying chain.batch should NOT have been called
+        chain.batch.assert_not_called()
+
+    def test_batch_empty_inputs(self):
+        """Batch with empty list should succeed."""
+        kernel = LangChainKernel(GovernancePolicy())
+        chain = _make_mock_chain()
+        chain.batch.return_value = []
+        governed = kernel.wrap(chain)
+
+        results = governed.batch([])
+        assert results == []
+
+    def test_batch_with_mixed_pattern_violations(self):
+        """Only the first violation pattern causes rejection."""
+        policy = GovernancePolicy(blocked_patterns=["secret", "password"])
+        kernel = LangChainKernel(policy)
+        chain = _make_mock_chain()
+        governed = kernel.wrap(chain)
+
+        with pytest.raises(PolicyViolationError):
+            governed.batch(["hello", "my secret"])
+
+    def test_batch_post_execute_called_for_results(self):
+        """Post-execute increments call_count for each result."""
+        kernel = LangChainKernel(GovernancePolicy())
+        chain = _make_mock_chain()
+        chain.batch.return_value = ["r1", "r2", "r3"]
+        governed = kernel.wrap(chain)
+
+        governed.batch(["a", "b", "c"])
+        # post_execute called once per result, so call_count == 3
+        ctx = list(kernel.contexts.values())[0]
+        assert ctx.call_count == 3
+
+
+# =============================================================================
+# CrewAI task monitoring test (#161)
+# =============================================================================
+
+
+class TestCrewAITaskMonitoring:
+    """CrewAI crew governance: execution details, policy violations."""
+
+    def test_crew_kickoff_governed(self):
+        """Governed crew kickoff returns result after policy checks."""
+        kernel = CrewAIKernel(GovernancePolicy())
+        crew = _make_mock_crew()
+        governed = kernel.wrap(crew)
+
+        result = governed.kickoff()
+        assert result == "crew-result"
+        crew.kickoff.assert_called_once()
+
+    def test_crew_kickoff_with_inputs(self):
+        """Crew kickoff with inputs passes them through."""
+        kernel = CrewAIKernel(GovernancePolicy())
+        crew = _make_mock_crew()
+        governed = kernel.wrap(crew)
+
+        governed.kickoff(inputs={"topic": "AI safety"})
+        crew.kickoff.assert_called_once_with({"topic": "AI safety"})
+
+    def test_crew_policy_violation_blocks_kickoff(self):
+        """Blocked pattern in inputs prevents crew kickoff."""
+        policy = GovernancePolicy(blocked_patterns=["hack"])
+        kernel = CrewAIKernel(policy)
+        crew = _make_mock_crew()
+        governed = kernel.wrap(crew)
+
+        with pytest.raises(PolicyViolationError):
+            governed.kickoff(inputs={"task": "hack the system"})
+        crew.kickoff.assert_not_called()
+
+    def test_crew_agent_task_monitoring(self):
+        """Individual agent tasks within crew are wrapped for monitoring."""
+        kernel = CrewAIKernel(GovernancePolicy())
+        crew = _make_mock_crew()
+
+        # Add a mock agent with execute_task
+        original_fn = MagicMock(return_value="task-done")
+        agent = MagicMock()
+        agent.name = "researcher"
+        agent.execute_task = original_fn
+        crew.agents = [agent]
+
+        governed = kernel.wrap(crew)
+        governed.kickoff()
+
+        # The agent's execute_task should have been replaced with governed version
+        assert agent.execute_task is not original_fn
+
+    def test_crew_unwrap_returns_original(self):
+        """Unwrapping returns the original crew object."""
+        kernel = CrewAIKernel()
+        crew = _make_mock_crew()
+        governed = kernel.wrap(crew)
+        assert kernel.unwrap(governed) is crew
+
+
+# =============================================================================
+# GovernancePolicy defaults test (#162)
+# =============================================================================
+
+
+class TestGovernancePolicyDefaults:
+    """Verify all GovernancePolicy defaults and partial overrides."""
+
+    def test_all_defaults_no_args(self):
+        """Create policy with no args — verify every default."""
+        p = GovernancePolicy()
+        assert p.name == "default"
+        assert p.max_tokens == 4096
+        assert p.max_tool_calls == 10
+        assert p.allowed_tools == []
+        assert p.blocked_patterns == []
+        assert p.require_human_approval is False
+        assert p.timeout_seconds == 300
+        assert p.confidence_threshold == 0.8
+        assert p.drift_threshold == 0.15
+        assert p.log_all_calls is True
+        assert p.checkpoint_frequency == 5
+        assert p.max_concurrent == 10
+        assert p.backpressure_threshold == 8
+        assert p.version == "1.0.0"
+
+    def test_partial_override_tokens(self):
+        """Override only max_tokens, rest stays default."""
+        p = GovernancePolicy(max_tokens=2048)
+        assert p.max_tokens == 2048
+        assert p.max_tool_calls == 10
+        assert p.timeout_seconds == 300
+
+    def test_partial_override_thresholds(self):
+        """Override confidence and drift thresholds."""
+        p = GovernancePolicy(confidence_threshold=0.95, drift_threshold=0.05)
+        assert p.confidence_threshold == 0.95
+        assert p.drift_threshold == 0.05
+        assert p.max_tokens == 4096  # unchanged
+
+    def test_partial_override_concurrency(self):
+        """Override concurrency settings."""
+        p = GovernancePolicy(max_concurrent=5, backpressure_threshold=3)
+        assert p.max_concurrent == 5
+        assert p.backpressure_threshold == 3
+
+    def test_partial_override_blocked_patterns(self):
+        """Override blocked_patterns only."""
+        p = GovernancePolicy(blocked_patterns=["secret", ("api_key", PatternType.REGEX)])
+        assert len(p.blocked_patterns) == 2
+        assert p.allowed_tools == []
+
+    def test_partial_override_version(self):
+        """Override version string."""
+        p = GovernancePolicy(version="2.0.0")
+        assert p.version == "2.0.0"
+        assert p.name == "default"
+
+    def test_override_human_approval(self):
+        """Override require_human_approval."""
+        p = GovernancePolicy(require_human_approval=True)
+        assert p.require_human_approval is True
+        assert p.log_all_calls is True
