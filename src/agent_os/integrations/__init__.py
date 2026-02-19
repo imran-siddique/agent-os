@@ -9,6 +9,9 @@ Supported Frameworks:
 - CrewAI: Crews and Agents
 - AutoGen: Multi-agent conversations
 - OpenAI Assistants: Assistants API with tools
+- Anthropic Claude: Messages API with tool use
+- Google Gemini: GenerativeModel with function calling
+- Mistral AI: Chat API with tool calls
 - Semantic Kernel: Microsoft's AI orchestration framework
 
 Usage:
@@ -37,6 +40,9 @@ from .llamaindex_adapter import LlamaIndexKernel
 from .crewai_adapter import CrewAIKernel
 from .autogen_adapter import AutoGenKernel
 from .openai_adapter import OpenAIKernel, GovernedAssistant
+from .anthropic_adapter import AnthropicKernel, GovernedAnthropicClient
+from .gemini_adapter import GeminiKernel, GovernedGeminiModel
+from .mistral_adapter import MistralKernel, GovernedMistralClient
 from .semantic_kernel_adapter import SemanticKernelWrapper, GovernedSemanticKernel
 from .base import (
     AsyncGovernedWrapper,
@@ -103,6 +109,15 @@ __all__ = [
     # OpenAI Assistants
     "OpenAIKernel",
     "GovernedAssistant",
+    # Anthropic Claude
+    "AnthropicKernel",
+    "GovernedAnthropicClient",
+    # Google Gemini
+    "GeminiKernel",
+    "GovernedGeminiModel",
+    # Mistral AI
+    "MistralKernel",
+    "GovernedMistralClient",
     # Semantic Kernel
     "SemanticKernelWrapper",
     "GovernedSemanticKernel",
