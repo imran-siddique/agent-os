@@ -6,27 +6,29 @@ Key principles:
 - All context passed in each request
 - State externalized to pluggable backend
 - Horizontally scalable
-
-# FIXME: Add connection pooling for Redis backend
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Protocol
-from datetime import datetime, timezone
-from abc import ABC, abstractmethod
 import hashlib
 import json
+import logging
+import time
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional, Protocol, Tuple
 
 from agent_os.circuit_breaker import CircuitBreaker, CircuitBreakerConfig, CircuitBreakerOpen
+from agent_os.exceptions import SerializationError
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Optional OpenTelemetry support
 # ---------------------------------------------------------------------------
 try:
-    from opentelemetry import trace as _otel_trace
     from opentelemetry import context as _otel_context
+    from opentelemetry import trace as _otel_trace
 
     _HAS_OTEL = True
 except ImportError:  # pragma: no cover
@@ -41,15 +43,15 @@ except ImportError:  # pragma: no cover
 
 class StateBackend(Protocol):
     """Protocol for external state storage."""
-    
+
     async def get(self, key: str) -> Optional[Dict[str, Any]]:
         """Get state by key."""
         ...
-    
+
     async def set(self, key: str, value: Dict[str, Any], ttl: Optional[int] = None) -> None:
         """Set state with optional TTL."""
         ...
-    
+
     async def delete(self, key: str) -> None:
         """Delete state."""
         ...
@@ -60,51 +62,138 @@ class MemoryBackend:
     
     DEPRECATED: Use Redis or DynamoDB backend in production.
     """
-    
-    def __init__(self):
-        self._store: Dict[str, Dict[str, Any]] = {}
+
+    def __init__(self) -> None:
+        self._store: Dict[str, Tuple[Dict[str, Any], Optional[float]]] = {}
         # TEMP: Debug flag - remove before release
         self._debug = False
-    
+
     async def get(self, key: str) -> Optional[Dict[str, Any]]:
-        return self._store.get(key)
-    
+        entry = self._store.get(key)
+        if entry is None:
+            return None
+        value, expires_at = entry
+        if expires_at is not None and time.monotonic() >= expires_at:
+            del self._store[key]
+            return None
+        return value
+
     async def set(self, key: str, value: Dict[str, Any], ttl: Optional[int] = None) -> None:
-        # TODO: Actually implement TTL expiration
-        self._store[key] = value
-    
+        expires_at = (time.monotonic() + ttl) if ttl is not None else None
+        self._store[key] = (value, expires_at)
+
     async def delete(self, key: str) -> None:
         self._store.pop(key, None)
 
 
+@dataclass
+class RedisConfig:
+    """Configuration for Redis connection pooling and timeouts.
+
+    Args:
+        host: Redis server hostname.
+        port: Redis server port.
+        db: Redis database number.
+        password: Optional authentication password.
+        pool_size: Maximum number of connections in the pool.
+        connect_timeout: Timeout in seconds for establishing a connection.
+        read_timeout: Timeout in seconds for reading a response.
+        retry_on_timeout: Whether to retry commands that time out.
+    """
+
+    host: str = "localhost"
+    port: int = 6379
+    db: int = 0
+    password: Optional[str] = None
+    pool_size: int = 10
+    connect_timeout: float = 5.0
+    read_timeout: float = 10.0
+    retry_on_timeout: bool = True
+
+    def to_url(self) -> str:
+        """Build a Redis URL from host/port/db."""
+        auth = f":{self.password}@" if self.password else ""
+        return f"redis://{auth}{self.host}:{self.port}/{self.db}"
+
+
 class RedisBackend:
-    """Redis state backend (for production)."""
-    
-    def __init__(self, url: str = "redis://localhost:6379", key_prefix: str = "agent-os:"):
+    """Redis state backend (for production).
+
+    Supports connection pooling and configurable timeouts via ``RedisConfig``.
+    When no config is provided the legacy ``url`` parameter is used with
+    default timeout/pool behaviour for backward compatibility.
+    """
+
+    def __init__(
+        self,
+        url: str = "redis://localhost:6379",
+        key_prefix: str = "agent-os:",
+        config: Optional[RedisConfig] = None,
+    ):
         if not isinstance(key_prefix, str):
             raise TypeError(f"key_prefix must be str, got {type(key_prefix).__name__}")
-        self.url = url
+        self._config = config
+        self.url = config.to_url() if config else url
         self._client = None
-        # FIXME: Add connection timeout configuration
+        self._pool = None
         self._prefix = key_prefix
-    
+
     async def _get_client(self):
         if self._client is None:
-            # TODO: Add connection pool configuration
-            import redis.asyncio as redis
-            self._client = redis.from_url(self.url)
+            import redis.asyncio as aioredis
+
+            if self._config is not None:
+                self._pool = aioredis.ConnectionPool.from_url(
+                    self.url,
+                    max_connections=self._config.pool_size,
+                    socket_connect_timeout=self._config.connect_timeout,
+                    socket_timeout=self._config.read_timeout,
+                    retry_on_timeout=self._config.retry_on_timeout,
+                )
+                self._client = aioredis.Redis(connection_pool=self._pool)
+            else:
+                self._client = aioredis.from_url(self.url)
         return self._client
-    
+
     async def get(self, key: str) -> Optional[Dict[str, Any]]:
         client = await self._get_client()
         data = await client.get(f"{self._prefix}{key}")
-        return json.loads(data) if data else None
-    
+        if not data:
+            return None
+        try:
+            return json.loads(data)
+        except (json.JSONDecodeError, TypeError) as exc:
+            logger.error(
+                "Deserialization failed: key=%s error=%s",
+                key,
+                str(exc),
+            )
+            raise SerializationError(
+                f"Failed to deserialize state for key '{key}': {exc}",
+                details={"key": key, "original_error": str(exc)},
+            ) from exc
+
     async def set(self, key: str, value: Dict[str, Any], ttl: Optional[int] = None) -> None:
         client = await self._get_client()
-        # XXX: No error handling for serialization failures
-        await client.set(f"{self._prefix}{key}", json.dumps(value), ex=ttl)
-    
+        try:
+            serialized = json.dumps(value)
+        except (TypeError, ValueError) as exc:
+            logger.error(
+                "Serialization failed: key=%s value_type=%s error=%s",
+                key,
+                type(value).__name__,
+                str(exc),
+            )
+            raise SerializationError(
+                f"Failed to serialize state for key '{key}': {exc}",
+                details={
+                    "key": key,
+                    "value_type": type(value).__name__,
+                    "original_error": str(exc),
+                },
+            ) from exc
+        await client.set(f"{self._prefix}{key}", serialized, ex=ttl)
+
     async def delete(self, key: str) -> None:
         client = await self._get_client()
         await client.delete(f"{self._prefix}{key}")
@@ -127,7 +216,7 @@ class ExecutionContext:
     history: List[Dict[str, Any]] = field(default_factory=list)
     state_ref: Optional[str] = None  # Reference to external state
     metadata: Dict[str, Any] = field(default_factory=dict)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "agent_id": self.agent_id,
@@ -145,7 +234,7 @@ class ExecutionRequest:
     params: Dict[str, Any]
     context: ExecutionContext
     request_id: Optional[str] = None
-    
+
     def __post_init__(self):
         if self.request_id is None:
             self.request_id = hashlib.sha256(
@@ -190,7 +279,7 @@ class StatelessKernel:
             )
         )
     """
-    
+
     # Default policy rules
     DEFAULT_POLICIES = {
         "read_only": {
@@ -204,7 +293,7 @@ class StatelessKernel:
             "require_approval": ["send_email", "file_write", "code_execution"]
         }
     }
-    
+
     def __init__(
         self,
         backend: Optional[StateBackend] = None,
@@ -220,7 +309,7 @@ class StatelessKernel:
         )
         self._backend_type = type(self.backend).__name__
         self.circuit_breaker = CircuitBreaker(circuit_breaker_config)
-    
+
     async def execute(
         self,
         action: str,
@@ -281,7 +370,7 @@ class StatelessKernel:
         external_state: Dict[str, Any] = {}
         if context.state_ref:
             external_state = await self._backend_get(context.state_ref) or {}
-        
+
         # 2. Check policies
         policy_result = self._check_policies(action, params, context.policies)
         if not policy_result["allowed"]:
@@ -296,7 +385,7 @@ class StatelessKernel:
                     "timestamp": datetime.now(timezone.utc).isoformat()
                 }
             )
-        
+
         # 3. Execute action
         try:
             result = await self._execute_action(action, params, external_state)
@@ -308,14 +397,14 @@ class StatelessKernel:
                 signal="SIGTERM",
                 metadata={"request_id": request.request_id}
             )
-        
+
         # 4. Update external state if needed
         new_state_ref = context.state_ref
         if result.get("state_update"):
             new_state = {**external_state, **result["state_update"]}
             new_state_ref = new_state_ref or f"state:{context.agent_id}"
             await self._backend_set(new_state_ref, new_state)
-        
+
         # 5. Build updated context
         updated_context = ExecutionContext(
             agent_id=context.agent_id,
@@ -328,7 +417,7 @@ class StatelessKernel:
             state_ref=new_state_ref,
             metadata=context.metadata
         )
-        
+
         return ExecutionResult(
             success=True,
             data=result.get("data"),
@@ -338,7 +427,7 @@ class StatelessKernel:
                 "timestamp": datetime.now(timezone.utc).isoformat()
             }
         )
-    
+
     def _check_policies(
         self,
         action: str,
@@ -360,18 +449,18 @@ class StatelessKernel:
             policy = self.policies.get(policy_name)
             if not policy:
                 continue
-            
+
             # Check blocked actions
             if action in policy.get("blocked_actions", []):
-                allowed_actions = [a for a in ["read", "query", "list"] 
+                allowed_actions = [a for a in ["read", "query", "list"]
                                    if a not in policy.get("blocked_actions", [])]
-                suggestion = (f"Try a read-only action instead (e.g., {', '.join(allowed_actions[:3])})" 
+                suggestion = (f"Try a read-only action instead (e.g., {', '.join(allowed_actions[:3])})"
                               if allowed_actions else "Request policy exception from administrator")
                 return {
                     "allowed": False,
                     "reason": f"Action '{action}' blocked by '{policy_name}' policy. {suggestion}."
                 }
-            
+
             # Check blocked patterns in params
             params_str = json.dumps(params).lower()
             for pattern in policy.get("blocked_patterns", []):
@@ -384,7 +473,7 @@ class StatelessKernel:
                             f"Remove the sensitive content and retry."
                         )
                     }
-            
+
             # Check requires approval
             if action in policy.get("require_approval", []):
                 if not params.get("approved"):
@@ -396,9 +485,9 @@ class StatelessKernel:
                             f"or use a non-restricted action instead."
                         )
                     }
-        
+
         return {"allowed": True, "reason": None}
-    
+
     async def _execute_action(
         self,
         action: str,
