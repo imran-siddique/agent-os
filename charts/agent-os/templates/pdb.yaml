@@ -1,0 +1,29 @@
+{{- if .Values.podDisruptionBudget.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "agent-os.fullname" . }}-kernel
+  labels:
+    {{- include "agent-os.labels" . | nindent 4 }}
+    app.kubernetes.io/component: kernel
+spec:
+  minAvailable: {{ .Values.podDisruptionBudget.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "agent-os.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: kernel
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "agent-os.fullname" . }}-policy-server
+  labels:
+    {{- include "agent-os.labels" . | nindent 4 }}
+    app.kubernetes.io/component: policy-server
+spec:
+  minAvailable: {{ .Values.podDisruptionBudget.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "agent-os.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: policy-server
+{{- end }}

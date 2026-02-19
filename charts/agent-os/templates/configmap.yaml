@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "agent-os.fullname" . }}-policies
+  labels:
+    {{- include "agent-os.labels" . | nindent 4 }}
+data:
+  default-policy.yaml: |
+    version: "1.0"
+    name: default
+    description: Default governance policy
+    rules:
+      - name: block-dangerous-actions
+        condition:
+          field: action
+          operator: in
+          value:
+            - file_delete
+            - system_exec
+        action: deny
+        priority: 100
+        message: Dangerous actions are blocked by default policy
+      - name: allow-read
+        condition:
+          field: action
+          operator: in
+          value:
+            - read_file
+            - database_query
+            - web_search
+        action: allow
+        priority: 50
+        message: Read operations are permitted
+    defaults:
+      action: audit

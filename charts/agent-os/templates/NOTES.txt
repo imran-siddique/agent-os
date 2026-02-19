@@ -1,0 +1,15 @@
+1. Get the kernel URL:
+{{- if contains "NodePort" .Values.kernel.service.type }}
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "agent-os.fullname" . }}-kernel)
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo http://$NODE_IP:$NODE_PORT
+{{- else if contains "LoadBalancer" .Values.kernel.service.type }}
+  NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+  kubectl get --namespace {{ .Release.Namespace }} svc {{ include "agent-os.fullname" . }}-kernel -w
+{{- else }}
+  kubectl --namespace {{ .Release.Namespace }} port-forward svc/{{ include "agent-os.fullname" . }}-kernel {{ .Values.kernel.service.port }}:{{ .Values.kernel.service.port }}
+  echo "Visit http://127.0.0.1:{{ .Values.kernel.service.port }}"
+{{- end }}
+
+2. Verify all components are running:
+  kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/instance={{ .Release.Name }}"

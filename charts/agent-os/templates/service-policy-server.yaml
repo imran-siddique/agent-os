@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "agent-os.fullname" . }}-policy-server
+  labels:
+    {{- include "agent-os.labels" . | nindent 4 }}
+    app.kubernetes.io/component: policy-server
+spec:
+  type: {{ .Values.policyServer.service.type }}
+  ports:
+    - port: {{ .Values.policyServer.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "agent-os.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: policy-server

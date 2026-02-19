@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "agent-os.fullname" . }}-audit-collector
+  labels:
+    {{- include "agent-os.labels" . | nindent 4 }}
+    app.kubernetes.io/component: audit-collector
+spec:
+  replicas: {{ .Values.auditCollector.replicas }}
+  selector:
+    matchLabels:
+      {{- include "agent-os.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: audit-collector
+  template:
+    metadata:
+      labels:
+        {{- include "agent-os.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: audit-collector
+      {{- if .Values.monitoring.enabled }}
+      annotations:
+        prometheus.io/scrape: {{ .Values.monitoring.prometheus.scrape | quote }}
+        prometheus.io/port: {{ .Values.monitoring.prometheus.port | quote }}
+        prometheus.io/path: {{ .Values.monitoring.prometheus.path | quote }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ include "agent-os.serviceAccountName" . }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: audit-collector
+          image: "{{ .Values.auditCollector.image.repository }}:{{ .Values.auditCollector.image.tag }}"
+          imagePullPolicy: {{ .Values.auditCollector.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.auditCollector.port }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.auditCollector.resources | nindent 12 }}
+          {{- if .Values.auditCollector.persistence.enabled }}
+          volumeMounts:
+            - name: audit-data
+              mountPath: /data/audit
+          {{- end }}
+      {{- if .Values.auditCollector.persistence.enabled }}
+      volumes:
+        - name: audit-data
+          persistentVolumeClaim:
+            claimName: {{ include "agent-os.fullname" . }}-audit
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+---
+{{- if .Values.auditCollector.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "agent-os.fullname" . }}-audit
+  labels:
+    {{- include "agent-os.labels" . | nindent 4 }}
+    app.kubernetes.io/component: audit-collector
+spec:
+  accessModes:
+    {{- toYaml .Values.auditCollector.persistence.accessModes | nindent 4 }}
+  {{- if .Values.auditCollector.persistence.storageClass }}
+  storageClassName: {{ .Values.auditCollector.persistence.storageClass | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.auditCollector.persistence.size }}
+{{- end }}
