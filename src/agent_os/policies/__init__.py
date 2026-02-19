@@ -15,8 +15,18 @@ from .schema import (
     PolicyOperator,
     PolicyRule,
 )
+from .shared import (
+    Condition,
+    SharedPolicyDecision,
+    SharedPolicyEvaluator,
+    SharedPolicyRule,
+    SharedPolicySchema,
+    policy_document_to_shared,
+    shared_to_policy_document,
+)
 
 __all__ = [
+    "Condition",
     "PolicyAction",
     "PolicyCondition",
     "PolicyDecision",
@@ -25,6 +35,12 @@ __all__ = [
     "PolicyEvaluator",
     "PolicyOperator",
     "PolicyRule",
+    "SharedPolicyDecision",
+    "SharedPolicyEvaluator",
+    "SharedPolicyRule",
+    "SharedPolicySchema",
     "document_to_governance",
     "governance_to_document",
+    "policy_document_to_shared",
+    "shared_to_policy_document",
 ]
