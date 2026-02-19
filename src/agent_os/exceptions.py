@@ -166,3 +166,13 @@ class SecurityError(AgentOSError):
 
     def __init__(self, message, error_code=None, details=None):
         super().__init__(message, error_code or "SECURITY_VIOLATION", details)
+
+
+# --- Serialization errors ---
+
+
+class SerializationError(AgentOSError):
+    """Raised when state serialization or deserialization fails."""
+
+    def __init__(self, message, error_code=None, details=None):
+        super().__init__(message, error_code or "SERIALIZATION_ERROR", details)
