@@ -465,6 +465,17 @@ governed = OpenAIAgentsSDKKernel().wrap(agent)
 
 See [integrations documentation](docs/integrations.md) for full details.
 
+### Integration Comparison
+
+| Framework | Governance Level | Async Support | Status | Adapter File |
+|-----------|-----------------|---------------|--------|-------------|
+| **LangChain** | Chain/Agent/Runnable | ✅ `ainvoke` | ✅ Stable | `integrations/langchain_adapter.py` |
+| **OpenAI Assistants** | Run/Thread/Tool Call | ✅ Streaming | ✅ Stable | `integrations/openai_adapter.py` |
+| **AutoGen** | Multi-Agent Orchestration | ❌ Sync only | ✅ Stable | `integrations/autogen_adapter.py` |
+| **Semantic Kernel** | Function/Plugin/Memory | ✅ Native async | ✅ Stable | `integrations/semantic_kernel_adapter.py` |
+| **CrewAI** | Crew/Agent/Task | ❌ Sync only | ✅ Stable | `integrations/crewai_adapter.py` |
+| **OpenAI Agents SDK** | Agent/Tool/Handoff | ✅ Native async | ✅ Stable | `integrations/openai_agents_sdk_adapter.py` |
+
 ---
 
 ## How It Differs from Other Tools
@@ -578,22 +589,126 @@ Agent OS includes a CLI for terminal workflows:
 
 ```bash
 # Check files for safety violations
-agent-os check src/app.py
+agentos check src/app.py
+# ✓ src/app.py: No violations
+# OR
+# ⚠️  2 violation(s) found in src/app.py:
+#   Line 12: DROP TABLE users;
+#     Violation: Destructive SQL: DROP operation detected
+#     Policy: block-destructive-sql
 
-# Check staged git files (pre-commit)
-agent-os check --staged
+# Check staged git files (ideal for pre-commit hooks)
+agentos check --staged
+# ✓ No violations in staged files
 
-# Multi-model code review (simulated in current version)
-agent-os review src/app.py
+# Machine-readable JSON output (for CI pipelines)
+agentos check src/app.py --format json
 
+# CI mode (no colors, strict exit codes)
+agentos check --staged --ci
+```
+
+```bash
+# Initialize Agent OS in a project
+agentos init
+# Initialized Agent OS in .agents/
+#   - agents.md: Agent instructions (OpenAI/Anthropic standard)
+#   - security.md: Kernel policies (Agent OS extension)
+#   - Template: strict
+
+# Choose a permissive or audit-only template
+agentos init --template permissive
+agentos init --template audit
+
+# Overwrite an existing .agents/ directory
+agentos init --force
+```
+
+```bash
+# Enable kernel governance and verify the configuration
+agentos secure
+# Securing agents in .
+#   [PASS] kernel version
+#   [PASS] signals defined
+#   [PASS] policies defined
+# Security configuration valid.
+```
+
+```bash
+# Audit agent security configuration
+agentos audit
+# Auditing .
+#   [OK] agents.md
+#   [OK] security.md
+# No issues found.
+
+# JSON output for CI
+agentos audit --format json
+```
+
+```bash
+# Show kernel status (version, installed packages)
+agentos status
+# Agent OS Kernel Status
+# ========================================
+#   Version: 1.2.0
+#   Status: Installed
+#   Project: /home/user/myproject
+#   Agents: Configured (.agents/ found)
+```
+
+```bash
+# Multi-model code review with CMVK consensus
+agentos review src/app.py --cmvk
+# 🔍 Reviewing src/app.py with CMVK...
+# Multi-Model Review (3 models):
+#   ✅ gpt-4: No issues
+#   ⚠️  claude-sonnet-4: 1 potential issue(s)
+#   ✅ gemini-pro: No issues
+# Consensus: 67%
+
+# Specify models
+agentos review src/app.py --cmvk --models "gpt-4,claude-sonnet-4"
+```
+
+```bash
+# Validate policy YAML files
+agentos validate
+#   Checking .agents/policy.yaml... OK
+# ✓ All 1 policy file(s) valid.
+
+# Validate specific files in strict mode
+agentos validate policies/*.yaml --strict
+```
+
+```bash
 # Install git pre-commit hook
-agent-os install-hooks
+agentos install-hooks
+# ✓ Installed pre-commit hook: .git/hooks/pre-commit
+# Agent OS will now check staged files before each commit.
 
-# Initialize Agent OS in project
-agent-os init
+# Append to an existing hook
+agentos install-hooks --append
+```
 
-# Validate AGENTS.md configuration
-agent-os validate
+```bash
+# Start the HTTP API server
+agentos serve --port 8080
+# Agent OS API server starting on 0.0.0.0:8080
+# Endpoints:
+#   GET  /health              Health check
+#   GET  /status              Kernel status
+#   GET  /agents              List agents
+#   POST /agents/{id}/execute  Execute agent action
+```
+
+```bash
+# Output Prometheus-style metrics
+agentos metrics
+# # HELP agentos_policy_violations_total Total policy violations.
+# # TYPE agentos_policy_violations_total counter
+# agentos_policy_violations_total 0
+# ...
 ```
 
 ---

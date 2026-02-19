@@ -43,12 +43,26 @@ from .base import BaseIntegration, GovernancePolicy, ExecutionContext
 
 @dataclass
 class AssistantContext(ExecutionContext):
-    """Extended context for OpenAI Assistants"""
+    """Extended execution context for OpenAI Assistants.
+
+    Tracks assistant-specific state including thread IDs, run IDs,
+    function call history, and cumulative token usage for governance
+    enforcement.
+
+    Attributes:
+        assistant_id: The OpenAI assistant identifier.
+        thread_ids: List of thread IDs created during this session.
+        run_ids: List of run IDs executed during this session.
+        function_calls: History of function/tool calls made by the assistant.
+        prompt_tokens: Cumulative prompt tokens consumed across all runs.
+        completion_tokens: Cumulative completion tokens consumed across all runs.
+    """
+
     assistant_id: str = ""
     thread_ids: list[str] = field(default_factory=list)
     run_ids: list[str] = field(default_factory=list)
     function_calls: list[dict] = field(default_factory=list)
-    
+
     # Token tracking
     prompt_tokens: int = 0
     completion_tokens: int = 0
@@ -77,15 +91,30 @@ class OpenAIKernel(BaseIntegration):
     """
     
     def __init__(self, policy: Optional[GovernancePolicy] = None):
+        """Initialise the OpenAI governance kernel.
+
+        Args:
+            policy: Governance policy to enforce. When ``None`` the default
+                ``GovernancePolicy`` is used.
+        """
         super().__init__(policy)
         self._wrapped_assistants: dict[str, Any] = {}  # assistant_id -> original
         self._clients: dict[str, Any] = {}  # assistant_id -> client
         self._cancelled_runs: set[str] = set()
     
     def wrap(self, agent: Any) -> Any:
-        """
-        Generic wrap - routes to wrap_assistant.
-        For API compatibility with other integrations.
+        """Generic wrap — not supported; use :meth:`wrap_assistant` instead.
+
+        This override exists for API compatibility with other integration
+        adapters.  OpenAI Assistants require both an assistant object **and**
+        a client, so callers must use :meth:`wrap_assistant`.
+
+        Args:
+            agent: Unused.
+
+        Raises:
+            NotImplementedError: Always raised with guidance to use
+                ``wrap_assistant(assistant, client)``.
         """
         raise NotImplementedError(
             "Use wrap_assistant(assistant, client) for OpenAI Assistants"
@@ -121,13 +150,31 @@ class OpenAIKernel(BaseIntegration):
         )
     
     def unwrap(self, governed_agent: Any) -> Any:
-        """Get original assistant from wrapped version"""
+        """Retrieve the original unwrapped assistant.
+
+        Args:
+            governed_agent: A ``GovernedAssistant`` or any object.
+
+        Returns:
+            The original OpenAI assistant object if *governed_agent* is a
+            ``GovernedAssistant``; otherwise returns *governed_agent* as-is.
+        """
         if isinstance(governed_agent, GovernedAssistant):
             return governed_agent._assistant
         return governed_agent
     
     def cancel_run(self, thread_id: str, run_id: str, client: Any):
-        """Cancel a run (SIGKILL equivalent)"""
+        """Cancel a run (SIGKILL equivalent).
+
+        Immediately marks the run as cancelled locally and issues a cancel
+        request to the OpenAI API.  If the API call fails (e.g. the run
+        has already completed), the error is silently ignored.
+
+        Args:
+            thread_id: The thread the run belongs to.
+            run_id: The run to cancel.
+            client: OpenAI client used to issue the cancellation.
+        """
         self._cancelled_runs.add(run_id)
         try:
             client.beta.threads.runs.cancel(
@@ -136,9 +183,16 @@ class OpenAIKernel(BaseIntegration):
             )
         except Exception:
             pass  # Run may already be complete
-    
+
     def is_cancelled(self, run_id: str) -> bool:
-        """Check if a run was cancelled"""
+        """Check whether a run has been cancelled via :meth:`cancel_run`.
+
+        Args:
+            run_id: The run identifier to check.
+
+        Returns:
+            ``True`` if the run was previously cancelled.
+        """
         return run_id in self._cancelled_runs
 
 
@@ -176,17 +230,41 @@ class GovernedAssistant:
     # =========================================================================
     
     def create_thread(self, **kwargs) -> Any:
-        """Create a new thread for conversation"""
+        """Create a new conversation thread.
+
+        The thread ID is automatically recorded in the execution context
+        for audit purposes.
+
+        Args:
+            **kwargs: Forwarded to ``client.beta.threads.create()``.
+
+        Returns:
+            The newly created OpenAI thread object.
+        """
         thread = self._client.beta.threads.create(**kwargs)
         self._ctx.thread_ids.append(thread.id)
         return thread
-    
+
     def get_thread(self, thread_id: str) -> Any:
-        """Retrieve a thread"""
+        """Retrieve an existing thread by ID.
+
+        Args:
+            thread_id: The thread to retrieve.
+
+        Returns:
+            The OpenAI thread object.
+        """
         return self._client.beta.threads.retrieve(thread_id)
-    
+
     def delete_thread(self, thread_id: str) -> bool:
-        """Delete a thread"""
+        """Delete a thread and remove it from the execution context.
+
+        Args:
+            thread_id: The thread to delete.
+
+        Returns:
+            ``True`` if the thread was successfully deleted.
+        """
         result = self._client.beta.threads.delete(thread_id)
         if thread_id in self._ctx.thread_ids:
             self._ctx.thread_ids.remove(thread_id)
@@ -203,8 +281,22 @@ class GovernedAssistant:
         role: str = "user",
         **kwargs
     ) -> Any:
-        """
-        Add a message to thread (with policy check).
+        """Add a message to a thread with pre-execution policy checks.
+
+        The message content is validated against ``blocked_patterns`` before
+        being sent to the OpenAI API.
+
+        Args:
+            thread_id: Target thread.
+            content: Message text.
+            role: Message role (default ``"user"``).
+            **kwargs: Additional parameters forwarded to the API.
+
+        Returns:
+            The created OpenAI message object.
+
+        Raises:
+            PolicyViolationError: If the content matches a blocked pattern.
         """
         # Pre-check: blocked patterns
         allowed, reason = self._kernel.pre_execute(self._ctx, content)
@@ -220,7 +312,15 @@ class GovernedAssistant:
         return message
     
     def list_messages(self, thread_id: str, **kwargs) -> list:
-        """List messages in a thread"""
+        """List messages in a thread.
+
+        Args:
+            thread_id: The thread whose messages to list.
+            **kwargs: Additional parameters (e.g. ``limit``, ``order``).
+
+        Returns:
+            A list of message objects in the thread.
+        """
         return self._client.beta.threads.messages.list(
             thread_id=thread_id,
             **kwargs
@@ -434,18 +534,31 @@ class GovernedAssistant:
     # =========================================================================
     
     def sigkill(self, thread_id: str, run_id: str):
-        """
-        Send SIGKILL to a running assistant.
-        
-        Immediately cancels the run.
+        """Send SIGKILL to a running assistant — immediately cancels the run.
+
+        This is the primary mechanism for forcibly stopping a governed
+        assistant that has violated policy or needs emergency termination.
+
+        Args:
+            thread_id: Thread containing the run.
+            run_id: The run to kill.
+
+        Example:
+            >>> governed.sigkill(thread_id="thread_abc", run_id="run_xyz")
         """
         self._kernel.cancel_run(thread_id, run_id, self._client)
-    
+
     def sigstop(self, thread_id: str, run_id: str):
-        """
-        Send SIGSTOP to a running assistant.
-        
-        Note: OpenAI API doesn't support pause, so this cancels.
+        """Send SIGSTOP to a running assistant.
+
+        .. note::
+
+            The OpenAI Assistants API does not support pausing a run, so
+            this behaves identically to :meth:`sigkill` (cancels the run).
+
+        Args:
+            thread_id: Thread containing the run.
+            run_id: The run to stop.
         """
         self._kernel.cancel_run(thread_id, run_id, self._client)
     
@@ -454,30 +567,58 @@ class GovernedAssistant:
     # =========================================================================
     
     def get_context(self) -> AssistantContext:
-        """Get execution context with audit info"""
+        """Return the execution context containing the full audit trail.
+
+        Returns:
+            The ``AssistantContext`` for this governed assistant, including
+            thread IDs, run IDs, function call history, and token usage.
+        """
         return self._ctx
-    
+
     def get_token_usage(self) -> dict:
-        """Get token usage statistics"""
+        """Return cumulative token usage statistics.
+
+        Returns:
+            A dict with keys ``prompt_tokens``, ``completion_tokens``,
+            ``total_tokens``, and ``limit``.
+
+        Example:
+            >>> governed.get_token_usage()
+            {'prompt_tokens': 120, 'completion_tokens': 80, 'total_tokens': 200, 'limit': 10000}
+        """
         return {
             "prompt_tokens": self._ctx.prompt_tokens,
             "completion_tokens": self._ctx.completion_tokens,
             "total_tokens": self._ctx.prompt_tokens + self._ctx.completion_tokens,
             "limit": self._kernel.policy.max_tokens
         }
-    
+
     def __getattr__(self, name):
-        """Passthrough for other assistant attributes"""
+        """Proxy attribute access to the underlying OpenAI assistant.
+
+        Allows transparent access to assistant properties (e.g. ``model``,
+        ``instructions``) that are not explicitly overridden by this wrapper.
+        """
         return getattr(self._assistant, name)
 
 
 class PolicyViolationError(Exception):
-    """Raised when an assistant violates governance policy"""
+    """Raised when an assistant action violates governance policy.
+
+    Contains a human-readable reason describing which policy was violated.
+    """
+
     pass
 
 
 class RunCancelledException(Exception):
-    """Raised when a run is cancelled (SIGKILL)"""
+    """Raised when a run is forcibly cancelled via SIGKILL.
+
+    Indicates that ``cancel_run`` (or ``sigkill``) was invoked, either
+    directly or automatically by the governance layer (e.g. token limit
+    exceeded, disallowed tool call).
+    """
+
     pass
 
 

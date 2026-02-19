@@ -33,12 +33,25 @@ from .base import BaseIntegration, GovernancePolicy, ExecutionContext
 
 @dataclass
 class SKContext(ExecutionContext):
-    """Extended context for Semantic Kernel"""
+    """Extended execution context for Semantic Kernel.
+
+    Tracks kernel-specific state including loaded plugins, function
+    invocation history, memory operations, and cumulative token usage.
+
+    Attributes:
+        kernel_id: Unique identifier for this kernel instance.
+        plugins_loaded: Names of plugins added through the governed wrapper.
+        functions_invoked: Audit log of every function invocation.
+        memory_operations: Audit log of memory save/search operations.
+        prompt_tokens: Cumulative prompt tokens consumed.
+        completion_tokens: Cumulative completion tokens consumed.
+    """
+
     kernel_id: str = ""
     plugins_loaded: List[str] = field(default_factory=list)
     functions_invoked: List[dict] = field(default_factory=list)
     memory_operations: List[dict] = field(default_factory=list)
-    
+
     # Token tracking
     prompt_tokens: int = 0
     completion_tokens: int = 0
@@ -76,6 +89,14 @@ class SemanticKernelWrapper(BaseIntegration):
         kernel: Any = None,
         policy: Optional[GovernancePolicy] = None
     ):
+        """Initialise the Semantic Kernel governance wrapper.
+
+        Args:
+            kernel: Optional Semantic Kernel instance.  Can also be
+                provided later via :meth:`wrap`.
+            policy: Governance policy to enforce. When ``None`` the default
+                ``GovernancePolicy`` is used.
+        """
         super().__init__(policy)
         self._kernel = kernel
         self._stopped = False
@@ -108,27 +129,56 @@ class SemanticKernelWrapper(BaseIntegration):
         )
     
     def unwrap(self, governed_kernel: Any) -> Any:
-        """Get original kernel from wrapped version"""
+        """Retrieve the original unwrapped Semantic Kernel instance.
+
+        Args:
+            governed_kernel: A ``GovernedSemanticKernel`` or any object.
+
+        Returns:
+            The original ``Kernel`` if *governed_kernel* is a
+            ``GovernedSemanticKernel``; otherwise returns the input as-is.
+        """
         if isinstance(governed_kernel, GovernedSemanticKernel):
             return governed_kernel._kernel
         return governed_kernel
-    
+
     def signal_stop(self, kernel_id: str):
-        """SIGSTOP - pause execution"""
+        """SIGSTOP — pause all function invocations.
+
+        While stopped, calls to :meth:`GovernedSemanticKernel.invoke`
+        will block (``await asyncio.sleep``) until :meth:`signal_continue`
+        is called.
+
+        Args:
+            kernel_id: Identifier of the kernel to pause.
+        """
         self._stopped = True
-    
+
     def signal_continue(self, kernel_id: str):
-        """SIGCONT - resume execution"""
+        """SIGCONT — resume execution after a previous SIGSTOP.
+
+        Args:
+            kernel_id: Identifier of the kernel to resume.
+        """
         self._stopped = False
-    
+
     def signal_kill(self, kernel_id: str):
-        """SIGKILL - terminate all operations"""
+        """SIGKILL — terminate all kernel operations immediately.
+
+        Once killed, any in-flight or future invocations will raise
+        ``ExecutionKilledError``.
+
+        Args:
+            kernel_id: Identifier of the kernel to kill.
+        """
         self._killed = True
-    
+
     def is_stopped(self) -> bool:
+        """Return whether the wrapper is in a stopped (SIGSTOP) state."""
         return self._stopped
-    
+
     def is_killed(self) -> bool:
+        """Return whether the wrapper has received SIGKILL."""
         return self._killed
 
 
@@ -246,8 +296,25 @@ class GovernedSemanticKernel:
         function: Optional[Any] = None,
         **kwargs
     ) -> Any:
-        """
-        Synchronous wrapper for invoke().
+        """Synchronous wrapper around :meth:`invoke`.
+
+        Runs the async ``invoke`` in a new event loop via
+        ``asyncio.run()``.  Useful for scripts or environments that are
+        not already running an async loop.
+
+        Args:
+            plugin_name: Name of the plugin containing the function.
+            function_name: Name of the function within the plugin.
+            function: Direct function reference (alternative to
+                *plugin_name* + *function_name*).
+            **kwargs: Arguments forwarded to the kernel function.
+
+        Returns:
+            The function result.
+
+        Raises:
+            PolicyViolationError: If the invocation violates policy.
+            ExecutionKilledError: If SIGKILL has been received.
         """
         return asyncio.run(self.invoke(
             plugin_name=plugin_name,
@@ -266,8 +333,20 @@ class GovernedSemanticKernel:
         plugin_name: str,
         **kwargs
     ) -> Any:
-        """
-        Add a plugin with governance tracking.
+        """Register a plugin with the kernel, tracking it for governance.
+
+        The plugin name is recorded in the execution context for audit
+        purposes.  Plugin functions remain subject to
+        ``allowed_tools`` policy checks when invoked.
+
+        Args:
+            plugin: The plugin object to register.
+            plugin_name: Human-readable name for the plugin.
+            **kwargs: Extra arguments forwarded to the kernel's
+                ``add_plugin`` method.
+
+        Returns:
+            The result from the underlying ``kernel.add_plugin()`` call.
         """
         # Record plugin
         self._ctx.plugins_loaded.append(plugin_name)
@@ -281,8 +360,15 @@ class GovernedSemanticKernel:
         openai_function: dict,
         **kwargs
     ) -> Any:
-        """
-        Import OpenAI function as plugin.
+        """Import an OpenAI function definition as a Semantic Kernel plugin.
+
+        Args:
+            plugin_name: Name to register the plugin under.
+            openai_function: OpenAI-format function definition dict.
+            **kwargs: Extra arguments forwarded to the kernel.
+
+        Returns:
+            The result from the underlying import call.
         """
         self._ctx.plugins_loaded.append(f"openai:{plugin_name}")
         return self._kernel.import_plugin_from_openai(
@@ -307,8 +393,24 @@ class GovernedSemanticKernel:
         id: Optional[str] = None,
         **kwargs
     ) -> Any:
-        """
-        Save to memory with governance.
+        """Save information to kernel memory with governance checks.
+
+        The text content is validated against ``blocked_patterns`` before
+        being persisted.  The operation is recorded in the audit trail.
+
+        Args:
+            collection: Memory collection name.
+            text: Text content to save.
+            id: Optional identifier for the memory entry.
+            **kwargs: Extra arguments forwarded to the memory backend.
+
+        Returns:
+            The result from the memory backend, or ``None`` if no memory
+            backend is configured.
+
+        Raises:
+            PolicyViolationError: If the text violates a blocked pattern.
+            ExecutionKilledError: If SIGKILL has been received.
         """
         # Check signals
         if self._wrapper.is_killed():
@@ -344,8 +446,23 @@ class GovernedSemanticKernel:
         limit: int = 5,
         **kwargs
     ) -> list:
-        """
-        Search memory with governance.
+        """Search kernel memory with governance logging.
+
+        The search operation is recorded in the audit trail (query text
+        is truncated to 100 characters in the log).
+
+        Args:
+            collection: Memory collection to search.
+            query: Search query string.
+            limit: Maximum number of results to return (default 5).
+            **kwargs: Extra arguments forwarded to the memory backend.
+
+        Returns:
+            A list of search results, or an empty list if no memory
+            backend is configured.
+
+        Raises:
+            ExecutionKilledError: If SIGKILL has been received.
         """
         # Check signals
         if self._wrapper.is_killed():
@@ -420,10 +537,23 @@ class GovernedSemanticKernel:
         planner: Optional[Any] = None,
         **kwargs
     ) -> Any:
-        """
-        Create a plan with governance.
-        
-        Plans are validated before execution.
+        """Create a governed execution plan.
+
+        Each step in the generated plan is validated against
+        ``allowed_tools`` before execution is permitted.
+
+        Args:
+            goal: Natural language description of the goal.
+            planner: Optional planner instance; defaults to
+                ``SequentialPlanner`` if not provided.
+            **kwargs: Extra arguments forwarded to the planner.
+
+        Returns:
+            A ``GovernedPlan`` that validates steps on invocation.
+
+        Raises:
+            PolicyViolationError: If the goal text violates policy.
+            ExecutionKilledError: If SIGKILL has been received.
         """
         # Check signals
         if self._wrapper.is_killed():
@@ -450,15 +580,15 @@ class GovernedSemanticKernel:
     # =========================================================================
     
     def sigkill(self):
-        """Send SIGKILL to kernel"""
+        """Send SIGKILL — terminate all kernel operations immediately."""
         self._wrapper.signal_kill(self._ctx.kernel_id)
-    
+
     def sigstop(self):
-        """Send SIGSTOP to kernel"""
+        """Send SIGSTOP — pause all kernel operations."""
         self._wrapper.signal_stop(self._ctx.kernel_id)
-    
+
     def sigcont(self):
-        """Send SIGCONT to kernel"""
+        """Send SIGCONT — resume kernel operations after SIGSTOP."""
         self._wrapper.signal_continue(self._ctx.kernel_id)
     
     # =========================================================================
@@ -466,11 +596,21 @@ class GovernedSemanticKernel:
     # =========================================================================
     
     def get_context(self) -> SKContext:
-        """Get execution context with audit info"""
+        """Return the execution context containing the full audit trail.
+
+        Returns:
+            The ``SKContext`` for this governed kernel.
+        """
         return self._ctx
-    
+
     def get_audit_log(self) -> dict:
-        """Get full audit log"""
+        """Return a structured audit log of all kernel activity.
+
+        Returns:
+            A dict with keys ``kernel_id``, ``session_id``,
+            ``plugins_loaded``, ``functions_invoked``,
+            ``memory_operations``, ``call_count``, and ``checkpoints``.
+        """
         return {
             "kernel_id": self._ctx.kernel_id,
             "session_id": self._ctx.session_id,
@@ -480,32 +620,51 @@ class GovernedSemanticKernel:
             "call_count": self._ctx.call_count,
             "checkpoints": self._ctx.checkpoints
         }
-    
+
     def __getattr__(self, name):
-        """Passthrough for other kernel attributes"""
+        """Proxy attribute access to the underlying Semantic Kernel instance."""
         return getattr(self._kernel, name)
 
 
 class GovernedPlan:
+    """A Semantic Kernel plan wrapped with step-level governance.
+
+    Each step in the plan is validated against the ``allowed_tools``
+    policy constraint before execution begins.
     """
-    A Semantic Kernel plan wrapped with governance.
-    
-    Validates each step before execution.
-    """
-    
+
     def __init__(
         self,
         plan: Any,
         wrapper: SemanticKernelWrapper,
         ctx: SKContext
     ):
+        """Initialise a governed plan wrapper.
+
+        Args:
+            plan: The original Semantic Kernel plan object.
+            wrapper: Parent governance wrapper for signal/policy access.
+            ctx: Execution context for audit logging.
+        """
         self._plan = plan
         self._wrapper = wrapper
         self._ctx = ctx
-    
+
     async def invoke(self, **kwargs) -> Any:
-        """
-        Execute plan with step-by-step governance.
+        """Execute the plan with step-by-step governance validation.
+
+        Before execution, each step is checked against ``allowed_tools``.
+        Execution is aborted if SIGKILL has been received.
+
+        Args:
+            **kwargs: Arguments forwarded to the plan's ``invoke`` method.
+
+        Returns:
+            The plan execution result.
+
+        Raises:
+            PolicyViolationError: If a plan step is not in ``allowed_tools``.
+            ExecutionKilledError: If SIGKILL has been received.
         """
         # Check signals before starting
         if self._wrapper.is_killed():
@@ -535,17 +694,20 @@ class GovernedPlan:
 # ============================================================================
 
 class PolicyViolationError(Exception):
-    """Raised when a function violates governance policy"""
+    """Raised when a Semantic Kernel function violates governance policy."""
+
     pass
 
 
 class ExecutionStoppedError(Exception):
-    """Raised when execution is stopped (SIGSTOP)"""
+    """Raised when execution is blocked by SIGSTOP."""
+
     pass
 
 
 class ExecutionKilledError(Exception):
-    """Raised when execution is killed (SIGKILL)"""
+    """Raised when execution is terminated by SIGKILL."""
+
     pass
 
 
