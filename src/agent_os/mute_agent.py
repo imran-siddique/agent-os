@@ -1,0 +1,144 @@
+"""Mute Agent — post-execution gate for output filtering.
+
+The mute agent sits between the execution engine and the caller, inspecting
+and sanitising execution results before they leave the kernel.  It removes
+or redacts sensitive data (PII, credentials, internal metadata) according to
+configurable ``MutePolicy`` rules.
+
+Architecture:
+    ExecutionEngine ──▶ MuteAgent.mute(result) ──▶ sanitised result ──▶ Caller
+
+Built-in pattern categories:
+    - **email**: RFC-5322-style email addresses
+    - **phone**: North-American and international phone numbers
+    - **ssn**: US Social Security Numbers
+    - **credit_card**: Major card number formats (Visa, MC, Amex, Discover)
+    - **api_key**: Common API-key / secret-key patterns
+"""
+
+from __future__ import annotations
+
+import logging
+import re
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional, Sequence
+
+logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# Built-in PII / sensitive-data patterns
+# ---------------------------------------------------------------------------
+
+BUILTIN_PATTERNS: Dict[str, str] = {
+    "email": r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+",
+    "phone": r"(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}",
+    "ssn": r"\b\d{3}-\d{2}-\d{4}\b",
+    "credit_card": r"\b(?:\d[ -]*?){13,19}\b",
+    "api_key": (
+        r"(?:api[_-]?key|secret[_-]?key|access[_-]?token|bearer)"
+        r"[\s:=]+['\"]?[A-Za-z0-9_\-]{16,}['\"]?"
+    ),
+}
+
+# Pre-compiled versions for performance
+_COMPILED: Dict[str, re.Pattern[str]] = {
+    name: re.compile(pattern, re.IGNORECASE)
+    for name, pattern in BUILTIN_PATTERNS.items()
+}
+
+
+# ---------------------------------------------------------------------------
+# Data models
+# ---------------------------------------------------------------------------
+
+@dataclass
+class MutePolicy:
+    """Rules for what to mute/redact in execution output.
+
+    Attributes:
+        enabled_builtins: Names of built-in patterns to apply
+            (e.g. ``["email", "ssn"]``).  An empty list disables builtins.
+        custom_patterns: Additional regex patterns (raw strings).
+        sensitive_keywords: Exact substring keywords to redact.
+        replacement: The string used to replace redacted content.
+    """
+    enabled_builtins: List[str] = field(default_factory=lambda: list(BUILTIN_PATTERNS.keys()))
+    custom_patterns: List[str] = field(default_factory=list)
+    sensitive_keywords: List[str] = field(default_factory=list)
+    replacement: str = "[REDACTED]"
+
+
+# ---------------------------------------------------------------------------
+# Mute Agent
+# ---------------------------------------------------------------------------
+
+class MuteAgent:
+    """Post-execution gate that redacts sensitive content from results.
+
+    Args:
+        policy: A ``MutePolicy`` describing what to redact.
+    """
+
+    def __init__(self, policy: Optional[MutePolicy] = None) -> None:
+        self.policy = policy or MutePolicy()
+        self._custom_compiled: List[re.Pattern[str]] = [
+            re.compile(p, re.IGNORECASE) for p in self.policy.custom_patterns
+        ]
+
+    # -- public API ---------------------------------------------------------
+
+    def mute(self, result: Any) -> Any:
+        """Filter *result*, redacting sensitive content in-place.
+
+        Accepts an ``ExecutionResult`` (from ``agent_os.stateless``) or any
+        object with a ``data`` attribute.  The ``data`` field is walked
+        recursively and string values are scrubbed.
+
+        Returns:
+            The same result object with sensitive strings replaced.
+        """
+        if hasattr(result, "data") and result.data is not None:
+            result.data = self._scrub(result.data)
+
+        if hasattr(result, "metadata") and isinstance(result.metadata, dict):
+            result.metadata = self._scrub(result.metadata)
+
+        return result
+
+    def scrub_text(self, text: str) -> str:
+        """Redact sensitive content from a plain string."""
+        return self._scrub_string(text)
+
+    # -- internals ----------------------------------------------------------
+
+    def _scrub(self, value: Any) -> Any:
+        """Recursively scrub strings inside dicts, lists, and scalars."""
+        if isinstance(value, str):
+            return self._scrub_string(value)
+        if isinstance(value, dict):
+            return {k: self._scrub(v) for k, v in value.items()}
+        if isinstance(value, (list, tuple)):
+            scrubbed = [self._scrub(item) for item in value]
+            return type(value)(scrubbed)
+        return value
+
+    def _scrub_string(self, text: str) -> str:
+        replacement = self.policy.replacement
+
+        # Built-in patterns
+        for name in self.policy.enabled_builtins:
+            compiled = _COMPILED.get(name)
+            if compiled:
+                text = compiled.sub(replacement, text)
+
+        # Custom regex patterns
+        for pattern in self._custom_compiled:
+            text = pattern.sub(replacement, text)
+
+        # Keyword substring replacement
+        for keyword in self.policy.sensitive_keywords:
+            if keyword in text:
+                text = text.replace(keyword, replacement)
+
+        return text
