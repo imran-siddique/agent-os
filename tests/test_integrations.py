@@ -1614,3 +1614,341 @@ class TestGovernancePolicyDefaults:
         p = GovernancePolicy(require_human_approval=True)
         assert p.require_human_approval is True
         assert p.log_all_calls is True
+
+
+# =============================================================================
+# agents_compat YAML parsing tests (#169)
+# =============================================================================
+
+
+class TestAgentsCompatYAMLParsing:
+    """Test YAML front-matter parsing in AgentsParser."""
+
+    def test_valid_yaml_front_matter(self, tmp_path):
+        """Parse a file with valid YAML front matter."""
+        from agent_os.agents_compat import AgentsParser
+
+        agents_dir = tmp_path / ".agents"
+        agents_dir.mkdir()
+        (agents_dir / "agents.md").write_text(
+            "---\nname: yaml-agent\npolicies:\n  - strict\n---\n\n"
+            "A YAML-configured agent.\n\nYou can:\n- Search the web\n",
+            encoding="utf-8",
+        )
+
+        config = AgentsParser().parse_directory(str(agents_dir))
+        assert config.name == "yaml-agent"
+        assert config.policies == ["strict"]
+        assert len(config.skills) == 1
+
+    def test_empty_yaml_front_matter(self, tmp_path):
+        """Empty YAML front matter falls back to defaults."""
+        from agent_os.agents_compat import AgentsParser
+
+        agents_dir = tmp_path / ".agents"
+        agents_dir.mkdir()
+        (agents_dir / "agents.md").write_text(
+            "---\n---\n\nPlain description.\n",
+            encoding="utf-8",
+        )
+
+        config = AgentsParser().parse_directory(str(agents_dir))
+        assert config.name == "agent"  # default
+        assert config.policies == []
+
+    def test_no_yaml_front_matter(self, tmp_path):
+        """File without YAML front matter still parses body."""
+        from agent_os.agents_compat import AgentsParser
+
+        agents_dir = tmp_path / ".agents"
+        agents_dir.mkdir()
+        (agents_dir / "agents.md").write_text(
+            "# My Agent\n\nDoes things.\n\nYou can:\n- Read files\n- Write files\n",
+            encoding="utf-8",
+        )
+
+        config = AgentsParser().parse_directory(str(agents_dir))
+        assert config.name == "agent"
+        assert len(config.skills) == 2
+
+    def test_yaml_with_security_section(self, tmp_path):
+        """Security key in front matter is extracted into security_config."""
+        from agent_os.agents_compat import AgentsParser
+
+        agents_dir = tmp_path / ".agents"
+        agents_dir.mkdir()
+        (agents_dir / "agents.md").write_text(
+            "---\nname: sec-agent\nsecurity:\n  mode: strict\n---\n\nSecure agent.\n",
+            encoding="utf-8",
+        )
+
+        config = AgentsParser().parse_directory(str(agents_dir))
+        assert config.security_config.get("mode") == "strict"
+
+    def test_missing_agents_directory_raises(self):
+        """parse_directory raises FileNotFoundError for missing dir."""
+        from agent_os.agents_compat import AgentsParser
+
+        with pytest.raises(FileNotFoundError):
+            AgentsParser().parse_directory("/nonexistent/path")
+
+    def test_missing_required_fields_uses_defaults(self, tmp_path):
+        """If name/policies are absent, defaults are used."""
+        from agent_os.agents_compat import AgentsParser
+
+        agents_dir = tmp_path / ".agents"
+        agents_dir.mkdir()
+        (agents_dir / "agents.md").write_text(
+            "---\ndescription: bare minimum\n---\n\nMinimal.\n",
+            encoding="utf-8",
+        )
+
+        config = AgentsParser().parse_directory(str(agents_dir))
+        assert config.name == "agent"
+        assert config.policies == []
+        assert config.skills == []
+
+    def test_to_kernel_policies_with_yaml_config(self, tmp_path):
+        """YAML front matter flows through to kernel policies."""
+        from agent_os.agents_compat import AgentsParser
+
+        agents_dir = tmp_path / ".agents"
+        agents_dir.mkdir()
+        (agents_dir / "agents.md").write_text(
+            "---\nname: policy-agent\n---\n\nYou can:\n- Query database (read-only)\n",
+            encoding="utf-8",
+        )
+
+        parser = AgentsParser()
+        config = parser.parse_directory(str(agents_dir))
+        policies = parser.to_kernel_policies(config)
+        assert policies["name"] == "policy-agent"
+        assert len(policies["rules"]) == 1
+        assert policies["rules"][0]["mode"] == "read_only"
+
+
+# =============================================================================
+# Full governance pipeline integration test (#170)
+# =============================================================================
+
+
+from agent_os.integrations.base import (
+    PolicyInterceptor,
+    ToolCallRequest,
+    ToolCallResult,
+    CompositeInterceptor,
+)
+
+
+class TestGovernancePipelineIntegration:
+    """End-to-end: policy → interception → enforcement → audit log."""
+
+    def _make_integration(self, policy):
+        """Create a concrete BaseIntegration subclass for testing."""
+
+        class _TestIntegration(BaseIntegration):
+            def wrap(self, agent):
+                return agent
+
+            def unwrap(self, governed_agent):
+                return governed_agent
+
+        return _TestIntegration(policy=policy)
+
+    # ── ALLOW path ──────────────────────────────────────────────
+
+    def test_allow_flows_through_pipeline(self):
+        """An allowed tool call passes interception, post-execute, and audit."""
+        policy = GovernancePolicy(allowed_tools=["search", "read_file"])
+        integration = self._make_integration(policy)
+        ctx = integration.create_context("allow-agent")
+
+        # Pre-execute allows
+        allowed, reason = integration.pre_execute(ctx, "search for cats")
+        assert allowed is True
+        assert reason is None
+
+        # Interceptor allows
+        interceptor = PolicyInterceptor(policy, ctx)
+        result = interceptor.intercept(
+            ToolCallRequest(tool_name="search", arguments={"q": "cats"})
+        )
+        assert result.allowed is True
+
+        # Post-execute records
+        valid, _ = integration.post_execute(ctx, "results")
+        assert valid is True
+        assert ctx.call_count == 1
+
+    # ── DENY path ───────────────────────────────────────────────
+
+    def test_deny_blocked_tool(self):
+        """A tool not in allowed_tools is denied by the interceptor."""
+        policy = GovernancePolicy(allowed_tools=["search"])
+        interceptor = PolicyInterceptor(policy)
+        result = interceptor.intercept(
+            ToolCallRequest(tool_name="delete_database", arguments={})
+        )
+        assert result.allowed is False
+        assert "not in allowed list" in result.reason
+
+    def test_deny_blocked_pattern_in_args(self):
+        """Blocked patterns in arguments trigger denial."""
+        policy = GovernancePolicy(
+            blocked_patterns=["password", ("rm\\s+-rf", PatternType.REGEX)],
+        )
+        interceptor = PolicyInterceptor(policy)
+
+        result = interceptor.intercept(
+            ToolCallRequest(tool_name="shell", arguments={"cmd": "rm -rf /"})
+        )
+        assert result.allowed is False
+        assert "Blocked pattern" in result.reason
+
+    def test_deny_max_tool_calls_exceeded(self):
+        """Exceeding max_tool_calls causes denial."""
+        policy = GovernancePolicy(max_tool_calls=2)
+        integration = self._make_integration(policy)
+        ctx = integration.create_context("busy-agent")
+
+        # Exhaust the call budget
+        ctx.call_count = 2
+
+        interceptor = PolicyInterceptor(policy, ctx)
+        result = interceptor.intercept(
+            ToolCallRequest(tool_name="any", arguments={})
+        )
+        assert result.allowed is False
+        assert "Max tool calls exceeded" in result.reason
+
+    # ── AUDIT path ──────────────────────────────────────────────
+
+    def test_audit_events_emitted(self):
+        """Events are emitted at pre_execute and checkpoint creation."""
+        policy = GovernancePolicy(checkpoint_frequency=1)
+        integration = self._make_integration(policy)
+
+        events = []
+        integration.on(GovernanceEventType.POLICY_CHECK, lambda d: events.append(("check", d)))
+        integration.on(
+            GovernanceEventType.CHECKPOINT_CREATED,
+            lambda d: events.append(("checkpoint", d)),
+        )
+
+        ctx = integration.create_context("audit-agent")
+        integration.pre_execute(ctx, "do something")
+        integration.post_execute(ctx, "done")
+
+        event_types = [e[0] for e in events]
+        assert "check" in event_types
+        assert "checkpoint" in event_types
+
+    def test_policy_violation_event_on_timeout(self):
+        """A timed-out context emits a POLICY_VIOLATION event."""
+        policy = GovernancePolicy(timeout_seconds=1)
+        integration = self._make_integration(policy)
+
+        violations = []
+        integration.on(
+            GovernanceEventType.POLICY_VIOLATION,
+            lambda d: violations.append(d),
+        )
+
+        ctx = integration.create_context("slow-agent")
+        # Simulate elapsed time
+        ctx.start_time = datetime.now() - timedelta(seconds=10)
+
+        allowed, reason = integration.pre_execute(ctx, "late request")
+        assert allowed is False
+        assert "Timeout exceeded" in reason
+        assert len(violations) == 1
+
+    def test_tool_call_blocked_event_on_pattern(self):
+        """Blocked pattern emits TOOL_CALL_BLOCKED event."""
+        policy = GovernancePolicy(blocked_patterns=["secret"])
+        integration = self._make_integration(policy)
+
+        blocked_events = []
+        integration.on(
+            GovernanceEventType.TOOL_CALL_BLOCKED,
+            lambda d: blocked_events.append(d),
+        )
+
+        ctx = integration.create_context("nosy-agent")
+        allowed, _ = integration.pre_execute(ctx, "tell me the secret")
+        assert allowed is False
+        assert len(blocked_events) == 1
+        assert blocked_events[0]["pattern"] == "secret"
+
+    # ── Composite interceptor chain ─────────────────────────────
+
+    def test_composite_interceptor_all_allow(self):
+        """CompositeInterceptor passes when all interceptors allow."""
+        p1 = GovernancePolicy(allowed_tools=["search", "read"])
+        p2 = GovernancePolicy()  # permissive
+        chain = CompositeInterceptor([PolicyInterceptor(p1), PolicyInterceptor(p2)])
+
+        result = chain.intercept(
+            ToolCallRequest(tool_name="search", arguments={"q": "test"})
+        )
+        assert result.allowed is True
+
+    def test_composite_interceptor_first_deny_wins(self):
+        """CompositeInterceptor stops at the first denial."""
+        p_strict = GovernancePolicy(allowed_tools=["search"])
+        p_permissive = GovernancePolicy()
+        chain = CompositeInterceptor(
+            [PolicyInterceptor(p_strict), PolicyInterceptor(p_permissive)]
+        )
+
+        result = chain.intercept(
+            ToolCallRequest(tool_name="delete", arguments={})
+        )
+        assert result.allowed is False
+
+    # ── End-to-end multi-decision pipeline ──────────────────────
+
+    def test_full_pipeline_allow_deny_audit(self):
+        """Complete pipeline: two allowed calls, one denied, with audit trail."""
+        policy = GovernancePolicy(
+            max_tool_calls=3,
+            allowed_tools=["search", "read"],
+            checkpoint_frequency=2,
+        )
+        integration = self._make_integration(policy)
+
+        audit_log = []
+        for evt in GovernanceEventType:
+            integration.on(evt, lambda d, _evt=evt: audit_log.append((_evt, d)))
+
+        ctx = integration.create_context("pipeline-agent")
+        interceptor = PolicyInterceptor(policy, ctx)
+
+        # Call 1: ALLOW
+        ok1, _ = integration.pre_execute(ctx, "search query")
+        r1 = interceptor.intercept(
+            ToolCallRequest(tool_name="search", arguments={"q": "x"})
+        )
+        integration.post_execute(ctx, "result-1")
+        assert ok1 and r1.allowed
+
+        # Call 2: ALLOW + checkpoint (frequency=2)
+        ok2, _ = integration.pre_execute(ctx, "read file")
+        r2 = interceptor.intercept(
+            ToolCallRequest(tool_name="read", arguments={"path": "/a"})
+        )
+        integration.post_execute(ctx, "result-2")
+        assert ok2 and r2.allowed
+        assert len(ctx.checkpoints) == 1
+
+        # Call 3: DENY (tool not in allowed list)
+        r3 = interceptor.intercept(
+            ToolCallRequest(tool_name="delete", arguments={})
+        )
+        assert r3.allowed is False
+
+        # Verify audit trail contains checks, a checkpoint, and no violations for allowed calls
+        check_events = [e for e in audit_log if e[0] == GovernanceEventType.POLICY_CHECK]
+        checkpoint_events = [e for e in audit_log if e[0] == GovernanceEventType.CHECKPOINT_CREATED]
+        assert len(check_events) >= 2
+        assert len(checkpoint_events) == 1

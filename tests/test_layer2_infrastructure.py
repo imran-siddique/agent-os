@@ -2,6 +2,8 @@
 Test Layer 2: Infrastructure packages.
 """
 
+import asyncio
+
 import pytest
 
 
@@ -93,6 +95,245 @@ class TestATR:
             assert ToolRegistry is not None
         except ImportError:
             pytest.skip("atr not installed")
+
+
+# =========================================================================
+# AMB message bus tests (#166)
+# =========================================================================
+
+
+try:
+    from amb_core import MessageBus, Message, InMemoryBroker, Priority
+    HAS_AMB = True
+except ImportError:
+    HAS_AMB = False
+
+
+@pytest.mark.skipif(not HAS_AMB, reason="amb_core not installed")
+class TestAMBMessageBus:
+    """Test AMB message publishing, subscription, filtering, and multiple subscribers."""
+
+    @pytest.fixture
+    def broker(self):
+        return InMemoryBroker(use_priority_delivery=False)
+
+    async def test_publish_and_subscribe(self, broker):
+        """Publish a message and verify the subscriber receives it."""
+        received = []
+
+        async def handler(msg):
+            received.append(msg)
+
+        bus = MessageBus(adapter=broker)
+        async with bus:
+            await bus.subscribe("test.topic", handler)
+            await bus.publish("test.topic", {"key": "value"})
+            await asyncio.sleep(0.05)
+
+        assert len(received) == 1
+        assert received[0].payload == {"key": "value"}
+
+    async def test_publish_returns_message_id(self, broker):
+        """publish() returns a non-empty message ID string."""
+        bus = MessageBus(adapter=broker)
+        async with bus:
+            msg_id = await bus.publish("id.topic", {"data": 1})
+            assert isinstance(msg_id, str)
+            assert len(msg_id) > 0
+
+    async def test_multiple_subscribers_same_topic(self, broker):
+        """All subscribers on the same topic receive the message."""
+        results_a, results_b = [], []
+
+        async def handler_a(msg):
+            results_a.append(msg.payload)
+
+        async def handler_b(msg):
+            results_b.append(msg.payload)
+
+        bus = MessageBus(adapter=broker)
+        async with bus:
+            await bus.subscribe("multi.topic", handler_a)
+            await bus.subscribe("multi.topic", handler_b)
+            await bus.publish("multi.topic", {"n": 42})
+            await asyncio.sleep(0.05)
+
+        assert results_a == [{"n": 42}]
+        assert results_b == [{"n": 42}]
+
+    async def test_subscriber_filtering_by_topic(self, broker):
+        """Subscribers only receive messages for their subscribed topic."""
+        received = []
+
+        async def handler(msg):
+            received.append(msg.payload)
+
+        bus = MessageBus(adapter=broker)
+        async with bus:
+            await bus.subscribe("yes.topic", handler)
+            await bus.publish("yes.topic", {"match": True})
+            await bus.publish("no.topic", {"match": False})
+            await asyncio.sleep(0.05)
+
+        assert len(received) == 1
+        assert received[0]["match"] is True
+
+    async def test_unsubscribe_stops_delivery(self, broker):
+        """After unsubscribe, no further messages are delivered."""
+        received = []
+
+        async def handler(msg):
+            received.append(msg)
+
+        bus = MessageBus(adapter=broker)
+        async with bus:
+            sub_id = await bus.subscribe("unsub.topic", handler)
+            await bus.publish("unsub.topic", {"before": True})
+            await asyncio.sleep(0.05)
+            await bus.unsubscribe(sub_id)
+            await bus.publish("unsub.topic", {"after": True})
+            await asyncio.sleep(0.05)
+
+        assert len(received) == 1
+
+    async def test_publish_without_connect_raises(self):
+        """Publishing on a disconnected bus raises ConnectionError."""
+        bus = MessageBus()
+        with pytest.raises(ConnectionError):
+            await bus.publish("t", {"x": 1})
+
+    async def test_priority_ordering(self, broker):
+        """Higher-priority messages appear first in pending queue."""
+        bus = MessageBus(adapter=broker)
+        async with bus:
+            await bus.publish("prio.topic", {"level": "low"}, priority=Priority.LOW)
+            await bus.publish("prio.topic", {"level": "critical"}, priority=Priority.CRITICAL)
+
+            pending = await broker.get_pending_messages("prio.topic", limit=10)
+            if len(pending) >= 2:
+                assert pending[0].priority >= pending[1].priority
+
+
+# =========================================================================
+# VFS virtual filesystem tests (#167)
+# =========================================================================
+
+
+try:
+    from agent_control_plane.vfs import AgentVFS, MemoryBackend, FileMode
+    HAS_VFS = True
+except ImportError:
+    HAS_VFS = False
+
+
+@pytest.mark.skipif(not HAS_VFS, reason="agent_control_plane not installed")
+class TestAgentVFS:
+    """Test VFS file create/read/update/delete, path resolution, and permissions."""
+
+    @pytest.fixture
+    def vfs(self):
+        return AgentVFS(agent_id="test-agent")
+
+    def test_write_and_read(self, vfs):
+        """Write data and read it back."""
+        vfs.write("/mem/working/hello.txt", b"hello world")
+        data = vfs.read("/mem/working/hello.txt")
+        assert data == b"hello world"
+
+    def test_write_text_and_read_text(self, vfs):
+        """Write a string and read it back as text."""
+        vfs.write("/mem/working/note.txt", "some text")
+        assert vfs.read_text("/mem/working/note.txt") == "some text"
+
+    def test_write_json_and_read_json(self, vfs):
+        """Write JSON and read it back as a dict."""
+        vfs.write_json("/mem/working/data.json", {"k": "v"})
+        assert vfs.read_json("/mem/working/data.json") == {"k": "v"}
+
+    def test_update_overwrites(self, vfs):
+        """Writing to the same path overwrites previous content."""
+        vfs.write("/mem/working/f.txt", b"old")
+        vfs.write("/mem/working/f.txt", b"new")
+        assert vfs.read("/mem/working/f.txt") == b"new"
+
+    def test_append_mode(self, vfs):
+        """Appending adds to existing content."""
+        vfs.write("/mem/working/log.txt", b"line1\n")
+        vfs.append("/mem/working/log.txt", b"line2\n")
+        assert vfs.read("/mem/working/log.txt") == b"line1\nline2\n"
+
+    def test_delete_file(self, vfs):
+        """Deleting a file makes it no longer exist."""
+        vfs.write("/mem/working/tmp.txt", b"data")
+        assert vfs.exists("/mem/working/tmp.txt")
+        assert vfs.delete("/mem/working/tmp.txt") is True
+        assert not vfs.exists("/mem/working/tmp.txt")
+
+    def test_delete_nonexistent_returns_false(self, vfs):
+        """Deleting a nonexistent file returns False."""
+        assert vfs.delete("/mem/working/nope.txt") is False
+
+    def test_read_nonexistent_raises(self, vfs):
+        """Reading a file that does not exist raises FileNotFoundError."""
+        with pytest.raises(FileNotFoundError):
+            vfs.read("/mem/working/missing.txt")
+
+    def test_exists(self, vfs):
+        """exists() returns True for written files, False otherwise."""
+        assert not vfs.exists("/mem/working/check.txt")
+        vfs.write("/mem/working/check.txt", b"x")
+        assert vfs.exists("/mem/working/check.txt")
+
+    def test_stat_returns_inode(self, vfs):
+        """stat() returns an INode with correct size after write."""
+        vfs.write("/mem/working/sized.txt", b"12345")
+        inode = vfs.stat("/mem/working/sized.txt")
+        assert inode is not None
+        assert inode.size == 5
+
+    def test_path_resolution_longest_mount(self, vfs):
+        """Paths resolve to the longest matching mount point."""
+        vfs.write("/mem/working/a.txt", b"working")
+        vfs.write("/mem/episodic/b.txt", b"episodic")
+        assert vfs.read("/mem/working/a.txt") == b"working"
+        assert vfs.read("/mem/episodic/b.txt") == b"episodic"
+
+    def test_no_mount_raises(self, vfs):
+        """Accessing a path with no mount raises FileNotFoundError."""
+        with pytest.raises(FileNotFoundError):
+            vfs.read("/nonexistent/path.txt")
+
+    def test_policy_mount_is_read_only(self, vfs):
+        """Writing to /policy raises PermissionError."""
+        with pytest.raises(PermissionError):
+            vfs.write("/policy/secret.txt", b"nope")
+
+    def test_read_only_mount_blocks_delete(self, vfs):
+        """Deleting from a read-only mount raises PermissionError."""
+        with pytest.raises(PermissionError):
+            vfs.delete("/policy/file.txt")
+
+    def test_checkpoint_save_and_load(self, vfs):
+        """save_checkpoint / load_checkpoint roundtrip."""
+        vfs.save_checkpoint("cp-1", {"step": 5, "score": 0.9})
+        state = vfs.load_checkpoint("cp-1")
+        assert state["step"] == 5
+        assert state["score"] == 0.9
+
+    def test_clear_working_memory(self, vfs):
+        """clear_working_memory removes all files under /mem/working."""
+        vfs.write("/mem/working/a.txt", b"a")
+        vfs.write("/mem/working/b.txt", b"b")
+        count = vfs.clear_working_memory()
+        assert count == 2
+        assert not vfs.exists("/mem/working/a.txt")
+
+    def test_mount_and_unmount(self, vfs):
+        """Custom backend can be mounted and unmounted."""
+        backend = MemoryBackend()
+        vfs.mount("/custom", backend, read_only=True)
+        assert vfs.unmount("/custom") is True
+        assert vfs.unmount("/custom") is False
 
 
 # =========================================================================

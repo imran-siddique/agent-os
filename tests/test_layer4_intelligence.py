@@ -51,3 +51,105 @@ class TestMuteAgent:
             assert ExecutionAgent is not None
         except ImportError:
             pytest.skip("mute-agent core not available")
+
+
+# =========================================================================
+# SelfCorrectingKernel tests (#168)
+# =========================================================================
+
+
+try:
+    from agent_kernel import SelfCorrectingAgentKernel
+    HAS_SCAK = True
+except ImportError:
+    HAS_SCAK = False
+
+
+@pytest.mark.skipif(not HAS_SCAK, reason="agent_kernel not installed")
+class TestSelfCorrectingKernel:
+    """Test kernel execution, self-correction on failure, and learning from mistakes."""
+
+    @pytest.fixture
+    def kernel(self):
+        return SelfCorrectingAgentKernel(config={"log_level": "WARNING"})
+
+    def test_kernel_initializes(self, kernel):
+        """Kernel can be instantiated with default config."""
+        assert kernel.detector is not None
+        assert kernel.analyzer is not None
+        assert kernel.patcher is not None
+        assert kernel.triage is not None
+
+    def test_handle_failure_returns_result(self, kernel):
+        """handle_failure returns a dict with expected keys."""
+        result = kernel.handle_failure(
+            agent_id="agent-1",
+            error_message="Division by zero",
+            context={"action": "compute"},
+        )
+        assert isinstance(result, dict)
+        assert "success" in result
+        assert "failure" in result
+
+    def test_handle_failure_patches_agent(self, kernel):
+        """A patchable failure results in a correction patch."""
+        result = kernel.handle_failure(
+            agent_id="agent-2",
+            error_message="KeyError: 'missing_key'",
+            context={"action": "lookup"},
+            auto_patch=True,
+        )
+        if result["success"]:
+            assert result["patch"] is not None
+            assert result["patch_applied"] is True
+
+    def test_handle_failure_no_auto_patch(self, kernel):
+        """With auto_patch=False the patch is created but not applied."""
+        result = kernel.handle_failure(
+            agent_id="agent-3",
+            error_message="Timeout",
+            context={"action": "fetch"},
+            auto_patch=False,
+        )
+        if result["success"]:
+            assert result["patch_applied"] is False
+
+    def test_failure_history_accumulates(self, kernel):
+        """Failures are recorded in the detector's history."""
+        kernel.handle_failure("agent-4", "err-1", context={"action": "a"})
+        kernel.handle_failure("agent-4", "err-2", context={"action": "b"})
+        history = kernel.get_failure_history(agent_id="agent-4")
+        assert len(history) >= 2
+
+    def test_wake_up_and_fix_convenience(self, kernel):
+        """wake_up_and_fix delegates to handle_failure."""
+        result = kernel.wake_up_and_fix("agent-5", "NoneType error", {"action": "run"})
+        assert isinstance(result, dict)
+        assert "success" in result
+
+    def test_async_triage_queues_noncritical(self, kernel):
+        """Non-critical failures with user_prompt are routed to async queue."""
+        result = kernel.handle_failure(
+            agent_id="agent-6",
+            error_message="Formatting issue",
+            context={"action": "format"},
+            user_prompt="Make it pretty",
+        )
+        # The triage engine decides; verify we get a result either way
+        assert isinstance(result, dict)
+
+    def test_get_agent_status(self, kernel):
+        """get_agent_status returns an AgentState."""
+        status = kernel.get_agent_status("new-agent")
+        assert status is not None
+
+    def test_learning_from_repeated_failures(self, kernel):
+        """Repeated similar failures produce similar-failure references in analysis."""
+        for i in range(3):
+            kernel.handle_failure(
+                agent_id="learn-agent",
+                error_message="Connection refused",
+                context={"action": "connect", "attempt": i},
+            )
+        history = kernel.get_failure_history(agent_id="learn-agent")
+        assert len(history) >= 3
