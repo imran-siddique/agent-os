@@ -10,10 +10,8 @@ Usage:
     agentos review <file> [--cmvk]         Multi-model code review
     agentos validate [files]               Validate policy YAML files
     agentos install-hooks                  Install git pre-commit hooks
-
-# TODO: Add `agentos serve` command for HTTP API server
-# TODO: Add `agentos metrics` command for Prometheus metrics
-# FIXME: Improve error messages with suggested fixes
+    agentos serve [--port PORT]            Start HTTP API server
+    agentos metrics                        Output Prometheus metrics
 """
 
 import argparse
@@ -22,6 +20,8 @@ import os
 import re
 import subprocess
 import sys
+import time
+from http.server import HTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
 from typing import Optional, List, Dict, Tuple
 
@@ -30,39 +30,130 @@ from typing import Optional, List, Dict, Tuple
 # Terminal Colors & Formatting
 # ============================================================================
 
-class Colors:
-    """ANSI color codes for terminal output.
-    
-    # OPTIMIZE: Cache color support check instead of calling every time
-    """
-    RED = '\033[91m'
-    GREEN = '\033[92m'
-    YELLOW = '\033[93m'
-    BLUE = '\033[94m'
-    MAGENTA = '\033[95m'
-    CYAN = '\033[96m'
-    WHITE = '\033[97m'
-    BOLD = '\033[1m'
-    DIM = '\033[2m'
-    RESET = '\033[0m'
-    
-    @classmethod
-    def disable(cls):
-        """Disable colors (for CI/non-TTY environments)."""
-        # HACK: Mutating class attributes - should use instance or env var
-        cls.RED = cls.GREEN = cls.YELLOW = cls.BLUE = ''
-        cls.MAGENTA = cls.CYAN = cls.WHITE = cls.BOLD = cls.DIM = cls.RESET = ''
-
-
-def supports_color():
+def supports_color() -> bool:
     """Check if terminal supports colors."""
     if os.environ.get('NO_COLOR') or os.environ.get('CI'):
         return False
     return sys.stdout.isatty()
 
 
-if not supports_color():
-    Colors.disable()
+class Colors:
+    """ANSI color codes for terminal output.
+
+    Uses instance attributes so that ``disable()`` does not mutate shared
+    class state.  A module-level singleton is created below; import and use
+    that instead of the class directly.
+    """
+
+    _DEFAULTS: Dict[str, str] = {
+        'RED': '\033[91m',
+        'GREEN': '\033[92m',
+        'YELLOW': '\033[93m',
+        'BLUE': '\033[94m',
+        'MAGENTA': '\033[95m',
+        'CYAN': '\033[96m',
+        'WHITE': '\033[97m',
+        'BOLD': '\033[1m',
+        'DIM': '\033[2m',
+        'RESET': '\033[0m',
+    }
+
+    def __init__(self, enabled: Optional[bool] = None) -> None:
+        if enabled is None:
+            enabled = supports_color()
+        self._enabled = enabled
+        self._apply(enabled)
+
+    def _apply(self, enabled: bool) -> None:
+        for name, code in self._DEFAULTS.items():
+            setattr(self, name, code if enabled else '')
+
+    def disable(self) -> None:
+        """Disable colors on *this* instance."""
+        self._enabled = False
+        self._apply(False)
+
+    def enable(self) -> None:
+        """Enable colors on *this* instance."""
+        self._enabled = True
+        self._apply(True)
+
+    @property
+    def enabled(self) -> bool:
+        return self._enabled
+
+
+# Module-level singleton – every import shares this instance.
+Colors = Colors()  # type: ignore[misc]
+
+
+# ============================================================================
+# CLI Error Formatting
+# ============================================================================
+
+DOCS_URL = "https://github.com/imran-siddique/agent-os/blob/main/docs"
+
+AVAILABLE_POLICIES = ("strict", "permissive", "audit")
+
+
+def _difflib_best_match(word: str, candidates: List[str]) -> Optional[str]:
+    """Return the closest match from *candidates*, or ``None``."""
+    import difflib
+
+    matches = difflib.get_close_matches(word, candidates, n=1, cutoff=0.5)
+    return matches[0] if matches else None
+
+
+def format_error(message: str, suggestion: Optional[str] = None,
+                 docs_path: Optional[str] = None) -> str:
+    """Return a colorized error string with an optional suggestion and docs link."""
+    parts = [f"{Colors.RED}{Colors.BOLD}Error:{Colors.RESET} {message}"]
+    if suggestion:
+        parts.append(f"  {Colors.GREEN}💡 Suggestion:{Colors.RESET} {suggestion}")
+    if docs_path:
+        parts.append(f"  {Colors.DIM}📖 Docs: {DOCS_URL}/{docs_path}{Colors.RESET}")
+    return "\n".join(parts)
+
+
+def handle_missing_config(path: str = ".") -> str:
+    """Error message for a missing ``.agents/`` config directory."""
+    return format_error(
+        f"Config directory not found: {path}/.agents/",
+        suggestion="Did you mean to create one? Run: agentos init",
+        docs_path="getting-started.md",
+    )
+
+
+def handle_invalid_policy(name: str) -> str:
+    """Error message for an unrecognised policy template name."""
+    available = ", ".join(AVAILABLE_POLICIES)
+    suggestion = f"Available policies: {available}"
+    match = _difflib_best_match(name, list(AVAILABLE_POLICIES))
+    if match:
+        suggestion += f". Did you mean '{match}'?"
+    return format_error(
+        f"Unknown policy template: '{name}'",
+        suggestion=suggestion,
+        docs_path="security-spec.md",
+    )
+
+
+def handle_missing_dependency(package: str, extra: str = "") -> str:
+    """Error message when an optional dependency is missing."""
+    install_cmd = f"pip install agent-os[{extra}]" if extra else f"pip install {package}"
+    return format_error(
+        f"Required package not installed: {package}",
+        suggestion=f"Install with: {install_cmd}",
+        docs_path="installation.md",
+    )
+
+
+def handle_connection_error(host: str, port: int) -> str:
+    """Error message for a connection failure."""
+    return format_error(
+        f"Could not connect to {host}:{port}",
+        suggestion=f"Check that the service is running on {host}:{port}",
+    )
 
 
 # ============================================================================
@@ -319,8 +410,11 @@ def cmd_init(args):
     agents_dir = root / ".agents"
     
     if agents_dir.exists() and not args.force:
-        print(f"Error: {agents_dir} already exists. Use --force to overwrite.")
-        print(f"  {Colors.DIM}Hint: agentos init --force{Colors.RESET}")
+        print(format_error(
+            f"{agents_dir} already exists",
+            suggestion="Use --force to overwrite: agentos init --force",
+            docs_path="getting-started.md",
+        ))
         return 1
     
     agents_dir.mkdir(parents=True, exist_ok=True)
@@ -438,14 +532,16 @@ def cmd_secure(args):
     agents_dir = root / ".agents"
     
     if not agents_dir.exists():
-        print(f"Error: No .agents/ directory found. Run 'agentos init' first.")
-        print(f"  {Colors.DIM}Hint: agentos init --template strict{Colors.RESET}")
+        print(handle_missing_config(str(root)))
         return 1
     
     security_md = agents_dir / "security.md"
     if not security_md.exists():
-        print(f"Error: No security.md found. Run 'agentos init' first.")
-        print(f"  {Colors.DIM}Hint: agentos init && agentos secure{Colors.RESET}")
+        print(format_error(
+            "No security.md found in .agents/ directory",
+            suggestion="Run: agentos init && agentos secure",
+            docs_path="security-spec.md",
+        ))
         return 1
     
     print(f"Securing agents in {root}...")
@@ -487,7 +583,7 @@ def cmd_audit(args):
     agents_dir = root / ".agents"
     
     if not agents_dir.exists():
-        print(f"No .agents/ directory found in {root}")
+        print(handle_missing_config(str(root)))
         return 1
     
     print(f"Auditing {root}...")
@@ -1007,6 +1103,162 @@ def cmd_validate(args):
     return 0
 
 
+# ============================================================================
+# HTTP API Server (agentos serve)
+# ============================================================================
+
+_serve_start_time: float = 0.0
+_registered_agents: Dict[str, Dict] = {}
+_kernel_operations: Dict[str, int] = {"execute": 0, "set": 0, "get": 0}
+
+
+def _get_kernel_state() -> Dict:
+    """Collect kernel state for status and metrics endpoints."""
+    from agent_os import __version__, AVAILABLE_PACKAGES
+    from agent_os.metrics import metrics
+
+    snap = metrics.snapshot()
+    uptime = time.monotonic() - _serve_start_time if _serve_start_time else 0.0
+    return {
+        "version": __version__,
+        "uptime_seconds": round(uptime, 2),
+        "active_agents": len(_registered_agents),
+        "policy_violations": snap["violations"],
+        "policy_checks": snap["total_checks"],
+        "audit_log_entries": snap["total_checks"] + snap["violations"] + snap["blocked"],
+        "kernel_operations": dict(_kernel_operations),
+        "packages": AVAILABLE_PACKAGES,
+    }
+
+
+class AgentOSRequestHandler(BaseHTTPRequestHandler):
+    """HTTP request handler for the Agent OS API server."""
+
+    def _send_json(self, data: dict, status: int = 200) -> None:
+        body = json.dumps(data, indent=2).encode()
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def do_GET(self) -> None:  # noqa: N802
+        if self.path == "/health":
+            from agent_os import __version__
+
+            self._send_json({"status": "ok", "version": __version__})
+        elif self.path == "/status":
+            state = _get_kernel_state()
+            self._send_json({
+                "active_agents": state["active_agents"],
+                "policy_count": state["policy_checks"],
+                "uptime_seconds": state["uptime_seconds"],
+                "packages": state["packages"],
+            })
+        elif self.path == "/agents":
+            self._send_json({"agents": list(_registered_agents.values())})
+        else:
+            self._send_json({"error": "not found"}, 404)
+
+    def do_POST(self) -> None:  # noqa: N802
+        # Match /agents/{id}/execute
+        import re as _re
+
+        match = _re.match(r"^/agents/([^/]+)/execute$", self.path)
+        if not match:
+            self._send_json({"error": "not found"}, 404)
+            return
+
+        agent_id = match.group(1)
+        if agent_id not in _registered_agents:
+            self._send_json({"error": f"agent '{agent_id}' not found"}, 404)
+            return
+
+        content_length = int(self.headers.get("Content-Length", 0))
+        body = self.rfile.read(content_length) if content_length else b"{}"
+        try:
+            payload = json.loads(body)
+        except json.JSONDecodeError:
+            self._send_json({"error": "invalid JSON"}, 400)
+            return
+
+        _kernel_operations["execute"] += 1
+        self._send_json({
+            "agent_id": agent_id,
+            "action": payload.get("action", "default"),
+            "status": "executed",
+        })
+
+    def log_message(self, format: str, *args: object) -> None:
+        """Suppress default stderr logging."""
+
+
+def cmd_serve(args: argparse.Namespace) -> int:
+    """Start the Agent OS HTTP API server."""
+    global _serve_start_time
+    _serve_start_time = time.monotonic()
+
+    host = args.host
+    port = args.port
+
+    print(f"Agent OS API server starting on {host}:{port}")
+    print("Endpoints:")
+    print("  GET  /health              Health check")
+    print("  GET  /status              Kernel status")
+    print("  GET  /agents              List agents")
+    print("  POST /agents/{{id}}/execute  Execute agent action")
+    print()
+    print(f"Press Ctrl+C to stop.")
+
+    server = HTTPServer((host, port), AgentOSRequestHandler)
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print("\nShutting down.")
+    finally:
+        server.server_close()
+    return 0
+
+
+# ============================================================================
+# Prometheus Metrics (agentos metrics)
+# ============================================================================
+
+
+def cmd_metrics(args: argparse.Namespace) -> int:
+    """Output Prometheus-style metrics to stdout."""
+    state = _get_kernel_state()
+
+    lines = [
+        "# HELP agentos_policy_violations_total Total policy violations.",
+        "# TYPE agentos_policy_violations_total counter",
+        f"agentos_policy_violations_total {state['policy_violations']}",
+        "",
+        "# HELP agentos_active_agents Number of active agents.",
+        "# TYPE agentos_active_agents gauge",
+        f"agentos_active_agents {state['active_agents']}",
+        "",
+        "# HELP agentos_uptime_seconds Kernel uptime in seconds.",
+        "# TYPE agentos_uptime_seconds gauge",
+        f"agentos_uptime_seconds {state['uptime_seconds']}",
+        "",
+        "# HELP agentos_kernel_operations_total Kernel operations by type.",
+        "# TYPE agentos_kernel_operations_total counter",
+    ]
+    for op in ("execute", "set", "get"):
+        count = state["kernel_operations"].get(op, 0)
+        lines.append(f'agentos_kernel_operations_total{{operation="{op}"}} {count}')
+
+    lines += [
+        "",
+        "# HELP agentos_audit_log_entries Total audit log entries.",
+        "# TYPE agentos_audit_log_entries gauge",
+        f"agentos_audit_log_entries {state['audit_log_entries']}",
+    ]
+    print("\n".join(lines))
+    return 0
+
+
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(
@@ -1121,6 +1373,28 @@ Documentation: https://github.com/imran-siddique/agent-os
     validate_parser.add_argument("files", nargs="*", help="Policy files to validate (default: .agents/*.yaml)")
     validate_parser.add_argument("--strict", action="store_true", help="Strict mode: treat warnings as errors")
     
+    # serve command
+    serve_parser = subparsers.add_parser(
+        "serve",
+        help="Start the HTTP API server for Agent OS",
+        description="Launch an HTTP server exposing health, status, agents, and "
+                    "execution endpoints for programmatic access to the kernel.",
+    )
+    serve_parser.add_argument(
+        "--port", type=int, default=8080, help="Port to listen on (default: 8080)"
+    )
+    serve_parser.add_argument(
+        "--host", default="0.0.0.0", help="Host to bind to (default: 0.0.0.0)"
+    )
+    
+    # metrics command
+    subparsers.add_parser(
+        "metrics",
+        help="Output Prometheus-style metrics to stdout",
+        description="Print kernel metrics in Prometheus exposition text format "
+                    "for scraping by monitoring systems.",
+    )
+    
     args = parser.parse_args()
     
     # Handle CI mode
@@ -1131,29 +1405,47 @@ Documentation: https://github.com/imran-siddique/agent-os
         try:
             from agent_os import __version__
             print(f"agentos {__version__}")
-        except:
+        except Exception:
             print("agentos (version unknown)")
         return 0
     
-    if args.command == "init":
-        return cmd_init(args)
-    elif args.command == "secure":
-        return cmd_secure(args)
-    elif args.command == "audit":
-        return cmd_audit(args)
-    elif args.command == "status":
-        return cmd_status(args)
-    elif args.command == "check":
-        return cmd_check(args)
-    elif args.command == "review":
-        return cmd_review(args)
-    elif args.command == "install-hooks":
-        return cmd_install_hooks(args)
-    elif args.command == "validate":
-        return cmd_validate(args)
-    else:
+    commands = {
+        "init": cmd_init,
+        "secure": cmd_secure,
+        "audit": cmd_audit,
+        "status": cmd_status,
+        "check": cmd_check,
+        "review": cmd_review,
+        "install-hooks": cmd_install_hooks,
+        "validate": cmd_validate,
+        "serve": cmd_serve,
+        "metrics": cmd_metrics,
+    }
+
+    handler = commands.get(args.command)
+    if handler is None:
         parser.print_help()
         return 0
+
+    try:
+        return handler(args)
+    except FileNotFoundError as exc:
+        print(format_error(str(exc), suggestion="Check the file path and try again"))
+        return 1
+    except ImportError as exc:
+        pkg = getattr(exc, "name", None) or str(exc)
+        extra = "redis" if "redis" in pkg.lower() else ""
+        print(handle_missing_dependency(pkg, extra=extra))
+        return 1
+    except ConnectionError as exc:
+        print(format_error(
+            str(exc),
+            suggestion="Check that the service is running and reachable",
+        ))
+        return 1
+    except KeyboardInterrupt:
+        print(f"\n{Colors.DIM}Interrupted.{Colors.RESET}")
+        return 130
 
 
 if __name__ == "__main__":
