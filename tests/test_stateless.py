@@ -424,3 +424,96 @@ class TestPolicyChecking:
         )
 
         assert result.success is False
+
+
+class TestMemoryBackendTTL:
+    """Test TTL expiration for MemoryBackend."""
+
+    @pytest.mark.asyncio
+    async def test_ttl_entry_expires(self):
+        """Test that an entry expires after TTL elapses."""
+        from unittest.mock import patch
+        from agent_os.stateless import MemoryBackend
+
+        backend = MemoryBackend()
+        with patch("agent_os.stateless.time") as mock_time:
+            mock_time.monotonic.return_value = 100.0
+            await backend.set("k", {"v": 1}, ttl=5)
+
+            mock_time.monotonic.return_value = 104.9
+            assert (await backend.get("k")) == {"v": 1}
+
+            mock_time.monotonic.return_value = 105.0
+            assert (await backend.get("k")) is None
+
+    @pytest.mark.asyncio
+    async def test_no_ttl_never_expires(self):
+        """Test that entries without TTL persist indefinitely."""
+        from agent_os.stateless import MemoryBackend
+
+        backend = MemoryBackend()
+        await backend.set("k", {"v": 1})
+        assert (await backend.get("k")) == {"v": 1}
+
+    @pytest.mark.asyncio
+    async def test_expired_entry_is_deleted(self):
+        """Test that expired entry is removed from store on get."""
+        from unittest.mock import patch
+        from agent_os.stateless import MemoryBackend
+
+        backend = MemoryBackend()
+        with patch("agent_os.stateless.time") as mock_time:
+            mock_time.monotonic.return_value = 0.0
+            await backend.set("k", {"v": 1}, ttl=1)
+
+            mock_time.monotonic.return_value = 2.0
+            await backend.get("k")
+            assert "k" not in backend._store
+
+
+class TestSerializationErrorHandling:
+    """Test serialization error handling in RedisBackend."""
+
+    @pytest.mark.asyncio
+    async def test_set_non_serializable_raises(self):
+        """Test that non-JSON-serializable values raise SerializationError."""
+        from agent_os.stateless import RedisBackend
+        from agent_os.exceptions import SerializationError
+
+        backend = RedisBackend()
+        backend._client = AsyncMock()
+
+        with pytest.raises(SerializationError) as exc_info:
+            await backend.set("bad", {"fn": lambda: None})
+
+        assert "bad" in str(exc_info.value)
+        assert exc_info.value.details["key"] == "bad"
+        assert exc_info.value.details["value_type"] == "dict"
+
+    @pytest.mark.asyncio
+    async def test_get_corrupt_data_raises(self):
+        """Test that corrupt stored data raises SerializationError."""
+        from agent_os.stateless import RedisBackend
+        from agent_os.exceptions import SerializationError
+
+        backend = RedisBackend()
+        mock_client = AsyncMock()
+        mock_client.get.return_value = b"not-valid-json{{"
+        backend._client = mock_client
+
+        with pytest.raises(SerializationError) as exc_info:
+            await backend.get("corrupt")
+
+        assert "corrupt" in str(exc_info.value)
+        assert exc_info.value.details["key"] == "corrupt"
+
+    @pytest.mark.asyncio
+    async def test_serialization_error_has_error_code(self):
+        """Test SerializationError carries proper error_code."""
+        from agent_os.exceptions import SerializationError
+
+        err = SerializationError("test", details={"key": "k"})
+        assert err.error_code == "SERIALIZATION_ERROR"
+        d = err.to_dict()
+        assert d["error"] == "SERIALIZATION_ERROR"
+        assert d["details"]["key"] == "k"
