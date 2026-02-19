@@ -39,6 +39,7 @@ from hypervisor.models import (
 
 # Session management
 from hypervisor.session import SharedSessionObject
+from hypervisor.session.sso import SessionVFS, VFSEdit, VFSPermissionError
 
 # Liability engine
 from hypervisor.liability.vouching import VouchRecord, VouchingEngine
@@ -80,6 +81,9 @@ __all__ = [
     "SessionState",
     # Session
     "SharedSessionObject",
+    "SessionVFS",
+    "VFSEdit",
+    "VFSPermissionError",
     # Liability
     "VouchRecord",
     "VouchingEngine",
