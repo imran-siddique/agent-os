@@ -35,6 +35,7 @@ from __future__ import annotations
 
 import logging
 import asyncio
+import time
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional, Union
@@ -113,11 +114,15 @@ class OpenAIAgentsKernel:
         self,
         policy: Optional[GovernancePolicy] = None,
         on_violation: Optional[Callable[[PolicyViolationError], None]] = None,
-    ):
-        self.policy = policy or GovernancePolicy()
-        self.on_violation = on_violation or self._default_violation_handler
+    ) -> None:
+        self.policy: GovernancePolicy = policy or GovernancePolicy()
+        self.on_violation: Callable[[PolicyViolationError], None] = (
+            on_violation or self._default_violation_handler
+        )
         self._contexts: Dict[str, ExecutionContext] = {}
         self._wrapped_agents: Dict[str, Any] = {}
+        self._start_time: float = time.monotonic()
+        self._last_error: Optional[str] = None
 
     def _default_violation_handler(self, error: PolicyViolationError) -> None:
         logger.error(f"Policy violation: {error}")
@@ -357,9 +362,9 @@ class OpenAIAgentsKernel:
 
     def get_stats(self) -> Dict[str, Any]:
         """Get governance statistics."""
-        total_tool_calls = sum(ctx.tool_calls for ctx in self._contexts.values())
-        total_handoffs = sum(ctx.handoffs for ctx in self._contexts.values())
-        
+        total_tool_calls: int = sum(ctx.tool_calls for ctx in self._contexts.values())
+        total_handoffs: int = sum(ctx.handoffs for ctx in self._contexts.values())
+
         return {
             "total_sessions": len(self._contexts),
             "wrapped_agents": len(self._wrapped_agents),
@@ -370,6 +375,23 @@ class OpenAIAgentsKernel:
                 "max_handoffs": self.policy.max_handoffs,
                 "blocked_tools": self.policy.blocked_tools,
             },
+        }
+
+    def health_check(self) -> Dict[str, Any]:
+        """Return adapter health status.
+
+        Returns:
+            A dict with ``status``, ``backend``, ``last_error``, and
+            ``uptime_seconds`` keys.
+        """
+        uptime: float = time.monotonic() - self._start_time
+        status: str = "degraded" if self._last_error else "healthy"
+        return {
+            "status": status,
+            "backend": "openai_agents_sdk",
+            "backend_connected": bool(self._wrapped_agents),
+            "last_error": self._last_error,
+            "uptime_seconds": round(uptime, 2),
         }
 
 

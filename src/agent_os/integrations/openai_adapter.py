@@ -35,10 +35,15 @@ Features:
 
 from typing import Any, Optional, Callable, Generator
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
+import asyncio
+import logging
+import random
 import time
 
 from .base import BaseIntegration, GovernancePolicy, ExecutionContext
+
+logger = logging.getLogger("agent_os.openai")
 
 
 @dataclass
@@ -68,39 +73,104 @@ class AssistantContext(ExecutionContext):
     completion_tokens: int = 0
 
 
+# Transient error base classes for retry detection
+_TRANSIENT_ERROR_NAMES = ("RateLimitError", "APIConnectionError", "Timeout", "APITimeoutError")
+
+
+def _is_transient(exc: Exception) -> bool:
+    """Return True if the exception is a transient OpenAI error."""
+    return type(exc).__name__ in _TRANSIENT_ERROR_NAMES
+
+
+def retry_with_backoff(
+    fn: Callable[..., Any],
+    *args: Any,
+    max_retries: int = 3,
+    base_delay: float = 1.0,
+    max_delay: float = 30.0,
+    **kwargs: Any,
+) -> Any:
+    """Call *fn* with exponential backoff + jitter on transient errors.
+
+    Args:
+        fn: Callable to invoke.
+        max_retries: Number of retry attempts after the initial call.
+        base_delay: Base delay in seconds for backoff calculation.
+        max_delay: Upper bound for the computed delay.
+
+    Returns:
+        The return value of *fn*.
+
+    Raises:
+        The last caught exception if all retries are exhausted.
+    """
+    last_exc: Optional[Exception] = None
+    for attempt in range(max_retries + 1):
+        try:
+            return fn(*args, **kwargs)
+        except Exception as exc:
+            if not _is_transient(exc) or attempt == max_retries:
+                raise
+            last_exc = exc
+            delay = min(base_delay * (2 ** attempt) + random.uniform(0, 1), max_delay)
+            logger.warning(
+                "Retry %d/%d for %s after %s (delay=%.2fs)",
+                attempt + 1,
+                max_retries,
+                fn.__name__ if hasattr(fn, "__name__") else str(fn),
+                type(exc).__name__,
+                delay,
+            )
+            time.sleep(delay)
+    raise last_exc  # type: ignore[misc]
+
+
 class OpenAIKernel(BaseIntegration):
     """
     OpenAI Assistants adapter for Agent OS.
-    
+
     Provides governance for:
     - Assistant creation/modification
     - Thread management
     - Run execution
     - Tool/function calls
     - File operations
-    
+
     Example:
         kernel = OpenAIKernel(policy=GovernancePolicy(
             max_tokens=10000,
             allowed_tools=["code_interpreter", "retrieval"],
             blocked_patterns=["password", "api_key", "secret"]
         ))
-        
+
         governed = kernel.wrap_assistant(assistant, client)
         result = governed.run(thread_id)
     """
-    
-    def __init__(self, policy: Optional[GovernancePolicy] = None):
+
+    def __init__(
+        self,
+        policy: Optional[GovernancePolicy] = None,
+        max_retries: int = 3,
+        timeout_seconds: float = 300.0,
+    ):
         """Initialise the OpenAI governance kernel.
 
         Args:
             policy: Governance policy to enforce. When ``None`` the default
                 ``GovernancePolicy`` is used.
+            max_retries: Maximum number of retry attempts for transient
+                OpenAI errors (default 3).
+            timeout_seconds: Default timeout in seconds for operations
+                (default 300).
         """
         super().__init__(policy)
+        self.max_retries = max_retries
+        self.timeout_seconds = timeout_seconds
         self._wrapped_assistants: dict[str, Any] = {}  # assistant_id -> original
         self._clients: dict[str, Any] = {}  # assistant_id -> client
         self._cancelled_runs: set[str] = set()
+        self._start_time = time.monotonic()
+        self._last_error: Optional[str] = None
     
     def wrap(self, agent: Any) -> Any:
         """Generic wrap — not supported; use :meth:`wrap_assistant` instead.
@@ -194,6 +264,29 @@ class OpenAIKernel(BaseIntegration):
             ``True`` if the run was previously cancelled.
         """
         return run_id in self._cancelled_runs
+
+    def health_check(self) -> dict[str, Any]:
+        """Return adapter health status.
+
+        Returns:
+            A dict with ``status``, ``backend``, ``last_error``, and
+            ``uptime_seconds`` keys.
+        """
+        uptime = time.monotonic() - self._start_time
+        has_clients = bool(self._clients)
+        if self._last_error:
+            status = "degraded"
+        elif not has_clients:
+            status = "healthy"
+        else:
+            status = "healthy"
+        return {
+            "status": status,
+            "backend": "openai",
+            "backend_connected": has_clients,
+            "last_error": self._last_error,
+            "uptime_seconds": round(uptime, 2),
+        }
 
 
 class GovernedAssistant:
@@ -629,15 +722,19 @@ class RunCancelledException(Exception):
 def wrap_assistant(
     assistant: Any,
     client: Any,
-    policy: Optional[GovernancePolicy] = None
+    policy: Optional[GovernancePolicy] = None,
+    max_retries: int = 3,
+    timeout_seconds: float = 300.0,
 ) -> GovernedAssistant:
     """
     Quick wrapper for OpenAI Assistants.
-    
+
     Example:
         from agent_os.integrations.openai_adapter import wrap_assistant
-        
+
         governed = wrap_assistant(my_assistant, openai_client)
         result = governed.run(thread_id)
     """
-    return OpenAIKernel(policy).wrap_assistant(assistant, client)
+    return OpenAIKernel(
+        policy, max_retries=max_retries, timeout_seconds=timeout_seconds
+    ).wrap_assistant(assistant, client)

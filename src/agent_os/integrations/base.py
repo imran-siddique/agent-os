@@ -756,31 +756,31 @@ class BaseIntegration(ABC):
     - Signal handling
     """
     
-    def __init__(self, policy: Optional[GovernancePolicy] = None):
-        self.policy = policy or GovernancePolicy()
+    def __init__(self, policy: Optional[GovernancePolicy] = None) -> None:
+        self.policy: GovernancePolicy = policy or GovernancePolicy()
         self.contexts: dict[str, ExecutionContext] = {}
-        self._signal_handlers: dict[str, Callable] = {}
-        self._event_listeners: dict[GovernanceEventType, list[Callable]] = {}
-    
+        self._signal_handlers: dict[str, Callable[..., Any]] = {}
+        self._event_listeners: dict[GovernanceEventType, list[Callable[..., Any]]] = {}
+
     @abstractmethod
     def wrap(self, agent: Any) -> Any:
         """
         Wrap an agent with governance.
-        
+
         Returns a governed version of the agent that:
         - Enforces policy on all operations
         - Records execution to flight recorder
         - Responds to signals (SIGSTOP, SIGKILL, etc.)
         """
         pass
-    
+
     @abstractmethod
     def unwrap(self, governed_agent: Any) -> Any:
-        """Remove governance wrapper and return original agent"""
+        """Remove governance wrapper and return original agent."""
         pass
-    
+
     def create_context(self, agent_id: str) -> ExecutionContext:
-        """Create execution context for an agent"""
+        """Create execution context for an agent."""
         from uuid import uuid4
         ctx = ExecutionContext(
             agent_id=agent_id,
@@ -790,11 +790,11 @@ class BaseIntegration(ABC):
         self.contexts[agent_id] = ctx
         return ctx
 
-    def on(self, event_type: GovernanceEventType, callback: Callable) -> None:
+    def on(self, event_type: GovernanceEventType, callback: Callable[..., Any]) -> None:
         """Register a callback for a governance event type."""
         self._event_listeners.setdefault(event_type, []).append(callback)
 
-    def emit(self, event_type: GovernanceEventType, data: dict) -> None:
+    def emit(self, event_type: GovernanceEventType, data: Dict[str, Any]) -> None:
         """Fire all registered callbacks for an event type."""
         for cb in self._event_listeners.get(event_type, []):
             try:
@@ -874,12 +874,12 @@ class BaseIntegration(ABC):
         """
         return self.post_execute(ctx, output_data)
 
-    def on_signal(self, signal: str, handler: Callable):
-        """Register a signal handler"""
+    def on_signal(self, signal: str, handler: Callable[..., Any]) -> None:
+        """Register a signal handler."""
         self._signal_handlers[signal] = handler
-    
-    def signal(self, agent_id: str, signal: str):
-        """Send signal to agent"""
+
+    def signal(self, agent_id: str, signal: str) -> None:
+        """Send signal to agent."""
         if signal in self._signal_handlers:
             self._signal_handlers[signal](agent_id)
 
@@ -892,7 +892,7 @@ class AsyncGovernedWrapper:
     Calls async_pre_execute before and async_post_execute after the wrapped callable.
     """
 
-    def __init__(self, integration: BaseIntegration, fn: Callable, agent_id: str = "async-agent"):
+    def __init__(self, integration: BaseIntegration, fn: Callable[..., Any], agent_id: str = "async-agent") -> None:
         self._integration = integration
         self._fn = fn
         self._ctx = integration.create_context(agent_id)

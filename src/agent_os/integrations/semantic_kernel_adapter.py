@@ -27,6 +27,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from functools import wraps
 import asyncio
+import time
 
 from .base import BaseIntegration, GovernancePolicy, ExecutionContext
 
@@ -87,7 +88,8 @@ class SemanticKernelWrapper(BaseIntegration):
     def __init__(
         self,
         kernel: Any = None,
-        policy: Optional[GovernancePolicy] = None
+        policy: Optional[GovernancePolicy] = None,
+        timeout_seconds: float = 300.0,
     ):
         """Initialise the Semantic Kernel governance wrapper.
 
@@ -96,12 +98,16 @@ class SemanticKernelWrapper(BaseIntegration):
                 provided later via :meth:`wrap`.
             policy: Governance policy to enforce. When ``None`` the default
                 ``GovernancePolicy`` is used.
+            timeout_seconds: Default timeout in seconds (default 300).
         """
         super().__init__(policy)
         self._kernel = kernel
         self._stopped = False
         self._killed = False
         self._contexts: Dict[str, SKContext] = {}
+        self.timeout_seconds = timeout_seconds
+        self._start_time = time.monotonic()
+        self._last_error: Optional[str] = None
     
     def wrap(self, kernel: Any) -> "GovernedSemanticKernel":
         """
@@ -180,6 +186,28 @@ class SemanticKernelWrapper(BaseIntegration):
     def is_killed(self) -> bool:
         """Return whether the wrapper has received SIGKILL."""
         return self._killed
+
+    def health_check(self) -> dict[str, Any]:
+        """Return adapter health status.
+
+        Returns:
+            A dict with ``status``, ``backend``, ``last_error``, and
+            ``uptime_seconds`` keys.
+        """
+        uptime = time.monotonic() - self._start_time
+        if self._killed:
+            status = "unhealthy"
+        elif self._last_error:
+            status = "degraded"
+        else:
+            status = "healthy"
+        return {
+            "status": status,
+            "backend": "semantic_kernel",
+            "backend_connected": self._kernel is not None,
+            "last_error": self._last_error,
+            "uptime_seconds": round(uptime, 2),
+        }
 
 
 class GovernedSemanticKernel:
@@ -717,15 +745,18 @@ class ExecutionKilledError(Exception):
 
 def wrap_kernel(
     kernel: Any,
-    policy: Optional[GovernancePolicy] = None
+    policy: Optional[GovernancePolicy] = None,
+    timeout_seconds: float = 300.0,
 ) -> GovernedSemanticKernel:
     """
     Quick wrapper for Semantic Kernel.
-    
+
     Example:
         from agent_os.integrations.semantic_kernel_adapter import wrap_kernel
-        
+
         governed = wrap_kernel(my_kernel)
         result = await governed.invoke("plugin", "function")
     """
-    return SemanticKernelWrapper(policy=policy).wrap(kernel)
+    return SemanticKernelWrapper(
+        policy=policy, timeout_seconds=timeout_seconds
+    ).wrap(kernel)
