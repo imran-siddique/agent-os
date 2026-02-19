@@ -2,20 +2,50 @@
 
 Thank you for your interest in contributing! Agent OS is designed to be extended by the community.
 
-## 🚀 Quick Start (5 minutes)
+---
+
+## 🚀 Development Setup
+
+### Prerequisites
+
+- **Python 3.9+**
+- **pip** (latest recommended)
+- **git**
+
+### Clone and Install
 
 ```bash
-# Clone and install
 git clone https://github.com/imran-siddique/agent-os.git
 cd agent-os
 pip install -e ".[dev]"
+```
 
-# Run tests to make sure everything works
-pytest tests/ -v
+### Verify Your Setup
 
-# Run a demo
+```bash
+# Run all tests (unit + module-specific)
+pytest tests/ modules/*/tests -v
+
+# Run a demo to confirm everything works
 python examples/carbon-auditor/demo.py
 ```
+
+### Developer Tooling
+
+```bash
+# Type checking
+mypy src/
+
+# Linting
+ruff check .
+
+# Formatting
+ruff format .
+```
+
+> **Tip:** Run all three checks before opening a PR. CI will enforce them.
+
+---
 
 ## 🏷️ Good First Issues
 
@@ -26,6 +56,8 @@ New to the project? Start here:
 | [`good-first-issue`](https://github.com/imran-siddique/agent-os/labels/good-first-issue) | Small, well-defined tasks |
 | [`documentation`](https://github.com/imran-siddique/agent-os/labels/documentation) | Improve docs and examples |
 | [`needs-tests`](https://github.com/imran-siddique/agent-os/labels/needs-tests) | Add test coverage |
+
+---
 
 ## 🎁 Integration Bounties
 
@@ -41,14 +73,38 @@ We're actively looking for integration contributions:
 
 See `src/agent_os/integrations/` for the adapter pattern.
 
-## 📁 Project Structure
+---
+
+## 📐 Architecture Overview
+
+Agent OS follows a **4-layer modular kernel** architecture. Each layer has a clear responsibility and strict dependency rules.
+
+| Layer | Name | Key Modules | Purpose |
+|-------|------|-------------|---------|
+| **L1** | Primitives | `primitives/` — CMVK, CaaS, EMK | Core identity, credentials, execution memory. Pure types with zero external dependencies. |
+| **L2** | Infrastructure | `cmvk/`, `iatp/` — IATP, AMB, ATR | Inter-agent trust protocol, message bus, trust registry. Protocols and transport. |
+| **L3** | Framework | `control-plane/` — Control plane, observability, nexus | Governance enforcement, kernel orchestration, observability. |
+| **L4** | Intelligence | `scak/` — SCAK, mute-agent, MCP server | Semantic context awareness, self-correction, MCP kernel server. |
+
+### Layer Boundary Rules
+
+> **Lower layers must never import from upper layers.**
+
+- L1 depends on **nothing** — pure types, zero deps
+- L2 may depend on **L1 only**
+- L3 may depend on **L1 and L2**
+- L4 may depend on **L1, L2, and L3**
+
+Violating layer boundaries will be caught by import linting (`.importlinter` config at the repo root).
+
+### Project Structure
 
 ```
 agent-os/
 ├── src/agent_os/        # Main package (re-exports everything)
 │   ├── __init__.py      # Unified imports
 │   ├── cli.py           # agentos CLI
-│   └── integrations/    # Framework adapters
+│   └── integrations/    # Framework adapters (base.py, profiling.py)
 ├── modules/             # Individual kernel modules
 │   ├── primitives/      # L1: Base types
 │   ├── cmvk/            # L2: Verification
@@ -66,19 +122,78 @@ agent-os/
 └── tests/               # Integration tests
 ```
 
-## 🧪 Testing
+---
+
+## 📝 Coding Standards
+
+### Style & Formatting
+
+- **Formatter / Linter:** [Ruff](https://docs.astral.sh/ruff/) (line-length: **100**, target: **Python 3.9+**)
+- **Enabled rule sets:** `E`, `W`, `F`, `I` (isort), `B` (bugbear), `C4`, `UP` (pyupgrade)
+- **Type checker:** MyPy in strict mode with the Pydantic plugin
+
+### Docstrings
+
+Use **Google-style** docstrings for all public functions, classes, and methods:
+
+```python
+def verify_credential(credential: Credential, policy: GovernancePolicy) -> bool:
+    """Verify a credential against the governance policy.
+
+    Args:
+        credential: The credential to verify.
+        policy: The governance policy to check against.
+
+    Returns:
+        True if the credential passes all policy checks.
+
+    Raises:
+        PolicyViolationError: If the credential violates a blocked pattern.
+    """
+```
+
+### Type Hints
+
+- **Required** on all public API functions, methods, and class attributes.
+- Enforced by `mypy --strict`.
+
+### Data Structures
+
+- Use `dataclass` or Pydantic `BaseModel` for data structures — avoid raw dicts for structured data.
+- Governance types: `GovernancePolicy`, `PatternType` (`SUBSTRING`, `REGEX`, `GLOB`), `GovernanceEventType` (`POLICY_CHECK`, `POLICY_VIOLATION`, `TOOL_CALL_BLOCKED`, `CHECKPOINT_CREATED`).
+
+### Commit Message Convention
+
+We use [Conventional Commits](https://www.conventionalcommits.org/):
+
+| Prefix | When to use |
+|--------|-------------|
+| `feat:` | A new feature |
+| `fix:` | A bug fix |
+| `docs:` | Documentation only changes |
+| `test:` | Adding or updating tests |
+| `refactor:` | Code change that neither fixes a bug nor adds a feature |
+| `chore:` | Maintenance tasks (deps, CI, tooling) |
+
+Example: `git commit -m "feat(iatp): add mutual attestation handshake"`
+
+---
+
+## 🧪 Testing Requirements
+
+### Running Tests
 
 ```bash
-# Run all tests
-pytest tests/ -v
+# Run all tests (unit + module-specific)
+pytest tests/ modules/*/tests -v
 
-# Run specific layer
+# Run a specific layer's tests
 pytest tests/test_layer1_primitives.py -v
 
 # Run with coverage
-pytest tests/ --cov=modules --cov-report=html
+pytest tests/ --cov=src/agent_os --cov-report=html --cov-branch
 
-# Run demos (integration test)
+# Run demos as integration tests
 python examples/hello-world/agent.py
 python examples/carbon-auditor/demo.py --scenario both
 python examples/grid-balancing/demo.py --agents 10
@@ -86,42 +201,82 @@ python examples/defi-sentinel/demo.py --attack all
 python examples/pharma-compliance/demo.py --reports 10
 ```
 
-## 📝 Code Style
+### Test Expectations
 
-```bash
-# Format (we use ruff)
-ruff format .
+- **All new features must include tests.** PRs without tests for new functionality will be requested to add them.
+- **Minimum coverage:** Test the happy path **+** at least one edge case per feature.
+- **Async tests:** Use `pytest-asyncio` (`asyncio_mode = "auto"` is configured in `pyproject.toml`).
+- **Test location:** Unit tests go in `tests/`. Module-specific tests go in `modules/<module>/tests/`.
 
-# Lint
-ruff check .
+### Boundary: `test_mcp_server.py`
 
-# Type check
-mypy src/
-```
+> **Never modify `tests/test_mcp_server.py`.** This file has a known pre-existing failure and is excluded from CI. Leave it as-is.
+
+---
 
 ## 🔀 Pull Request Process
 
+### Workflow
+
 1. **Fork** the repository
-2. **Create branch**: `git checkout -b feature/my-feature`
-3. **Make changes** (follow the design philosophy below)
-4. **Test**: `pytest tests/ -v`
-5. **Commit**: `git commit -m "feat: add my feature"`
-6. **Push**: `git push origin feature/my-feature`
-7. **Open PR** with description of changes
+2. **Create a branch** from `main`:
+   ```bash
+   git checkout -b feature/my-feature
+   ```
+3. **Make changes** following the coding standards above
+4. **Run checks locally:**
+   ```bash
+   ruff check . && ruff format --check . && mypy src/ && pytest tests/ modules/*/tests -v
+   ```
+5. **Commit** using conventional commits:
+   ```bash
+   git commit -m "feat: add my feature"
+   ```
+6. **Push** to your fork:
+   ```bash
+   git push origin feature/my-feature
+   ```
+7. **Open a PR** against `main`
 
-### Commit Message Convention
+### PR Checklist
 
-```
-feat: add new feature
-fix: fix a bug
-docs: documentation only
-test: add tests
-refactor: code change that neither fixes a bug nor adds a feature
-```
+Before requesting review, confirm:
+
+- [ ] Code follows the project coding standards (Ruff, MyPy, Google docstrings)
+- [ ] All new/changed public APIs have type hints
+- [ ] Tests added for new functionality (happy path + edge case)
+- [ ] All existing tests pass locally (`pytest tests/ modules/*/tests -v`)
+- [ ] No secrets, API keys, or credentials committed
+- [ ] Backward compatibility maintained (no breaking changes to public APIs)
+- [ ] Governance policies not loosened (policies may only be tightened)
+- [ ] Commit messages follow conventional commit format
+
+### Review Process
+
+- At least **one maintainer approval** is required to merge.
+- CI must pass (lint, type-check, tests) before merge.
+- Reviewers may request changes — please address feedback in follow-up commits.
+- Squash-merge is preferred for clean history.
+
+---
+
+## 🚧 Boundaries
+
+These rules are **non-negotiable** and enforced in review:
+
+| Rule | Detail |
+|------|--------|
+| 🔑 **Never commit secrets** | No API keys, tokens, or credentials in source code — ever. |
+| 🔒 **Never loosen GovernancePolicy** | Existing policy constraints may only be **tightened**, never relaxed. |
+| 🔄 **Keep backward compatibility** | Do not break existing public API signatures. |
+| 🚫 **Never modify `test_mcp_server.py`** | Known pre-existing failure; excluded from CI. |
+| 📦 **Respect layer boundaries** | Lower layers must never import from upper layers. |
+
+---
 
 ## 🎯 Design Philosophy
 
-**"Scale by Subtraction"** - We value simplicity over features.
+**"Scale by Subtraction"** — We value simplicity over features.
 
 ### We ✅ Want
 
@@ -134,25 +289,39 @@ refactor: code change that neither fixes a bug nor adds a feature
 ### We ❌ Avoid
 
 - Visual workflow editors
-- CRM/ERP connectors  
+- CRM/ERP connectors
 - Low-code builders
 - Feature bloat
 - Vendor lock-in
 
-## 📚 Layer Guidelines
+---
 
-| Layer | May Depend On | Focus |
-|-------|---------------|-------|
-| **L1: Primitives** | Nothing | Pure types, zero deps |
-| **L2: Infrastructure** | L1 | Protocols, transport |
-| **L3: Framework** | L1, L2 | Governance, kernel |
-| **L4: Intelligence** | L1, L2, L3 | Self-correction |
+## 🌱 Path to Maintainer
+
+We recognize and reward consistent contributors:
+
+| Role | Requirements | Permissions |
+|------|-------------|-------------|
+| **Contributor** | 1+ merged PR | Listed in PR history |
+| **Regular Contributor** | 5+ merged PRs | Recognized in README contributors section |
+| **Reviewer** | 10+ merged PRs + active code reviews | Invited to review PRs, triaging issues |
+| **Maintainer** | Invitation by existing maintainers | Merge access, release management, governance decisions |
+
+### How Progression Works
+
+- **Contributor → Regular Contributor:** Keep submitting quality PRs. Once you reach 5 merged PRs, you'll be added to the README contributors section.
+- **Regular Contributor → Reviewer:** Demonstrate deep knowledge by reviewing others' PRs and participating in discussions. After 10+ merged PRs with active review participation, maintainers will invite you to the reviewer role.
+- **Reviewer → Maintainer:** Maintainers are invited based on sustained contribution, sound judgment in reviews, and alignment with the project's design philosophy. There is no fixed threshold — existing maintainers decide by consensus.
+
+---
 
 ## 💬 Getting Help
 
 - **Questions?** Open a [Discussion](https://github.com/imran-siddique/agent-os/discussions)
 - **Found a bug?** Open an [Issue](https://github.com/imran-siddique/agent-os/issues)
 - **Want to chat?** See the README for community links
+
+---
 
 ## 📜 License
 

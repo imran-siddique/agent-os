@@ -20,6 +20,9 @@ from __future__ import annotations
 
 import asyncio
 import copy
+import json
+import os
+import re
 import sys
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -103,8 +106,56 @@ class AgentConfig:
     state_backend: Optional[StateBackend] = None
     max_audit_log_size: int = 10000
     max_metadata_size_bytes: int = 1_048_576  # 1 MB
-    # FIXME: Add validation for agent_id format (should be alphanumeric with dashes)
-    # TODO: Support loading config from YAML/JSON file
+
+    _AGENT_ID_RE = re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9-]{2,63}$")
+
+    def __post_init__(self) -> None:
+        if not self._AGENT_ID_RE.match(self.agent_id):
+            raise ValueError(
+                f"Invalid agent_id {self.agent_id!r}. "
+                "Must be 3-64 chars, alphanumeric with dashes, "
+                "starting with an alphanumeric character."
+            )
+
+    @classmethod
+    def from_file(cls, path: str) -> "AgentConfig":
+        """Load agent configuration from a YAML or JSON file.
+
+        Args:
+            path: Path to a .yaml, .yml, or .json config file
+
+        Returns:
+            AgentConfig populated from the file
+
+        Raises:
+            FileNotFoundError: If the file does not exist
+            ValueError: If the file extension is not supported
+        """
+        if not os.path.isfile(path):
+            raise FileNotFoundError(f"Config file not found: {path}")
+
+        ext = os.path.splitext(path)[1].lower()
+        with open(path, "r", encoding="utf-8") as fh:
+            if ext in (".yaml", ".yml"):
+                try:
+                    import yaml
+                except ImportError as exc:
+                    raise ImportError(
+                        "PyYAML is required for YAML config: pip install pyyaml"
+                    ) from exc
+                data = yaml.safe_load(fh) or {}
+            elif ext == ".json":
+                data = json.load(fh)
+            else:
+                raise ValueError(f"Unsupported config format: {ext}")
+
+        return cls(
+            agent_id=data.get("agent_id", data.get("agentId", "agent")),
+            policies=data.get("policies", []),
+            metadata=data.get("metadata", {}),
+            max_audit_log_size=data.get("max_audit_log_size", 10000),
+            max_metadata_size_bytes=data.get("max_metadata_size_bytes", 1_048_576),
+        )
 
     def __repr__(self) -> str:
         return f"AgentConfig(agent_id={self.agent_id!r}, policies={self.policies!r})"

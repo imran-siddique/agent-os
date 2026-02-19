@@ -98,7 +98,7 @@ class TestFromFile:
     def test_unsupported_format(self, tmp_path):
         txt_file = tmp_path / "config.txt"
         txt_file.write_text("agent_id: test", encoding="utf-8")
-        with pytest.raises(ValueError, match="Unsupported config file format"):
+        with pytest.raises(ValueError, match="Unsupported config format"):
             AgentConfig.from_file(str(txt_file))
 
     def test_load_defaults_when_optional_keys_missing(self, tmp_path):
