@@ -35,15 +35,21 @@ Usage:
     governed = SemanticKernelWrapper().wrap(sk_kernel)
 """
 
-from .langchain_adapter import LangChainKernel
-from .llamaindex_adapter import LlamaIndexKernel
-from .crewai_adapter import CrewAIKernel
-from .autogen_adapter import AutoGenKernel
-from .openai_adapter import OpenAIKernel, GovernedAssistant
-from .anthropic_adapter import AnthropicKernel, GovernedAnthropicClient
-from .gemini_adapter import GeminiKernel, GovernedGeminiModel
-from .mistral_adapter import MistralKernel, GovernedMistralClient
-from .semantic_kernel_adapter import SemanticKernelWrapper, GovernedSemanticKernel
+from agent_os.integrations.langchain_adapter import LangChainKernel
+from agent_os.integrations.llamaindex_adapter import LlamaIndexKernel
+from agent_os.integrations.crewai_adapter import CrewAIKernel
+from agent_os.integrations.autogen_adapter import AutoGenKernel
+from agent_os.integrations.openai_adapter import OpenAIKernel, GovernedAssistant
+from agent_os.integrations.anthropic_adapter import AnthropicKernel, GovernedAnthropicClient
+from agent_os.integrations.gemini_adapter import GeminiKernel, GovernedGeminiModel
+from agent_os.integrations.mistral_adapter import MistralKernel, GovernedMistralClient
+from agent_os.integrations.semantic_kernel_adapter import (
+    SemanticKernelWrapper,
+    GovernedSemanticKernel,
+)
+from agent_os.integrations.guardrails_adapter import GuardrailsKernel
+from agent_os.integrations.google_adk_adapter import GoogleADKKernel
+from agent_os.integrations.a2a_adapter import A2AGovernanceAdapter, A2APolicy, A2AEvaluation
 from .base import (
     AsyncGovernedWrapper,
     BaseIntegration,
@@ -121,6 +127,14 @@ __all__ = [
     # Semantic Kernel
     "SemanticKernelWrapper",
     "GovernedSemanticKernel",
+    # Guardrails
+    "GuardrailsKernel",
+    # Google ADK
+    "GoogleADKKernel",
+    # A2A (Agent-to-Agent)
+    "A2AGovernanceAdapter",
+    "A2APolicy",
+    "A2AEvaluation",
     # Token Budget Tracking
     "TokenBudgetTracker",
     "TokenBudgetStatus",
