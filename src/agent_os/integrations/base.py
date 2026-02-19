@@ -32,7 +32,88 @@ class GovernanceEventType(Enum):
 
 @dataclass
 class GovernancePolicy:
-    """Policy configuration for governed agents"""
+    """Policy configuration for governed AI agents.
+
+    Defines the complete set of constraints, thresholds, and audit settings
+    that the governance layer enforces on agent behaviour. Policies are
+    validated on construction via ``__post_init__`` and can be serialized
+    to/from YAML for version-controlled configuration.
+
+    Policies are **composable**: create a base policy with sensible defaults
+    and derive stricter variants for sensitive environments.  Use
+    ``is_stricter_than()`` to verify that a derived policy never *loosens*
+    constraints relative to the base.
+
+    Attributes:
+        name: Human-readable policy name used in audit logs and error
+            messages.  Defaults to ``"default"``.
+        max_tokens: Maximum number of tokens an agent may consume per
+            request.  Must be a positive integer.  Defaults to ``4096``.
+        max_tool_calls: Maximum number of tool invocations allowed per
+            request.  ``0`` disables tool calls entirely.  Must be a
+            non-negative integer.  Defaults to ``10``.
+        allowed_tools: Explicit allowlist of tool names the agent may call.
+            An empty list means *all* tools are permitted (subject to other
+            constraints).  Defaults to ``[]``.
+        blocked_patterns: Patterns that must not appear in tool arguments.
+            Each entry is either a plain substring string or a
+            ``(pattern, PatternType)`` tuple for regex/glob matching.
+            Defaults to ``[]``.
+        require_human_approval: When ``True``, tool calls require explicit
+            human approval before execution.  Defaults to ``False``.
+        timeout_seconds: Maximum wall-clock time (in seconds) allowed for
+            a single request.  Must be a positive integer.  Defaults to
+            ``300``.
+        confidence_threshold: Minimum confidence score (0.0–1.0) for an
+            agent's action to be accepted without review.  ``0.0``
+            effectively disables confidence checking.  Defaults to ``0.8``.
+        drift_threshold: Maximum acceptable semantic drift score (0.0–1.0)
+            between an agent's stated intent and actual output before a
+            ``DRIFT_DETECTED`` event is emitted.  Defaults to ``0.15``.
+        log_all_calls: When ``True``, every tool call is recorded in the
+            audit log regardless of outcome.  Defaults to ``True``.
+        checkpoint_frequency: Create a governance checkpoint every *N* tool
+            calls.  Must be a positive integer.  Defaults to ``5``.
+        max_concurrent: Maximum number of concurrent agent executions
+            allowed under this policy.  Must be a positive integer.
+            Defaults to ``10``.
+        backpressure_threshold: Number of concurrent executions at which
+            the system begins applying backpressure (e.g. throttling new
+            requests).  Should be less than ``max_concurrent`` to be
+            effective.  Defaults to ``8``.
+        version: Semantic version string for the policy, enabling auditable
+            policy evolution.  Defaults to ``"1.0.0"``.
+
+    Example:
+        Creating a strict read-only policy::
+
+            policy = GovernancePolicy(
+                name="read_only_strict",
+                max_tokens=2048,
+                max_tool_calls=5,
+                allowed_tools=["read_file", "web_search"],
+                blocked_patterns=[
+                    "password",
+                    ("rm\\s+-rf", PatternType.REGEX),
+                    ("*.exe", PatternType.GLOB),
+                ],
+                require_human_approval=True,
+                confidence_threshold=0.9,
+                drift_threshold=0.10,
+                version="2.0.0",
+            )
+
+        Comparing policies::
+
+            base = GovernancePolicy()
+            strict = GovernancePolicy(max_tokens=1024, max_tool_calls=3)
+            assert strict.is_stricter_than(base)
+
+        Serialization round-trip::
+
+            yaml_str = policy.to_yaml()
+            restored = GovernancePolicy.from_yaml(yaml_str)
+    """
     name: str = "default"
     max_tokens: int = 4096
     max_tool_calls: int = 10

@@ -53,6 +53,29 @@ except ImportError:
     _PRIMITIVES_AVAILABLE = False
 
 # CMVK - Cross-Model Verification Kernel
+# DriftDetector (#138): Compares agent outputs across models or over time to
+# detect semantic drift — situations where an agent's behaviour diverges from
+# its stated intent or baseline.  Drift is quantified as a float score in
+# [0.0, 1.0] (0 = identical, 1 = completely divergent).  When the score
+# exceeds GovernancePolicy.drift_threshold a ``DRIFT_DETECTED`` governance
+# event is emitted.
+#
+# SemanticDrift: Data class holding drift metadata (score, drift type, etc.).
+# verify_outputs: Pure function that compares two text outputs for drift.
+#
+# Threshold parameters (from GovernancePolicy):
+#   - confidence_threshold (float): Minimum confidence for acceptance.
+#   - drift_threshold (float): Maximum tolerable drift before alerting.
+#
+# Example — detecting agent behaviour drift:
+#   >>> from agent_os import DriftDetector  # requires cmvk package
+#   >>> detector = DriftDetector(threshold=0.15)
+#   >>> drift = detector.compare(
+#   ...     baseline="Transfer $100 to savings account",
+#   ...     current="Transfer $10,000 to external account XYZ",
+#   ... )
+#   >>> if drift.score > 0.15:
+#   ...     print(f"DRIFT DETECTED: {drift.score:.2f}")
 try:
     from cmvk import (
         DriftDetector,
@@ -64,6 +87,29 @@ except ImportError:
     _CMVK_AVAILABLE = False
 
 # CaaS - Context as a Service
+# ContextPipeline (#139): A composable, multi-stage pipeline for transforming
+# and filtering context before it reaches an agent.  The architecture follows
+# a pipes-and-filters pattern where each stage receives a context object,
+# applies a transformation (e.g. PII redaction, summarisation, relevance
+# scoring), and passes the result to the next stage.
+#
+# Pipeline stages:
+#   1. Ingestion  — parse raw documents into structured Sections.
+#   2. Enrichment — add metadata (timestamps, source citations).
+#   3. Filtering  — remove irrelevant or sensitive content.
+#   4. Routing    — classify the query and select the right model tier.
+#   5. Assembly   — build the final context window within token budget.
+#
+# RAGContext: Holds retrieval-augmented generation context with citations.
+#
+# Example — building a context pipeline:
+#   >>> from agent_os import ContextPipeline  # requires caas package
+#   >>> pipeline = ContextPipeline(stages=[
+#   ...     RedactPIIStage(),
+#   ...     SummarizeStage(max_tokens=512),
+#   ...     RelevanceScoringStage(threshold=0.7),
+#   ... ])
+#   >>> context = pipeline.run(raw_documents, query="quarterly revenue")
 try:
     from caas import (
         ContextPipeline,

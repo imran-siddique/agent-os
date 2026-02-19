@@ -156,31 +156,53 @@ class KernelMetrics:
 
 
 class KernelSpace:
-    """
-    The Kernel Space - protected core of Agent OS.
-    
-    This is Ring 0 - the most privileged code that:
-    - Enforces all policies
-    - Records all actions to flight recorder
-    - Manages agent signals
-    - Controls the VFS
-    - Routes IPC messages
-    
-    The kernel SURVIVES agent crashes. If an agent hallucinates,
-    throws an exception, or violates policy, the kernel remains
-    stable and can recover or terminate the agent.
-    
+    """The Kernel Space — protected core of Agent OS.
+
+    KernelSpace implements Ring 0, the most privileged execution layer in the
+    Agent OS architecture. Inspired by operating system kernel design, it
+    provides strict isolation between the trusted kernel and untrusted agent
+    (user-space) code.
+
+    Responsibilities:
+        - **Policy enforcement**: All agent actions pass through kernel
+          syscalls where policies are checked before execution.
+        - **Flight recording**: Every syscall is logged to the
+          ``FlightRecorder`` for forensic audit and compliance.
+        - **Signal management**: Agents communicate through POSIX-style
+          signals (``SIGTERM``, ``SIGKILL``, ``SIGPAUSE``, etc.).
+        - **VFS management**: Each agent gets an isolated virtual filesystem.
+        - **Tool execution**: Tools are registered in the kernel and executed
+          through the ``SYS_EXEC`` syscall with full policy governance.
+
+    The kernel SURVIVES agent crashes. If an agent hallucinates, throws an
+    exception, or violates policy, the kernel remains stable and can recover
+    or terminate the agent.
+
+    Args:
+        policy_engine: Optional policy engine for syscall authorization.
+            When ``None``, the kernel runs in permissive mode (all syscalls
+            allowed).
+        flight_recorder: Optional ``FlightRecorder`` instance for audit
+            logging. When ``None``, audit logging is disabled.
+
     Example:
-        kernel = KernelSpace()
-        
-        # Register an agent in user space
-        agent_ctx = kernel.create_agent_context("agent-001")
-        
-        # Agent makes syscalls through the kernel
-        result = await kernel.syscall(SyscallRequest(
-            syscall=SyscallType.SYS_WRITE,
-            args={"path": "/mem/working/notes.txt", "data": "Hello"},
-        ), agent_ctx)
+        Basic kernel lifecycle::
+
+            kernel = KernelSpace()
+
+            # Register an agent in user space
+            agent_ctx = kernel.create_agent_context("agent-001")
+
+            # Agent makes syscalls through the kernel
+            result = await kernel.syscall(SyscallRequest(
+                syscall=SyscallType.SYS_WRITE,
+                args={"path": "/mem/working/notes.txt", "data": "Hello"},
+            ), agent_ctx)
+
+        Using the context manager for automatic isolation::
+
+            async with user_space_execution(kernel, "agent-001") as ctx:
+                await ctx.write("/mem/working/task.txt", "Hello World")
     """
     
     def __init__(
@@ -243,13 +265,23 @@ class KernelSpace:
         return self._metrics
     
     def create_agent_context(self, agent_id: str) -> "AgentContext":
-        """
-        Create a context for an agent in user space.
-        
-        This sets up all the kernel resources the agent needs:
-        - Signal dispatcher
-        - VFS instance
-        - Policy context
+        """Create a context for an agent in user space.
+
+        Allocates all kernel resources the agent needs — a signal
+        dispatcher, VFS instance, and policy context — and registers the
+        agent in the kernel's internal registry.
+
+        Args:
+            agent_id: Unique string identifier for the agent. Must not
+                already be registered with this kernel.
+
+        Returns:
+            An ``AgentContext`` bound to this kernel at
+            ``ProtectionRing.RING_3_USER``.
+
+        Raises:
+            ValueError: If an agent with the given ``agent_id`` is already
+                registered.
         """
         if agent_id in self._agents:
             raise ValueError(f"Agent {agent_id} already registered")
@@ -274,7 +306,14 @@ class KernelSpace:
         return ctx
     
     def destroy_agent_context(self, agent_id: str) -> None:
-        """Clean up agent resources."""
+        """Remove an agent and release all its kernel resources.
+
+        Cleans up the agent's context, signal dispatcher, and VFS instance.
+        No-op if the agent is not registered.
+
+        Args:
+            agent_id: Identifier of the agent to remove.
+        """
         if agent_id in self._agents:
             del self._agents[agent_id]
         if agent_id in self._signal_dispatchers:
@@ -289,11 +328,31 @@ class KernelSpace:
         request: SyscallRequest,
         ctx: "AgentContext",
     ) -> SyscallResult:
-        """
-        Handle a system call from user space.
-        
-        All agent actions MUST go through this interface.
-        The kernel enforces policy and records all actions.
+        """Handle a system call from user space.
+
+        All agent actions MUST go through this interface. The kernel
+        enforces policy, logs the attempt to the flight recorder, checks
+        agent liveness, and dispatches to the appropriate syscall handler.
+
+        Args:
+            request: The syscall request describing the operation and its
+                arguments.
+            ctx: The calling agent's context, used for identity and
+                permission checks.
+
+        Returns:
+            A ``SyscallResult`` indicating success or failure.  On success,
+            ``return_value`` contains the handler's output.  On failure,
+            ``error_code`` and ``error_message`` describe what went wrong:
+
+            - ``-1``: Agent has been terminated.
+            - ``-2``: Policy violation (action blocked).
+            - ``-3``: Unknown / unregistered syscall type.
+            - ``-4``: Handler raised an unexpected exception.
+
+        Raises:
+            AgentKernelPanic: If a policy violation triggers a kernel
+                panic (0% tolerance mode).
         """
         start_time = datetime.now(timezone.utc)
         self._metrics.syscall_count += 1
@@ -709,23 +768,34 @@ class KernelSpace:
         executor: Callable[..., Any],
         description: Optional[str] = None,
     ) -> None:
-        """
-        Register a tool in the kernel.
-        
+        """Register a tool in the kernel's tool registry.
+
+        Registered tools can be invoked by agents via the ``SYS_EXEC``
+        syscall. The kernel wraps every invocation with policy checks and
+        flight-recorder logging.
+
         Args:
-            tool_name: Name of the tool (e.g., "read_file", "web_search")
-            executor: Callable that executes the tool
-            description: Optional description for audit
+            tool_name: Unique name for the tool (e.g. ``"read_file"``,
+                ``"web_search"``). If a tool with this name is already
+                registered, it is silently overwritten.
+            executor: A callable (sync or async) that implements the tool.
+                Arguments are passed as keyword arguments from the syscall's
+                ``args["args"]`` dictionary.
+            description: Optional human-readable description, recorded in
+                the audit log for compliance.
         """
         self._tool_registry[tool_name] = executor
         logger.info(f"[Kernel] Registered tool: {tool_name}")
     
     def unregister_tool(self, tool_name: str) -> bool:
-        """
-        Unregister a tool from the kernel.
-        
+        """Unregister a tool from the kernel.
+
+        Args:
+            tool_name: Name of the tool to remove.
+
         Returns:
-            True if tool was unregistered, False if not found.
+            ``True`` if the tool was found and removed, ``False`` if no
+            tool with that name was registered.
         """
         if tool_name in self._tool_registry:
             del self._tool_registry[tool_name]
@@ -734,16 +804,28 @@ class KernelSpace:
         return False
     
     def list_tools(self) -> List[str]:
-        """List all registered tools."""
+        """List all registered tool names.
+
+        Returns:
+            A list of tool name strings currently in the registry.
+        """
         return list(self._tool_registry.keys())
     
     # ========== Kernel Control ==========
     
     def panic(self, reason: str) -> None:
-        """
-        Trigger a kernel panic.
-        
-        This is a catastrophic failure that requires system restart.
+        """Trigger a kernel panic.
+
+        This is a catastrophic, unrecoverable failure that halts all agent
+        processing. The panic is recorded in the flight recorder, kernel
+        state transitions to ``KernelState.PANIC``, and an
+        ``AgentKernelPanic`` exception is raised.
+
+        Args:
+            reason: Human-readable description of why the panic occurred.
+
+        Raises:
+            AgentKernelPanic: Always raised to unwind the call stack.
         """
         self._state = KernelState.PANIC
         self._metrics.kernel_panics += 1
@@ -766,7 +848,12 @@ class KernelSpace:
         )
     
     def shutdown(self) -> None:
-        """Graceful kernel shutdown."""
+        """Perform a graceful kernel shutdown.
+
+        Sends ``SIGTERM`` to every registered agent, then destroys all
+        agent contexts and transitions the kernel to
+        ``KernelState.SHUTDOWN``.
+        """
         logger.info("[Kernel] Initiating shutdown")
         self._state = KernelState.SHUTDOWN
         

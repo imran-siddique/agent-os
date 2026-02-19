@@ -1,11 +1,54 @@
-"""
-Stateless Kernel - June 2026 MCP-compliant design.
+"""Stateless Kernel — June 2026 MCP-compliant design.
 
-Key principles:
-- No session state maintained in kernel
-- All context passed in each request
-- State externalized to pluggable backend
-- Horizontally scalable
+This module implements a fully stateless execution kernel that complies with
+the Model Context Protocol (MCP) specification targeted for June 2026. The
+stateless architecture enables horizontal scaling: any kernel instance can
+handle any request because no session state is stored in-process.
+
+Architecture overview:
+    ┌──────────────┐     ┌────────────────┐     ┌──────────────┐
+    │  Client /    │────▶│ StatelessKernel │────▶│ StateBackend │
+    │  MCP Host    │◀────│  (any instance) │◀────│ (Redis, etc) │
+    └──────────────┘     └────────────────┘     └──────────────┘
+
+Key design principles:
+    - **No session state in kernel**: Every request carries its own
+      ``ExecutionContext`` with agent identity, policy list, and history.
+    - **All context passed per request**: The kernel never looks up prior
+      requests; the caller is responsible for threading context.
+    - **Pluggable state backends**: State that must persist (e.g. agent
+      working memory) is stored in an external backend implementing the
+      ``StateBackend`` protocol. Built-in backends:
+
+      - ``MemoryBackend``: In-memory dict with TTL support (dev/test only).
+      - ``RedisBackend``: Production-grade backend with connection pooling,
+        configurable timeouts, and optional ``RedisConfig``.
+
+    - **Horizontally scalable**: Because kernels are stateless, you can
+      run N replicas behind a load balancer with no sticky sessions.
+
+State serialization format:
+    All state values are serialized as JSON via ``json.dumps`` / ``json.loads``.
+    Keys are prefixed with a configurable namespace (default ``"agent-os:"``)
+    to avoid collisions in shared Redis instances. A ``SerializationError``
+    is raised if a value cannot be round-tripped through JSON.
+
+Resilience:
+    Backend calls are wrapped in a circuit breaker (see ``CircuitBreaker``)
+    that opens after repeated failures, preventing cascade failures when
+    the backend is unavailable.
+
+Observability:
+    When OpenTelemetry is installed, the kernel emits spans for every
+    ``execute()`` call and backend operation, annotated with action name,
+    agent ID, and backend type.
+
+Example:
+    >>> from agent_os.stateless import StatelessKernel, ExecutionContext
+    >>> kernel = StatelessKernel()
+    >>> ctx = ExecutionContext(agent_id="a1", policies=["read_only"])
+    >>> result = await kernel.execute("database_query", {"query": "SELECT 1"}, ctx)
+    >>> assert result.success
 """
 
 from __future__ import annotations
@@ -25,6 +68,9 @@ logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Optional OpenTelemetry support
+# Design decision: OTel is opt-in to avoid adding a hard dependency.
+# When present, every kernel.execute() and backend call emits a trace span
+# so operators can correlate latency across services.
 # ---------------------------------------------------------------------------
 try:
     from opentelemetry import context as _otel_context
@@ -39,10 +85,28 @@ except ImportError:  # pragma: no cover
 
 # =============================================================================
 # State Backend Protocol
+# Design decision: Using typing.Protocol (structural subtyping) instead of
+# an ABC so that any object with get/set/delete methods satisfies the
+# contract without explicit inheritance.  This makes it easy to adapt
+# third-party clients (e.g. DynamoDB, Cosmos DB) as backends.
 # =============================================================================
 
 class StateBackend(Protocol):
-    """Protocol for external state storage."""
+    """Protocol for external state storage.
+
+    Any object implementing ``get``, ``set``, and ``delete`` as async
+    methods satisfies this protocol via structural subtyping — no
+    explicit inheritance required.
+
+    All values are JSON-serializable dictionaries. Keys are plain strings
+    (the backend may add its own prefix for namespacing).
+
+    Args:
+        key: A unique string identifying the state entry.
+        value: A JSON-serializable dictionary to store.
+        ttl: Optional time-to-live in seconds. After expiry the entry
+            should be treated as deleted.
+    """
 
     async def get(self, key: str) -> Optional[Dict[str, Any]]:
         """Get state by key."""
@@ -58,14 +122,22 @@ class StateBackend(Protocol):
 
 
 class MemoryBackend:
-    """In-memory state backend (for testing/development).
-    
-    DEPRECATED: Use Redis or DynamoDB backend in production.
+    """In-memory state backend for testing and development.
+
+    Stores state as ``{key: (value_dict, expires_at)}`` tuples in a plain
+    Python dictionary. TTL expiry is checked lazily on ``get()``; expired
+    entries are removed on access rather than via a background sweep.
+
+    Warning:
+        Not suitable for production. State is lost on process restart and
+        is not shared across kernel replicas. Use ``RedisBackend`` for
+        production deployments.
     """
 
     def __init__(self) -> None:
+        # Store maps key -> (value_dict, optional_expiry_monotonic_time).
+        # Using monotonic clock for TTL avoids issues with wall-clock jumps.
         self._store: Dict[str, Tuple[Dict[str, Any], Optional[float]]] = {}
-        # TEMP: Debug flag - remove before release
         self._debug = False
 
     async def get(self, key: str) -> Optional[Dict[str, Any]]:
@@ -201,15 +273,30 @@ class RedisBackend:
 
 # =============================================================================
 # Stateless Request/Response Types
+# Design decision: Using dataclasses (not Pydantic) for request/response
+# types to keep the core kernel dependency-free. Pydantic is used in the
+# integrations layer where richer validation is needed.
 # =============================================================================
 
 @dataclass
 class ExecutionContext:
-    """
-    Complete context for stateless execution.
-    
-    All state needed for a request is passed here.
-    No session state maintained in kernel.
+    """Complete context for a stateless execution request.
+
+    All state needed for a request is passed here — the kernel never
+    maintains session state internally. Callers are responsible for
+    threading the ``updated_context`` from one ``ExecutionResult`` into
+    the next request to maintain conversational continuity.
+
+    Args:
+        agent_id: Unique identifier of the requesting agent.
+        policies: List of policy names to enforce (e.g. ``["read_only"]``).
+            Policy definitions are resolved from ``StatelessKernel.policies``.
+        history: Chronological list of previous actions in this session,
+            each a dict with ``action``, ``timestamp``, and ``success`` keys.
+        state_ref: Optional key referencing externalized state in the
+            backend. When present, the kernel loads this state before
+            execution and persists updates afterward.
+        metadata: Arbitrary metadata passed through to the result.
     """
     agent_id: str
     policies: List[str] = field(default_factory=list)
@@ -229,7 +316,13 @@ class ExecutionContext:
 
 @dataclass
 class ExecutionRequest:
-    """Stateless execution request."""
+    """Internal representation of a stateless execution request.
+
+    Created by ``StatelessKernel.execute()`` from the caller-supplied
+    action, params, and context. The ``request_id`` is auto-generated as
+    a truncated SHA-256 hash to enable correlation in logs without
+    requiring the caller to supply an ID.
+    """
     action: str
     params: Dict[str, Any]
     context: ExecutionContext
@@ -244,7 +337,21 @@ class ExecutionRequest:
 
 @dataclass
 class ExecutionResult:
-    """Stateless execution result."""
+    """Result of a stateless kernel execution.
+
+    Attributes:
+        success: ``True`` if the action completed without policy violation
+            or execution error.
+        data: The action's return value (arbitrary type). ``None`` on
+            failure.
+        error: Human-readable error message when ``success`` is ``False``.
+        signal: Kernel signal emitted on failure — ``"SIGKILL"`` for policy
+            violations, ``"SIGTERM"`` for execution errors.
+        updated_context: A new ``ExecutionContext`` reflecting the latest
+            history and state reference. Callers should use this as the
+            context for subsequent requests.
+        metadata: Request metadata including ``request_id`` and timestamp.
+    """
     success: bool
     data: Any
     error: Optional[str] = None
@@ -255,6 +362,10 @@ class ExecutionResult:
 
 # =============================================================================
 # Stateless Kernel
+# Design decision: The kernel is intentionally thin — it delegates policy
+# checking, state persistence, and action execution to composable
+# components.  This keeps the kernel testable and allows swapping backends
+# or policy engines without changing core logic.
 # =============================================================================
 
 class StatelessKernel:
@@ -505,6 +616,11 @@ class StatelessKernel:
 
     # -----------------------------------------------------------------
     # Backend wrappers (circuit breaker + tracing)
+    # Design decision: All backend calls go through the circuit breaker
+    # to prevent cascading failures when the backend (e.g. Redis) is
+    # down.  The breaker opens after repeated failures and returns
+    # CircuitBreakerOpen without hitting the backend, giving it time
+    # to recover.
     # -----------------------------------------------------------------
 
     async def _backend_get(self, key: str) -> Optional[Dict[str, Any]]:
@@ -588,16 +704,32 @@ async def stateless_execute(
     history: Optional[List[dict]] = None,
     backend: Optional[StateBackend] = None
 ) -> ExecutionResult:
-    """
-    Convenience function for stateless execution.
-    
-    Usage:
-        result = await stateless_execute(
-            action="database_query",
-            params={"query": "SELECT * FROM users"},
-            agent_id="analyst-001",
-            policies=["read_only"]
-        )
+    """Convenience function for one-shot stateless execution.
+
+    Creates an ephemeral ``StatelessKernel`` and ``ExecutionContext``,
+    executes the action, and returns the result. Useful for simple
+    scripts and tests where managing a kernel instance is unnecessary.
+
+    Args:
+        action: Action to execute (e.g. ``"database_query"``).
+        params: Action parameters.
+        agent_id: Identifier of the requesting agent.
+        policies: Policy names to enforce. Defaults to ``[]``.
+        history: Prior action history. Defaults to ``[]``.
+        backend: Optional ``StateBackend``. Defaults to ``MemoryBackend``.
+
+    Returns:
+        An ``ExecutionResult`` with the outcome of the action.
+
+    Example:
+        >>> result = await stateless_execute(
+        ...     action="database_query",
+        ...     params={"query": "SELECT * FROM users"},
+        ...     agent_id="analyst-001",
+        ...     policies=["read_only"],
+        ... )
+        >>> print(result.success)
+        True
     """
     kernel = StatelessKernel(backend=backend)
     context = ExecutionContext(
