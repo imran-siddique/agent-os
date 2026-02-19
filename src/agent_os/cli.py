@@ -66,7 +66,7 @@ def configure_logging(level_name: str) -> None:
     if level_name not in VALID_LOG_LEVELS:
         level_name = "WARNING"
     level = getattr(logging, level_name, logging.WARNING)
-    logging.basicConfig(level=level, format="%(levelname)s: %(message)s")
+    logging.getLogger().setLevel(level)
 
 
 def get_config_path(args_path: Optional[str] = None) -> Path:
