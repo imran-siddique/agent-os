@@ -14,6 +14,7 @@ from hypervisor.models import (
     SessionParticipant,
     SessionState,
 )
+from hypervisor.session.sso import SessionVFS
 
 
 class SharedSessionObject:
@@ -46,6 +47,7 @@ class SharedSessionObject:
 
         # VFS state substrate (namespace for this session)
         self.vfs_namespace = f"/sessions/{self.session_id}"
+        self.vfs = SessionVFS(self.session_id, namespace=self.vfs_namespace)
         self._vfs_snapshots: dict[str, Any] = {}
 
         # Timestamps
@@ -143,9 +145,14 @@ class SharedSessionObject:
         self.state = SessionState.ARCHIVED
 
     def create_vfs_snapshot(self, snapshot_id: Optional[str] = None) -> str:
-        """Create a VFS state snapshot for rollback."""
+        """Create a VFS state snapshot for rollback.
+
+        Captures both VFS file state (copy-on-write) and participant metadata.
+        """
         self._assert_state(SessionState.ACTIVE)
-        sid = snapshot_id or f"snap:{uuid.uuid4()}"
+        # Snapshot the VFS file state
+        sid = self.vfs.create_snapshot(snapshot_id)
+        # Also snapshot participant metadata for full restore
         self._vfs_snapshots[sid] = {
             "created_at": datetime.now(timezone.utc).isoformat(),
             "participant_states": {
@@ -154,6 +161,18 @@ class SharedSessionObject:
             },
         }
         return sid
+
+    def restore_vfs_snapshot(
+        self, snapshot_id: str, agent_did: str
+    ) -> None:
+        """Restore VFS to a previous snapshot.
+
+        Args:
+            snapshot_id: ID returned by create_vfs_snapshot.
+            agent_did: Agent requesting the restore (recorded in audit log).
+        """
+        self._assert_state(SessionState.ACTIVE)
+        self.vfs.restore_snapshot(snapshot_id, agent_did)
 
     def __repr__(self) -> str:
         return (
