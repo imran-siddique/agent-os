@@ -18,6 +18,7 @@
 [![Integrated in agent-lightning](https://img.shields.io/badge/Microsoft-agent--lightning-purple?logo=microsoft)](https://github.com/microsoft/agent-lightning/tree/main/contrib/recipes/agentos)
 [![Integrated in LlamaIndex](https://img.shields.io/badge/LlamaIndex-integrated-purple)](https://github.com/run-llama/llama_index/pull/20644)
 [![Downloads](https://static.pepy.tech/badge/agent-os-kernel)](https://pepy.tech/project/agent-os-kernel)
+[![Discussions](https://img.shields.io/github/discussions/imran-siddique/agent-os)](https://github.com/imran-siddique/agent-os/discussions)
 
 > ⭐ **If this project helps you, please star it!** It helps others discover Agent OS.
 
