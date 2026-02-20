@@ -104,17 +104,21 @@ pip install agent-os-kernel
 ```
 
 ```python
-from agent_os import StatelessKernel
+from agent_os import StatelessKernel, ExecutionContext
 
 # Create a governed agent in 3 lines
 kernel = StatelessKernel()
+
+# Define execution context with governance policies
+ctx = ExecutionContext(agent_id="demo-agent", policies=["read_only"])
 
 # Your agent runs with policy enforcement
 result = await kernel.execute(
     action="database_query",
     params={"query": "SELECT * FROM users"},
-    policies=["read_only"]
+    context=ctx
 )
+
 # ✅ Safe queries execute
 # ❌ "DROP TABLE users" → Blocked by kernel
 ```
@@ -200,10 +204,9 @@ See [examples/](examples/) for 20+ runnable demos including SQL agents, GitHub r
 ## 🎯 What You'll Build in 5 Minutes
 
 ```python
-from agent_os import StatelessKernel, stateless_execute
+from agent_os import stateless_execute
 
 # 1. Define safety policies (not prompts — actual enforcement)
-kernel = StatelessKernel(policies=["read_only", "no_pii"])
 
 # 2. Actions are checked against policies before execution
 result = await stateless_execute(
@@ -481,10 +484,7 @@ iwr -useb https://raw.githubusercontent.com/imran-siddique/agent-os/main/scripts
 ### Stateless API (Always Available — Zero Dependencies Beyond Pydantic)
 
 ```python
-from agent_os import StatelessKernel, stateless_execute
-
-# Create kernel with policy
-kernel = StatelessKernel(policies=["read_only", "no_pii"])
+from agent_os import stateless_execute
 
 # Execute with policy enforcement
 result = await stateless_execute(
