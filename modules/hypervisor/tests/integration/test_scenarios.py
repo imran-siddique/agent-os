@@ -865,3 +865,187 @@ class TestCMVKThresholdConfiguration:
             "agent", "s1", "agent", "out",
         )
         assert result.severity == DriftSeverity.LOW
+
+
+# ---------------------------------------------------------------------------
+# Scenario 8: Wired Adapters — Hypervisor core with injected adapters
+# ---------------------------------------------------------------------------
+
+
+class TestWiredHypervisor:
+    """
+    Tests for Hypervisor with adapters wired directly into __init__,
+    exercising auto-resolution of sigma, IATP manifest parsing, and
+    automatic CMVK slashing via verify_behavior().
+    """
+
+    @pytest.fixture(autouse=True)
+    def setup(self):
+        self.nexus_engine = MockReputationEngine({
+            "did:mesh:alice": 850,
+            "did:mesh:bob": 400,
+            "did:mesh:rogue": 750,
+        })
+        self.cmvk_verifier = MockCMVKVerifier()
+
+        from hypervisor.integrations.nexus_adapter import NexusAdapter
+        from hypervisor.integrations.cmvk_adapter import CMVKAdapter
+        from hypervisor.integrations.iatp_adapter import IATPAdapter
+
+        self.hv = Hypervisor(
+            nexus=NexusAdapter(scorer=self.nexus_engine),
+            cmvk=CMVKAdapter(verifier=self.cmvk_verifier),
+            iatp=IATPAdapter(),
+        )
+
+    async def test_join_with_manifest_auto_parses(self):
+        """Providing a manifest dict auto-parses actions and sigma."""
+        session = await self.hv.create_session(
+            config=SessionConfig(max_participants=5),
+            creator_did="did:mesh:admin",
+        )
+        sid = session.sso.session_id
+
+        manifest = {
+            "agent_id": "did:mesh:alice",
+            "trust_level": "trusted",
+            "trust_score": 8,
+            "actions": [
+                {
+                    "action_id": "read-data",
+                    "name": "Read Data",
+                    "execute_api": "/read",
+                    "reversibility": "full",
+                    "is_read_only": True,
+                },
+            ],
+            "scopes": ["data"],
+        }
+
+        ring = await self.hv.join_session(
+            sid,
+            "did:mesh:alice",
+            manifest=manifest,
+        )
+        # sigma_raw=0 → IATP sigma_hint=0.8, but Nexus also resolves
+        # Nexus gives 850/1000=0.85, IATP gives 0.8, min(0.8, 0.85)=0.8
+        assert ring == ExecutionRing.RING_2_STANDARD
+        # Action should be registered
+        assert len(session.reversibility.entries) == 1
+
+    async def test_nexus_auto_resolves_sigma_when_zero(self):
+        """When sigma_raw=0 and no manifest, Nexus resolves sigma."""
+        session = await self.hv.create_session(
+            config=SessionConfig(max_participants=5),
+            creator_did="did:mesh:admin",
+        )
+        sid = session.sso.session_id
+
+        ring = await self.hv.join_session(
+            sid,
+            "did:mesh:alice",
+            agent_history=AgentHistory("did:mesh:alice"),
+        )
+        # Nexus: 850/1000 = 0.85 → Ring 2
+        assert ring == ExecutionRing.RING_2_STANDARD
+
+    async def test_nexus_conservative_merge(self):
+        """When both sigma_raw and Nexus are available, uses lower (conservative)."""
+        session = await self.hv.create_session(
+            config=SessionConfig(max_participants=5),
+            creator_did="did:mesh:admin",
+        )
+        sid = session.sso.session_id
+
+        # sigma_raw=0.95, Nexus=0.85 → min=0.85
+        ring = await self.hv.join_session(
+            sid,
+            "did:mesh:alice",
+            sigma_raw=0.95,
+            agent_history=AgentHistory("did:mesh:alice"),
+        )
+        assert ring == ExecutionRing.RING_2_STANDARD  # 0.85, not 0.95
+
+    async def test_verify_behavior_auto_slashes(self):
+        """verify_behavior() auto-slashes on HIGH drift."""
+        session = await self.hv.create_session(
+            config=SessionConfig(max_participants=5),
+            creator_did="did:mesh:admin",
+        )
+        sid = session.sso.session_id
+
+        await self.hv.join_session(sid, "did:mesh:rogue", sigma_raw=0.75)
+        await self.hv.activate_session(sid)
+
+        # HIGH drift
+        self.cmvk_verifier.set_drift("did:mesh:rogue", 0.60)
+        result = await self.hv.verify_behavior(
+            session_id=sid,
+            agent_did="did:mesh:rogue",
+            claimed_embedding="did:mesh:rogue",
+            observed_embedding="bad-output",
+        )
+
+        assert result is not None
+        assert result.should_slash is True
+        # Auto-slashing should have fired
+        assert len(self.hv.slashing.history) == 1
+        # Nexus should have been notified
+        assert len(self.nexus_engine._slashes) == 1
+
+    async def test_verify_behavior_no_slash_on_clean(self):
+        """verify_behavior() does NOT slash on clean output."""
+        session = await self.hv.create_session(
+            config=SessionConfig(max_participants=5),
+            creator_did="did:mesh:admin",
+        )
+        sid = session.sso.session_id
+
+        await self.hv.join_session(sid, "did:mesh:alice", sigma_raw=0.85)
+        await self.hv.activate_session(sid)
+
+        self.cmvk_verifier.set_drift("did:mesh:alice", 0.02)
+        result = await self.hv.verify_behavior(
+            session_id=sid,
+            agent_did="did:mesh:alice",
+            claimed_embedding="did:mesh:alice",
+            observed_embedding="good-output",
+        )
+
+        assert result is not None
+        assert result.passed is True
+        assert len(self.hv.slashing.history) == 0
+
+    async def test_verify_behavior_returns_none_without_cmvk(self):
+        """Without CMVK adapter, verify_behavior returns None."""
+        hv_no_cmvk = Hypervisor()
+        session = await hv_no_cmvk.create_session(
+            config=SessionConfig(max_participants=5),
+            creator_did="did:mesh:admin",
+        )
+        sid = session.sso.session_id
+        await hv_no_cmvk.join_session(sid, "did:mesh:alice", sigma_raw=0.85)
+        await hv_no_cmvk.activate_session(sid)
+
+        result = await hv_no_cmvk.verify_behavior(
+            session_id=sid,
+            agent_did="did:mesh:alice",
+            claimed_embedding="a",
+            observed_embedding="b",
+        )
+        assert result is None
+
+    async def test_backward_compat_no_adapters(self):
+        """Hypervisor without adapters works exactly as before."""
+        hv = Hypervisor()
+        session = await hv.create_session(
+            config=SessionConfig(max_participants=5),
+            creator_did="did:mesh:admin",
+        )
+        sid = session.sso.session_id
+
+        ring = await hv.join_session(sid, "did:mesh:alice", sigma_raw=0.85)
+        assert ring == ExecutionRing.RING_2_STANDARD
+        assert hv.nexus is None
+        assert hv.cmvk is None
+        assert hv.iatp is None
