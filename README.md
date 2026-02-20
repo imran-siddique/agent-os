@@ -153,10 +153,9 @@ See [examples/](examples/) for 20+ runnable demos including SQL agents, GitHub r
 ## 🎯 What You'll Build in 5 Minutes
 
 ```python
-from agent_os import StatelessKernel, stateless_execute
+from agent_os import stateless_execute
 
 # 1. Define safety policies (not prompts — actual enforcement)
-kernel = StatelessKernel(policies=["read_only", "no_pii"])
 
 # 2. Actions are checked against policies before execution
 result = await stateless_execute(
@@ -366,7 +365,7 @@ iwr -useb https://raw.githubusercontent.com/imran-siddique/agent-os/main/scripts
 ### Stateless API (Always Available — Zero Dependencies Beyond Pydantic)
 
 ```python
-from agent_os import StatelessKernel, stateless_execute
+from agent_os import stateless_execute
 
 # Execute with policy enforcement
 result = await stateless_execute(
