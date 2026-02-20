@@ -328,7 +328,6 @@ agent-os/
 │   ├── scak/                 # Layer 4: Self-correcting agent kernel
 │   ├── mute-agent/           # Layer 4: Face/Hands architecture
 │   ├── nexus/                # Experimental: Trust exchange network
-│   ├── hypervisor/           # ⭐ Agent Hypervisor (159 tests)
 │   └── mcp-kernel-server/    # Integration: MCP protocol support
 ├── extensions/               # IDE & AI Assistant Extensions
 │   ├── mcp-server/           # ⭐ MCP Server (Copilot, Claude, Cursor)
@@ -365,13 +364,15 @@ agent-os/
 | [`mute-agent`](modules/mute-agent/) | 4 | `mute-agent` | Decoupled reasoning/execution architecture | ⚠️ No tests |
 | [`nexus`](modules/nexus/) | — | *Not published* | Trust exchange network | 🔬 Prototype |
 | [`mcp-kernel-server`](modules/mcp-kernel-server/) | Int | `mcp-kernel-server` | MCP server for Claude Desktop | ⚠️ No tests |
-| [**`hypervisor`**](modules/hypervisor/) | **⭐** | `agent-hypervisor` | **Runtime supervisor — Execution Rings, Joint Liability, Saga Orchestrator** | **✅ 159 tests** |
+| [**`hypervisor`**](https://github.com/imran-siddique/agent-hypervisor) | **⭐** | `agent-hypervisor` | **Runtime supervisor — Execution Rings, Joint Liability, Saga Orchestrator** ([own repo](https://github.com/imran-siddique/agent-hypervisor)) | **✅ 184 tests** |
 
 ---
 
 ## ⭐ Star Feature: Agent Hypervisor
 
-> **The world's first runtime supervisor for multi-agent collaboration** — think "VMware for AI agents."
+> **Runtime supervisor for multi-agent collaboration** — think "VMware for AI agents."
+> 
+> **Now its own repo: [`agent-hypervisor`](https://github.com/imran-siddique/agent-hypervisor)** — 184 tests, 268μs full pipeline, zero dependencies beyond pydantic.
 
 Just as OS hypervisors isolate virtual machines and enforce resource boundaries, the Agent Hypervisor isolates AI agent sessions and enforces **governance boundaries** at sub-millisecond latency.
 
@@ -404,6 +405,10 @@ Just as OS hypervisors isolate virtual machines and enforce resource boundaries,
 
 ### Quick Start
 
+```bash
+pip install agent-hypervisor
+```
+
 ```python
 from hypervisor import Hypervisor, SessionConfig, ConsistencyMode
 
@@ -431,7 +436,7 @@ step = session.saga.add_step(
 merkle_root = await hv.terminate_session(session.sso.session_id)
 ```
 
-📖 **[Full Hypervisor documentation →](modules/hypervisor/)**
+📖 **[Full Hypervisor documentation →](https://github.com/imran-siddique/agent-hypervisor)**
 
 ---
 
