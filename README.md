@@ -53,17 +53,21 @@ pip install agent-os-kernel
 ```
 
 ```python
-from agent_os import StatelessKernel
+from agent_os import StatelessKernel, ExecutionContext
 
 # Create a governed agent in 3 lines
 kernel = StatelessKernel()
+
+# Define execution context with governance policies
+ctx = ExecutionContext(agent_id="demo-agent", policies=["read_only"])
 
 # Your agent runs with policy enforcement
 result = await kernel.execute(
     action="database_query",
     params={"query": "SELECT * FROM users"},
-    policies=["read_only"]
+    context=ctx
 )
+
 # ✅ Safe queries execute
 # ❌ "DROP TABLE users" → Blocked by kernel
 ```
@@ -363,9 +367,6 @@ iwr -useb https://raw.githubusercontent.com/imran-siddique/agent-os/main/scripts
 
 ```python
 from agent_os import StatelessKernel, stateless_execute
-
-# Create kernel with policy
-kernel = StatelessKernel(policies=["read_only", "no_pii"])
 
 # Execute with policy enforcement
 result = await stateless_execute(
