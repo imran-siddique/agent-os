@@ -2,9 +2,9 @@
 
 > **The world's first runtime supervisor for multi-agent collaboration** — enforcing Verified Intent, Joint Liability, Execution Rings, and forensic audit trails at sub-millisecond latency.
 
-[![Tests](https://img.shields.io/badge/tests-159%20passing-brightgreen)]()
-[![Coverage](https://img.shields.io/badge/coverage-unit%20%2B%20integration-blue)]()
-[![Benchmark](https://img.shields.io/badge/latency-335μs%20full%20pipeline-orange)]()
+[![Tests](https://img.shields.io/badge/tests-177%20passing-brightgreen)]()
+[![Coverage](https://img.shields.io/badge/coverage-unit%20%2B%20integration%20%2B%20scenarios-blue)]()
+[![Benchmark](https://img.shields.io/badge/latency-268μs%20full%20pipeline-orange)]()
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)]()
 
 ## Why a Hypervisor?
@@ -162,8 +162,10 @@ merkle_root = await hv.terminate_session(session.sso.session_id)
 | `hypervisor.saga` | Semantic saga orchestrator + state machine | 12 |
 | `hypervisor.audit` | Delta engine, Merkle chain, GC, commitment | 10 |
 | `hypervisor.verification` | DID transaction history verification | 4 |
+| `hypervisor.integrations` | Nexus, CMVK, IATP cross-module adapters | — |
 | **Integration** | End-to-end lifecycle, edge cases, security | **24** |
-| **Total** | | **159** |
+| **Scenarios** | Cross-module governance pipelines (7 suites) | **18** |
+| **Total** | | **177** |
 
 ## Test Suite
 
@@ -176,4 +178,57 @@ pytest tests/integration/ -v
 
 # Run benchmarks
 python benchmarks/bench_hypervisor.py
+```
+
+## Cross-Module Integrations
+
+The Hypervisor integrates with other Agent-OS modules via adapters in `hypervisor.integrations`:
+
+### Nexus Adapter — Trust-Scored Ring Assignment
+
+```python
+from hypervisor.integrations.nexus_adapter import NexusAdapter
+from nexus.reputation import ReputationEngine
+
+nexus = NexusAdapter(scorer=ReputationEngine())
+sigma = nexus.resolve_sigma("did:mesh:agent-1", history=agent_history)
+# → 0.82 (Nexus 820/1000 normalized)
+
+ring = await hv.join_session(session_id, "did:mesh:agent-1", sigma_raw=sigma)
+# → RING_2_STANDARD
+
+# Report slashing back to Nexus for persistent reputation loss
+nexus.report_slash("did:mesh:agent-1", reason="Behavioral drift", severity="high")
+```
+
+### CMVK Adapter — Behavioral Drift Detection
+
+```python
+from hypervisor.integrations.cmvk_adapter import CMVKAdapter
+
+cmvk = CMVKAdapter(verifier=cmvk_engine)
+result = cmvk.check_behavioral_drift(
+    agent_did="did:mesh:agent-1",
+    session_id=session_id,
+    claimed_embedding=manifest_vector,
+    observed_embedding=output_vector,
+)
+
+if result.should_slash:
+    hv.slashing.slash(...)  # Trigger liability cascade
+```
+
+### IATP Adapter — Capability Manifest Parsing
+
+```python
+from hypervisor.integrations.iatp_adapter import IATPAdapter
+
+iatp = IATPAdapter()
+analysis = iatp.analyze_manifest(manifest)  # or analyze_manifest_dict(dict)
+# → ManifestAnalysis with ring_hint, sigma_hint, actions, reversibility flags
+
+ring = await hv.join_session(
+    session_id, analysis.agent_did,
+    actions=analysis.actions, sigma_raw=analysis.sigma_hint,
+)
 ```
