@@ -325,6 +325,7 @@ agent-os/
 │   ├── scak/                 # Layer 4: Self-correcting agent kernel
 │   ├── mute-agent/           # Layer 4: Face/Hands architecture
 │   ├── nexus/                # Experimental: Trust exchange network
+│   ├── hypervisor/           # ⭐ Agent Hypervisor (159 tests)
 │   └── mcp-kernel-server/    # Integration: MCP protocol support
 ├── extensions/               # IDE & AI Assistant Extensions
 │   ├── mcp-server/           # ⭐ MCP Server (Copilot, Claude, Cursor)
@@ -361,6 +362,73 @@ agent-os/
 | [`mute-agent`](modules/mute-agent/) | 4 | `mute-agent` | Decoupled reasoning/execution architecture | ⚠️ No tests |
 | [`nexus`](modules/nexus/) | — | *Not published* | Trust exchange network | 🔬 Prototype |
 | [`mcp-kernel-server`](modules/mcp-kernel-server/) | Int | `mcp-kernel-server` | MCP server for Claude Desktop | ⚠️ No tests |
+| [**`hypervisor`**](modules/hypervisor/) | **⭐** | `agent-hypervisor` | **Runtime supervisor — Execution Rings, Joint Liability, Saga Orchestrator** | **✅ 159 tests** |
+
+---
+
+## ⭐ Star Feature: Agent Hypervisor
+
+> **The world's first runtime supervisor for multi-agent collaboration** — think "VMware for AI agents."
+
+Just as OS hypervisors isolate virtual machines and enforce resource boundaries, the Agent Hypervisor isolates AI agent sessions and enforces **governance boundaries** at sub-millisecond latency.
+
+```
+┌────────────────────────────────────────────────────────────┐
+│                    AGENT HYPERVISOR                         │
+│                                                            │
+│   Ring 0 (Root)      ← SRE Witness required                │
+│   Ring 1 (Privileged)← σ_eff > 0.95 + consensus           │
+│   Ring 2 (Standard)  ← σ_eff > 0.60                        │
+│   Ring 3 (Sandbox)   ← Default for unknown agents          │
+│                                                            │
+│   ┌──────────┐  ┌───────────┐  ┌────────────────────────┐  │
+│   │  Joint    │  │  Semantic  │  │  Merkle-Chained        │  │
+│   │ Liability │  │   Saga     │  │  Delta Audit Trail     │  │
+│   │  Engine   │  │ Orchestr.  │  │  (Tamper-Evident)      │  │
+│   └──────────┘  └───────────┘  └────────────────────────┘  │
+└────────────────────────────────────────────────────────────┘
+```
+
+### Key Capabilities
+
+| Feature | Description | Latency |
+|---------|-------------|---------|
+| **Execution Rings** | 4-level privilege model (Ring 0–3) based on trust score | **0.3μs** |
+| **Joint Liability** | High-trust agents vouch for low-trust agents with bonded reputation | **7μs** |
+| **Saga Orchestrator** | Multi-step transactions with timeout, retry, and auto-compensation | **151μs** |
+| **Delta Audit** | Merkle-chained semantic diffs with blockchain commitment | **27μs** |
+| **Full Pipeline** | Session + join + audit + saga + terminate | **268μs** |
+
+### Quick Start
+
+```python
+from hypervisor import Hypervisor, SessionConfig, ConsistencyMode
+
+hv = Hypervisor()
+
+# Create a governed multi-agent session
+session = await hv.create_session(
+    config=SessionConfig(consistency_mode=ConsistencyMode.EVENTUAL, max_participants=5),
+    creator_did="did:mesh:admin",
+)
+
+# Agents are automatically assigned privilege rings based on trust score
+ring = await hv.join_session(session.sso.session_id, "did:mesh:agent-alpha", sigma_raw=0.85)
+# → Ring 2 (Standard) — can execute reversible actions
+
+# Multi-step saga with automatic timeout and compensation
+saga = session.saga.create_saga(session.sso.session_id)
+step = session.saga.add_step(
+    saga.saga_id, "draft_email", "did:mesh:agent-alpha",
+    execute_api="/api/draft", undo_api="/api/undo-draft",
+    timeout_seconds=30, max_retries=2,
+)
+
+# Terminate — returns tamper-evident Merkle root Summary Hash
+merkle_root = await hv.terminate_session(session.sso.session_id)
+```
+
+📖 **[Full Hypervisor documentation →](modules/hypervisor/)**
 
 ---
 

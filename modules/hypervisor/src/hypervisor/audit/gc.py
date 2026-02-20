@@ -58,10 +58,13 @@ class EphemeralGC:
     def __init__(self, policy: Optional[RetentionPolicy] = None) -> None:
         self.policy = policy or RetentionPolicy()
         self._gc_history: list[GCResult] = []
+        self._purged_sessions: set[str] = set()
 
     def collect(
         self,
         session_id: str,
+        vfs: Any = None,
+        delta_engine: Any = None,
         vfs_file_count: int = 0,
         cache_count: int = 0,
         delta_count: int = 0,
@@ -72,23 +75,57 @@ class EphemeralGC:
         """
         Run garbage collection for a terminated session.
 
-        In production, this would actually delete VFS state and caches.
-        Here we track what would be purged for reporting.
+        When VFS and DeltaEngine references are provided, actually purges
+        ephemeral data. Otherwise falls back to reporting-only mode.
         """
+        purged_vfs = 0
+        purged_caches = 0
+
+        # Actually purge VFS state if reference provided
+        if vfs is not None:
+            try:
+                files = vfs.list_files() if hasattr(vfs, "list_files") else []
+                purged_vfs = len(files)
+                for f in files:
+                    try:
+                        vfs.delete(f)
+                    except Exception:
+                        pass  # best-effort purge
+            except Exception:
+                purged_vfs = vfs_file_count
+        else:
+            purged_vfs = vfs_file_count
+
+        # Expire old deltas if engine provided
+        retained_deltas = delta_count
+        if delta_engine is not None and hasattr(delta_engine, "deltas"):
+            expired = [
+                d for d in delta_engine.deltas
+                if self.should_expire_deltas(d.timestamp)
+            ]
+            retained_deltas = delta_count - len(expired)
+            if hasattr(delta_engine, "prune_expired"):
+                delta_engine.prune_expired(self.policy.delta_retention_days)
+
         total_before = estimated_vfs_bytes + estimated_cache_bytes + estimated_delta_bytes
-        total_after = estimated_delta_bytes  # only deltas retained
+        total_after = estimated_delta_bytes if delta_count > 0 else 0
 
         result = GCResult(
             session_id=session_id,
-            retained_deltas=delta_count,
+            retained_deltas=max(retained_deltas, 0),
             retained_hash=True,
-            purged_vfs_files=vfs_file_count,
+            purged_vfs_files=purged_vfs,
             purged_caches=cache_count,
             storage_before_bytes=total_before,
             storage_after_bytes=total_after,
         )
         self._gc_history.append(result)
+        self._purged_sessions.add(session_id)
         return result
+
+    def is_purged(self, session_id: str) -> bool:
+        """Check if a session has been garbage collected."""
+        return session_id in self._purged_sessions
 
     def should_expire_deltas(self, delta_timestamp: datetime) -> bool:
         """Check if a delta has exceeded its retention period."""
@@ -98,3 +135,7 @@ class EphemeralGC:
     @property
     def history(self) -> list[GCResult]:
         return list(self._gc_history)
+
+    @property
+    def purged_session_count(self) -> int:
+        return len(self._purged_sessions)

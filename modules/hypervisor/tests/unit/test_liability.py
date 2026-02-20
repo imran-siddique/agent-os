@@ -50,7 +50,7 @@ class TestVouchingEngine:
         assert abs(sigma_eff - 0.39) < 1e-9
 
     def test_sigma_eff_capped_at_1(self):
-        self.engine.vouch("did:mesh:high", "did:mesh:low", self.session, 0.9, bond_pct=1.0)
+        self.engine.vouch("did:mesh:high", "did:mesh:low", self.session, 0.9, bond_pct=0.8)
         sigma_eff = self.engine.compute_sigma_eff(
             "did:mesh:low", self.session, 0.8, risk_weight=1.0
         )

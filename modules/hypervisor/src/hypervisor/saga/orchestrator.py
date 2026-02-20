@@ -8,6 +8,7 @@ and Slashing Engine for escalation.
 
 from __future__ import annotations
 
+import asyncio
 import uuid
 from typing import Any, Callable, Optional
 
@@ -20,6 +21,10 @@ from hypervisor.saga.state_machine import (
 )
 
 
+class SagaTimeoutError(Exception):
+    """Raised when a saga step exceeds its timeout."""
+
+
 class SagaOrchestrator:
     """
     Orchestrates multi-step agent transactions with saga semantics.
@@ -29,6 +34,9 @@ class SagaOrchestrator:
     Undo_API for each committed step. If any Undo_API fails,
     Joint Liability slashing is triggered.
     """
+
+    DEFAULT_MAX_RETRIES = 2
+    DEFAULT_RETRY_DELAY_SECONDS = 1.0
 
     def __init__(self) -> None:
         self._sagas: dict[str, Saga] = {}
@@ -50,6 +58,7 @@ class SagaOrchestrator:
         execute_api: str,
         undo_api: Optional[str] = None,
         timeout_seconds: int = 300,
+        max_retries: int = 0,
     ) -> SagaStep:
         """Add a step to a saga."""
         saga = self._get_saga(saga_id)
@@ -60,6 +69,7 @@ class SagaOrchestrator:
             execute_api=execute_api,
             undo_api=undo_api,
             timeout_seconds=timeout_seconds,
+            max_retries=max_retries,
         )
         saga.steps.append(step)
         return step
@@ -71,7 +81,7 @@ class SagaOrchestrator:
         executor: Callable[..., Any],
     ) -> Any:
         """
-        Execute a single saga step.
+        Execute a single saga step with timeout and retry support.
 
         Args:
             saga_id: Saga identifier
@@ -83,20 +93,54 @@ class SagaOrchestrator:
 
         Raises:
             SagaStateError: If step is not in PENDING state
+            SagaTimeoutError: If step exceeds its timeout
         """
         saga = self._get_saga(saga_id)
         step = self._get_step(saga, step_id)
 
-        step.transition(StepState.EXECUTING)
-        try:
-            result = await executor()
-            step.execute_result = result
-            step.transition(StepState.COMMITTED)
-            return result
-        except Exception as e:
-            step.error = str(e)
-            step.transition(StepState.FAILED)
-            raise
+        last_error: Optional[Exception] = None
+        attempts = 1 + step.max_retries
+
+        for attempt in range(attempts):
+            step.retry_count = attempt
+            step.transition(StepState.EXECUTING)
+            try:
+                result = await asyncio.wait_for(
+                    executor(),
+                    timeout=step.timeout_seconds,
+                )
+                step.execute_result = result
+                step.transition(StepState.COMMITTED)
+                return result
+            except asyncio.TimeoutError:
+                last_error = SagaTimeoutError(
+                    f"Step {step_id} timed out after {step.timeout_seconds}s "
+                    f"(attempt {attempt + 1}/{attempts})"
+                )
+                step.error = str(last_error)
+                step.transition(StepState.FAILED)
+                if attempt < attempts - 1:
+                    # Reset to PENDING for retry
+                    step.state = StepState.PENDING
+                    step.error = None
+                    await asyncio.sleep(
+                        self.DEFAULT_RETRY_DELAY_SECONDS * (attempt + 1)
+                    )
+            except Exception as e:
+                last_error = e
+                step.error = str(e)
+                step.transition(StepState.FAILED)
+                if attempt < attempts - 1:
+                    step.state = StepState.PENDING
+                    step.error = None
+                    await asyncio.sleep(
+                        self.DEFAULT_RETRY_DELAY_SECONDS * (attempt + 1)
+                    )
+
+        # All retries exhausted
+        if last_error:
+            raise last_error
+        raise SagaStateError("Step execution failed with no error captured")
 
     async def compensate(
         self,
@@ -120,7 +164,6 @@ class SagaOrchestrator:
 
         for step in saga.committed_steps_reversed:
             if not step.undo_api:
-                # No undo available — mark as failed
                 step.state = StepState.COMPENSATION_FAILED
                 step.error = "No Undo_API available"
                 failed_compensations.append(step)
@@ -128,9 +171,16 @@ class SagaOrchestrator:
 
             step.transition(StepState.COMPENSATING)
             try:
-                result = await compensator(step)
+                result = await asyncio.wait_for(
+                    compensator(step),
+                    timeout=step.timeout_seconds,
+                )
                 step.compensation_result = result
                 step.transition(StepState.COMPENSATED)
+            except asyncio.TimeoutError:
+                step.error = f"Compensation timed out after {step.timeout_seconds}s"
+                step.transition(StepState.COMPENSATION_FAILED)
+                failed_compensations.append(step)
             except Exception as e:
                 step.error = f"Compensation failed: {e}"
                 step.transition(StepState.COMPENSATION_FAILED)

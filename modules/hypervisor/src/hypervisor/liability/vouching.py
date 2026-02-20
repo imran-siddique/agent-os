@@ -52,9 +52,11 @@ class VouchingEngine:
     SCORE_SCALE = 1000.0
     MIN_VOUCHER_SCORE = 0.50  # min normalized σ to vouch
     DEFAULT_BOND_PCT = 0.20  # lock 20% of voucher's σ by default
+    DEFAULT_MAX_EXPOSURE = 0.80  # max 80% of σ can be bonded across all vouchees
 
-    def __init__(self) -> None:
+    def __init__(self, max_exposure: Optional[float] = None) -> None:
         self._vouches: dict[str, VouchRecord] = {}  # vouch_id → record
+        self.max_exposure = max_exposure or self.DEFAULT_MAX_EXPOSURE
 
     def vouch(
         self,
@@ -101,6 +103,15 @@ class VouchingEngine:
         pct = bond_pct if bond_pct is not None else self.DEFAULT_BOND_PCT
         pct = max(0.0, min(1.0, pct))
         bonded = voucher_sigma * pct
+
+        # Check max exposure limit
+        current_exposure = self.get_total_exposure(voucher_did, session_id)
+        if current_exposure + bonded > voucher_sigma * self.max_exposure:
+            raise VouchingError(
+                f"Voucher {voucher_did} would exceed max exposure "
+                f"({self.max_exposure:.0%} of σ). Current: {current_exposure:.3f}, "
+                f"requested: {bonded:.3f}, limit: {voucher_sigma * self.max_exposure:.3f}"
+            )
 
         record = VouchRecord(
             vouch_id=f"vouch:{uuid.uuid4()}",

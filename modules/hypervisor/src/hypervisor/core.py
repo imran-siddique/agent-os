@@ -53,9 +53,10 @@ class Hypervisor:
     def __init__(
         self,
         retention_policy: Optional[RetentionPolicy] = None,
+        max_exposure: Optional[float] = None,
     ) -> None:
         # Shared engines
-        self.vouching = VouchingEngine()
+        self.vouching = VouchingEngine(max_exposure=max_exposure)
         self.slashing = SlashingEngine(self.vouching)
         self.ring_enforcer = RingEnforcer()
         self.classifier = ActionClassifier()
@@ -155,9 +156,11 @@ class Hypervisor:
         # Release all bonds
         self.vouching.release_session_bonds(session_id)
 
-        # GC
+        # GC — actually purge VFS data
         self.gc.collect(
             session_id=session_id,
+            vfs=managed.sso.vfs if hasattr(managed.sso, "vfs") else None,
+            delta_engine=managed.delta_engine,
             delta_count=managed.delta_engine.turn_count,
         )
 

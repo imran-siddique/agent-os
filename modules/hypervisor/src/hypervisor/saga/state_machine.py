@@ -72,6 +72,8 @@ class SagaStep:
     started_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
     timeout_seconds: int = 300
+    max_retries: int = 0
+    retry_count: int = 0
 
     def transition(self, new_state: StepState) -> None:
         """Transition to a new state, enforcing valid transitions."""

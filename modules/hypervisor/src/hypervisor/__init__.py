@@ -54,7 +54,7 @@ from hypervisor.rings.classifier import ActionClassifier
 from hypervisor.reversibility.registry import ReversibilityRegistry
 
 # Saga
-from hypervisor.saga.orchestrator import SagaOrchestrator
+from hypervisor.saga.orchestrator import SagaOrchestrator, SagaTimeoutError
 from hypervisor.saga.state_machine import SagaState, StepState
 
 # Audit
@@ -96,6 +96,7 @@ __all__ = [
     "ReversibilityRegistry",
     # Saga
     "SagaOrchestrator",
+    "SagaTimeoutError",
     "SagaState",
     "StepState",
     # Audit
