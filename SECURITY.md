@@ -1,143 +1,89 @@
 # Security Policy
 
+## About Agent OS
+
+**Agent OS** is part of the [Agent Governance Ecosystem](https://github.com/imran-siddique) — a suite of open-source projects for building, orchestrating, and governing autonomous AI agents in enterprise environments.
+
 ## Supported Versions
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 0.x.x   | :white_check_mark: |
+| Latest  | :white_check_mark: |
+| < Latest | :x:               |
 
-Once Agent OS reaches 1.0, we will maintain security updates for the latest minor version.
+Only the latest release of Agent OS receives security updates. Users are strongly encouraged to stay up to date.
 
 ## Reporting a Vulnerability
 
-**Please do not report security vulnerabilities through public GitHub issues.**
+If you discover a security vulnerability in Agent OS, please report it responsibly.
 
-If you discover a security vulnerability in Agent OS, please report it responsibly:
+**Email:** [security@imransiddique.com](mailto:security@imransiddique.com)
 
-### 1. Email (Preferred)
+**Please include:**
 
-Send an email to: **security@agent-os.dev**
+- A description of the vulnerability
+- Steps to reproduce the issue
+- Affected version(s)
+- Any potential impact assessment
 
-Include:
-- Description of the vulnerability
-- Steps to reproduce
-- Potential impact
-- Any suggested fixes (optional)
+> **Do not open a public GitHub issue for security vulnerabilities.**
 
-### 2. GitHub Security Advisories
+## What to Expect
 
-You can also report via [GitHub Security Advisories](https://github.com/imran-siddique/agent-os/security/advisories/new).
+| Step                        | Timeline     |
+| --------------------------- | ------------ |
+| Acknowledgment of report    | Within 48 hours |
+| Initial assessment          | Within 5 business days |
+| Fix development and testing | Within 30 days (critical), 90 days (non-critical) |
+| CVE assignment              | If applicable, coordinated with the reporter |
+| Public disclosure           | After fix is released, per responsible disclosure timeline |
 
-### 3. Encrypted Communication
+We will keep you informed throughout the process and credit reporters (unless anonymity is requested).
 
-For sensitive reports, you may encrypt your message using our PGP key:
+## Responsible Disclosure Timeline
 
-```
------BEGIN PGP PUBLIC KEY BLOCK-----
-[PGP key to be added]
------END PGP PUBLIC KEY BLOCK-----
-```
+We follow a **90-day responsible disclosure policy**:
 
-Key fingerprint: `[To be added]`
+1. Reporter submits vulnerability via the email above.
+2. We acknowledge receipt within **48 hours**.
+3. We work to develop and release a fix within **90 days**.
+4. Once the fix is released, the vulnerability may be publicly disclosed.
+5. If we are unable to fix the issue within 90 days, we will coordinate with the reporter on an appropriate disclosure timeline.
 
-## Response Timeline
+## Scope
 
-| Stage | Timeline |
-|-------|----------|
-| Initial acknowledgment | Within 48 hours |
-| Initial assessment | Within 1 week |
-| Fix development | Varies by severity |
-| Public disclosure | Coordinated with reporter |
+### In Scope
 
-## Severity Classification
+- Source code of Agent OS
+- Third-party dependencies used by Agent OS
+- Configuration files and deployment templates
+- CI/CD pipeline configurations
+- Documentation that could lead to insecure usage
 
-We use the following severity levels:
+### Out of Scope
 
-| Severity | Description | Response Time |
-|----------|-------------|---------------|
-| **Critical** | Remote code execution, complete bypass of safety policies | 24-48 hours |
-| **High** | Partial bypass of safety policies, data exposure | 1 week |
-| **Medium** | Denial of service, information leakage | 2 weeks |
-| **Low** | Minor issues, hardening opportunities | Next release |
+- Social engineering attacks against maintainers or users
+- Denial of Service (DoS/DDoS) attacks
+- Attacks requiring physical access
+- Issues in third-party services not controlled by this project
+- Vulnerabilities already reported and being addressed
 
-## Security Model
+## Security Best Practices for Users
 
-### What Agent OS Protects Against
+- **Keep dependencies updated:** Regularly run dependency audits and update to the latest versions.
+- **Use environment variables for secrets:** Never hardcode credentials, API keys, or tokens in configuration files.
+- **Enable access controls:** Follow the principle of least privilege when configuring agent permissions.
+- **Review configurations:** Audit your deployment configurations against the provided security guidelines.
+- **Monitor for advisories:** Watch this repository for security advisories and release notes.
+- **Use signed commits:** Enable GPG or SSH commit signing to ensure code integrity.
+- **Run in isolated environments:** Use containers or sandboxed environments for agent workloads.
 
-Agent OS provides **application-level policy enforcement**:
+## Agent Governance Ecosystem
 
-- ✅ Deterministic policy checks on agent actions
-- ✅ SQL injection prevention (via policy rules)
-- ✅ File system access restrictions (configurable paths)
-- ✅ Rate limiting and resource controls
-- ✅ Action logging and audit trails (Flight Recorder)
+Agent OS is part of the broader **Agent Governance Ecosystem**, which provides a unified framework for secure, observable, and compliant AI agent operations. Security policies are coordinated across all ecosystem projects to ensure consistent protection.
 
-### What Agent OS Does NOT Protect Against
-
-Agent OS is middleware, not a security sandbox:
-
-- ❌ Memory corruption or process isolation (use containers)
-- ❌ Compromised LLM providers
-- ❌ Network-level attacks
-- ❌ Supply chain attacks on dependencies
-
-**For production deployments, we recommend:**
-- Running agents in isolated containers
-- Using network policies to restrict agent communication
-- Monitoring the Flight Recorder for anomalies
-- Regular dependency audits
-
-## Security Best Practices
-
-### For Users
-
-1. **Keep Agent OS updated** - Always run the latest version
-2. **Use restrictive policies** - Start with minimal permissions, expand as needed
-3. **Enable Flight Recorder** - Log all agent actions for audit
-4. **Review policies regularly** - Ensure policies match current requirements
-5. **Run in containers** - Isolate agents for defense in depth
-
-### For Contributors
-
-1. **Sign commits** - Use `git commit -s` (DCO) and GPG signing
-2. **Review dependencies** - Check for known vulnerabilities before adding
-3. **Write secure code** - Follow OWASP guidelines
-4. **Add tests** - Include security-relevant test cases
-5. **Document security implications** - Note any security considerations in PRs
-
-## Dependency Management
-
-We monitor dependencies for known vulnerabilities using:
-- GitHub Dependabot
-- Regular security audits
-
-## Disclosure Policy
-
-We follow coordinated disclosure:
-
-1. Reporter notifies us privately
-2. We confirm and assess the vulnerability
-3. We develop and test a fix
-4. We coordinate disclosure timing with the reporter
-5. Fix is released with security advisory
-6. Credit is given to the reporter (unless they prefer anonymity)
-
-## Security Advisories
-
-Published security advisories are available at:
-[github.com/imran-siddique/agent-os/security/advisories](https://github.com/imran-siddique/agent-os/security/advisories)
-
-## Hall of Fame
-
-We recognize security researchers who responsibly disclose vulnerabilities:
-
-*No submissions yet - be the first!*
-
-## Contact
-
-- Security issues: security@agent-os.dev
-- General questions: [GitHub Discussions](https://github.com/imran-siddique/agent-os/discussions)
+For ecosystem-wide security concerns, please contact [security@imransiddique.com](mailto:security@imransiddique.com).
 
 ---
 
-*Last updated: February 2026*
+Thank you for helping keep Agent OS and the Agent Governance Ecosystem safe for everyone.
