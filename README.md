@@ -22,6 +22,8 @@
 
 > ⭐ **If this project helps you, please star it!** It helps others discover Agent OS.
 
+> 📦 **Install the full stack:** `pip install ai-agent-governance[full]` — [PyPI](https://pypi.org/project/ai-agent-governance/) | [GitHub](https://github.com/imran-siddique/agent-governance)
+
 [Quick Start](#quick-example) • [Documentation](https://imran-siddique.github.io/agent-os-docs/) • [VS Code Extension](https://marketplace.visualstudio.com/items?itemName=agent-os.agent-os-vscode) • [Examples](examples/) • [Agent Hypervisor](https://github.com/imran-siddique/agent-hypervisor) • [AgentMesh](https://github.com/imran-siddique/agent-mesh) • [Agent SRE](https://github.com/imran-siddique/agent-sre)
 
 <br/>
