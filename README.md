@@ -96,6 +96,17 @@
 
 **Our solution:** A governance kernel that sits between agents and their actions, providing deterministic policy enforcement in <1ms with zero agent code changes.
 
+### How Agent OS Compares
+
+| Tool | Focus | When it acts |
+|------|-------|--------------|
+| LangChain/CrewAI | Building agents | N/A (framework) |
+| NeMo Guardrails | Input/output filtering | Before/after LLM call |
+| LlamaGuard | Content classification | Before/after LLM call |
+| **Agent OS** | **Action interception** | **During execution** |
+
+> **Agent frameworks** build agents. **Safety tools** filter I/O. **Agent OS** intercepts actions mid-execution — the only kernel-level governance layer.
+
 ---
 
 ## ⚡ Quick Start in 30 Seconds
@@ -600,21 +611,6 @@ See [integrations documentation](docs/integrations.md) for full details.
 | **Semantic Kernel** | Function/Plugin/Memory | ✅ Native async | ✅ Stable | `integrations/semantic_kernel_adapter.py` |
 | **CrewAI** | Crew/Agent/Task | ❌ Sync only | ✅ Stable | `integrations/crewai_adapter.py` |
 | **OpenAI Agents SDK** | Agent/Tool/Handoff | ✅ Native async | ✅ Stable | `integrations/openai_agents_sdk_adapter.py` |
-
----
-
-## How It Differs from Other Tools
-
-**Agent Frameworks** (LangChain, CrewAI): Build agents. Agent OS governs them. Use together.
-
-**Safety Tools** (NeMo Guardrails, LlamaGuard): Input/output filtering. Agent OS intercepts actions mid-execution.
-
-| Tool | Focus | When it acts |
-|------|-------|--------------|
-| LangChain/CrewAI | Building agents | N/A (framework) |
-| NeMo Guardrails | Input/output filtering | Before/after LLM call |
-| LlamaGuard | Content classification | Before/after LLM call |
-| **Agent OS** | Action interception | During execution |
 
 ---
 
