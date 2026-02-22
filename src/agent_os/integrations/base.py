@@ -835,6 +835,17 @@ class BaseIntegration(ABC):
             self.emit(GovernanceEventType.TOOL_CALL_BLOCKED, {**event_base, "reason": reason, "pattern": matched[0]})
             return False, reason
         
+        # Check confidence threshold
+        if self.policy.confidence_threshold > 0.0:
+            confidence = getattr(input_data, 'confidence', None)
+            if confidence is not None and confidence < self.policy.confidence_threshold:
+                reason = (
+                    f"Confidence {confidence:.2f} below threshold "
+                    f"{self.policy.confidence_threshold:.2f}"
+                )
+                self.emit(GovernanceEventType.POLICY_VIOLATION, {**event_base, "reason": reason})
+                return False, reason
+
         return True, None
     
     def post_execute(self, ctx: ExecutionContext, output_data: Any) -> tuple[bool, Optional[str]]:
