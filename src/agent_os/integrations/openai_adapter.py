@@ -37,6 +37,7 @@ from typing import Any, Optional, Callable, Generator
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 import asyncio
+import json
 import logging
 import random
 import time
@@ -307,6 +308,11 @@ class GovernedAssistant:
         self._client = client
         self._kernel = kernel
         self._ctx = ctx
+        self._tool_registry: dict[str, Callable] = {}
+    
+    def register_tool(self, name: str, func: Callable) -> None:
+        """Register a tool function for automatic execution."""
+        self._tool_registry[name] = func
     
     @property
     def id(self) -> str:
@@ -598,11 +604,40 @@ class GovernedAssistant:
                             f"Tool not allowed: {func_name}"
                         )
             
-            # For now, we don't auto-execute - return placeholder
-            # In production, you'd integrate with your tool execution
+            # Check human approval requirement
+            if self._kernel.policy.require_human_approval:
+                tool_outputs.append({
+                    "tool_call_id": tool_call.id,
+                    "output": json.dumps({
+                        "status": "requires_approval",
+                        "function": func_name if hasattr(tool_call, 'function') else "unknown",
+                        "message": "Tool execution requires human approval per governance policy"
+                    })
+                })
+                continue
+
+            # Execute via tool registry if available
+            output = None
+            if hasattr(self, '_tool_registry') and self._tool_registry:
+                func_name_exec = tool_call.function.name if hasattr(tool_call, 'function') else None
+                if func_name_exec and func_name_exec in self._tool_registry:
+                    try:
+                        args = json.loads(tool_call.function.arguments) if hasattr(tool_call, 'function') else {}
+                        result = self._tool_registry[func_name_exec](**args)
+                        output = json.dumps(result) if not isinstance(result, str) else result
+                    except Exception as e:
+                        output = json.dumps({"status": "error", "message": str(e)})
+
+            if output is None:
+                output = json.dumps({
+                    "status": "no_executor",
+                    "function": tool_call.function.name if hasattr(tool_call, 'function') else "unknown",
+                    "message": "No tool executor registered for this function"
+                })
+
             tool_outputs.append({
                 "tool_call_id": tool_call.id,
-                "output": '{"status": "governed", "message": "Tool execution requires approval"}'
+                "output": output
             })
         
         # Submit outputs
