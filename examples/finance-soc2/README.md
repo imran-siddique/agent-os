@@ -123,7 +123,7 @@ fdc3_intents:
 
 | SOC2 Criteria | Description | Agent OS Implementation |
 |---------------|-------------|------------------------|
-| CC6.1 | Logical and Physical Access | Role-based permissions, delegation chains |
+| CC6.1 | Logical and Physical Access | Role-based permissions, scope chains |
 | CC6.2 | Access Removal | Automatic session expiry, credential revocation |
 | CC6.3 | Access Control | Policy-based action blocking |
 | CC7.1 | System Operations | Comprehensive audit logging |

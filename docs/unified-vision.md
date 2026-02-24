@@ -88,7 +88,7 @@ Agent OS handles:           AgentMesh handles:
 ─────────────────          ──────────────────
 • Local action safety      • Cross-agent identity
 • Per-host rate limits     • Trust handshakes
-• Framework integration    • Delegation chains
+• Framework integration    • Scope chains
 • Detailed audit logs      • Organization policies
 ```
 
@@ -200,7 +200,7 @@ policies:
 
 ### Audit Log Integration
 
-Agent OS flight recorder integrates with AgentMesh Merkle audit:
+Agent OS flight recorder integrates with AgentMesh hash-chained audit:
 
 ```python
 # Local logs from Agent OS
@@ -385,7 +385,7 @@ See deployment guides:
 **Together they provide:**
 - Local + distributed governance
 - Action safety + identity trust
-- Detailed auditing + Merkle-chain proof
+- Detailed auditing + hash-chain proof
 - Framework integration + protocol bridging
 
 Start with Agent OS for immediate safety benefits, add AgentMesh when you need multi-agent coordination.

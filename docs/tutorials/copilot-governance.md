@@ -59,7 +59,7 @@ asyncio.run(main())
 │      └─ If not in list → SIGKILL (agent terminated)         │
 │                                                              │
 │   2. FlightRecorder logs the action                         │
-│      ├─ Merkle-chained for tamper detection                 │
+│      ├─ Hash-chained for tamper detection                 │
 │      └─ SQLite WAL mode for performance                     │
 │                                                              │
 │   3. Tool Registry executes the real operation              │
@@ -163,7 +163,7 @@ Every operation is logged with:
 - **Tool Name** - What operation
 - **Arguments** - Full details
 - **Policy Verdict** - allowed/blocked
-- **Entry Hash** - Merkle chain for tamper detection
+- **Entry Hash** - hash chain for tamper detection
 
 ### Query the Audit Log
 
@@ -236,7 +236,7 @@ GitHub Copilot under Agent-OS Governance - LIVE DEMO
    ✓ [allowed] file_write
    ✓ [allowed] file_read
 
---- Integrity Check (Merkle Chain) ---
+--- Integrity Check (Hash Chain) ---
 
    ✓ Audit log integrity verified (8 entries)
 
@@ -265,7 +265,7 @@ This verifies:
 ## Key Takeaways
 
 1. **Policy Enforcement is REAL** - Unauthorized operations throw exceptions
-2. **Audit Logging is REAL** - SQLite with Merkle chains
+2. **Audit Logging is REAL** - SQLite with hash chains
 3. **You Must Register Real Executors** - Default ones are mocks
 4. **All Operations Go Through Kernel** - No bypass possible
 

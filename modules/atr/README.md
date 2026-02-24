@@ -139,7 +139,7 @@ ATR is one component in a modular Agent OS. Each layer solves a specific problem
 
 ### Primitives (Layer 1)
 - **[caas](https://github.com/imran-siddique/caas)** - Context-as-a-Service: Manages agent memory and state.
-- **[cmvk](https://github.com/imran-siddique/cmvk)** - Context Merkle Verification Kit: Cryptographic verification of context integrity.
+- **[cmvk](https://github.com/imran-siddique/cmvk)** - Context Verification Kit: Cryptographic verification of context integrity.
 - **[emk](https://github.com/imran-siddique/emk)** - Episodic Memory Kit: Long-term memory storage and retrieval.
 
 ### Infrastructure (Layer 2)

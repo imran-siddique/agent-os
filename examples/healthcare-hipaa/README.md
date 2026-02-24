@@ -171,7 +171,7 @@ token = await auth.authorize(
 |---------------|-------------|------------------------|
 | §164.312(a)(1) | Access Control | Role-based permissions, SMART scopes |
 | §164.312(b) | Audit Controls | 6-year audit logs, tamper detection |
-| §164.312(c)(1) | Integrity | Merkle-chained audit trail |
+| §164.312(c)(1) | Integrity | Hash-chained audit trail |
 | §164.312(d) | Authentication | SMART on FHIR, OAuth2 |
 | §164.312(e)(1) | Transmission Security | TLS enforcement, PHI encryption |
 | §164.514(d) | Minimum Necessary | Field-level filtering by role |

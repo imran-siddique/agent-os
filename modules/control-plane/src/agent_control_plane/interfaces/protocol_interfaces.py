@@ -144,7 +144,7 @@ class VerificationType(Enum):
     """Types of verification"""
     SIGNATURE = "signature"
     HASH = "hash"
-    MERKLE_PROOF = "merkle_proof"
+    HASH_CHAIN_PROOF = "hash_chain_proof"
     ZERO_KNOWLEDGE = "zero_knowledge"
 
 

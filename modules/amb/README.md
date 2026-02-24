@@ -157,7 +157,7 @@ See `examples/tracing_demo.py` for a complete multi-agent tracing example.
 
 ### Layer 1: Primitives (State & Identity)
 - **[caas](https://github.com/imran-siddique/caas)** - Context as a Service: Manages agent context and state
-- **[cmvk](https://github.com/imran-siddique/cmvk)** - Context Merkle Verification Kit: Cryptographic verification of context
+- **[cmvk](https://github.com/imran-siddique/cmvk)** - Context Verification Kit: Cryptographic verification of context
 - **[emk](https://github.com/imran-siddique/emk)** - Episodic Memory Kit: Persistent memory for agents
 
 ### Layer 2: Infrastructure (Transport & Discovery)

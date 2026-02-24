@@ -5,7 +5,7 @@ Demonstrates how Agent-OS and Agent-Mesh work together for full-stack AI governa
 | Layer | Role | Project |
 |-------|------|---------|
 | **Local governance** | Policy enforcement, tool limits, content filtering, flight recording | [Agent-OS](https://github.com/imran-siddique/agent-os) |
-| **Inter-agent governance** | Trust scoring, DID identity, capability verification, Merkle audit | [Agent-Mesh](https://github.com/imran-siddique/agent-mesh) |
+| **Inter-agent governance** | Trust scoring, DID identity, capability verification, hash-chained audit | [Agent-Mesh](https://github.com/imran-siddique/agent-mesh) |
 
 ## Run
 
@@ -30,7 +30,7 @@ Agent-Mesh (inter-agent trust layer)
 ├── DID identity verification
 ├── Trust score management (5 dimensions)
 ├── Capability attestation
-└── Merkle-chained audit log
+└── Hash-chained audit log
 
 Agent-OS (local kernel for each agent)
 ├── Policy enforcement (blocked patterns, tool limits)

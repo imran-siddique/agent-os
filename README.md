@@ -412,7 +412,7 @@ Just as OS hypervisors isolate virtual machines and enforce resource boundaries,
 │   Ring 3 (Sandbox)   ← Default for unknown agents          │
 │                                                            │
 │   ┌──────────┐  ┌───────────┐  ┌────────────────────────┐  │
-│   │  Joint    │  │  Semantic  │  │  Merkle-Chained        │  │
+│   │  Joint    │  │  Semantic  │  │  Hash-Chained          │  │
 │   │ Liability │  │   Saga     │  │  Delta Audit Trail     │  │
 │   │  Engine   │  │ Orchestr.  │  │  (Tamper-Evident)      │  │
 │   └──────────┘  └───────────┘  └────────────────────────┘  │
@@ -426,7 +426,7 @@ Just as OS hypervisors isolate virtual machines and enforce resource boundaries,
 | **Execution Rings** | 4-level privilege model (Ring 0–3) based on trust score | **0.3μs** |
 | **Joint Liability** | High-trust agents vouch for low-trust agents with bonded reputation | **7μs** |
 | **Saga Orchestrator** | Multi-step transactions with timeout, retry, and auto-compensation | **151μs** |
-| **Delta Audit** | Merkle-chained semantic diffs with blockchain commitment | **27μs** |
+| **Delta Audit** | Hash-chained semantic diffs with blockchain commitment | **27μs** |
 | **Full Pipeline** | Session + join + audit + saga + terminate | **268μs** |
 
 ### Quick Start
@@ -458,8 +458,8 @@ step = session.saga.add_step(
     timeout_seconds=30, max_retries=2,
 )
 
-# Terminate — returns tamper-evident Merkle root Summary Hash
-merkle_root = await hv.terminate_session(session.sso.session_id)
+# Terminate — returns tamper-evident summary hash
+summary_hash = await hv.terminate_session(session.sso.session_id)
 ```
 
 📖 **[Full Hypervisor documentation →](https://github.com/imran-siddique/agent-hypervisor)**

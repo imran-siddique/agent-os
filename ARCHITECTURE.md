@@ -230,7 +230,7 @@ graph TB
     subgraph agent-mesh ["agent-mesh — Identity & Trust"]
         id[Cryptographic Identity\nEd25519 / DID]
         trust[Trust Scoring\n5 Dimensions]
-        deleg[Delegation Chains]
+        deleg[Scope Chains]
         mesh-net[Mesh Networking]
     end
 
@@ -254,5 +254,5 @@ graph TB
 | Repository | Provides | Consumes |
 |-----------|----------|----------|
 | **agent-os** | Governance kernel, policy enforcement, execution control | Identity from agent-mesh, reliability signals from agent-sre |
-| **agent-mesh** | Cryptographic identity (Ed25519/DID), trust scoring (5 dimensions), delegation chains | Governance policies and audit events from agent-os |
+| **agent-mesh** | Cryptographic identity (Ed25519/DID), trust scoring (5 dimensions), scope chains | Governance policies and audit events from agent-os |
 | **agent-sre** | SLO tracking, error budgets, chaos testing, incident management, progressive delivery | Execution metrics from agent-os, trust data from agent-mesh |

@@ -274,7 +274,7 @@ Generated at: {datetime.now().isoformat()}
         print(f"   {emoji} [{verdict}] {tool}")
     
     # 6. Verify integrity
-    print("\n--- Integrity Check (Merkle Chain) ---\n")
+    print("\n--- Integrity Check (Hash Chain) ---\n")
     integrity = recorder.verify_integrity()
     if integrity.get("valid"):
         print(f"   ✓ Audit log integrity verified ({integrity.get('total_entries')} entries)")

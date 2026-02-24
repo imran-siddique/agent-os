@@ -12,7 +12,7 @@ Together they provide full-stack governance for multi-agent systems.
 Architecture:
     ┌─────────────────────────────────────────────────────┐
     │                   Agent-Mesh Layer                   │
-    │  (Trust scoring, DID identity, Merkle audit chain)  │
+    │  (Trust scoring, DID identity, hash-chained audit)  │
     │                                                     │
     │  ┌──────────────┐         ┌──────────────┐          │
     │  │  Agent A      │ ◄─────► │  Agent B      │         │
@@ -278,7 +278,7 @@ def run_example():
     print(f"  Agent-OS (Researcher): {len(researcher_gate.flight_log)} events, {researcher_gate.call_count} calls")
     print(f"  Agent-OS (Writer):     {len(writer_gate.flight_log)} events, {writer_gate.call_count} calls")
     print(f"  Agent-Mesh:            {len(registry.audit_chain)} audit entries")
-    print(f"  Merkle chain valid:    ✅ ({len(registry.audit_chain)} entries)")
+    print(f"  Hash chain valid:    ✅ ({len(registry.audit_chain)} entries)")
     print()
     print("  Trust Scores:")
     for did, agent in registry.agents.items():
