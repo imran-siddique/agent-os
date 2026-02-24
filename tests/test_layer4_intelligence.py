@@ -77,7 +77,6 @@ class TestSelfCorrectingKernel:
         """Kernel can be instantiated with default config."""
         assert kernel.detector is not None
         assert kernel.analyzer is not None
-        assert kernel.patcher is not None
         assert kernel.triage is not None
 
     def test_handle_failure_returns_result(self, kernel):
@@ -91,28 +90,24 @@ class TestSelfCorrectingKernel:
         assert "success" in result
         assert "failure" in result
 
-    def test_handle_failure_patches_agent(self, kernel):
-        """A patchable failure results in a correction patch."""
+    def test_handle_failure_records_and_analyzes(self, kernel):
+        """A failure is recorded and analyzed."""
         result = kernel.handle_failure(
             agent_id="agent-2",
             error_message="KeyError: 'missing_key'",
             context={"action": "lookup"},
-            auto_patch=True,
         )
-        if result["success"]:
-            assert result["patch"] is not None
-            assert result["patch_applied"] is True
+        assert result["success"] is True
+        assert result["analysis"] is not None
 
-    def test_handle_failure_no_auto_patch(self, kernel):
-        """With auto_patch=False the patch is created but not applied."""
+    def test_handle_failure_retry_available(self, kernel):
+        """handle_failure indicates retries are available."""
         result = kernel.handle_failure(
             agent_id="agent-3",
             error_message="Timeout",
             context={"action": "fetch"},
-            auto_patch=False,
         )
-        if result["success"]:
-            assert result["patch_applied"] is False
+        assert "retries_available" in result
 
     def test_failure_history_accumulates(self, kernel):
         """Failures are recorded in the detector's history."""

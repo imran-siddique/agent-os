@@ -233,11 +233,11 @@ class TestEpisodicMemoryEdgeCases:
         results = store.retrieve(limit=10)
         assert len(results) == 2
 
-    def test_episode_is_immutable(self):
-        """Episode model is frozen — attributes cannot be reassigned."""
+    def test_episode_is_mutable(self):
+        """Community Edition: Episode model is mutable for flexibility."""
         ep = Episode(goal="g", action="a", result="r", reflection="ref")
-        with pytest.raises(Exception):
-            ep.goal = "new goal"
+        ep.goal = "new goal"
+        assert ep.goal == "new goal"
 
     def test_episode_mark_as_failure(self):
         """mark_as_failure returns new episode with failure metadata."""

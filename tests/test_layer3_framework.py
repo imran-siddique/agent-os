@@ -274,7 +274,6 @@ class TestControlPlane:
         from agent_control_plane import (
             AgentControlPlane,
             PolicyEngine,
-            FlightRecorder,
             ExecutionEngine,
         )
         assert AgentControlPlane is not None
