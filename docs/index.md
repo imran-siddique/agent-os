@@ -33,9 +33,7 @@ Learn by doing with our Jupyter notebooks:
 
 ### 🏗️ Architecture
 
-- [Architecture Overview](architecture.md) - System design and concepts
 - [Kernel Internals](kernel-internals.md) - How the kernel works
-- [CMVK Algorithm](cmvk-algorithm.md) - Cross-model verification
 
 ### 🔧 Reference
 

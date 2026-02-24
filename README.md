@@ -1,6 +1,6 @@
 <div align="center">
 
-# Agent OS
+# Agent OS — Community Edition
 
 **A kernel architecture for governing autonomous AI agents**
 
@@ -905,8 +905,8 @@ See [MCP server documentation](extensions/mcp-server/README.md) for full details
 - [Quickstart Guide](docs/quickstart.md) — 60 seconds to first agent
 - [Framework Integrations](docs/integrations.md) — LangChain, OpenAI, etc.
 - [Kernel Internals](docs/kernel-internals.md) — How the kernel works
-- [Architecture Overview](docs/architecture.md) — System design
-- [CMVK Algorithm](docs/cmvk-algorithm.md) — Cross-model verification
+- [Architecture Overview](docs/quickstart.md) — Getting started
+- [Kernel Internals](docs/kernel-internals.md) — How the kernel works
 - [RFC-003: Agent Signals](docs/rfcs/RFC-003-Agent-Signals.md) — POSIX-style signals
 - [RFC-004: Agent Primitives](docs/rfcs/RFC-004-Agent-Primitives.md) — Core primitives
 
@@ -1043,7 +1043,7 @@ export ANTHROPIC_API_KEY=sk-ant-...
 ## Frequently Asked Questions
 
 **What is the difference between Agent OS and prompt-based guardrails?**
-Prompt-based guardrails ask the LLM to self-police, which fails 26.67% of the time. Agent OS enforces governance at the system level using deterministic policy engines and POSIX-inspired access controls, achieving 0% policy violations. It controls what agents *can* do (capability-based), not just what they *should not* do (filter-based).
+Prompt-based guardrails ask the LLM to self-police, which is probabilistic. Agent OS enforces governance at the middleware level using deterministic policy engines and POSIX-inspired access controls. It controls what agents *can* do (capability-based), not just what they *should not* do (filter-based).
 
 **How does Agent OS work with other frameworks?**
 Agent OS integrates with 14+ frameworks via adapters. Install the governance layer alongside your existing framework: use `langgraph-trust` for LangGraph, `openai-agents-trust` for OpenAI Agents, or the MCP server for any MCP-compatible client. Agent OS acts as a kernel layer underneath your agent framework.

@@ -322,13 +322,13 @@ To add a new benchmark:
    - Expected results
    - Citation (if based on prior work)
 
-4. **Cite prior work**: Add references to `RESEARCH.md`
+4. **Cite prior work**: Add references to the project documentation
 
 ### Adding Papers to Bibliography
 
 To add a new paper citation:
 
-1. **Add to RESEARCH.md**: In relevant section, add:
+1. **Add to documentation**: In relevant section, add:
    ```markdown
    ### [Section Name]
    
