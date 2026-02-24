@@ -43,7 +43,7 @@ class ContentFormat(str, Enum):
 
 
 class SourceType(str, Enum):
-    """Source types for pragmatic truth tracking."""
+    """Source types."""
     OFFICIAL_DOCS = "official_docs"  # Official documentation, specs, formal docs
     PRACTICAL_LOGS = "practical_logs"  # Server logs, error logs, system logs
     TEAM_CHAT = "team_chat"  # Slack, Teams, chat conversations
@@ -76,7 +76,7 @@ class Section(BaseModel):
     end_pos: int = 0
     parent_section: Optional[str] = None  # Parent section title for hierarchical context
     chapter: Optional[str] = None  # Chapter or major section name
-    source_citation: Optional[SourceCitation] = None  # Citation for pragmatic truth tracking
+    source_citation: Optional[SourceCitation] = None  # Citation for source tracking
 
 
 class Document(BaseModel):

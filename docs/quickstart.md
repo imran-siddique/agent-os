@@ -138,7 +138,6 @@ recorder = FlightRecorder("audit.db")
 kernel = AgentKernel(
     policy_engine=policy,
     audit_logger=recorder,
-    shadow_mode=False,  # Set True to simulate without executing
 )
 
 # Intercept tool calls before execution
@@ -162,9 +161,6 @@ if result is None:
 elif result.get("status") == "blocked":
     # BLOCKED - policy violation
     print(f"Blocked: {result.get('error')}")
-elif result.get("status") == "simulated":
-    # SHADOW MODE - simulated execution
-    print(f"Simulated: {result.get('result')}")
 ```
 
 ---

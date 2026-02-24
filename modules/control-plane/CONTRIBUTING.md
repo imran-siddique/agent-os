@@ -242,11 +242,10 @@ Types:
 
 Example:
 ```
-feat: add shadow mode simulation capability
+feat: add conditional permission capability
 
-Implement shadow mode that allows agents to simulate execution
-without actually performing actions. This enables safe testing
-of agent behavior before production deployment.
+Implement conditional permissions that allow agents to have
+fine-grained access control based on context attributes.
 
 Closes #123
 ```

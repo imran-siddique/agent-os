@@ -417,7 +417,7 @@ def create_model_card(info: Optional[ModelCardInfo] = None) -> str:
             description=(
                 "A deterministic kernel for zero-violation governance in agentic AI systems. "
                 "ACP interposes between LLM intent and action execution, providing "
-                "ABAC-based policy enforcement, constraint graphs, and shadow mode simulation."
+                "ABAC-based policy enforcement and constraint graphs."
             ),
             intended_use=[
                 "Enterprise AI agent governance and safety enforcement",

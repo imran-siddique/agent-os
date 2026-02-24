@@ -51,19 +51,10 @@ class TestAsyncSupport(unittest.TestCase):
         self.assertTrue(result["mute"])
         self.assertIn("error", result)
 
+    @unittest.skip("shadow mode removed in Community Edition")
     def test_async_shadow_mode(self):
         """Test async shadow mode returns simulated results"""
-        kernel = AgentKernel(shadow_mode=True)
-
-        result = asyncio.run(
-            kernel.intercept_tool_execution_async(
-                agent_id="test-agent", tool_name="dangerous_tool", tool_args={}
-            )
-        )
-
-        self.assertFalse(result["allowed"])
-        self.assertTrue(result["shadow"])
-        self.assertIn("result", result)
+        pass
 
 
 class TestConditions(unittest.TestCase):

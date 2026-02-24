@@ -88,6 +88,6 @@ setup(
         ],
     },
     python_requires=">=3.9",
-    keywords="ai agents self-correction alignment differential-auditing semantic-purge llm production-ml scak control-plane cmvk laziness-detection",
+    keywords="ai agents self-correction alignment llm production-ml scak control-plane cmvk laziness-detection",
     license="MIT",
 )

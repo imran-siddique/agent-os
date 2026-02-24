@@ -248,7 +248,7 @@ class ContextExtractor:
         self.enricher = None  # enrichment module removed in Community Edition
         self.enable_time_decay = enable_time_decay
         self.decay_rate = decay_rate
-        self.enable_citations = False  # pragmatic truth module removed in Community Edition
+        self.enable_citations = False  # citations disabled
         self.detect_conflicts = False
     
     def _format_section(self, section: 'Section', document: Document) -> str:
