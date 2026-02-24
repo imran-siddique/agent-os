@@ -51,7 +51,7 @@ class TestAsyncSupport(unittest.TestCase):
         self.assertTrue(result["mute"])
         self.assertIn("error", result)
 
-    @unittest.skip("shadow mode removed in Community Edition")
+    @unittest.skip("shadow mode not available")
     def test_async_shadow_mode(self):
         """Test async shadow mode returns simulated results"""
         pass
