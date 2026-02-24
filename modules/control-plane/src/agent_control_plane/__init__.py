@@ -1,23 +1,10 @@
+# Community Edition — basic YAML policy enforcement
 """
 Agent Control Plane
 
 Layer 3: The Framework - A governance and management layer for autonomous AI agents.
 
-The governance layer that defines Agent, Supervisor, Tool, and Policy.
-This is the chassis that connects the primitives (caas, cmvk) to the protocols (iatp).
-
 Publication Target: PyPI (pip install agent-control-plane)
-
-Allowed Dependencies:
-    - iatp: Inter-Agent Transport Protocol (for message security)
-    - cmvk: Cryptographic Message Verification Kit (for verification)
-    - caas: Context-as-a-Service (for context routing)
-
-Forbidden Dependencies:
-    - scak: Self-Correcting Agent Kernel (should implement KernelInterface instead)
-    - mute-agent: Should use ValidatorInterface instead of hard imports
-
-Pattern: Components are injected at runtime via PluginRegistry.
 """
 
 from .agent_kernel import (
@@ -40,10 +27,6 @@ from .policy_engine import (
     create_default_policies,
 )
 
-from .flight_recorder import (
-    FlightRecorder,
-)
-
 from .execution_engine import (
     ExecutionEngine,
     ExecutionContext,
@@ -60,20 +43,15 @@ from .control_plane import (
 
 # Interfaces for dependency injection (Layer 3 pattern)
 from .interfaces import (
-    # Kernel Interface (for custom kernel implementations like SCAK)
     KernelInterface,
     KernelCapability,
     KernelMetadata,
-    
-    # Plugin Interfaces (for extensibility)
     ValidatorInterface,
     ExecutorInterface,
     ContextRouterInterface,
     PolicyProviderInterface,
     PluginCapability,
     PluginMetadata,
-    
-    # Protocol Interfaces (for iatp, cmvk, caas integration)
     MessageSecurityInterface,
     VerificationInterface,
     ContextRoutingInterface,
@@ -142,15 +120,6 @@ from .governance_layer import (
     create_default_governance,
 )
 
-from .ml_safety import (
-    JailbreakDetector,
-    AnomalyDetector,
-    ThreatLevel,
-    ThreatDetectionResult,
-    DetectionMethod,
-    create_ml_safety_suite,
-)
-
 from .compliance import (
     ComplianceEngine,
     ConstitutionalAI,
@@ -159,20 +128,6 @@ from .compliance import (
     ConstitutionalPrinciple,
     ComplianceCheck,
     create_compliance_suite,
-)
-
-from .multimodal import (
-    VisionCapability,
-    AudioCapability,
-    VectorStoreIntegration,
-    RAGPipeline,
-    ImageInput,
-    AudioInput,
-    MultimodalInput,
-    VectorDocument,
-    VectorStoreType,
-    ModalityType,
-    create_multimodal_suite,
 )
 
 from .observability import (
@@ -189,89 +144,47 @@ from .observability import (
     create_observability_suite,
 )
 
-# Agent Hibernation - Serverless Agents
-from .agent_hibernation import (
-    HibernationManager,
-    HibernationConfig,
-    HibernationFormat,
-    AgentState as HibernationAgentState,
-    HibernatedAgentMetadata,
-)
-
-# Time-Travel Debugging
-from .time_travel_debugger import (
-    TimeTravelDebugger,
-    TimeTravelConfig,
-    ReplayMode,
-    ReplayEvent,
-    ReplayEventType,
-    ReplaySession,
-)
-
 # Lifecycle Management (v0.2.0 - Agent Runtime Features)
 from .lifecycle import (
-    # Enhanced Control Plane
     EnhancedAgentControlPlane,
     AgentControlPlaneV2,
     create_control_plane,
-    
-    # Health Monitoring (ACP-001)
     HealthMonitor,
     HealthCheckConfig,
     HealthCheckResult,
     HealthCheckable,
     HealthStatus,
-    
-    # Auto-Recovery (ACP-002)
     AutoRecoveryManager,
     RecoveryConfig,
     RecoveryEvent,
-    
-    # Circuit Breaker (ACP-003)
     CircuitBreaker,
     CircuitBreakerConfig,
     CircuitBreakerMetrics,
     CircuitBreakerRegistry,
     CircuitBreakerOpenError,
     CircuitState,
-    
-    # Scaling (ACP-004)
     AgentScaler,
     ScalingConfig,
     AgentReplica,
-    
-    # Distributed Coordination (ACP-005)
     DistributedCoordinator,
     LeaderElectionConfig,
     LeaderInfo,
     CoordinationRole,
-    
-    # Dependency Graph (ACP-006)
     DependencyGraph,
     AgentDependency,
-    
-    # Graceful Shutdown (ACP-007)
     GracefulShutdownManager,
     ShutdownConfig,
     InFlightOperation,
     ShutdownPhase,
-    
-    # Resource Quotas (ACP-008)
     ResourceQuotaManager,
     AgentResourceQuota,
     ResourceUsage,
-    
-    # Agent Observability (ACP-009)
     AgentObservabilityProvider,
     AgentMetric,
     AgentLogEntry,
-    
-    # Hot Reload (ACP-010)
     HotReloadManager,
     HotReloadConfig,
     ReloadEvent,
-    
-    # Agent State
     AgentState,
     AgentRegistration,
 )
@@ -336,7 +249,7 @@ try:
 except ImportError:
     _HF_AVAILABLE = False
 
-__version__ = "0.3.0"  # Bump for kernel architecture features
+__version__ = "0.3.0"
 __author__ = "Imran Siddique"
 
 __all__ = [
@@ -346,123 +259,85 @@ __all__ = [
     "create_standard_agent",
     "create_admin_agent",
     
-    # ===== Lifecycle Management (v0.2.0) =====
-    
-    # Enhanced Control Plane
+    # Lifecycle Management (v0.2.0)
     "EnhancedAgentControlPlane",
     "AgentControlPlaneV2",
     "create_control_plane",
-    
-    # Health Monitoring (ACP-001)
     "HealthMonitor",
     "HealthCheckConfig",
     "HealthCheckResult",
     "HealthCheckable",
     "HealthStatus",
-    
-    # Auto-Recovery (ACP-002)
     "AutoRecoveryManager",
     "RecoveryConfig",
     "RecoveryEvent",
-    
-    # Circuit Breaker (ACP-003)
     "CircuitBreaker",
     "CircuitBreakerConfig",
     "CircuitBreakerMetrics",
     "CircuitBreakerRegistry",
     "CircuitBreakerOpenError",
     "CircuitState",
-    
-    # Scaling (ACP-004)
     "AgentScaler",
     "ScalingConfig",
     "AgentReplica",
-    
-    # Distributed Coordination (ACP-005)
     "DistributedCoordinator",
     "LeaderElectionConfig",
     "LeaderInfo",
     "CoordinationRole",
-    
-    # Dependency Graph (ACP-006)
     "DependencyGraph",
     "AgentDependency",
-    
-    # Graceful Shutdown (ACP-007)
     "GracefulShutdownManager",
     "ShutdownConfig",
     "InFlightOperation",
     "ShutdownPhase",
-    
-    # Resource Quotas (ACP-008)
     "ResourceQuotaManager",
     "AgentResourceQuota",
     "ResourceUsage",
-    
-    # Agent Observability (ACP-009)
     "AgentObservabilityProvider",
     "AgentMetric",
     "AgentLogEntry",
-    
-    # Hot Reload (ACP-010)
     "HotReloadManager",
     "HotReloadConfig",
     "ReloadEvent",
-    
-    # Agent State
     "AgentState",
     "AgentRegistration",
     
-    # ===== Layer 3: Interfaces for Dependency Injection =====
-    
-    # Kernel Interface (for custom kernel implementations like SCAK)
+    # Interfaces for Dependency Injection
     "KernelInterface",
     "KernelCapability",
     "KernelMetadata",
-    
-    # Plugin Interfaces (for extensibility)
     "ValidatorInterface",
     "ExecutorInterface",
     "ContextRouterInterface",
     "PolicyProviderInterface",
     "PluginCapability",
     "PluginMetadata",
-    
-    # Protocol Interfaces (for iatp, cmvk, caas integration)
     "MessageSecurityInterface",
     "VerificationInterface",
     "ContextRoutingInterface",
     
-    # Plugin Registry (for dependency injection)
+    # Plugin Registry
     "PluginRegistry",
     "PluginType",
     "PluginRegistration",
     "RegistryConfiguration",
     "get_registry",
     
-    # ===== Adapters =====
-    
-    # OpenAI Adapter (Drop-in Middleware)
+    # Adapters
     "ControlPlaneAdapter",
     "create_governed_client",
     "DEFAULT_TOOL_MAPPING",
-    
-    # LangChain Adapter
     "LangChainAdapter",
     "create_governed_langchain_client",
     "DEFAULT_LANGCHAIN_TOOL_MAPPING",
-    
-    # MCP (Model Context Protocol) Adapter
     "MCPAdapter",
     "MCPServer",
     "create_governed_mcp_server",
-    
-    # A2A (Agent-to-Agent) Adapter
     "A2AAdapter",
     "A2AAgent",
     "create_governed_a2a_agent",
     
-    # Tool Registry (Dynamic Tool Management)
+    # Tool Registry
     "ToolRegistry",
     "Tool",
     "ToolType",
@@ -479,7 +354,7 @@ __all__ = [
     "WorkflowState",
     "create_rag_pipeline",
     
-    # Governance Layer (Ethical Alignment & Advanced Safety)
+    # Governance Layer
     "GovernanceLayer",
     "AlignmentPrinciple",
     "AlignmentRule",
@@ -489,14 +364,6 @@ __all__ = [
     "PrivacyAnalysis",
     "create_default_governance",
     
-    # ML-Based Safety & Anomaly Detection
-    "JailbreakDetector",
-    "AnomalyDetector",
-    "ThreatLevel",
-    "ThreatDetectionResult",
-    "DetectionMethod",
-    "create_ml_safety_suite",
-    
     # Compliance & Constitutional AI
     "ComplianceEngine",
     "ConstitutionalAI",
@@ -505,19 +372,6 @@ __all__ = [
     "ConstitutionalPrinciple",
     "ComplianceCheck",
     "create_compliance_suite",
-    
-    # Multimodal Capabilities (Vision, Audio, RAG)
-    "VisionCapability",
-    "AudioCapability",
-    "VectorStoreIntegration",
-    "RAGPipeline",
-    "ImageInput",
-    "AudioInput",
-    "MultimodalInput",
-    "VectorDocument",
-    "VectorStoreType",
-    "ModalityType",
-    "create_multimodal_suite",
     
     # Observability & Monitoring
     "PrometheusExporter",
@@ -531,21 +385,6 @@ __all__ = [
     "MetricType",
     "AlertSeverity",
     "create_observability_suite",
-    
-    # Agent Hibernation - Serverless Agents
-    "HibernationManager",
-    "HibernationConfig",
-    "HibernationFormat",
-    "HibernationAgentState",
-    "HibernatedAgentMetadata",
-    
-    # Time-Travel Debugging
-    "TimeTravelDebugger",
-    "TimeTravelConfig",
-    "ReplayMode",
-    "ReplayEvent",
-    "ReplayEventType",
-    "ReplaySession",
     
     # Kernel
     "AgentKernel",
@@ -568,15 +407,10 @@ __all__ = [
     "ConditionalPermission",
     "create_default_policies",
     
-    # Audit
-    "FlightRecorder",
-    
     # Execution
     "ExecutionEngine",
     "ExecutionContext",
     "ExecutionMetrics",
-    
-    # ========== Kernel Architecture (v0.3.0) ==========
     
     # Signal Handling
     "AgentSignal",
@@ -605,7 +439,7 @@ __all__ = [
     
     # Kernel/User Space
     "KernelSpace",
-    "AgentContext",  # Note: Also exported from agent_kernel
+    "AgentContext",
     "ProtectionRing",
     "SyscallType",
     "SyscallRequest",
