@@ -84,7 +84,7 @@ export class PolicyCompletionProvider implements vscode.CompletionItemProvider {
   enabled: true
   log_level: INFO`, vscode.CompletionItemKind.Module),
             
-            this.createCompletion('cmvk', 'Cross-model verification', `cmvk:
+            this.createCompletion('cmvk', 'Verification', `cmvk:
   enabled: false
   models: ["gpt-4", "claude-sonnet-4"]
   threshold: 0.8`, vscode.CompletionItemKind.Module),
@@ -249,7 +249,7 @@ export class PolicyHoverProvider implements vscode.HoverProvider {
         ['file_write', '**file_write**\n\nBlocks all file write operations including:\n- `open(..., "w")`\n- File.write()\n- fs.writeFile()'],
         ['file_delete', '**file_delete**\n\nBlocks file deletion operations including:\n- `os.remove()`\n- `rm -rf`\n- `unlink()`'],
         ['database_delete', '**database_delete**\n\nBlocks destructive SQL operations:\n- `DROP TABLE`\n- `DELETE FROM`\n- `TRUNCATE`'],
-        ['cmvk', '**CMVK - Cross-Model Verification Kernel**\n\nVerifies agent outputs by comparing across multiple LLMs. If models disagree significantly, the action is flagged.'],
+        ['cmvk', '**CMVK — Verification Kernel**\n\nVerifies agent outputs by comparing across multiple LLMs. If models disagree significantly, the action is flagged.'],
         ['iatp', '**IATP - Inter-Agent Trust Protocol**\n\nCryptographic signing and verification of messages between agents. Ensures message authenticity and prevents tampering.'],
     ]);
 

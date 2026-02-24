@@ -15,7 +15,7 @@ class ContentTier(str, Enum):
 
 
 class ContextLayer(str, Enum):
-    """Context triad layers defined by intimacy and access policy."""
+    """Context tiers defined by intimacy and access policy."""
     HOT = "hot"  # L1: The Situation - current conversation, active data (overrides everything)
     WARM = "warm"  # L2: The Persona - user profile, preferences (always-on filter)
     COLD = "cold"  # L3: The Archive - historical data (on-demand only)
@@ -149,14 +149,14 @@ class ContextTriadItem(BaseModel):
 
 
 class ContextTriadState(BaseModel):
-    """Represents the complete context triad state."""
+    """Represents the complete tiered context state."""
     hot_context: List[ContextTriadItem] = []  # Current situation (conversation, errors)
     warm_context: List[ContextTriadItem] = []  # User persona (profile, preferences)
     cold_context: List[ContextTriadItem] = []  # Historical archive (old tickets, PRs)
     
     
 class ContextTriadRequest(BaseModel):
-    """Request for context triad retrieval."""
+    """Request for tiered context retrieval."""
     include_hot: bool = Field(default=True, description="Include hot context (current situation)")
     include_warm: bool = Field(default=True, description="Include warm context (user persona)")
     include_cold: bool = Field(default=False, description="Include cold context (historical archive) - on-demand only")
@@ -175,7 +175,7 @@ class AddContextRequest(BaseModel):
 
 
 class ContextTriadResponse(BaseModel):
-    """Response containing context triad data."""
+    """Response containing tiered context data."""
     hot_context: str = ""
     warm_context: str = ""
     cold_context: str = ""

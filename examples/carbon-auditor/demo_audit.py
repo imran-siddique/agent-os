@@ -8,7 +8,7 @@ This script:
 1. Spins up three agents (claims-agent, geo-agent, auditor-agent)
 2. Processes a mock Project Design Document
 3. Simulates satellite data showing deforestation
-4. Uses cmvk (Cross-Model Verification Kernel) to detect fraud
+4. Uses cmvk (Verification Kernel) to detect fraud
 5. Prints the FRAUD alert to console
 
 Dependencies (v2.0 - ALL UPGRADED):

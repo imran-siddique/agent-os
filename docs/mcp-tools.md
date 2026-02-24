@@ -331,7 +331,7 @@ Standard instructions for operating as a governed agent under Agent OS.
 
 ### `verify_claim`
 
-Instructions for verifying a claim using CMVK cross-model verification.
+Instructions for verifying a claim using CMVK verification.
 
 | Argument | Required | Description |
 |----------|----------|-------------|

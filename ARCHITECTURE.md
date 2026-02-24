@@ -29,7 +29,7 @@ block-beta
 
   block:L1["Layer 1 — Primitives"]
     prim["modules/primitives\nCore Primitives"]
-    cmvk["modules/cmvk\nCross-Model Verification Kernel"]
+    cmvk["modules/cmvk\nCMVK — Verification Kernel"]
     emk["modules/emk\nEpisodic Memory Kernel"]
     caas["modules/caas\nContext-as-a-Service"]
   end

@@ -49,7 +49,7 @@ Custom policies can be added by extending the policy engine or writing new rule 
 ## Is Agent OS production-ready?
 The **core kernel components** (policy engine, signal handling, audit logging) are production-ready for controlled environments.
 
-Advanced modules—such as multi-agent trust, cross-model verification, and observability—are experimental and evolving.
+Advanced modules—such as multi-agent trust, verification, and observability—are experimental and evolving.
 
 For strong isolation guarantees, Agent OS should be paired with container or sandbox-level isolation.
 

@@ -44,7 +44,7 @@ We welcome:
 
 1. **Check existing issues**: Look for related issues or PRs
 2. **Open a discussion**: For large changes, create an issue first
-3. **Read the architecture**: Understand the dual-loop design (see `wiki/`)
+3. **Read the architecture**: Understand the self-correction design (see `wiki/`)
 4. **Review coding standards**: See below
 
 ---

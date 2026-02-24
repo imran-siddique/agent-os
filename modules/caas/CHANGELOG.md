@@ -43,8 +43,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Structure-aware indexing (High/Medium/Low value tiers)
   - Metadata injection for contextual enrichment
   - Time-based decay for recency prioritization
-  - Context Triad (Hot/Warm/Cold) system
-  - Pragmatic Truth tracking with source citations
+  - Tiered context (Hot/Warm/Cold) system
+  - Context scoring tracking with source citations
   - Heuristic Router for fast query routing
   - Sliding Window conversation management
   - Trust Gateway for enterprise security

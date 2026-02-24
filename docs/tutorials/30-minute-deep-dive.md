@@ -242,7 +242,7 @@ store.store(failed)
 
 ---
 
-## Part 6: Cross-Model Verification (5 min)
+## Part 6: Verification (5 min)
 
 Detect drift between model outputs:
 
@@ -278,7 +278,7 @@ else:
     print(f"Disagreement detected: {result.drift_scores}")
 ```
 
-**See:** [Jupyter Notebook: Cross-Model Verification](../../notebooks/04-cross-model-verification.ipynb)
+**See:** [Jupyter Notebook: Verification](../../notebooks/04-cross-model-verification.ipynb)
 
 ---
 

@@ -1,6 +1,6 @@
 # CMVK Concept Demo: Carbon Credit Verification
 
-> Demonstration of how Cross-Model Verification could detect inconsistencies in carbon credit claims.
+> Demonstration of how CMVK verification could detect inconsistencies in carbon credit claims.
 
 ## Concept
 

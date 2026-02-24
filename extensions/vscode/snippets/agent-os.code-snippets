@@ -178,7 +178,7 @@
             "else:",
             "    print(f\"Issues found: {result.issues}\")"
         ],
-        "description": "Cross-Model Verification Kernel review"
+        "description": "CMVK Verification Kernel review"
     },
 
     "AgentOS Compliance Policy": {

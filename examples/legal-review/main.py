@@ -472,7 +472,7 @@ class LegalVerifier:
         Verify findings across multiple models.
         Returns: (agreement_score, verified_findings)
         """
-        # Simulate cross-model verification
+        # Simulate verification
         verified = []
         for finding in findings:
             # In production, each model would analyze the clause

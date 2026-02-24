@@ -600,7 +600,7 @@ def _amb_dashboard() -> dict:
 
 
 def _cmvk_dashboard() -> dict:
-    """CMVK (Cross-Model Verification Kernel) dashboard for ML Ops."""
+    """CMVK (Verification Kernel) dashboard for ML Ops."""
     return {
         "dashboard": {
             "id": None,

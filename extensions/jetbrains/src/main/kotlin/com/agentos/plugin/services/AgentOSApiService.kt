@@ -161,7 +161,7 @@ class AgentOSApiService {
     }
     
     /**
-     * Perform CMVK (Cross-Model Verification Kernel) review on code.
+     * Perform CMVK (Verification Kernel) review on code.
      */
     fun reviewWithCMVK(code: String, language: String): CompletableFuture<CMVKResult> {
         val future = CompletableFuture<CMVKResult>()

@@ -133,7 +133,7 @@ Your agent code runs in "user space" - it can do anything. But the kernel interc
 pip install agent-os-kernel
 
 # With specific features
-pip install agent-os-kernel[cmvk]           # Cross-model verification
+pip install agent-os-kernel[cmvk]           # Verification
 pip install agent-os-kernel[observability]  # Prometheus/OpenTelemetry
 pip install agent-os-kernel[full]           # Everything
 ```

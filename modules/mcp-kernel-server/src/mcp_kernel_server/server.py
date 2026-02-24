@@ -110,7 +110,7 @@ Use kernel_execute with:
                 "required": True
             }
         ],
-        "template": """Verify the following claim using cross-model verification:
+        "template": """Verify the following claim using CMVK verification:
 
 Claim: {claim}
 

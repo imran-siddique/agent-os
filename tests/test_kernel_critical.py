@@ -221,7 +221,7 @@ class TestVFSPermissions:
 
 @pytest.mark.skipif(not HAS_CMVK, reason="cmvk module not available")
 class TestCMVKDriftDetection:
-    """Test Cross-Model Verification Kernel drift detection."""
+    """Test CMVK Verification Kernel drift detection."""
     
     @pytest.mark.skipif(
         sys.version_info < (3, 11),

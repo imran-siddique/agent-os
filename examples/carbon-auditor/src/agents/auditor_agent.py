@@ -1,7 +1,7 @@
 """
 Auditor Agent (Agent C) - "The Judge"
 
-The decision maker that uses cmvk (Cross-Model Verification Kernel) to detect fraud.
+The decision maker that uses cmvk (Verification Kernel) to detect fraud.
 Compares claims against observations using mathematical verification.
 
 Updated for cmvk 0.2.0:
@@ -80,7 +80,7 @@ class AuditorAgent(BaseAgent):
     
     Role: Decision maker that:
         - Subscribes to both Claim and Observation messages
-        - Uses cmvk (Cross-Model Verification Kernel) to calculate drift scores
+        - Uses cmvk (Verification Kernel) to calculate drift scores
         - Issues verification results: VERIFIED, FLAGGED, or FRAUD
     
     KEY PRINCIPLE: "The AI didn't decide; the Math decided."

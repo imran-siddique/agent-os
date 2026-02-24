@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Layer 1: Primitives
 - **primitives** (v0.1.0) - Base failure types and models
-- **cmvk** (v0.2.0) - Cross-Model Verification Kernel
+- **cmvk** (v0.2.0) - CMVK — Verification Kernel
 - **caas** (v0.2.0) - Context-as-a-Service RAG pipeline
 - **emk** (v0.1.0) - Episodic Memory Kernel
 

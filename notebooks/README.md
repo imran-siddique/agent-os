@@ -16,7 +16,7 @@ jupyter notebook
 | 01 | [Hello Agent OS](01-hello-agent-os.ipynb) | Your first governed agent | 5 min | None |
 | 02 | [Episodic Memory](02-episodic-memory-demo.ipynb) | Persistent agent memory | 15 min | 01 |
 | 03 | [Time-Travel Debugging](03-time-travel-debugging.ipynb) | Replay and debug decisions | 20 min | 01 |
-| 04 | [Cross-Model Verification](04-cross-model-verification.ipynb) | Detect hallucinations with CMVK | 15 min | 01 |
+| 04 | [Verification](04-cross-model-verification.ipynb) | Detect hallucinations with CMVK | 15 min | 01 |
 | 05 | [Multi-Agent Coordination](05-multi-agent-coordination.ipynb) | Trust between agents (IATP) | 20 min | 01 |
 | 06 | [Policy Engine](06-policy-engine.ipynb) | Deep dive into policies | 15 min | 01 |
 
@@ -36,7 +36,7 @@ For developers building agents that learn:
 ### Path 3: Multi-Agent Systems (55 min)
 For developers building complex agent systems:
 1. [01 - Hello Agent OS](01-hello-agent-os.ipynb)
-2. [04 - Cross-Model Verification](04-cross-model-verification.ipynb)
+2. [04 - Verification](04-cross-model-verification.ipynb)
 3. [05 - Multi-Agent Coordination](05-multi-agent-coordination.ipynb)
 
 ### Path 4: Complete Course (1.5 hours)
@@ -53,7 +53,7 @@ pip install agent-os-kernel
 # Episodic Memory (notebook 02)
 pip install agent-os-kernel emk
 
-# Cross-Model Verification (notebook 04)
+# Verification (notebook 04)
 pip install agent-os-kernel[cmvk]
 
 # Multi-Agent Coordination (notebook 05)

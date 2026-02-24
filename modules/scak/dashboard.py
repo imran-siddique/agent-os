@@ -211,8 +211,8 @@ with tab2:
     
     st.dataframe(pd.DataFrame(patches_data), use_container_width=True, hide_index=True)
     
-    # Semantic Purge section
-    st.subheader("Semantic Purge")
+    # Context Cleanup section
+    st.subheader("Context Cleanup")
     
     col1, col2 = st.columns([2, 1])
     

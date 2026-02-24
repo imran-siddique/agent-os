@@ -1,6 +1,6 @@
 # Community Edition — basic context/memory management
 """
-Context Triad Manager — single-tier context storage.
+Tiered Context Manager — single-tier context storage.
 
 All items are stored in one flat list regardless of the layer label
 passed through the public API.  Hot/Warm/Cold labels are preserved on
@@ -23,7 +23,7 @@ class ContextTriadManager:
     """
 
     def __init__(self):
-        """Initialize the context triad manager."""
+        """Initialize the Tiered Context Manager."""
         self.state = ContextTriadState()
 
     # -- internal helper ---------------------------------------------------

@@ -7,7 +7,7 @@ Production-grade AI agent for medical chart review with full HIPAA compliance.
 Features:
 - PHI detection and protection (18 HIPAA identifiers)
 - Role-based access control (RBAC)
-- Cross-model verification for clinical accuracy
+- Verification for clinical accuracy
 - Tamper-evident audit logging
 - Automatic de-identification
 - Break-the-glass emergency access
@@ -308,12 +308,12 @@ class PHIProtector:
 
 
 # ============================================================
-# CROSS-MODEL CLINICAL VERIFICATION
+# CLINICAL VERIFICATION
 # ============================================================
 
 class ClinicalVerifier:
     """
-    Cross-model verification for clinical accuracy.
+    Verification for clinical accuracy.
     Catches contradictions that could indicate errors.
     """
     
@@ -354,7 +354,7 @@ class ClinicalVerifier:
                         confidence=0.90,
                     ))
         
-        # Simulate cross-model consensus
+        # Simulate consensus
         agreement = await self._get_model_consensus(chart_text, findings)
         
         # Filter to high-confidence findings
@@ -388,7 +388,7 @@ class ClinicalVerifier:
         return False
     
     async def _get_model_consensus(self, text: str, findings: list) -> float:
-        """Simulate cross-model consensus scoring."""
+        """Simulate consensus scoring."""
         # In production, this calls medical LLM APIs
         return 0.88
 
@@ -497,7 +497,7 @@ class MedicalChartReviewAgent:
     Pipeline:
     1. Verify user access rights
     2. Retrieve chart with PHI protection
-    3. Cross-model clinical verification
+    3. Clinical verification
     4. Generate findings with audit trail
     5. De-identify output for non-clinical users
     """

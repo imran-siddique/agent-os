@@ -7,7 +7,7 @@ Uses a multi-agent architecture to verify carbon credit claims against satellite
 Dependencies:
 - amb-core: Agent Message Bus for inter-agent communication
 - agent-control-plane: Agent runtime and control
-- cmvk: Cross-Model Verification Kernel for drift detection
+- cmvk: CMVK — Verification Kernel for drift detection
 - agent-tool-registry: Tool registration and discovery
 """
 

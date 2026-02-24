@@ -48,7 +48,7 @@ class TestAgentPrimitives:
 
 
 class TestCMVK:
-    """Test cross-model-verification-kernel package."""
+    """Test verification-kernel package."""
     
     def test_import_cmvk(self):
         """Test basic import."""

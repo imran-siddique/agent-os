@@ -38,7 +38,7 @@ from caas.models import (
     FileListResponse,
 )
 
-# Context Triad - single-tier context management
+# Tiered context - single-tier context management
 from caas.triad import ContextTriadManager
 
 # Decay functions for time-based retrieval

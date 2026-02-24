@@ -54,7 +54,7 @@ try:
 except ImportError:
     _PRIMITIVES_AVAILABLE = False
 
-# CMVK - Cross-Model Verification Kernel
+# CMVK - Verification Kernel
 # DriftDetector (#138): Compares agent outputs across models or over time to
 # detect semantic drift — situations where an agent's behaviour diverges from
 # its stated intent or baseline.  Drift is quantified as a float score in

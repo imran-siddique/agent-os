@@ -125,7 +125,7 @@ Get the safety audit trail for compliance and debugging.
 }
 ```
 
-### `cmvk_verify` - Cross-Model Claim Verification
+### `cmvk_verify` - Claim Verification
 Verify claims across multiple AI models to detect hallucinations.
 
 ```json
@@ -253,7 +253,7 @@ This MCP server is part of the [Agent OS](https://github.com/imran-siddique/agen
 
 - **Kernel-level safety** - Not just prompts, real enforcement
 - **POSIX-style signals** - SIGKILL, SIGSTOP, SIGCONT for agents
-- **Cross-model verification** - Consensus across GPT-4, Claude, Gemini
+- **Verification** - Consensus across GPT-4, Claude, Gemini
 - **Zero violations** - Deterministic policy enforcement
 
 ## License

@@ -1,4 +1,4 @@
-# CMVK - Cross-Model Verification Kernel
+# CMVK — Verification Kernel
 # Layer 1: The Primitive - Mathematical verification library
 # Publication Target: PyPI (pip install cmvk)
 # Last updated: 2026-01-23

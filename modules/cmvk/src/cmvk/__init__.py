@@ -1,6 +1,6 @@
 # Community Edition — basic single-model verification
 """
-CMVK - Cross-Model Verification Kernel (Community Edition)
+CMVK — Verification Kernel (Community Edition)
 ==========================================================
 
 A basic verification library for calculating drift/hallucination scores

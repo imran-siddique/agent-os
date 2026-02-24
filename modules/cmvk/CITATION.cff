@@ -3,7 +3,7 @@
 # This file enables "Cite this repository" on GitHub
 
 cff-version: 1.2.0
-title: "Cross-Model Verification Kernel (CMVK)"
+title: "CMVK — Verification Kernel"
 message: "If you use this software in your research, please cite it as below."
 type: software
 authors:
@@ -37,7 +37,7 @@ preferred-citation:
   authors:
     - family-names: "Siddique"
       given-names: "Imran"
-  title: "Cross-Model Verification Kernel: Adversarial Multi-Model Code Generation with Blind Spot Reduction"
+  title: "CMVK — Verification Kernel: Adversarial Multi-Model Code Generation with Blind Spot Reduction"
   year: 2026
   collection-title: "Advances in Neural Information Processing Systems"
   collection-type: proceedings

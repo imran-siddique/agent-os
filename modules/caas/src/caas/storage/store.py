@@ -274,7 +274,7 @@ class ContextExtractor:
         """
         Extract context from a document with structure-aware boosting and time-based decay.
         
-        Now with Pragmatic Truth support:
+        Now with Context scoring support:
         - Includes source citations for transparency
         - Detects conflicts between official and practical sources
         - Presents both official and real-world information

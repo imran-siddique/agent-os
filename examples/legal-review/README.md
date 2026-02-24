@@ -7,7 +7,7 @@ Production-grade AI agent for analyzing legal contracts with full governance.
 This agent reviews contracts for risky clauses with:
 - **Attorney-client privilege protection** - Strict access controls
 - **Risky clause detection** - 7+ clause types analyzed
-- **Cross-model verification** - Legal accuracy across GPT-4, Claude, LegalBERT
+- **Verification** - Legal accuracy across GPT-4, Claude, LegalBERT
 - **Conflict of interest checking** - Matter-based conflict tracking
 - **Tamper-evident audit logging** - 7-year retention compliance
 - **PII redaction** - Auto-redact sensitive info in outputs
@@ -110,7 +110,7 @@ result = await agent.analyze_contract(doc_id, user)
                            ▼
 ┌─────────────────────────────────────────────────────────┐
 │                  LegalVerifier (CMVK)                    │
-│      (Cross-model verification for accuracy)             │
+│      (Verification for accuracy)             │
 └─────────────────────────────────────────────────────────┘
                            │
                            ▼

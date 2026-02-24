@@ -1,4 +1,4 @@
-# CMVK - Cross-Model Verification Kernel — Community Edition
+# CMVK — Verification Kernel — Community Edition
 
 > **Part of [Agent OS](https://github.com/imran-siddique/agent-os)** - Kernel-level governance for AI agents
 

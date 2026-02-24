@@ -1,4 +1,4 @@
-# Dockerfile for Cross-Model Verification Kernel
+# Dockerfile for CMVK — Verification Kernel
 # Supports both the CLI and sandbox code execution
 
 FROM python:3.11-slim as base

@@ -493,7 +493,7 @@ async def route_query(request: RouteRequest):
 
 
 # ===========================
-# Context Triad Endpoints
+# Tiered Context Endpoints
 # ===========================
 
 @app.post("/triad/hot")
@@ -609,9 +609,9 @@ async def add_cold_context(request: AddContextRequest):
 @app.post("/triad")
 async def get_context_triad(request: ContextTriadRequest):
     """
-    Get the complete context triad.
+    Get the complete tiered context.
     
-    The Context Triad follows these policies:
+    The tiered context follows these policies:
     1. Hot Context: ALWAYS included (unless explicitly disabled)
        - The Situation: what's happening right now
        - Policy: "Attention Head" - overrides everything
@@ -657,7 +657,7 @@ async def get_context_triad(request: ContextTriadRequest):
 @app.get("/triad/state")
 async def get_triad_state():
     """
-    Get the current state of the context triad.
+    Get the current state of the tiered context.
     
     Returns:
         Current context triad state with item counts

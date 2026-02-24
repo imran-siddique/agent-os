@@ -254,7 +254,7 @@ class VerifyCodeSafetyTool:
 
 class CMVKVerifyTool:
     """
-    Cross-Model Verification Kernel as MCP Tool.
+    CMVK — Verification Kernel as MCP Tool.
     
     Verifies claims across multiple models to detect hallucinations
     and blind spots through structured disagreement.
@@ -292,7 +292,7 @@ class CMVKVerifyTool:
         self.default_threshold = self.config.get("threshold", 0.85)
     
     async def execute(self, arguments: dict) -> ToolResult:
-        """Execute cross-model verification."""
+        """Execute verification."""
         claim = arguments.get("claim", "")
         context = arguments.get("context", "")
         threshold = arguments.get("threshold", self.default_threshold)
@@ -313,7 +313,7 @@ class CMVKVerifyTool:
     
     async def _verify_claim(self, claim: str, context: str, threshold: float) -> dict:
         """
-        Perform cross-model verification using drift-based consensus.
+        Perform verification using drift-based consensus.
         
         Algorithm:
         1. Query each model with the claim

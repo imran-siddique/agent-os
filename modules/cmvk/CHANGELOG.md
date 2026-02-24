@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to the Cross-Model Verification Kernel (CMVK) will be documented in this file.
+All notable changes to the CMVK — Verification Kernel will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -8,9 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.0] - 2026-01-21
 
 ### Changed
-- **BREAKING**: Renamed package from `src` to `cross_model_verification_kernel`
-  - All imports must now use `from cross_model_verification_kernel import ...`
-  - CLI entry point updated to `cross_model_verification_kernel.cli:app`
+- **BREAKING**: Renamed package from `src` to `verification_kernel`
+  - All imports must now use `from verification_kernel import ...`
+  - CLI entry point updated to `verification_kernel.cli:app`
 - Reorganized documentation into `docs/` directory
 - Reorganized tests into `tests/unit/` and `tests/integration/`
 - Moved example scripts to `examples/` directory
@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modernized `.gitignore` with comprehensive patterns
 
 ### Added
-- `src/cross_model_verification_kernel/__main__.py` for `python -m` support
+- `src/verification_kernel/__main__.py` for `python -m` support
 - `CONTRIBUTING.md` with development guidelines
 - `requirements-dev.txt` for contributors
 - `tests/conftest.py` with shared pytest fixtures
@@ -50,7 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2024-01-21
 
 ### Added
-- Initial release of Cross-Model Verification Kernel
+- Initial release of CMVK — Verification Kernel
 - Drift detection and comparison utilities
 - Trace logging and visualization system
 - Configuration via YAML files

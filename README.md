@@ -312,7 +312,7 @@ graph TB
     
     subgraph "Layer 1: Primitives"
         PRIM[Base Types + Failures]
-        CMVK[Cross-Model Verification]
+        CMVK[Verification]
         CAAS[Context-as-a-Service]
         EMK[Episodic Memory Kernel]
     end
@@ -489,7 +489,7 @@ pip install agent-os-kernel
 Or with optional components:
 
 ```bash
-pip install agent-os-kernel[cmvk]           # + cross-model verification
+pip install agent-os-kernel[cmvk]           # + verification
 pip install agent-os-kernel[iatp]           # + inter-agent trust
 pip install agent-os-kernel[observability]  # + Prometheus/OpenTelemetry
 pip install agent-os-kernel[nexus]          # + trust exchange network
@@ -897,7 +897,7 @@ See [MCP server documentation](extensions/mcp-server/README.md) for full details
 | [Hello Agent OS](notebooks/01-hello-agent-os.ipynb) | Your first governed agent | 5 min |
 | [Episodic Memory](notebooks/02-episodic-memory-demo.ipynb) | Agent memory that persists | 15 min |
 | [Time-Travel Debugging](notebooks/03-time-travel-debugging.ipynb) | Replay and debug decisions | 20 min |
-| [Cross-Model Verification](notebooks/04-cross-model-verification.ipynb) | Detect hallucinations | 15 min |
+| [Verification](notebooks/04-cross-model-verification.ipynb) | Detect hallucinations | 15 min |
 | [Multi-Agent Coordination](notebooks/05-multi-agent-coordination.ipynb) | Trust between agents | 20 min |
 | [Policy Engine](notebooks/06-policy-engine.ipynb) | Deep dive into policies | 15 min |
 

@@ -400,7 +400,7 @@ class PolicyEngine:
 
 
 # ============================================================
-# CROSS-MODEL VERIFICATION (CMVK)
+# VERIFICATION (CMVK)
 # ============================================================
 
 class CrossModelVerifier:
@@ -637,7 +637,7 @@ class CustomerSupportAgent:
             self.metrics.record_violation(ticket.ticket_id, violations)
             response_content = self._sanitize_response(response_content, violations)
         
-        # Step 5: Cross-model verification
+        # Step 5: Verification
         agreement, model_opinions = await self.verifier.verify_response(
             ticket.message, response_content
         )

@@ -3,7 +3,7 @@
 Carbon Credit Auditor Demo - Catch the Phantom Credits
 
 This demo showcases:
-- Cross-Model Verification Kernel (CMVK) for drift detection
+- CMVK — Verification Kernel for drift detection
 - Agent Message Bus (AMB) for swarm coordination
 - Mathematical verification (not LLM inference)
 
@@ -68,7 +68,7 @@ class VerificationResult:
 
 class CMVK:
     """
-    Cross-Model Verification Kernel
+    CMVK — Verification Kernel
     
     Performs mathematical verification, not LLM inference.
     The decision is auditable, deterministic, and explainable.

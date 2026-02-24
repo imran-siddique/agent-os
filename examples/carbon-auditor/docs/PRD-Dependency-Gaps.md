@@ -21,7 +21,7 @@ During the implementation of the Carbon Auditor Swarm for Voluntary Carbon Marke
 
 ---
 
-## 1. cmvk (Cross-Model Verification Kernel) v0.2.0
+## 1. cmvk (CMVK — Verification Kernel) v0.2.0
 
 ### Current State
 The `cmvk` package now provides `verify_embeddings()` with **configurable distance metrics**, **threshold profiles**, **explainability**, and **audit trails**.
