@@ -716,7 +716,7 @@ class TestCrewAIAsync:
     @pytest.mark.asyncio
     async def test_kickoff_async_blocked(self):
         from agent_os.integrations.crewai_adapter import CrewAIKernel
-        from agent_os.integrations.langchain_adapter import PolicyViolationError
+        from agent_os.integrations.base import PolicyViolationError
         p = GovernancePolicy(blocked_patterns=["forbidden"])
         k = CrewAIKernel(policy=p)
         crew = MagicMock()
@@ -731,7 +731,7 @@ class TestCrewAIAsync:
     @pytest.mark.asyncio
     async def test_kickoff_async_max_calls(self):
         from agent_os.integrations.crewai_adapter import CrewAIKernel
-        from agent_os.integrations.langchain_adapter import PolicyViolationError
+        from agent_os.integrations.base import PolicyViolationError
         p = GovernancePolicy(max_tool_calls=1)
         k = CrewAIKernel(policy=p)
         crew = MagicMock()

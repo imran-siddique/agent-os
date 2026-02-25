@@ -18,7 +18,14 @@ from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
-from .base import BaseIntegration, GovernancePolicy, ExecutionContext, PolicyViolationError
+from .base import (
+    BaseIntegration,
+    GovernancePolicy,
+    ExecutionContext,
+    PolicyViolationError,
+    PolicyInterceptor,
+    ToolCallRequest,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +38,7 @@ class CrewAIKernel(BaseIntegration):
     - Crew (kickoff, kickoff_async)
     - Individual agents within crews
     - Task execution monitoring
+    - Individual tool call interception (allowed_tools, blocked_patterns)
     """
     
     def __init__(self, policy: Optional[GovernancePolicy] = None):
@@ -45,6 +53,7 @@ class CrewAIKernel(BaseIntegration):
         Intercepts:
         - kickoff() / kickoff_async()
         - Individual agent executions
+        - Individual tool calls within agents
         - Task completions
         """
         crew_id = getattr(crew, 'id', None) or f"crew-{id(crew)}"
@@ -72,10 +81,9 @@ class CrewAIKernel(BaseIntegration):
                 allowed, reason = self._kernel.pre_execute(self._ctx, inputs)
                 if not allowed:
                     logger.warning("Crew execution blocked by policy: crew_name=%s, reason=%s", self._crew_name, reason)
-                    from .langchain_adapter import PolicyViolationError
                     raise PolicyViolationError(reason)
                 
-                # Wrap individual agents if possible
+                # Wrap individual agents and their tools
                 if hasattr(self._original, 'agents'):
                     for agent in self._original.agents:
                         self._wrap_agent(agent)
@@ -85,7 +93,6 @@ class CrewAIKernel(BaseIntegration):
                 valid, reason = self._kernel.post_execute(self._ctx, result)
                 if not valid:
                     logger.warning("Crew post-execution validation failed: crew_name=%s, reason=%s", self._crew_name, reason)
-                    from .langchain_adapter import PolicyViolationError
                     raise PolicyViolationError(reason)
                 
                 logger.info("Crew execution completed: crew_name=%s", self._crew_name)
@@ -97,24 +104,70 @@ class CrewAIKernel(BaseIntegration):
                 allowed, reason = self._kernel.pre_execute(self._ctx, inputs)
                 if not allowed:
                     logger.warning("Async crew execution blocked by policy: crew_name=%s, reason=%s", self._crew_name, reason)
-                    from .langchain_adapter import PolicyViolationError
                     raise PolicyViolationError(reason)
+                
+                # Wrap individual agents and their tools
+                if hasattr(self._original, 'agents'):
+                    for agent in self._original.agents:
+                        self._wrap_agent(agent)
                 
                 result = await self._original.kickoff_async(inputs)
                 
                 valid, reason = self._kernel.post_execute(self._ctx, result)
                 if not valid:
                     logger.warning("Async crew post-execution validation failed: crew_name=%s, reason=%s", self._crew_name, reason)
-                    from .langchain_adapter import PolicyViolationError
                     raise PolicyViolationError(reason)
                 
                 logger.info("Async crew execution completed: crew_name=%s", self._crew_name)
                 return result
             
+            def _wrap_tool(self, tool, agent_name: str):
+                """Wrap a CrewAI tool's _run method with governance interception."""
+                interceptor = PolicyInterceptor(self._kernel.policy, self._ctx)
+                original_run = getattr(tool, '_run', None)
+                if not original_run or getattr(tool, '_governed', False):
+                    return
+                
+                tool_name = getattr(tool, 'name', type(tool).__name__)
+                ctx = self._ctx
+                kernel = self._kernel
+                crew_name = self._crew_name
+
+                def governed_run(*args, **kwargs):
+                    request = ToolCallRequest(
+                        tool_name=tool_name,
+                        arguments=kwargs if kwargs else {"args": args},
+                        agent_id=agent_name,
+                    )
+                    result = interceptor.intercept(request)
+                    if not result.allowed:
+                        logger.warning(
+                            "Tool call blocked: crew=%s, agent=%s, tool=%s, reason=%s",
+                            crew_name, agent_name, tool_name, result.reason,
+                        )
+                        raise PolicyViolationError(
+                            f"Tool '{tool_name}' blocked: {result.reason}"
+                        )
+                    ctx.call_count += 1
+                    logger.info(
+                        "Tool call allowed: crew=%s, agent=%s, tool=%s",
+                        crew_name, agent_name, tool_name,
+                    )
+                    return original_run(*args, **kwargs)
+
+                tool._run = governed_run
+                tool._governed = True
+            
             def _wrap_agent(self, agent):
-                """Add governance hooks to individual agent"""
+                """Add governance hooks to individual agent and its tools"""
                 agent_name = getattr(agent, 'name', str(id(agent)))
                 logger.debug("Wrapping individual agent: crew_name=%s, agent=%s", self._crew_name, agent_name)
+                
+                # Wrap individual tools for per-call interception
+                agent_tools = getattr(agent, 'tools', None) or []
+                for tool in agent_tools:
+                    self._wrap_tool(tool, agent_name)
+                
                 original_execute = getattr(agent, 'execute_task', None)
                 if original_execute:
                     crew_name = self._crew_name

@@ -24,6 +24,7 @@ from agent_os.integrations.langchain_adapter import (
     LangChainKernel,
     PolicyViolationError,
 )
+from agent_os.integrations.base import PolicyViolationError as BasePolicyViolationError
 from agent_os.integrations.crewai_adapter import CrewAIKernel
 from agent_os.integrations.openai_adapter import (
     AssistantContext,
@@ -972,7 +973,7 @@ class TestCrewAIKernelWrap:
     def test_kickoff_raises_on_blocked_pattern(self):
         policy = GovernancePolicy(blocked_patterns=["hack"])
         governed = CrewAIKernel(policy).wrap(_make_mock_crew())
-        with pytest.raises(PolicyViolationError):
+        with pytest.raises(BasePolicyViolationError):
             governed.kickoff({"goal": "hack the system"})
 
     def test_kickoff_increments_call_count(self):
@@ -985,7 +986,7 @@ class TestCrewAIKernelWrap:
         policy = GovernancePolicy(max_tool_calls=1)
         governed = CrewAIKernel(policy).wrap(_make_mock_crew())
         governed.kickoff()
-        with pytest.raises(PolicyViolationError, match="Max tool calls"):
+        with pytest.raises(BasePolicyViolationError, match="Max tool calls"):
             governed.kickoff()
 
     def test_kickoff_wraps_individual_agents(self):
@@ -1521,7 +1522,7 @@ class TestCrewAITaskMonitoring:
         crew = _make_mock_crew()
         governed = kernel.wrap(crew)
 
-        with pytest.raises(PolicyViolationError):
+        with pytest.raises(BasePolicyViolationError):
             governed.kickoff(inputs={"task": "hack the system"})
         crew.kickoff.assert_not_called()
 
