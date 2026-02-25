@@ -11,7 +11,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Callable, Dict, Generic, Optional, TypeVar
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 
 logger = logging.getLogger(__name__)
 
@@ -141,7 +141,7 @@ class GovernedEnvironment(Generic[T_state, T_action]):
             "severity": severity,
             "blocked": blocked,
             "step": self._state.step_count,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
         self._current_violations.append(violation)
         self._state.violations.append(violation)

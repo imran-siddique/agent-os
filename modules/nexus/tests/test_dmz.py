@@ -2,7 +2,7 @@
 
 import os
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
@@ -62,7 +62,7 @@ class TestInitiateTransfer:
             SENDER, RECEIVER, DATA, "internal", policy, expiry_hours=12,
         )
         assert request.expires_at is not None
-        assert request.expires_at > datetime.utcnow()
+        assert request.expires_at > datetime.now(timezone.utc)
 
     @pytest.mark.asyncio
     async def test_initiate_computes_data_hash(self, dmz, policy):

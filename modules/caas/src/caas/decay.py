@@ -5,7 +5,7 @@ Simple TTL-based decay for document relevance scoring.
 Returns 1.0 if within TTL, 0.0 if expired, with linear interpolation between.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 # Default TTL in days
@@ -39,7 +39,7 @@ def calculate_decay_factor(
             ingestion_timestamp.replace("Z", "+00:00")
         )
         if reference_time is None:
-            reference_time = datetime.utcnow()
+            reference_time = datetime.now(timezone.utc)
 
         days_elapsed = max(
             0.0, (reference_time - ingestion_dt).total_seconds() / 86400.0

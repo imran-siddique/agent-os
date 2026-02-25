@@ -7,7 +7,7 @@ and broadcasts slash events to the network.
 
 import asyncio
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 import aiohttp
 
@@ -125,7 +125,7 @@ class ReputationSyncWorker:
     
     def queue_broadcast(self, event: dict):
         """Queue an event for broadcast."""
-        event["queued_at"] = datetime.utcnow().isoformat()
+        event["queued_at"] = datetime.now(timezone.utc).isoformat()
         self._pending_broadcasts.append(event)
     
     def queue_slash_event(

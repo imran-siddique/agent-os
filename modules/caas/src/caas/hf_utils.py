@@ -33,7 +33,7 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
@@ -84,7 +84,7 @@ class ExperimentMetadata:
 
     experiment_name: str
     caas_version: str
-    timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     python_version: str = ""
     metrics: Dict[str, float] = field(default_factory=dict)
     config: Dict[str, Any] = field(default_factory=dict)
@@ -261,7 +261,7 @@ class CaaSHubClient:
             path_in_repo = f"results/{results_path.name}"
 
         if commit_message is None:
-            timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+            timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
             commit_message = f"Upload experiment results: {timestamp}"
 
         # If metadata provided, merge it into the results
@@ -324,7 +324,7 @@ class CaaSHubClient:
         folder_path = Path(folder_path)
 
         if commit_message is None:
-            timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+            timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
             commit_message = f"Upload folder: {folder_path.name} at {timestamp}"
 
         if ignore_patterns is None:

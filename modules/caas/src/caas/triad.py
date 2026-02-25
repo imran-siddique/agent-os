@@ -8,7 +8,7 @@ each item for compatibility but do not affect retrieval behaviour.
 """
 
 from typing import Dict, List, Optional, Any
-from datetime import datetime
+from datetime import datetime, timezone
 import uuid
 
 from caas.models import ContextLayer, ContextTriadItem, ContextTriadState
@@ -41,7 +41,7 @@ class ContextTriadManager:
             layer=layer,
             content=content,
             metadata=metadata or {},
-            timestamp=datetime.utcnow().isoformat(),
+            timestamp=datetime.now(timezone.utc).isoformat(),
             priority=priority,
         )
         # Single backing list — use hot_context for all items

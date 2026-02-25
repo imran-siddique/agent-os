@@ -377,7 +377,7 @@ class TestAutoGenKernel:
         assert result == "chat_result"
 
     def test_wrap_initiate_chat_blocked(self):
-        from agent_os.integrations.langchain_adapter import PolicyViolationError
+        from agent_os.integrations.base import PolicyViolationError
         p = GovernancePolicy(blocked_patterns=["evil"])
         k = AutoGenKernel(policy=p)
         agent = MagicMock()
@@ -419,7 +419,7 @@ class TestAutoGenKernel:
         assert result is None
 
     def test_wrap_receive_blocked(self):
-        from agent_os.integrations.langchain_adapter import PolicyViolationError
+        from agent_os.integrations.base import PolicyViolationError
         p = GovernancePolicy(blocked_patterns=["password"])
         k = AutoGenKernel(policy=p)
         agent = MagicMock()
@@ -454,7 +454,7 @@ class TestAutoGenKernel:
         assert "restorable" not in k._governed_agents
 
     def test_signal_sigstop_blocks_execution(self):
-        from agent_os.integrations.langchain_adapter import PolicyViolationError
+        from agent_os.integrations.base import PolicyViolationError
         k = AutoGenKernel()
         agent = MagicMock()
         agent.name = "stoppable"

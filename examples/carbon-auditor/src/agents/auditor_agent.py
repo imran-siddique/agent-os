@@ -14,7 +14,7 @@ Updated for cmvk 0.2.0:
 
 from typing import Any, Dict, List, Optional
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 
 import numpy as np
 import cmvk
@@ -155,7 +155,7 @@ class AuditorAgent(BaseAgent):
         
         self._log(f"Performing verification for project: {project_id}")
         self._log("="*60)
-        self._metrics.last_activity = datetime.utcnow()
+        self._metrics.last_activity = datetime.now(timezone.utc)
         
         # Build vectors
         claim_vector = ClaimVector(
@@ -236,7 +236,7 @@ class AuditorAgent(BaseAgent):
             "claim_vector": claim_arr.tolist(),
             "observation_vector": obs_arr.tolist(),
             "metric": "euclidean",  # cmvk 0.2.0!
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "details": details,
             "cmvk_drift_type": cmvk_result.drift_type.value,
             "cmvk_confidence": float(cmvk_result.confidence),

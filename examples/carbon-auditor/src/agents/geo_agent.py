@@ -10,7 +10,7 @@ Updated for atr 0.2.0:
 """
 
 from typing import Any, Dict, List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 import atr
 
@@ -82,7 +82,7 @@ class GeoAgent(BaseAgent):
         year = claim.get("year", 2024)
         
         self._log(f"Fetching satellite data for {project_id}, year {year}")
-        self._metrics.last_activity = datetime.utcnow()
+        self._metrics.last_activity = datetime.now(timezone.utc)
         
         # Step 1: Fetch satellite imagery using atr tool
         satellite_result = self._sentinel_api(

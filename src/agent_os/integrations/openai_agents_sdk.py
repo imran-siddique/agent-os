@@ -37,7 +37,7 @@ import logging
 import asyncio
 import time
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List, Optional, Union
 from functools import wraps
 
@@ -89,7 +89,7 @@ class ExecutionContext:
     def record_event(self, event_type: str, data: Dict[str, Any]) -> None:
         self.events.append({
             "type": event_type,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "data": data,
         })
 

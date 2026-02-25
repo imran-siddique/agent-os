@@ -21,7 +21,7 @@ import json
 import re
 import time
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional
 from collections import defaultdict
@@ -521,7 +521,7 @@ class SupportMetrics:
         self.policy_violations.append({
             "ticket_id": ticket_id,
             "violations": violations,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         })
     
     def get_summary(self) -> dict:

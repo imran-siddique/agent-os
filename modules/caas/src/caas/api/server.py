@@ -3,7 +3,7 @@ REST API for Context-as-a-Service.
 """
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
@@ -113,7 +113,7 @@ async def root():
 @app.get("/health")
 async def health_check():
     """Health check endpoint."""
-    return {"status": "healthy", "timestamp": datetime.utcnow().isoformat()}
+    return {"status": "healthy", "timestamp": datetime.now(timezone.utc).isoformat()}
 
 
 @app.post("/ingest")
@@ -179,7 +179,7 @@ async def ingest_document(
         document = weight_tuner.tune(document)
         
         # Add timestamp
-        document.ingestion_timestamp = datetime.utcnow().isoformat()
+        document.ingestion_timestamp = datetime.now(timezone.utc).isoformat()
         
         # Store document
         document_store.add(document)
@@ -1123,7 +1123,7 @@ async def gateway_validate_request(
             "valid": validation["valid"],
             "warnings": validation["warnings"],
             "violations": validation["violations"],
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Validation failed: {str(e)}")

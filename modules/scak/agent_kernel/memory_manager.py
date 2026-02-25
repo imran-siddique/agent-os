@@ -4,7 +4,7 @@ Memory Manager — simple list-based lesson store.
 """
 
 from enum import Enum
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Dict, Any
 
 
@@ -25,7 +25,7 @@ class MemoryManager:
         self._lessons.append({
             "text": lesson_text,
             "type": lesson_type,
-            "created_at": datetime.utcnow(),
+            "created_at": datetime.now(timezone.utc),
         })
 
     def get_lessons_by_type(self, lesson_type: LessonType) -> List[Dict[str, Any]]:

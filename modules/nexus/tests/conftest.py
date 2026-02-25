@@ -2,7 +2,7 @@
 
 import os
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
@@ -93,7 +93,7 @@ def sample_history():
         disputes_won=2,
         disputes_lost=0,
         uptime_days=30,
-        last_activity=datetime.utcnow(),
+        last_activity=datetime.now(timezone.utc),
     )
 
 

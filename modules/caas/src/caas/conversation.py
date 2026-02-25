@@ -25,7 +25,7 @@ With Chopping: After 10 new turns, this is deleted entirely
 """
 
 from typing import Dict, List, Optional, Any, Union
-from datetime import datetime
+from datetime import datetime, timezone
 import uuid
 import logging
 
@@ -85,7 +85,7 @@ class ConversationManager:
             id=turn_id,
             user_message=user_message,
             ai_response=ai_response,
-            timestamp=datetime.utcnow().isoformat(),
+            timestamp=datetime.now(timezone.utc).isoformat(),
             metadata=metadata or {}
         )
         

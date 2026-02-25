@@ -9,7 +9,7 @@ Demonstrates:
 """
 
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from dataclasses import dataclass, field
 from enum import Enum
@@ -200,7 +200,7 @@ class HomeAuditLog:
             old_state: str = None, new_state: str = None,
             blocked: bool = False, reason: str = None):
         entry = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "action": action,
             "device_id": device_id,
             "user": user,
@@ -244,7 +244,7 @@ class SmartHomeAgent:
     
     def _check_rate_limit(self, user: str) -> bool:
         """Prevent rapid command spam."""
-        cutoff = datetime.utcnow() - self.rate_limit_window
+        cutoff = datetime.now(timezone.utc) - self.rate_limit_window
         recent = [c for c in self.command_history 
                   if c["time"] > cutoff and c["user"] == user]
         return len(recent) < self.max_commands_per_minute
@@ -261,7 +261,7 @@ class SmartHomeAgent:
                 "reason": "Rate limit exceeded - please wait"
             }
         
-        self.command_history.append({"time": datetime.utcnow(), "user": user})
+        self.command_history.append({"time": datetime.now(timezone.utc), "user": user})
         
         if device_id not in self.devices:
             return {"status": "error", "message": "Device not found"}
@@ -324,7 +324,7 @@ class SmartHomeAgent:
         device.state = new_state
         if value is not None:
             device.value = value
-        device.last_changed = datetime.utcnow()
+        device.last_changed = datetime.now(timezone.utc)
         
         self.audit_log.log(
             command, device_id, user, str(old_state), str(new_state)

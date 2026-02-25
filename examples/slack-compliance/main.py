@@ -15,7 +15,7 @@ Compliance frameworks supported:
 import re
 import hashlib
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 from enum import Enum
 
@@ -282,7 +282,7 @@ class AuditLogger:
         
         entry = {
             "audit_id": audit_id,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "message_id": scan_result.message_id,
             "channel_id": scan_result.channel_id,
             "user_id": scan_result.user_id,
@@ -310,7 +310,7 @@ class AuditLogger:
     
     def get_report(self, days: int = 30) -> dict:
         """Generate compliance report."""
-        cutoff = datetime.utcnow().timestamp() - (days * 86400)
+        cutoff = datetime.now(timezone.utc).timestamp() - (days * 86400)
         recent = [e for e in self.entries 
                   if datetime.fromisoformat(e["timestamp"]).timestamp() > cutoff]
         
@@ -407,7 +407,7 @@ rules:
             message_id=message_id,
             channel_id=channel_id,
             user_id=user_id,
-            timestamp=datetime.utcnow()
+            timestamp=datetime.now(timezone.utc)
         )
         
         # Scan the message

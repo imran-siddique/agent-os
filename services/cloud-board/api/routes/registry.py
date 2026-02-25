@@ -7,7 +7,7 @@ API endpoints for agent registration and discovery.
 from fastapi import APIRouter, HTTPException, Depends, Query
 from pydantic import BaseModel
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Would import from modules.nexus in production
 # For now, define inline models
@@ -122,7 +122,7 @@ async def register_agent(request: RegisterAgentRequest):
             trust_score += 20
     
     # Store agent
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
     _agents[agent_did] = {
         "identity": request.identity.model_dump(),
         "capabilities": request.capabilities.model_dump() if request.capabilities else {},
@@ -191,7 +191,7 @@ async def update_agent(agent_did: str, request: RegisterAgentRequest):
     registered_at = _agents[agent_did]["registered_at"]
     
     # Update agent
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
     _agents[agent_did].update({
         "identity": request.identity.model_dump(),
         "capabilities": request.capabilities.model_dump() if request.capabilities else {},
@@ -291,7 +291,7 @@ async def verify_peer(
             )
     
     # Update last seen
-    agent["last_seen"] = datetime.utcnow().isoformat()
+    agent["last_seen"] = datetime.now(timezone.utc).isoformat()
     
     return VerifyPeerResponse(
         verified=True,

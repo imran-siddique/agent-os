@@ -22,7 +22,7 @@ import json
 import re
 import time
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional
 from collections import defaultdict
@@ -267,7 +267,7 @@ class LegalAuditLog:
         """Create audit entry with hash chain."""
         entry = AuditEntry(
             entry_id=str(uuid.uuid4())[:8],
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             user_id=user_id,
             action=action,
             resource_id=resource_id,
@@ -657,7 +657,7 @@ class ContractAnalysisAgent:
             doc_id=doc_id,
             matter_id=contract.matter_id,
             reviewer_id=user.user_id,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             overall_risk=overall_risk,
             findings=verified_findings,
             summary=self._generate_summary(contract, verified_findings, overall_risk),

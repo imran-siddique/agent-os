@@ -271,7 +271,7 @@ await bus.publish(Message(
         "agent_id": "analyzer-001",
         "document_id": "doc-123",
         "result": analysis_result,
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
 ))
 

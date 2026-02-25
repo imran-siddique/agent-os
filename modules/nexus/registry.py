@@ -4,7 +4,7 @@ Agent Registry
 Manages agent registration, discovery, and manifest storage for the Nexus network.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, AsyncIterator
 from dataclasses import dataclass, field
 import hashlib
@@ -109,8 +109,8 @@ class AgentRegistry:
         # For now, trust the signature
         
         # Set registration timestamp
-        manifest.registered_at = datetime.utcnow()
-        manifest.last_seen = datetime.utcnow()
+        manifest.registered_at = datetime.now(timezone.utc)
+        manifest.last_seen = datetime.now(timezone.utc)
         
         # Calculate manifest hash
         manifest_hash = self._compute_manifest_hash(manifest)
@@ -163,7 +163,7 @@ class AgentRegistry:
         
         # Preserve registration time
         manifest.registered_at = self._manifests[agent_did].registered_at
-        manifest.last_seen = datetime.utcnow()
+        manifest.last_seen = datetime.now(timezone.utc)
         
         # Recalculate trust score
         history = self.reputation_engine._get_or_create_history(agent_did)
@@ -240,7 +240,7 @@ class AgentRegistry:
         manifest = self._manifests[peer_did]
         
         # Update last seen
-        manifest.last_seen = datetime.utcnow()
+        manifest.last_seen = datetime.now(timezone.utc)
         
         # Get trust score
         meets_threshold, trust_score = self.reputation_engine.check_trust_threshold(
@@ -387,5 +387,5 @@ class AgentRegistry:
         """Generate Nexus signature for registration."""
         # In production, this would use Nexus's private key
         # For now, generate a placeholder
-        data = f"{agent_did}:{manifest_hash}:{datetime.utcnow().isoformat()}"
+        data = f"{agent_did}:{manifest_hash}:{datetime.now(timezone.utc).isoformat()}"
         return f"nexus_sig_{hashlib.sha256(data.encode()).hexdigest()[:32]}"

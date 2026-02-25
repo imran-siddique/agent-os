@@ -7,7 +7,7 @@ For production, use the full EMK module.
 
 from typing import List, Dict, Optional
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 class EpisodicMemory:
@@ -36,7 +36,7 @@ class EpisodicMemory:
         turn = {
             "user": user_message,
             "assistant": assistant_message,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
         
         self._conversations[conversation_id].append(turn)

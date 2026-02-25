@@ -8,12 +8,15 @@ from __future__ import annotations
 
 import asyncio
 import fnmatch
+import logging
 import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Protocol, Union
 from datetime import datetime
+
+logger = logging.getLogger(__name__)
 
 
 class PatternType(Enum):

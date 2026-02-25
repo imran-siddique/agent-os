@@ -17,8 +17,7 @@ import logging
 import time
 from typing import Any, Optional, List, Callable
 
-from .base import BaseIntegration, GovernancePolicy, ExecutionContext
-from .langchain_adapter import PolicyViolationError
+from .base import BaseIntegration, GovernancePolicy, ExecutionContext, PolicyViolationError
 
 logger = logging.getLogger("agent_os.autogen")
 

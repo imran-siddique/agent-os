@@ -19,7 +19,7 @@ import hashlib
 import json
 import re
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -49,7 +49,7 @@ class ProvenanceMetadata:
         return cls(
             signature=f"sha256:{signature}",
             source=source,
-            timestamp=datetime.utcnow().isoformat(),
+            timestamp=datetime.now(timezone.utc).isoformat(),
         )
     
     def to_dict(self) -> Dict[str, Any]:

@@ -7,7 +7,7 @@ API endpoints for dispute resolution.
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 from typing import Optional, Literal
-from datetime import datetime
+from datetime import datetime, timezone
 import uuid
 
 router = APIRouter()
@@ -64,7 +64,7 @@ async def submit_dispute(request: SubmitDisputeRequest):
     """
     dispute_id = f"dispute_{uuid.uuid4().hex[:16]}"
     
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     
     dispute = {
         "dispute_id": dispute_id,
@@ -192,7 +192,7 @@ async def resolve_dispute(dispute_id: str):
     dispute["resolved"] = True
     dispute["status"] = "resolved"
     dispute["resolution_outcome"] = outcome
-    dispute["resolved_at"] = datetime.utcnow().isoformat()
+    dispute["resolved_at"] = datetime.now(timezone.utc).isoformat()
     
     return DisputeResolutionResponse(
         dispute_id=dispute_id,

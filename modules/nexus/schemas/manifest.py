@@ -5,7 +5,7 @@ Defines the complete identity and capability manifest for Nexus registration.
 Extends the IATP manifest (RFC-001) with Nexus-specific fields.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Literal, Optional
 from pydantic import BaseModel, Field, field_validator
 import re
@@ -192,7 +192,7 @@ class AgentManifest(BaseModel):
         """Check if attestation is present and not expired."""
         if not self.attestation_signature or not self.attestation_expires:
             return False
-        return datetime.utcnow() < self.attestation_expires
+        return datetime.now(timezone.utc) < self.attestation_expires
     
     def to_iatp_manifest(self) -> dict:
         """Convert to IATP-compatible manifest format."""

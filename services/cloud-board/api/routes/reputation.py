@@ -7,7 +7,7 @@ API endpoints for reputation management and trust scoring.
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 from typing import Optional, Literal
-from datetime import datetime
+from datetime import datetime, timezone
 
 router = APIRouter()
 
@@ -103,7 +103,7 @@ async def get_reputation(agent_did: str):
         failed_tasks=history.get("failed_tasks", 0),
         disputes_won=history.get("disputes_won", 0),
         disputes_lost=history.get("disputes_lost", 0),
-        calculated_at=datetime.utcnow().isoformat(),
+        calculated_at=datetime.now(timezone.utc).isoformat(),
     )
 
 
@@ -178,7 +178,7 @@ async def slash_reputation(agent_did: str, request: SlashRequest):
     )
     
     # Create slash event
-    slash_id = f"slash_{agent_did}_{datetime.utcnow().timestamp()}"
+    slash_id = f"slash_{agent_did}_{datetime.now(timezone.utc).timestamp()}"
     slash_event = {
         "slash_id": slash_id,
         "agent_did": agent_did,
@@ -190,7 +190,7 @@ async def slash_reputation(agent_did: str, request: SlashRequest):
         "evidence_hash": request.evidence_hash,
         "trace_id": request.trace_id,
         "broadcast": request.broadcast,
-        "occurred_at": datetime.utcnow().isoformat(),
+        "occurred_at": datetime.now(timezone.utc).isoformat(),
     }
     _slash_events.append(slash_event)
     
@@ -228,7 +228,7 @@ async def sync_reputation(
         for did, history in _reputation_history.items():
             scores[did] = _calculate_score(history)
     
-    return {"scores": scores, "synced_at": datetime.utcnow().isoformat()}
+    return {"scores": scores, "synced_at": datetime.now(timezone.utc).isoformat()}
 
 
 @router.get("/leaderboard", response_model=list[LeaderboardEntry])

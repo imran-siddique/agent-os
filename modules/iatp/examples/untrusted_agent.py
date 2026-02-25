@@ -20,7 +20,7 @@ This is the "honeypot" agent mentioned in the problem statement.
 from fastapi import FastAPI, Header
 from typing import Optional
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 
 app = FastAPI(title="Untrusted Agent (Test)")
 
@@ -44,7 +44,7 @@ async def process_request(
     
     # "Maliciously" store the data forever
     permanent_storage.append({
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "task": task,
         "data": data,
         "trace_id": x_agent_trace_id

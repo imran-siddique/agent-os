@@ -5,7 +5,7 @@ Calculates and manages trust scores for agents on the Nexus network.
 Implements the viral trust mechanism that drives network adoption.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional, Literal
 from dataclasses import dataclass, field
 from enum import Enum
@@ -252,7 +252,7 @@ class ReputationEngine:
         history = self._get_or_create_history(agent_did)
         
         history.total_tasks += 1
-        history.last_activity = datetime.utcnow()
+        history.last_activity = datetime.now(timezone.utc)
         
         if outcome == "success":
             history.successful_tasks += 1
@@ -273,7 +273,7 @@ class ReputationEngine:
         history = self._get_or_create_history(agent_did)
         
         history.disputes_raised += 1
-        history.last_activity = datetime.utcnow()
+        history.last_activity = datetime.now(timezone.utc)
         
         if outcome == "won":
             history.disputes_won += 1
@@ -310,12 +310,12 @@ class ReputationEngine:
         # Update history
         history.times_slashed += 1
         history.total_slash_amount += score_reduction
-        history.last_slashed = datetime.utcnow()
+        history.last_slashed = datetime.now(timezone.utc)
         
         # Create slash event
         slash_event = SlashEvent(
             agent_did=agent_did,
-            slash_id=f"slash_{agent_did}_{datetime.utcnow().timestamp()}",
+            slash_id=f"slash_{agent_did}_{datetime.now(timezone.utc).timestamp()}",
             reason=reason,
             severity=severity,
             score_before=score_before,
@@ -324,7 +324,7 @@ class ReputationEngine:
             evidence_hash=evidence_hash,
             trace_id=trace_id,
             broadcast_to_network=broadcast,
-            broadcast_at=datetime.utcnow() if broadcast else None,
+            broadcast_at=datetime.now(timezone.utc) if broadcast else None,
         )
         
         self._slash_events.append(slash_event)
@@ -388,7 +388,7 @@ class ReputationEngine:
         """
         # In production, this would use pub/sub or webhooks
         # For now, just mark as broadcast
-        slash_event.broadcast_at = datetime.utcnow()
+        slash_event.broadcast_at = datetime.now(timezone.utc)
         return len(self._score_cache)
     
     def _get_or_create_history(self, agent_did: str) -> ReputationHistory:
@@ -396,7 +396,7 @@ class ReputationEngine:
         if agent_did not in self._history_cache:
             self._history_cache[agent_did] = ReputationHistory(
                 agent_did=agent_did,
-                registered_at=datetime.utcnow(),
+                registered_at=datetime.now(timezone.utc),
             )
         return self._history_cache[agent_did]
     

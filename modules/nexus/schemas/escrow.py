@@ -4,7 +4,7 @@ Escrow Schemas
 Defines data structures for the Proof-of-Outcome escrow system.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Literal, Optional
 from pydantic import BaseModel, Field
 from enum import Enum
@@ -121,7 +121,7 @@ class EscrowReceipt(BaseModel):
     
     def is_expired(self) -> bool:
         """Check if escrow has expired."""
-        return datetime.utcnow() > self.expires_at
+        return datetime.now(timezone.utc) > self.expires_at
     
     def is_active(self) -> bool:
         """Check if escrow is in an active state."""
@@ -130,7 +130,7 @@ class EscrowReceipt(BaseModel):
     @classmethod
     def from_request(cls, escrow_id: str, request: EscrowRequest, requester_signature: str) -> "EscrowReceipt":
         """Create receipt from request."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         return cls(
             escrow_id=escrow_id,
             request=request,

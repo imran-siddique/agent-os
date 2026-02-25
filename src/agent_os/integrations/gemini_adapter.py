@@ -281,6 +281,11 @@ class GovernedGeminiModel:
                             f"Tool not allowed: {fn_name}"
                         )
 
+                if self._kernel.policy.require_human_approval:
+                    raise PolicyViolationError(
+                        f"Tool '{fn_name}' requires human approval per governance policy"
+                    )
+
         # Post-execute bookkeeping
         self._kernel.post_execute(self._ctx, response)
 

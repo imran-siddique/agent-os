@@ -11,7 +11,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, List, Optional, Iterator
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 
 logger = logging.getLogger(__name__)
@@ -116,7 +116,7 @@ class FlightRecorderEmitter:
         
         # Extract common fields
         span_id = getattr(entry, 'id', getattr(entry, 'entry_id', str(self._emitted_count)))
-        timestamp = getattr(entry, 'timestamp', datetime.utcnow())
+        timestamp = getattr(entry, 'timestamp', datetime.now(timezone.utc))
         agent_id = getattr(entry, 'agent_id', 'unknown')
         
         # Build attributes

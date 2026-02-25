@@ -9,7 +9,7 @@ from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import Optional, Literal
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import json
 import io
 
@@ -60,9 +60,9 @@ _compliance_events: list[dict] = []
 def _record_event(event_type: str, **kwargs):
     """Record a compliance event."""
     event = {
-        "event_id": f"evt_{datetime.utcnow().timestamp()}",
+        "event_id": f"evt_{datetime.now(timezone.utc).timestamp()}",
         "event_type": event_type,
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         **kwargs
     }
     _compliance_events.append(event)
@@ -223,9 +223,9 @@ async def export_compliance_report(request: ComplianceReportRequest):
     
     # Build report
     report = {
-        "report_id": f"report_{datetime.utcnow().timestamp()}",
+        "report_id": f"report_{datetime.now(timezone.utc).timestamp()}",
         "report_type": request.report_type,
-        "generated_at": datetime.utcnow().isoformat(),
+        "generated_at": datetime.now(timezone.utc).isoformat(),
         "organization_id": request.organization_id,
         "start_date": request.start_date,
         "end_date": request.end_date,

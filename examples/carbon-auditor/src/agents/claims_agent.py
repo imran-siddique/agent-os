@@ -10,7 +10,7 @@ Updated for atr 0.2.0:
 """
 
 from typing import Any, Dict, List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 import atr
 
@@ -64,7 +64,7 @@ class ClaimsAgent(BaseAgent):
             The extracted claim data
         """
         self._log(f"Processing document: {pdf_path}")
-        self._metrics.last_activity = datetime.utcnow()
+        self._metrics.last_activity = datetime.now(timezone.utc)
         
         # Step 1: Parse PDF using atr tool
         parse_result = self._pdf_parser(file_path=pdf_path)

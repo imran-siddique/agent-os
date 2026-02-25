@@ -15,7 +15,7 @@ import re
 import hashlib
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, Any
 from enum import Enum
 
@@ -277,7 +277,7 @@ class AuditLogger:
         
         entry = {
             "audit_id": audit_id,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "query_id": result.query_id,
             "user_id": user_id,
             "natural_language": result.natural_language,
@@ -301,7 +301,7 @@ class AuditLogger:
     
     def get_stats(self, days: int = 7) -> dict:
         """Get query statistics."""
-        cutoff = datetime.utcnow().timestamp() - (days * 86400)
+        cutoff = datetime.now(timezone.utc).timestamp() - (days * 86400)
         recent = [e for e in self.entries 
                   if datetime.fromisoformat(e["timestamp"]).timestamp() > cutoff]
         

@@ -10,7 +10,7 @@ Demonstrates:
 
 import asyncio
 import hashlib
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from dataclasses import dataclass, field
 from enum import Enum
@@ -133,7 +133,7 @@ class HRAuditLog:
         hashed_id = hashlib.sha256(candidate_id.encode()).hexdigest()[:12]
         
         entry = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "action": action,
             "candidate_hash": hashed_id,
             "job_id": job_id,
@@ -310,7 +310,7 @@ class HRRecruitingAgent:
     
     def cleanup_expired_data(self) -> int:
         """GDPR: Delete candidate data past retention period."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         expired = [
             cid for cid, c in self.candidates.items()
             if c.retention_until and c.retention_until < now

@@ -3,7 +3,7 @@
 import os
 import sys
 import hashlib
-from datetime import datetime
+from datetime import datetime, timezone
 
 import pytest
 
@@ -34,8 +34,8 @@ def make_flight_log(agent_did: str, log_data: bytes = b"flight log data") -> Fli
         escrow_id="escrow_001",
         encrypted_log=log_data,
         log_hash=hashlib.sha256(log_data).hexdigest(),
-        start_time=datetime.utcnow(),
-        end_time=datetime.utcnow(),
+        start_time=datetime.now(timezone.utc),
+        end_time=datetime.now(timezone.utc),
         operation_count=10,
         agent_signature="sig_agent",
     )

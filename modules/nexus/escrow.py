@@ -5,7 +5,7 @@ Implements the "Reward" mechanism where agents bet on task outcomes.
 Credits are escrowed and released based on SCAK validation.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional, Literal
 import hashlib
 import uuid
@@ -94,7 +94,7 @@ class EscrowManager:
             raise EscrowAlreadyResolvedError(escrow_id, receipt.status.value)
         
         receipt.status = EscrowStatus.ACTIVE
-        receipt.activated_at = datetime.utcnow()
+        receipt.activated_at = datetime.now(timezone.utc)
         
         return receipt
     
@@ -116,7 +116,7 @@ class EscrowManager:
             raise EscrowExpiredError(escrow_id, str(receipt.expires_at))
         
         receipt.status = EscrowStatus.AWAITING_VALIDATION
-        receipt.completed_at = datetime.utcnow()
+        receipt.completed_at = datetime.now(timezone.utc)
         
         return receipt
     
@@ -175,7 +175,7 @@ class EscrowManager:
         
         # Update receipt
         receipt.status = EscrowStatus.RELEASED
-        receipt.resolved_at = datetime.utcnow()
+        receipt.resolved_at = datetime.now(timezone.utc)
         
         return EscrowResolution(
             escrow_id=receipt.escrow_id,
@@ -207,7 +207,7 @@ class EscrowManager:
         
         # Update receipt
         receipt.status = EscrowStatus.REFUNDED
-        receipt.resolved_at = datetime.utcnow()
+        receipt.resolved_at = datetime.now(timezone.utc)
         
         return EscrowResolution(
             escrow_id=receipt.escrow_id,
@@ -256,7 +256,7 @@ class EscrowManager:
         self.reputation_engine.record_task_outcome(request.provider_did, "failure")
         
         receipt.status = EscrowStatus.EXPIRED
-        receipt.resolved_at = datetime.utcnow()
+        receipt.resolved_at = datetime.now(timezone.utc)
         
         return EscrowResolution(
             escrow_id=escrow_id,
@@ -315,7 +315,7 @@ class EscrowManager:
     
     def _sign_resolution(self, escrow_id: str, outcome: str) -> str:
         """Generate Nexus signature for resolution."""
-        data = f"{escrow_id}:{outcome}:{datetime.utcnow().isoformat()}"
+        data = f"{escrow_id}:{outcome}:{datetime.now(timezone.utc).isoformat()}"
         return f"nexus_res_{hashlib.sha256(data.encode()).hexdigest()[:32]}"
 
 

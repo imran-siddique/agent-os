@@ -6,7 +6,7 @@ Exposes CMVK, IATP, code safety, and governed execution as MCP-compatible tools.
 
 from dataclasses import dataclass, field
 from typing import Any, Optional, List
-from datetime import datetime
+from datetime import datetime, timezone
 import hashlib
 import json
 import re
@@ -246,7 +246,7 @@ class VerifyCodeSafetyTool:
             error=None if is_safe else f"BLOCKED: {violations[0]['message']}",
             metadata={
                 "tool": self.name,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "language": language
             }
         )
@@ -306,7 +306,7 @@ class CMVKVerifyTool:
             data=verification_result,
             metadata={
                 "tool": self.name,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "threshold_used": threshold
             }
         )
@@ -469,7 +469,7 @@ class KernelExecuteTool:
                     "action": action,
                     "signal": "SIGKILL",
                     "violation": policy_result["reason"],
-                    "timestamp": datetime.utcnow().isoformat()
+                    "timestamp": datetime.now(timezone.utc).isoformat()
                 }
             )
         
@@ -484,7 +484,7 @@ class KernelExecuteTool:
                 "agent_id": agent_id,
                 "action": action,
                 "policies_applied": policies,
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
         )
     
@@ -578,12 +578,12 @@ class IATPSignTool:
                 "agent_id": agent_id,
                 "capabilities": capabilities,
                 "content_hash": hashlib.sha256(content.encode()).hexdigest()[:16],
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "protocol_version": "iatp-1.0"
             },
             metadata={
                 "tool": self.name,
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
         )
     
@@ -731,7 +731,7 @@ class IATPVerifyTool:
             },
             metadata={
                 "tool": self.name,
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
         )
     
@@ -907,7 +907,7 @@ class IATPReputationTool:
             metadata={
                 "tool": self.name,
                 "action": "slash",
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
         )
 
@@ -1005,7 +1005,7 @@ class CMVKReviewCodeTool:
             },
             metadata={
                 "tool": self.name,
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
         )
     
@@ -1123,7 +1123,7 @@ class GetAuditLogTool:
     @classmethod
     def log_entry(cls, entry: dict):
         """Add entry to audit log."""
-        entry["timestamp"] = datetime.utcnow().isoformat()
+        entry["timestamp"] = datetime.now(timezone.utc).isoformat()
         cls._audit_log.insert(0, entry)
         # Keep last 1000 entries
         if len(cls._audit_log) > 1000:
@@ -1167,6 +1167,6 @@ class GetAuditLogTool:
             },
             metadata={
                 "tool": self.name,
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
         )

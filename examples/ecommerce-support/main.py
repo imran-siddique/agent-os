@@ -11,7 +11,7 @@ Demonstrates:
 import asyncio
 import hashlib
 import re
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from dataclasses import dataclass, field
 from enum import Enum
@@ -104,7 +104,7 @@ class FraudDetector:
         
         # Reset counters if more than 24h since last refund
         if customer.last_refund_time:
-            if datetime.utcnow() - customer.last_refund_time > timedelta(hours=24):
+            if datetime.now(timezone.utc) - customer.last_refund_time > timedelta(hours=24):
                 customer.refund_count_24h = 0
                 customer.refund_amount_24h = 0.0
         
@@ -124,7 +124,7 @@ class FraudDetector:
         
         # Quick refund after purchase
         if order.created_at:
-            hours_since_order = (datetime.utcnow() - order.created_at).total_seconds() / 3600
+            hours_since_order = (datetime.now(timezone.utc) - order.created_at).total_seconds() / 3600
             if hours_since_order < 1:
                 flags.append("refund_within_1_hour")
         
@@ -145,7 +145,7 @@ class SupportAuditLog:
             amount: float = None, status: str = None, reason: str = None,
             flags: list[str] = None):
         entry = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "action": action,
             "customer_id": customer_id,
             "order_id": order_id,
@@ -154,7 +154,7 @@ class SupportAuditLog:
             "reason": reason,
             "flags": flags or [],
             "audit_id": hashlib.sha256(
-                f"{datetime.utcnow()}{action}{customer_id}".encode()
+                f"{datetime.now(timezone.utc)}{action}{customer_id}".encode()
             ).hexdigest()[:12]
         }
         self.entries.append(entry)
@@ -317,7 +317,7 @@ class EcommerceSupportAgent:
         # Update customer refund tracking
         customer.refund_count_24h += 1
         customer.refund_amount_24h += refund_amount
-        customer.last_refund_time = datetime.utcnow()
+        customer.last_refund_time = datetime.now(timezone.utc)
         
         # Update order status
         order.status = "refunded"

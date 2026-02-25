@@ -5,7 +5,7 @@ The "Reward Agent" - a specialized, read-only agent that resolves disputes
 between agents by replaying flight recorder logs against the Control Plane.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, Literal
 from dataclasses import dataclass, field
 import hashlib
@@ -353,5 +353,5 @@ class Arbiter:
     
     def _sign_resolution(self, dispute_id: str, outcome: str) -> str:
         """Generate Arbiter signature for resolution."""
-        data = f"arbiter:{dispute_id}:{outcome}:{datetime.utcnow().isoformat()}"
+        data = f"arbiter:{dispute_id}:{outcome}:{datetime.now(timezone.utc).isoformat()}"
         return f"arbiter_sig_{hashlib.sha256(data.encode()).hexdigest()[:32]}"

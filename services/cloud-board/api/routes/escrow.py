@@ -7,7 +7,7 @@ API endpoints for the Proof-of-Outcome escrow system.
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 from typing import Optional, Literal
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import uuid
 
 router = APIRouter()
@@ -83,7 +83,7 @@ async def create_escrow(request: CreateEscrowRequest):
     # Generate escrow ID
     escrow_id = f"escrow_{uuid.uuid4().hex[:16]}"
     
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     expires_at = now + timedelta(seconds=request.timeout_seconds)
     
     # Create escrow
@@ -158,7 +158,7 @@ async def activate_escrow(escrow_id: str):
         )
     
     escrow["status"] = "active"
-    escrow["activated_at"] = datetime.utcnow().isoformat()
+    escrow["activated_at"] = datetime.now(timezone.utc).isoformat()
     
     return {"success": True, "status": "active"}
 
@@ -280,7 +280,7 @@ async def _resolve_success(escrow_id: str, escrow: dict) -> EscrowResolutionResp
     _agent_credits[provider] = _agent_credits.get(provider, 1000) + credits
     
     escrow["status"] = "released"
-    escrow["resolved_at"] = datetime.utcnow().isoformat()
+    escrow["resolved_at"] = datetime.now(timezone.utc).isoformat()
     
     return EscrowResolutionResponse(
         escrow_id=escrow_id,
@@ -303,7 +303,7 @@ async def _resolve_failure(escrow_id: str, escrow: dict) -> EscrowResolutionResp
     _agent_credits[requester] = _agent_credits.get(requester, 1000) + credits
     
     escrow["status"] = "refunded"
-    escrow["resolved_at"] = datetime.utcnow().isoformat()
+    escrow["resolved_at"] = datetime.now(timezone.utc).isoformat()
     
     return EscrowResolutionResponse(
         escrow_id=escrow_id,

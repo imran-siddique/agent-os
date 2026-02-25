@@ -5,7 +5,7 @@ Extension of IATP for secure data handoff between agents.
 Implements the REQUEST_ESCROW verb and data handling policies.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional, Literal
 from pydantic import BaseModel, Field
 import hashlib
@@ -220,7 +220,7 @@ class DMZProtocol:
             data_size_bytes=len(data),
             data_classification=classification,
             required_policy=policy,
-            expires_at=datetime.utcnow() + timedelta(hours=expiry_hours),
+            expires_at=datetime.now(timezone.utc) + timedelta(hours=expiry_hours),
         )
         
         # Create transfer record
@@ -236,7 +236,7 @@ class DMZProtocol:
         # Add audit entry
         transfer.audit_trail.append({
             "event": "transfer_initiated",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "sender": sender_did,
             "receiver": receiver_did,
             "data_hash": data_hash,
@@ -267,7 +267,7 @@ class DMZProtocol:
             raise ValueError("Only intended receiver can sign policy")
         
         # Verify transfer hasn't expired
-        if request.expires_at and datetime.utcnow() > request.expires_at:
+        if request.expires_at and datetime.now(timezone.utc) > request.expires_at:
             raise ValueError("Transfer has expired")
         
         # Create signed policy
@@ -277,7 +277,7 @@ class DMZProtocol:
             signer_did=signer_did,
             signature=signature,
             verified=True,  # Would verify signature in production
-            verified_at=datetime.utcnow(),
+            verified_at=datetime.now(timezone.utc),
         )
         
         # Update transfer
@@ -287,7 +287,7 @@ class DMZProtocol:
         # Add audit entry
         transfer.audit_trail.append({
             "event": "policy_signed",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "signer": signer_did,
             "policy_hash": signed.policy_hash,
         })
@@ -325,7 +325,7 @@ class DMZProtocol:
             raise ValueError("Policy must be signed before key release")
         
         # Verify not expired
-        if request.expires_at and datetime.utcnow() > request.expires_at:
+        if request.expires_at and datetime.now(timezone.utc) > request.expires_at:
             raise ValueError("Transfer has expired")
         
         # Get key
@@ -336,12 +336,12 @@ class DMZProtocol:
         
         # Update transfer
         transfer.key_released = True
-        transfer.key_released_at = datetime.utcnow()
+        transfer.key_released_at = datetime.now(timezone.utc)
         
         # Add audit entry
         transfer.audit_trail.append({
             "event": "key_released",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "recipient": requester_did,
         })
         
@@ -358,11 +358,11 @@ class DMZProtocol:
         
         transfer = self._transfers[transfer_id]
         transfer.data_accessed = True
-        transfer.data_accessed_at = datetime.utcnow()
+        transfer.data_accessed_at = datetime.now(timezone.utc)
         
         transfer.audit_trail.append({
             "event": "data_accessed",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "accessor": accessor_did,
         })
     
@@ -376,11 +376,11 @@ class DMZProtocol:
         
         transfer = self._transfers[transfer_id]
         transfer.completed = True
-        transfer.completed_at = datetime.utcnow()
+        transfer.completed_at = datetime.now(timezone.utc)
         
         transfer.audit_trail.append({
             "event": "transfer_completed",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         })
         
         # Clean up key (data should be deleted per policy)

@@ -2,7 +2,7 @@
 
 import os
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
@@ -100,7 +100,7 @@ class TestAgentManifest:
                 did="did:nexus:a", verification_key="ed25519:k", owner_id="org",
             ),
             attestation_signature="sig_123",
-            attestation_expires=datetime.utcnow() + timedelta(hours=24),
+            attestation_expires=datetime.now(timezone.utc) + timedelta(hours=24),
         )
         assert m.is_attestation_valid() is True
 
@@ -110,7 +110,7 @@ class TestAgentManifest:
                 did="did:nexus:a", verification_key="ed25519:k", owner_id="org",
             ),
             attestation_signature="sig_123",
-            attestation_expires=datetime.utcnow() - timedelta(hours=1),
+            attestation_expires=datetime.now(timezone.utc) - timedelta(hours=1),
         )
         assert m.is_attestation_valid() is False
 
@@ -260,7 +260,7 @@ class TestEscrowReceiptMethods:
                 task_hash="h", credits=100,
             ),
             status=status,
-            expires_at=datetime.utcnow() + timedelta(hours=expires_delta_hours),
+            expires_at=datetime.now(timezone.utc) + timedelta(hours=expires_delta_hours),
             requester_signature="sig",
         )
 

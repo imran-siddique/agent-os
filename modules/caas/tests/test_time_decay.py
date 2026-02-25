@@ -5,7 +5,7 @@ Demonstrates "The Half-Life of Truth" - mathematical gravity for old data.
 """
 
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from caas.models import Document, ContentFormat, DocumentType, Section
 from caas.storage import DocumentStore
 from caas.decay import calculate_decay_factor, get_time_weighted_score
@@ -112,7 +112,7 @@ def test_search_with_time_decay():
     store = DocumentStore()
     
     # Use current actual time for realistic testing
-    current_time = datetime.utcnow()
+    current_time = datetime.now(timezone.utc)
     
     # Create documents with different ages but same content match quality
     # Document 1: Recent (yesterday)
@@ -188,7 +188,7 @@ def test_context_extraction_with_decay():
     from caas.storage import ContextExtractor
     
     store = DocumentStore()
-    current_time = datetime.utcnow()
+    current_time = datetime.now(timezone.utc)
     
     # Create a recent document
     doc = Document(

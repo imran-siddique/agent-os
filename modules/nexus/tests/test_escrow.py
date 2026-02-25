@@ -2,7 +2,7 @@
 
 import os
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
@@ -242,7 +242,7 @@ class TestEscrowSchemas:
                 requester_did="did:nexus:a", provider_did="did:nexus:b",
                 task_hash="hash", credits=100,
             ),
-            expires_at=datetime.utcnow() - timedelta(hours=1),
+            expires_at=datetime.now(timezone.utc) - timedelta(hours=1),
             requester_signature="sig",
         )
         assert receipt.is_expired() is True
@@ -255,7 +255,7 @@ class TestEscrowSchemas:
                 task_hash="hash", credits=100,
             ),
             status=EscrowStatus.ACTIVE,
-            expires_at=datetime.utcnow() + timedelta(hours=1),
+            expires_at=datetime.now(timezone.utc) + timedelta(hours=1),
             requester_signature="sig",
         )
         assert receipt.is_active() is True
@@ -268,7 +268,7 @@ class TestEscrowSchemas:
                 task_hash="hash", credits=100,
             ),
             status=EscrowStatus.RELEASED,
-            expires_at=datetime.utcnow() + timedelta(hours=1),
+            expires_at=datetime.now(timezone.utc) + timedelta(hours=1),
             requester_signature="sig",
         )
         assert receipt.is_active() is False

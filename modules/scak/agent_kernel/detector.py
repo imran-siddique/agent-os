@@ -5,7 +5,7 @@ Failure detection — simple list-based queue and basic classifier.
 
 import logging
 from typing import Optional, Callable, Dict, Any, List
-from datetime import datetime
+from datetime import datetime, timezone
 
 from .models import AgentFailure, FailureType, FailureSeverity, FailureTrace
 
@@ -87,7 +87,7 @@ class FailureDetector:
             context=context or {},
             stack_trace=stack_trace,
             failure_trace=failure_trace,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
         )
 
         self.failure_history.append(failure)

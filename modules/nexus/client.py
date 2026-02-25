@@ -5,7 +5,7 @@ Client for Agent OS agents to interact with Nexus.
 Handles registration, peer verification, and reputation sync.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, Literal
 import asyncio
 import aiohttp
@@ -223,7 +223,7 @@ class NexusClient:
         """
         # Rate limit syncs (every 5 minutes unless forced)
         if not force and self._last_sync:
-            elapsed = (datetime.utcnow() - self._last_sync).total_seconds()
+            elapsed = (datetime.now(timezone.utc) - self._last_sync).total_seconds()
             if elapsed < 300:  # 5 minutes
                 return self._known_peers
         
@@ -238,7 +238,7 @@ class NexusClient:
                     data = await resp.json()
                     self._known_peers = data.get("scores", {})
         
-        self._last_sync = datetime.utcnow()
+        self._last_sync = datetime.now(timezone.utc)
         return self._known_peers
     
     async def report_outcome(

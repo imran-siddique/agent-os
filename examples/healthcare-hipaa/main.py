@@ -22,7 +22,7 @@ import json
 import re
 import time
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional
 from collections import defaultdict
@@ -224,7 +224,7 @@ class HIPAAAuditLog:
         """Create tamper-evident audit entry."""
         entry = AuditEntry(
             audit_id=str(uuid.uuid4())[:8],
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             user_id=user_id,
             patient_id=patient_id,
             action=action,
@@ -265,7 +265,7 @@ class HIPAAAuditLog:
     
     def get_user_activity(self, user_id: str, hours: int = 24) -> list[AuditEntry]:
         """Get user activity within time window."""
-        cutoff = datetime.utcnow().timestamp() - (hours * 3600)
+        cutoff = datetime.now(timezone.utc).timestamp() - (hours * 3600)
         return [
             e for e in self.entries 
             if e.user_id == user_id and e.timestamp.timestamp() > cutoff
@@ -464,7 +464,7 @@ class AccessController:
             reason=reason
         )
         
-        self.emergency_overrides[override_id] = datetime.utcnow()
+        self.emergency_overrides[override_id] = datetime.now(timezone.utc)
         
         return True, f"EMERGENCY ACCESS GRANTED - This access is logged and will be audited. Reason: {reason}"
     

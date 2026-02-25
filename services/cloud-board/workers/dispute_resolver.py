@@ -7,7 +7,7 @@ by replaying flight recorder logs against the Control Plane.
 
 import asyncio
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional, Literal
 from dataclasses import dataclass
 
@@ -92,7 +92,7 @@ class DisputeResolverWorker:
         """Check for timed-out disputes."""
         while self._running:
             try:
-                now = datetime.utcnow()
+                now = datetime.now(timezone.utc)
                 
                 for dispute in self._pending_disputes:
                     age = now - dispute.created_at
@@ -243,7 +243,7 @@ class DisputeResolverWorker:
             provider_did=provider_did,
             requester_logs_hash=None,
             provider_logs_hash=None,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
             priority=priority,
         )
         self._pending_disputes.append(dispute)

@@ -7,7 +7,7 @@ Uses amb-core for message bus communication.
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Callable
 import asyncio
@@ -91,7 +91,7 @@ class BaseAgent(ABC):
             raise RuntimeError(f"Cannot start agent in state {self._state}")
 
         self._state = AgentState.STARTING
-        self._metrics.start_time = datetime.utcnow()
+        self._metrics.start_time = datetime.now(timezone.utc)
         self._state = AgentState.RUNNING
         self._log(f"Agent started")
 
@@ -103,5 +103,5 @@ class BaseAgent(ABC):
 
     def _log(self, message: str, level: str = "INFO") -> None:
         """Log a message with agent context."""
-        timestamp = datetime.utcnow().strftime("%H:%M:%S.%f")[:-3]
+        timestamp = datetime.now(timezone.utc).strftime("%H:%M:%S.%f")[:-3]
         print(f"[{timestamp}] [{level}] [{self.name}] {message}")

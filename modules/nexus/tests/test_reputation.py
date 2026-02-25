@@ -2,7 +2,7 @@
 
 import os
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
@@ -321,6 +321,6 @@ class TestSlashHistory:
 
     def test_filter_by_since(self, reputation_engine):
         reputation_engine.slash_reputation("did:nexus:a", reason="fraud", severity="high")
-        future = datetime.utcnow() + timedelta(hours=1)
+        future = datetime.now(timezone.utc) + timedelta(hours=1)
         events = reputation_engine.get_slash_history(since=future)
         assert len(events) == 0
