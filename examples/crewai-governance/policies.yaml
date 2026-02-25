@@ -1,0 +1,63 @@
+# =============================================================================
+# Agent OS — Per-Role Governance Policies for a CrewAI Crew
+# =============================================================================
+#
+# Each role declares:
+#   allowed_tools  – only these tool names may be invoked
+#   blocked_patterns – any action/param matching these strings is denied
+#   max_actions     – optional per-task action budget
+#
+# A "shared" section applies to every agent regardless of role.
+# =============================================================================
+
+shared:
+  blocked_patterns:
+    - "rm -rf"
+    - "sudo"
+    - "eval("
+    - "exec("
+    - "__import__"
+    - "DROP TABLE"
+    - "DELETE FROM"
+    - "chmod 777"
+    - "curl | bash"
+    - "/etc/passwd"
+    - "api_key"
+    - "secret_token"
+
+roles:
+  researcher:
+    description: "Can search the web and read files — no writes allowed"
+    allowed_tools:
+      - web_search
+      - read_file
+      - list_directory
+    blocked_patterns:
+      - write_file
+      - delete_file
+      - execute_command
+    max_actions: 20
+
+  writer:
+    description: "Can read and write files — no web, no shell"
+    allowed_tools:
+      - read_file
+      - write_file
+      - list_directory
+    blocked_patterns:
+      - web_search
+      - execute_command
+      - delete_file
+    max_actions: 15
+
+  reviewer:
+    description: "Read-only — can only inspect artefacts"
+    allowed_tools:
+      - read_file
+      - list_directory
+    blocked_patterns:
+      - write_file
+      - delete_file
+      - web_search
+      - execute_command
+    max_actions: 10
