@@ -1,0 +1,27 @@
+# Agent OS Governance Policy
+# This policy controls what your LangChain agent can and cannot do.
+
+max_tokens: 4096
+max_tool_calls: 10
+timeout_seconds: 300
+confidence_threshold: 0.8
+
+# Patterns that will be blocked in agent input/output
+blocked_patterns:
+  - "DROP TABLE"
+  - "DELETE FROM"
+  - "password"
+  - "secret"
+  - "api_key"
+  - "rm -rf"
+
+# Only allow these tools (empty = allow all)
+allowed_tools: []
+
+# Audit settings
+log_all_calls: true
+checkpoint_frequency: 5
+
+# Concurrency limits
+max_concurrent: 10
+backpressure_threshold: 8
