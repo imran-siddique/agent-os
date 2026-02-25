@@ -1,0 +1,268 @@
+# GDPR Data Protection Policy Template
+# General Data Protection Regulation compliance
+# Protects personal data of EU/EEA individuals
+
+kernel:
+  version: "1.0"
+  mode: strict
+  template: gdpr
+
+description: |
+  GDPR-compliant policy template for applications processing personal data
+  of EU/EEA individuals. Blocks PII patterns, supports right to erasure,
+  enforces data minimization, and restricts cross-border data transfers
+  to approved jurisdictions.
+
+signals:
+  enabled:
+    - SIGSTOP   # Pause for DPO review
+    - SIGKILL   # Terminate on violation
+    - SIGCONT   # Resume after approval
+    - SIGUSR1   # Custom: notify Data Protection Officer
+
+policies:
+  # ============================================
+  # PII PATTERN BLOCKING
+  # ============================================
+  - name: pii_name_detection
+    description: Detect and block exposure of personal names in structured data
+    severity: high
+    category: compliance
+    scope: [output]
+    deny:
+      - patterns:
+          # Name fields in structured data
+          - '(?i)(first_?name|last_?name|full_?name|surname)\s*[:=#]\s*["'']?[A-Za-z\s]{2,}["'']?'
+          # Name in JSON output
+          - '(?i)"(?:first_?name|last_?name|full_?name)"\s*:\s*"[^"]+"'
+    action: SIGSTOP
+    message: "GDPR: Personal name detected — ensure lawful basis for processing"
+
+  - name: pii_contact_detection
+    description: Block exposure of contact information
+    severity: critical
+    category: compliance
+    scope: [input, output]
+    deny:
+      - patterns:
+          # Email addresses
+          - '(?i)(email|e-mail)\s*[:=#]\s*["'']?[\w.+-]+@[\w-]+\.[\w.-]+["'']?'
+          # Phone numbers (EU formats)
+          - '\b\+?(?:3[0-9]|4[0-9]|5[0-9]|6[0-9]|7[0-9]|8[0-9]|9[0-9])\s?[\d\s\-]{8,15}\b'
+          # Physical addresses
+          - '(?i)(address|street|postcode|postal_code|zip)\s*[:=#]\s*["''][^"'']{5,}["'']'
+    action: SIGKILL
+    message: "GDPR: Contact PII detected — data must be pseudonymized or removed"
+
+  - name: pii_identifiers
+    description: Block national identification numbers
+    severity: critical
+    category: compliance
+    scope: [input, output]
+    deny:
+      - patterns:
+          # Social Security / National Insurance numbers
+          - '\b\d{3}-\d{2}-\d{4}\b'
+          # UK National Insurance
+          - '(?i)\b[A-Z]{2}\s?\d{2}\s?\d{2}\s?\d{2}\s?[A-Z]\b'
+          # German tax ID
+          - '(?i)(steuer|tax)\s*(?:id|nr|nummer)\s*[:=#]?\s*\d{10,11}'
+          # French INSEE
+          - '\b[12]\s?\d{2}\s?\d{2}\s?\d{2}\s?\d{3}\s?\d{3}\s?\d{2}\b'
+          # Passport numbers
+          - '(?i)passport\s*[:=#]?\s*[A-Z0-9]{6,9}'
+    action: SIGKILL
+    message: "GDPR: National identifier detected — strictly prohibited"
+
+  - name: pii_sensitive_categories
+    description: Block special categories of personal data (Article 9)
+    severity: critical
+    category: compliance
+    scope: [input, output]
+    deny:
+      - patterns:
+          # Racial/ethnic origin
+          - '(?i)(race|ethnicity|ethnic_origin)\s*[:=#]\s*["''][^"'']+["'']'
+          # Political opinions
+          - '(?i)(political|party_affiliation)\s*[:=#]\s*["''][^"'']+["'']'
+          # Religious beliefs
+          - '(?i)(religion|religious_belief)\s*[:=#]\s*["''][^"'']+["'']'
+          # Health data
+          - '(?i)(diagnosis|medical_condition|health_status)\s*[:=#]\s*["''][^"'']+["'']'
+          # Biometric data
+          - '(?i)(biometric|fingerprint|face_id)\s*[:=#]\s*["''][^"'']+["'']'
+          # Sexual orientation
+          - '(?i)(sexual_orientation|gender_identity)\s*[:=#]\s*["''][^"'']+["'']'
+    action: SIGKILL
+    message: "GDPR Article 9: Special category data requires explicit consent"
+
+  # ============================================
+  # RIGHT TO ERASURE (Article 17)
+  # ============================================
+  - name: right_to_erasure
+    description: Support data subject erasure requests
+    severity: high
+    category: compliance
+    rules:
+      - action: data_deletion
+        scope: personal_data
+        requirements:
+          - verify_identity: true
+          - confirm_scope: true
+          - notify_processors: true
+          - document_erasure: true
+        exceptions:
+          - legal_obligation
+          - public_interest
+          - archiving_purposes
+          - legal_claims
+    action: SIGSTOP
+    message: "GDPR: Erasure request — verify identity and scope before proceeding"
+
+  - name: erasure_propagation
+    description: Ensure erasure propagates to all processors
+    severity: high
+    category: compliance
+    rules:
+      - action: data_deletion
+        propagate_to:
+          - downstream_processors
+          - backup_systems
+          - analytics_systems
+          - third_party_integrations
+    action: SIGSTOP
+    message: "GDPR: Ensure erasure propagates to all data processors"
+
+  # ============================================
+  # DATA MINIMIZATION (Article 5(1)(c))
+  # ============================================
+  - name: data_minimization
+    description: Enforce collection of only necessary data
+    severity: high
+    category: compliance
+    deny:
+      - patterns:
+          # Bulk data queries without filters
+          - '(?i)SELECT\s+\*\s+FROM\s+(?:user|customer|person|contact|employee)'
+          # Overly broad data collection
+          - '(?i)(collect|gather|fetch)\s+all\s+(?:user|personal|customer)\s+data'
+          # Unnecessary field access
+          - '(?i)(?:date_of_birth|dob|age|gender|nationality)\s*[:=#]'
+    action: SIGSTOP
+    message: "GDPR: Data minimization — collect only what is strictly necessary"
+
+  - name: purpose_limitation
+    description: Data must only be used for its stated purpose
+    severity: high
+    category: compliance
+    deny:
+      - patterns:
+          # Marketing use of non-consent data
+          - '(?i)(marketing|advertising|profiling)\s+(?:from|using)\s+(?:user|customer|personal)'
+          # Sharing without consent
+          - '(?i)(share|send|export)\s+(?:user|personal|customer)\s+data\s+(?:to|with)'
+    action: SIGSTOP
+    message: "GDPR: Verify purpose limitation — data used only for stated purpose"
+
+  # ============================================
+  # CROSS-BORDER TRANSFER RESTRICTIONS (Chapter V)
+  # ============================================
+  - name: cross_border_transfers
+    description: Restrict data transfers outside EU/EEA
+    severity: critical
+    category: compliance
+    deny:
+      - action: http_request
+        regions_excluded:
+          # Countries without adequacy decisions
+          - "CN"   # China
+          - "RU"   # Russia
+          - "IN"   # India (no adequacy decision)
+      - action: data_export
+        destinations_require:
+          - adequacy_decision: true
+          - standard_contractual_clauses: true
+          - binding_corporate_rules: true
+    allow:
+      - action: http_request
+        regions:
+          # EU/EEA countries
+          - "EU"
+          # Adequacy decision countries
+          - "GB"   # United Kingdom
+          - "CH"   # Switzerland
+          - "JP"   # Japan
+          - "KR"   # South Korea
+          - "NZ"   # New Zealand
+          - "CA"   # Canada (commercial)
+          - "IL"   # Israel
+          - "UY"   # Uruguay
+          - "AR"   # Argentina
+    action: SIGKILL
+    message: "GDPR: Cross-border transfer to non-adequate country blocked"
+
+  - name: us_data_transfer
+    description: US transfers require Data Privacy Framework certification
+    severity: high
+    category: compliance
+    rules:
+      - action: data_export
+        destination: "US"
+        requires:
+          - eu_us_data_privacy_framework: true
+          - supplementary_measures: true
+    action: SIGSTOP
+    message: "GDPR: US transfer requires EU-US Data Privacy Framework compliance"
+
+# ============================================
+# AUDIT CONFIGURATION
+# ============================================
+audit:
+  enabled: true
+  mandatory: true
+  log_path: "./logs/gdpr-audit.log"
+  include:
+    - all_actions
+    - data_access
+    - consent_checks
+    - erasure_requests
+    - cross_border_transfers
+    - data_breaches
+    - dsar_requests
+  format: json
+  fields:
+    - timestamp
+    - agent_id
+    - action
+    - policy
+    - result
+    - user
+    - session_id
+    - lawful_basis
+    - data_category
+    - data_subject_id
+  retention_days: 1825  # 5 years
+
+compliance:
+  framework: GDPR
+  articles:
+    - "5"    # Principles
+    - "6"    # Lawful basis
+    - "9"    # Special categories
+    - "13"   # Information to data subject
+    - "15"   # Right of access
+    - "17"   # Right to erasure
+    - "20"   # Right to portability
+    - "25"   # Data protection by design
+    - "32"   # Security of processing
+    - "33"   # Breach notification (72 hours)
+    - "35"   # Data protection impact assessment
+    - "44"   # Transfer principles
+  lawful_bases:
+    - consent
+    - contract
+    - legal_obligation
+    - vital_interests
+    - public_task
+    - legitimate_interests
+  dpo_contact: "dpo@company.com"

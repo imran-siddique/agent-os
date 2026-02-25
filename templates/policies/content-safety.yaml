@@ -1,0 +1,207 @@
+# Content Safety Policy Template
+# General-purpose content safety for AI agent outputs
+# Blocks harmful, abusive, and dangerous content patterns
+
+kernel:
+  version: "1.0"
+  mode: strict
+  template: content-safety
+
+description: |
+  General content safety policy for AI agent deployments. Blocks harmful
+  content patterns including profanity, hate speech, violence, and
+  self-harm references. Suitable as a baseline for any public-facing
+  or enterprise AI application.
+
+signals:
+  enabled:
+    - SIGSTOP   # Pause for content review
+    - SIGKILL   # Terminate on severe violation
+    - SIGUSR1   # Custom: escalate to trust & safety team
+
+policies:
+  # ============================================
+  # HARMFUL CONTENT BLOCKING
+  # ============================================
+  - name: harmful_instructions
+    description: Block instructions for creating dangerous items or activities
+    severity: critical
+    category: safety
+    scope: [input, output]
+    deny:
+      - patterns:
+          # Weapons manufacturing
+          - '(?i)(how\s+to|instructions?\s+(?:for|to)|steps?\s+to)\s+(?:make|build|create|assemble)\s+(?:a\s+)?(?:bomb|explosive|weapon|firearm|gun)'
+          # Illegal drug synthesis
+          - '(?i)(how\s+to|instructions?\s+(?:for|to)|steps?\s+to)\s+(?:make|synthesize|cook|produce)\s+(?:meth|cocaine|heroin|fentanyl|drug)'
+          # Hacking/exploitation instructions
+          - '(?i)(how\s+to|instructions?\s+(?:for|to))\s+(?:hack|exploit|breach|crack)\s+(?:into|a\s+)?(?:system|server|account|password|network)'
+          # Identity fraud
+          - '(?i)(how\s+to)\s+(?:forge|fake|counterfeit)\s+(?:identity|passport|license|document|id)'
+    action: SIGKILL
+    message: "Content safety violation: Harmful instructions blocked"
+
+  - name: malicious_code_patterns
+    description: Block generation of malicious code
+    severity: critical
+    category: safety
+    scope: [output]
+    deny:
+      - patterns:
+          # Malware patterns
+          - '(?i)(keylogger|ransomware|trojan|rootkit|backdoor|spyware)\s*(code|script|program)?'
+          # Exploit code
+          - '(?i)(exploit|payload|shellcode|reverse.?shell)\s*(code|script)?'
+          # Credential harvesting
+          - '(?i)(phishing|credential.?harvest|password.?steal)'
+    action: SIGKILL
+    message: "Content safety violation: Malicious code pattern blocked"
+
+  # ============================================
+  # PROFANITY FILTERING
+  # ============================================
+  - name: profanity_filter
+    description: Filter profane and vulgar language
+    severity: medium
+    category: safety
+    scope: [output]
+    deny:
+      - patterns:
+          # Common profanity patterns (using word boundaries to avoid false positives)
+          - '(?i)\b(fuck|shit|damn|ass|bitch|bastard|crap|dick|piss)\b'
+          # Slurs and derogatory terms (abbreviated to avoid reproducing them)
+          - '(?i)\b(retard(?:ed)?|idiot|moron|imbecile)\b'
+          # Obscene gestures described
+          - '(?i)(middle\s+finger|flip(?:ping)?\s+(?:off|the\s+bird))'
+    action: SIGSTOP
+    message: "Content safety: Profane language detected — rephrase output"
+
+  # ============================================
+  # HATE SPEECH DETECTION
+  # ============================================
+  - name: hate_speech_racial
+    description: Detect and block racially motivated hate speech
+    severity: critical
+    category: safety
+    scope: [input, output]
+    deny:
+      - patterns:
+          # Racial supremacy language
+          - '(?i)(white|black|race)\s*(supremac|superior|inferior|subhuman)'
+          # Dehumanizing language targeting groups
+          - '(?i)(all|every|those)\s+(jews|muslims|christians|hindus|blacks|whites|asians|latinos|immigrants|refugees)\s+(are|should)\s+'
+          # Ethnic cleansing / genocide references
+          - '(?i)(ethnic\s+cleansing|genocide|exterminate|eradicate)\s+(?:the\s+)?(jews|muslims|blacks|whites|race|people|group)'
+    action: SIGKILL
+    message: "Content safety violation: Hate speech blocked"
+
+  - name: hate_speech_general
+    description: Detect general discriminatory and hateful content
+    severity: critical
+    category: safety
+    scope: [input, output]
+    deny:
+      - patterns:
+          # Discriminatory generalizations
+          - '(?i)(women|men|gay|lesbian|trans)\s+(are\s+)?(all|always|never|can.?t|shouldn.?t|don.?t\s+deserve)'
+          # Disability-based hate
+          - '(?i)(disabled|handicapped|crippled)\s+(people\s+)?(are|should|deserve|don.?t)'
+          # Religious hate
+          - '(?i)(kill|destroy|ban|deport)\s+(all\s+)?(muslims|jews|christians|hindus|atheists)'
+    action: SIGKILL
+    message: "Content safety violation: Discriminatory content blocked"
+
+  # ============================================
+  # VIOLENCE AND SELF-HARM
+  # ============================================
+  - name: violence_detection
+    description: Detect and block glorification or instruction of violence
+    severity: critical
+    category: safety
+    scope: [input, output]
+    deny:
+      - patterns:
+          # Direct violence threats
+          - '(?i)(i\s+will|going\s+to|want\s+to|plan\s+to)\s+(kill|murder|shoot|stab|attack|assault|hurt)\s+'
+          # Violence glorification
+          - '(?i)(they\s+deserve\s+to\s+die|should\s+be\s+killed|deserves?\s+death)'
+          # Mass violence
+          - '(?i)(mass\s+shooting|school\s+shooting|terrorist\s+attack|bombing)\s+(plan|target|how\s+to)'
+          # Torture
+          - '(?i)(how\s+to|instructions?\s+to)\s+(torture|waterboard|inflict\s+pain)'
+    action: SIGKILL
+    message: "Content safety violation: Violence-related content blocked"
+
+  - name: self_harm_detection
+    description: Detect and block self-harm and suicide content
+    severity: critical
+    category: safety
+    scope: [input, output]
+    deny:
+      - patterns:
+          # Suicide methods
+          - '(?i)(how\s+to|methods?\s+(?:of|for|to)|ways?\s+to)\s+(commit\s+suicide|kill\s+(?:my|your|one)self|end\s+(?:my|your|it\s+all))'
+          # Self-harm instructions
+          - '(?i)(how\s+to|ways?\s+to)\s+(cut|harm|hurt|injure)\s+(?:my|your)self'
+          # Pro-self-harm content
+          - '(?i)(pro.?ana|pro.?mia|thinspo|cutting\s+tips)'
+    action: SIGKILL
+    message: "Content safety violation: Self-harm content blocked — please seek help"
+    escalation:
+      notify: trust_and_safety_team
+      include_crisis_resources: true
+
+  # ============================================
+  # CHILD SAFETY
+  # ============================================
+  - name: child_safety
+    description: Block any content that may endanger minors
+    severity: critical
+    category: safety
+    scope: [input, output]
+    deny:
+      - patterns:
+          # CSAM-related
+          - '(?i)(child|minor|underage|juvenile)\s*(porn|sexual|explicit|nude|naked)'
+          # Grooming patterns
+          - '(?i)(groom(?:ing)?|lure|entice)\s+(?:a\s+)?(child|minor|kid|teen|underage)'
+          # Child exploitation
+          - '(?i)(exploit|traffic|abuse)\s+(?:a\s+)?(child|minor|kid|underage)'
+    action: SIGKILL
+    message: "Content safety violation: Child safety — content immediately blocked"
+    escalation:
+      notify: [trust_and_safety_team, legal_team]
+      report_to_authorities: true
+
+# ============================================
+# AUDIT CONFIGURATION
+# ============================================
+audit:
+  enabled: true
+  log_path: "./logs/content-safety-audit.log"
+  include:
+    - all_violations
+    - flagged_content
+    - escalations
+  format: json
+  fields:
+    - timestamp
+    - agent_id
+    - action
+    - policy
+    - result
+    - content_category
+    - severity
+    - session_id
+  retention_days: 365
+
+notifications:
+  channels:
+    - name: trust_and_safety_team
+      type: slack
+      webhook: "${SLACK_TRUST_SAFETY_WEBHOOK}"
+      events: [SIGKILL, hate_speech, violence, child_safety]
+    - name: content_review
+      type: email
+      recipients: ["content-review@company.com"]
+      events: [SIGSTOP, profanity, borderline_content]

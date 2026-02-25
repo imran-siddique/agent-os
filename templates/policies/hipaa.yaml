@@ -1,0 +1,201 @@
+# HIPAA Compliance Policy Template
+# Ensures compliance with the Health Insurance Portability and Accountability Act
+# Protects Protected Health Information (PHI) across agent interactions
+
+kernel:
+  version: "1.0"
+  mode: strict
+  template: hipaa
+
+description: |
+  HIPAA-compliant policy template for healthcare and health-tech applications.
+  Blocks PHI patterns (SSN, MRN, phone numbers), requires human approval
+  for data access, enforces mandatory audit logging, and limits tool calls
+  per session to prevent excessive data exposure.
+
+signals:
+  enabled:
+    - SIGSTOP   # Pause for human review before PHI access
+    - SIGKILL   # Terminate on PHI violation
+    - SIGCONT   # Resume after approval
+    - SIGUSR1   # Custom: escalate to compliance officer
+
+policies:
+  # ============================================
+  # PHI DETECTION AND BLOCKING
+  # ============================================
+  - name: phi_ssn_detection
+    description: Block Social Security Numbers in all contexts
+    severity: critical
+    category: compliance
+    scope: [input, output]
+    deny:
+      - patterns:
+          # SSN with dashes
+          - '\b\d{3}-\d{2}-\d{4}\b'
+          # SSN without dashes
+          - '\b\d{9}\b'
+          # SSN with spaces
+          - '\b\d{3}\s\d{2}\s\d{4}\b'
+    action: SIGKILL
+    message: "PHI violation: Social Security Number detected"
+
+  - name: phi_mrn_detection
+    description: Block Medical Record Numbers
+    severity: critical
+    category: compliance
+    scope: [input, output]
+    deny:
+      - patterns:
+          # Medical Record Numbers (various formats)
+          - '(?i)(mrn|medical\s*record)\s*[:=#]?\s*[A-Z0-9]{6,12}'
+          # Health plan beneficiary numbers
+          - '(?i)(hicn|beneficiary)\s*[:=#]?\s*[A-Z0-9]{8,15}'
+          # Patient ID patterns
+          - '(?i)patient\s*(?:id|#|number)\s*[:=#]?\s*[A-Z0-9]{5,15}'
+    action: SIGKILL
+    message: "PHI violation: Medical Record Number detected"
+
+  - name: phi_phone_detection
+    description: Block phone numbers associated with patient data
+    severity: critical
+    category: compliance
+    scope: [input, output]
+    deny:
+      - patterns:
+          # US phone numbers
+          - '\b\d{3}[-.]?\d{3}[-.]?\d{4}\b'
+          # International format
+          - '\b\+1[-.\s]?\d{3}[-.\s]?\d{3}[-.\s]?\d{4}\b'
+          # Phone with label
+          - '(?i)(phone|tel|fax)\s*[:=#]?\s*[\d\s\-\.\(\)]{10,}'
+    action: SIGKILL
+    message: "PHI violation: Phone number detected in patient context"
+
+  - name: phi_health_identifiers
+    description: Block health-specific identifiers
+    severity: critical
+    category: compliance
+    scope: [input, output]
+    deny:
+      - patterns:
+          # Health insurance IDs
+          - '(?i)(insurance|member|subscriber)\s*(?:id|#|number)\s*[:=#]?\s*[A-Z0-9]{8,15}'
+          # Diagnosis codes (ICD-10)
+          - '(?i)(?:diagnosis|icd)\s*[:=#]?\s*[A-Z]\d{2}\.?\d{0,2}'
+          # DEA numbers
+          - '(?i)dea\s*[:=#]?\s*[A-Z]{2}\d{7}'
+          # NPI numbers
+          - '(?i)npi\s*[:=#]?\s*\d{10}'
+    action: SIGKILL
+    message: "PHI violation: Health identifier detected"
+
+  # ============================================
+  # HUMAN APPROVAL FOR DATA ACCESS
+  # ============================================
+  - name: phi_data_access_approval
+    description: Require human approval for any patient data access
+    severity: critical
+    category: workflow
+    requires_approval:
+      - action: database_read
+        scope: patient_data
+        approval_level: hipaa_officer
+      - action: file_read
+        scope: medical_records
+        approval_level: hipaa_officer
+      - action: api_call
+        scope: ehr_system
+        approval_level: hipaa_officer
+    timeout_minutes: 15
+    action: SIGSTOP
+    message: "Human approval required for PHI data access"
+
+  # ============================================
+  # SESSION LIMITS
+  # ============================================
+  - name: session_tool_call_limit
+    description: Limit tool calls per session to prevent bulk PHI exposure
+    severity: high
+    category: operational
+    limits:
+      - action: tool_call
+        max_per_session: 10
+      - action: database_query
+        max_per_session: 5
+      - action: file_read
+        max_per_session: 5
+    action: SIGSTOP
+    message: "Session tool call limit reached — prevents bulk PHI exposure"
+
+  # ============================================
+  # MINIMUM NECESSARY RULE
+  # ============================================
+  - name: minimum_necessary
+    description: Enforce HIPAA minimum necessary standard
+    severity: high
+    category: compliance
+    deny:
+      - patterns:
+          # Bulk patient queries
+          - '(?i)SELECT\s+\*\s+FROM\s+(?:patient|medical|health)'
+          # Unrestricted exports
+          - '(?i)(pg_dump|mysqldump|mongodump).*(?:patient|medical|health)'
+    action: SIGKILL
+    message: "HIPAA minimum necessary violation: restrict data to what is needed"
+
+# ============================================
+# MANDATORY AUDIT LOGGING
+# ============================================
+audit:
+  enabled: true
+  mandatory: true
+  log_path: "./logs/hipaa-audit.log"
+  include:
+    - all_actions
+    - policy_checks
+    - phi_access_attempts
+    - approvals
+    - denials
+    - data_exports
+  format: json
+  fields:
+    - timestamp
+    - agent_id
+    - action
+    - policy
+    - result
+    - user
+    - session_id
+    - correlation_id
+    - phi_category
+  retention_days: 2190  # 6 years per HIPAA requirement
+  immutable: true
+  export:
+    enabled: true
+    destinations:
+      - type: syslog
+        host: "hipaa-siem.company.com"
+        port: 514
+
+compliance:
+  framework: HIPAA
+  requires_baa: true
+  phi_categories:
+    - names
+    - dates
+    - phone_numbers
+    - fax_numbers
+    - email_addresses
+    - ssn
+    - mrn
+    - health_plan_ids
+    - account_numbers
+    - certificate_numbers
+    - vehicle_ids
+    - device_ids
+    - urls
+    - ip_addresses
+    - biometric_ids
+    - photos
+    - other_unique_ids

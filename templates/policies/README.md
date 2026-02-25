@@ -1,8 +1,29 @@
 # Policy Templates
 
-Pre-built policy templates for common use cases. Import and customize for your needs.
+Pre-built policy templates for common governance and compliance use cases.
+Import and customize for your needs — no other governance tool ships with this.
 
 ## Available Templates
+
+### Compliance Templates
+
+| Template | Description | Use Case |
+|----------|-------------|----------|
+| [hipaa.yaml](hipaa.yaml) | HIPAA compliance — blocks PHI, requires approval, mandatory audit | Healthcare / health-tech |
+| [sox-compliance.yaml](sox-compliance.yaml) | SOX financial controls — dual approval, immutable audit, SoD | Financial services / public companies |
+| [gdpr.yaml](gdpr.yaml) | GDPR data protection — PII blocking, right to erasure, cross-border | EU/EEA personal data processing |
+| [pci-dss.yaml](pci-dss.yaml) | PCI-DSS payment security — card number blocking, encryption, timeouts | Payment processing |
+| [content-safety.yaml](content-safety.yaml) | Content safety — profanity, hate speech, violence, self-harm | Public-facing AI applications |
+
+### Operational Templates
+
+| Template | Description | Use Case |
+|----------|-------------|----------|
+| [development.yaml](development.yaml) | Developer-friendly — warn don't block, no approval, full logging | Local development & testing |
+| [production.yaml](production.yaml) | Production lockdown — allowlist-only, approval required, rate limiting | Production deployments |
+| [research.yaml](research.yaml) | Research — broad permissions with cost budgets and time limits | ML research & experimentation |
+
+### Infrastructure Templates
 
 | Template | Description | Use Case |
 |----------|-------------|----------|
@@ -16,14 +37,39 @@ Pre-built policy templates for common use cases. Import and customize for your n
 
 ## Quick Start
 
+### Using the Python Loader
+
+```python
+from agent_os.templates.policies.loader import load_policy, list_templates, load_policy_yaml
+
+# List all available templates
+print(list_templates())
+# ['api-gateway', 'content-safety', 'cost-controls', 'data-protection',
+#  'development', 'enterprise', 'gdpr', 'hipaa', 'multi-tenant',
+#  'pci-dss', 'production', 'rate-limiting', 'research',
+#  'secure-coding', 'sox-compliance']
+
+# Load as GovernancePolicy dataclass
+policy = load_policy("hipaa")
+print(policy.name)                    # "hipaa"
+print(policy.require_human_approval)  # True
+print(policy.max_tool_calls)          # 10
+print(len(policy.blocked_patterns))   # 20+ PHI patterns
+
+# Load raw YAML as dict for full access
+config = load_policy_yaml("production")
+print(config["kernel"]["mode"])       # "strict"
+print(len(config["policies"]))       # All policy rules
+```
+
 ### Using CLI
 
 ```bash
 # Initialize with a template
-agentos init my-project --template secure-coding
+agentos init my-project --template hipaa
 
-# Or copy template to existing project
-agentos policy apply secure-coding
+# Or apply a template to an existing project
+agentos policy apply production
 ```
 
 ### Manual Setup
@@ -31,39 +77,40 @@ agentos policy apply secure-coding
 Copy the desired template to your project:
 
 ```bash
-cp templates/policies/secure-coding.yaml .agents/security.md
+cp templates/policies/hipaa.yaml .agents/hipaa-policy.yaml
 ```
 
 ## Template Comparison
 
-| Feature | Secure Coding | Data Protection | Cost Controls | API Gateway | Multi-Tenant | Enterprise |
-|---------|--------------|-----------------|---------------|-------------|--------------|------------|
-| SQL Injection Prevention | ✅ | ⚪ | ⚪ | ⚪ | ⚪ | ✅ |
-| Destructive SQL Blocking | ✅ | ⚪ | ⚪ | ⚪ | ⚪ | ✅ |
-| Hardcoded Secrets | ✅ | ✅ | ⚪ | ⚪ | ⚪ | ✅ |
-| PII Detection | ⚪ | ✅ | ⚪ | ⚪ | ⚪ | ✅ |
-| Financial Data | ⚪ | ✅ | ⚪ | ⚪ | ⚪ | ✅ |
-| Health Data (HIPAA) | ⚪ | ✅ | ⚪ | ⚪ | ⚪ | ✅ |
-| Rate Limiting | ⚪ | ⚪ | ✅ | ✅ | ✅ | ✅ |
-| Cost Controls | ⚪ | ⚪ | ✅ | ⚪ | ✅ | ✅ |
-| Spend Limits | ⚪ | ⚪ | ✅ | ⚪ | ⚪ | ✅ |
-| Domain Allowlisting | ⚪ | ⚪ | ⚪ | ✅ | ⚪ | ✅ |
-| SSRF Prevention | ⚪ | ⚪ | ⚪ | ✅ | ⚪ | ✅ |
-| Request Validation | ⚪ | ⚪ | ⚪ | ✅ | ⚪ | ✅ |
-| Tenant Isolation | ⚪ | ⚪ | ⚪ | ⚪ | ✅ | ✅ |
-| Resource Quotas | ⚪ | ⚪ | ⚪ | ⚪ | ✅ | ✅ |
-| Approval Workflows | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ | ✅ |
-| SIEM Integration | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ | ✅ |
-| SSO Support | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ | ✅ |
+| Feature | HIPAA | SOX | GDPR | PCI-DSS | Content Safety | Dev | Prod | Research |
+|---------|-------|-----|------|---------|---------------|-----|------|----------|
+| PHI/PII Blocking | ✅ | ⚪ | ✅ | ✅ | ⚪ | ⚠️ | ✅ | ⚠️ |
+| Credit Card Blocking | ⚪ | ⚪ | ⚪ | ✅ | ⚪ | ⚠️ | ✅ | ⚪ |
+| Financial Data Protection | ⚪ | ✅ | ⚪ | ✅ | ⚪ | ⚪ | ⚪ | ⚪ |
+| Human Approval Required | ✅ | ✅ | ⚪ | ✅ | ⚪ | ❌ | ✅ | ❌ |
+| Dual Approval Workflows | ⚪ | ✅ | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ |
+| Segregation of Duties | ⚪ | ✅ | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ |
+| Right to Erasure | ⚪ | ⚪ | ✅ | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ |
+| Cross-Border Restrictions | ⚪ | ⚪ | ✅ | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ |
+| Content Filtering | ⚪ | ⚪ | ⚪ | ⚪ | ✅ | ⚪ | ⚪ | ⚪ |
+| Hate Speech Detection | ⚪ | ⚪ | ⚪ | ⚪ | ✅ | ⚪ | ⚪ | ⚪ |
+| Rate Limiting | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ | ⚠️ | ✅ | ✅ |
+| Cost Budgets | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ | ✅ |
+| Session Timeouts | ⚪ | ⚪ | ⚪ | ✅ | ⚪ | ⚪ | ⚪ | ✅ |
+| Immutable Audit Trail | ✅ | ✅ | ⚪ | ✅ | ⚪ | ⚪ | ✅ | ⚪ |
+| Allowlist-Only Mode | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ | ❌ | ✅ | ⚪ |
+| Encryption Requirements | ⚪ | ⚪ | ⚪ | ✅ | ⚪ | ⚪ | ⚪ | ⚪ |
+
+✅ = Enforced | ⚠️ = Warn only | ❌ = Explicitly disabled | ⚪ = Not applicable
 
 ## Customization
 
 Templates are starting points. Customize by:
 
-1. **Adding rules**: Add patterns specific to your codebase
+1. **Adding rules**: Add patterns specific to your domain
 2. **Adjusting severity**: Change `SIGKILL` to `SIGSTOP` for warnings
 3. **Adding exceptions**: Whitelist known-safe patterns
-4. **Combining templates**: Merge multiple templates
+4. **Combining templates**: Merge multiple templates for layered governance
 
 ### Example: Combining Templates
 
@@ -73,10 +120,11 @@ kernel:
   version: "1.0"
   mode: strict
 
-# Include secure coding rules
+# Include multiple compliance frameworks
 include:
-  - templates/policies/secure-coding.yaml
-  - templates/policies/data-protection.yaml
+  - templates/policies/hipaa.yaml
+  - templates/policies/pci-dss.yaml
+  - templates/policies/production.yaml
 
 # Add custom rules
 policies:
@@ -86,12 +134,28 @@ policies:
           - "my_specific_pattern"
 ```
 
+### Example: Customizing a Template in Python
+
+```python
+from agent_os.templates.policies.loader import load_policy
+
+# Load base template
+policy = load_policy("production")
+
+# Override specific settings
+policy.max_tool_calls = 30
+policy.timeout_seconds = 600
+policy.blocked_patterns.append("my_custom_pattern")
+```
+
 ## Contributing Templates
 
-We welcome new policy templates! See [CONTRIBUTING.md](../CONTRIBUTING.md).
+We welcome new policy templates! See [CONTRIBUTING.md](../../CONTRIBUTING.md).
 
 Useful templates to contribute:
 - `frontend.yaml` - React/Vue/Angular specific
 - `api.yaml` - REST/GraphQL API development
 - `ml.yaml` - Machine learning pipelines
 - `devops.yaml` - CI/CD and infrastructure
+- `fedramp.yaml` - FedRAMP government compliance
+- `iso27001.yaml` - ISO 27001 information security

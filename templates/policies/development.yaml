@@ -1,0 +1,146 @@
+# Development Policy Template
+# Developer-friendly defaults for local development and testing
+# Permissive by design — warns instead of blocking
+
+kernel:
+  version: "1.0"
+  mode: permissive
+  template: development
+
+description: |
+  Developer-friendly policy template for local development and testing.
+  Allows most actions with comprehensive logging. Warns on dangerous
+  patterns instead of blocking them. No human approval required.
+  Ideal for rapid prototyping and debugging.
+
+signals:
+  enabled:
+    - SIGSTOP   # Warn only (does not halt)
+    - SIGCONT   # Auto-continue after warning
+
+policies:
+  # ============================================
+  # DANGEROUS PATTERN WARNINGS (NOT BLOCKS)
+  # ============================================
+  - name: destructive_sql_warning
+    description: Warn on destructive SQL — do NOT block
+    severity: low
+    category: development
+    scope: [output]
+    deny:
+      - patterns:
+          - '(?i)(DROP|TRUNCATE)\s+TABLE'
+          - '(?i)DELETE\s+FROM\s+\w+\s*;'
+          - '(?i)UPDATE\s+\w+\s+SET\s+.*WHERE\s+1\s*=\s*1'
+    action: SIGSTOP
+    mode: warn
+    message: "[WARN] Dev warning: Destructive SQL detected - review before running"
+
+  - name: shell_command_warning
+    description: Warn on potentially dangerous shell commands
+    severity: low
+    category: development
+    scope: [output]
+    deny:
+      - patterns:
+          - '(?i)(rm\s+-rf|del\s+/[sS]|format\s+[a-zA-Z]:)'
+          - '(?i)(chmod\s+777|chmod\s+-R\s+777)'
+          - '(?i)(curl|wget)\s+.*\|\s*(bash|sh|python)'
+    action: SIGSTOP
+    mode: warn
+    message: "[WARN] Dev warning: Potentially dangerous shell command"
+
+  - name: credential_warning
+    description: Warn on hardcoded credentials (common in dev)
+    severity: medium
+    category: development
+    scope: [output]
+    deny:
+      - patterns:
+          - '(?i)(password|api[_-]?key|secret)\s*[:=]\s*["''][^"'']+["'']'
+          - 'sk-[A-Za-z0-9]{32,}'
+          - 'ghp_[A-Za-z0-9]{36}'
+          - 'AKIA[A-Z0-9]{16}'
+    action: SIGSTOP
+    mode: warn
+    message: "[WARN] Dev warning: Hardcoded credential detected - use env vars in production"
+
+  - name: pii_warning
+    description: Warn on PII patterns (not blocked in dev)
+    severity: low
+    category: development
+    scope: [output]
+    deny:
+      - patterns:
+          - '\b\d{3}-\d{2}-\d{4}\b'
+          - '\b(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14})\b'
+    action: SIGSTOP
+    mode: warn
+    message: "[WARN] Dev warning: PII pattern detected - ensure test data only"
+
+  # ============================================
+  # PERMISSIVE TOOL ACCESS
+  # ============================================
+  - name: all_tools_allowed
+    description: Allow all tools without restriction
+    severity: info
+    category: development
+    allow:
+      - action: "*"
+        roles: ["*"]
+    requires_approval: false
+
+  # ============================================
+  # GENEROUS LIMITS
+  # ============================================
+  - name: generous_rate_limits
+    description: High limits suitable for development
+    severity: info
+    category: operational
+    limits:
+      - action: llm_call
+        max_per_minute: 120
+        max_per_hour: 5000
+      - action: tool_call
+        max_per_session: 500
+      - action: database_query
+        max_per_minute: 500
+      - action: file_read
+        max_per_minute: 1000
+    action: SIGSTOP
+    mode: warn
+    message: "Dev rate limit reached — consider if this is expected"
+
+# ============================================
+# COMPREHENSIVE LOGGING
+# ============================================
+audit:
+  enabled: true
+  log_path: "./logs/development-audit.log"
+  include:
+    - all_actions
+    - all_tool_calls
+    - all_warnings
+    - policy_checks
+    - performance_metrics
+  format: json
+  fields:
+    - timestamp
+    - agent_id
+    - action
+    - policy
+    - result
+    - duration_ms
+    - token_count
+    - session_id
+  retention_days: 30
+  verbose: true
+  log_request_body: true
+  log_response_body: true
+
+settings:
+  human_approval_required: false
+  auto_continue_on_warn: true
+  debug_mode: true
+  stack_traces: true
+  hot_reload: true

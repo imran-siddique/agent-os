@@ -1,0 +1,242 @@
+# SOX Compliance Policy Template
+# Sarbanes-Oxley Act compliance for financial reporting and controls
+# Ensures integrity of financial data and segregation of duties
+
+kernel:
+  version: "1.0"
+  mode: strict
+  template: sox-compliance
+
+description: |
+  SOX-compliant policy template for financial services and publicly traded
+  companies. Blocks financial data exfiltration, requires dual approval for
+  high-value transactions, enforces immutable audit trails, and implements
+  segregation of duties patterns.
+
+signals:
+  enabled:
+    - SIGSTOP   # Pause for approval workflow
+    - SIGKILL   # Terminate on critical violation
+    - SIGCONT   # Resume after dual approval
+    - SIGUSR1   # Custom: escalate to CFO
+    - SIGUSR2   # Custom: notify internal audit
+
+policies:
+  # ============================================
+  # FINANCIAL DATA EXFILTRATION PREVENTION
+  # ============================================
+  - name: financial_data_exfiltration
+    description: Block unauthorized export of financial data
+    severity: critical
+    category: compliance
+    scope: [input, output]
+    deny:
+      - patterns:
+          # Bank account numbers
+          - '(?i)(account|acct)\s*(?:number|#|no)?\s*[:=#]?\s*\d{8,17}'
+          # Routing numbers
+          - '(?i)routing\s*(?:number|#)?\s*[:=#]?\s*\d{9}'
+          # SWIFT/BIC codes
+          - '(?i)(swift|bic)\s*[:=#]?\s*[A-Z]{6}[A-Z0-9]{2,5}'
+          # IBAN
+          - '(?i)iban\s*[:=#]?\s*[A-Z]{2}\d{2}[A-Z0-9]{11,30}'
+      - patterns:
+          # Bulk financial data exports
+          - '(?i)(pg_dump|mysqldump|mongodump).*(?:transaction|ledger|journal|financial)'
+          - '(?i)SELECT\s+\*\s+FROM\s+(?:transaction|ledger|journal|account|financial)'
+          # Wire transfer details
+          - '(?i)wire\s*transfer.*\$[\d,]+(?:\.\d{2})?'
+    action: SIGKILL
+    message: "SOX violation: Financial data exfiltration attempt blocked"
+
+  - name: revenue_data_protection
+    description: Protect revenue recognition and reporting data
+    severity: critical
+    category: compliance
+    deny:
+      - patterns:
+          # Revenue figures
+          - '(?i)(?:revenue|earnings|profit|loss)\s*[:=#]?\s*\$[\d,]+(?:\.\d{2})?'
+          # Financial statements
+          - '(?i)(balance\s*sheet|income\s*statement|cash\s*flow)\s*[:=#]?'
+          # Quarter/annual results before disclosure
+          - '(?i)(q[1-4]|annual)\s*(?:results|earnings|report)\s*[:=#]?'
+    action: SIGSTOP
+    message: "SOX: Financial reporting data requires authorization"
+
+  # ============================================
+  # DUAL APPROVAL FOR HIGH-VALUE TRANSACTIONS
+  # ============================================
+  - name: dual_approval_transactions
+    description: Require dual approval for transactions exceeding $10,000
+    severity: critical
+    category: workflow
+    requires_approval:
+      - action: financial_transaction
+        threshold_usd: 10000
+        approval_level: dual
+        approvers:
+          - role: finance_manager
+          - role: controller
+      - action: payment_authorization
+        threshold_usd: 10000
+        approval_level: dual
+        approvers:
+          - role: treasury
+          - role: cfo
+      - action: journal_entry
+        threshold_usd: 10000
+        approval_level: dual
+        approvers:
+          - role: accounting_manager
+          - role: controller
+    timeout_minutes: 60
+    action: SIGSTOP
+    message: "SOX: Dual approval required for transactions > $10,000"
+
+  - name: material_transaction_controls
+    description: Additional controls for material transactions
+    severity: critical
+    category: workflow
+    requires_approval:
+      - action: financial_transaction
+        threshold_usd: 100000
+        approval_level: executive
+        approvers:
+          - role: cfo
+          - role: ceo
+          - role: board_audit_committee
+    timeout_minutes: 120
+    action: SIGSTOP
+    message: "SOX: Executive approval required for material transactions"
+
+  # ============================================
+  # SEGREGATION OF DUTIES
+  # ============================================
+  - name: segregation_of_duties
+    description: Enforce separation between incompatible functions
+    severity: critical
+    category: compliance
+    rules:
+      - name: authorization_vs_custody
+        description: Agent that authorizes cannot also have custody
+        incompatible_roles:
+          - [transaction_authorizer, asset_custodian]
+          - [payment_approver, payment_processor]
+          - [purchase_approver, receiving_clerk]
+      - name: recording_vs_custody
+        description: Agent that records cannot also have custody
+        incompatible_roles:
+          - [journal_entry_creator, asset_custodian]
+          - [accounts_payable, check_signer]
+      - name: authorization_vs_recording
+        description: Agent that authorizes cannot also record
+        incompatible_roles:
+          - [transaction_authorizer, journal_entry_creator]
+          - [budget_approver, expense_recorder]
+    action: SIGKILL
+    message: "SOX violation: Segregation of duties conflict detected"
+
+  # ============================================
+  # DATA MODIFICATION CONTROLS
+  # ============================================
+  - name: financial_data_modification
+    description: Prevent unauthorized modification of financial records
+    severity: critical
+    category: security
+    deny:
+      - action: database_write
+        operations: [UPDATE, DELETE]
+        tables: [general_ledger, journal_entries, financial_statements, trial_balance]
+      - action: database_write
+        operations: [DROP, TRUNCATE, ALTER]
+        tables: ["*"]
+      - patterns:
+          # Direct SQL modifications to financial tables
+          - '(?i)(UPDATE|DELETE)\s+(?:FROM\s+)?(?:general_ledger|journal|trial_balance)'
+          - '(?i)(DROP|TRUNCATE|ALTER)\s+TABLE'
+    action: SIGKILL
+    requires_approval: true
+    approval_level: dba_and_controller
+    message: "SOX: Financial record modification requires authorization"
+
+  # ============================================
+  # PERIOD CLOSE CONTROLS
+  # ============================================
+  - name: period_close_lockdown
+    description: Lock financial periods after close
+    severity: critical
+    category: compliance
+    rules:
+      - action: database_write
+        condition: period_is_closed
+        tables: [journal_entries, adjustments, accruals]
+    action: SIGKILL
+    message: "SOX: Cannot modify records in a closed period"
+
+# ============================================
+# IMMUTABLE AUDIT TRAIL
+# ============================================
+audit:
+  enabled: true
+  mandatory: true
+  immutable: true
+  log_path: "./logs/sox-audit.log"
+  include:
+    - all_actions
+    - policy_checks
+    - approvals
+    - denials
+    - data_modifications
+    - access_attempts
+    - role_assignments
+    - period_close_events
+  format: json
+  fields:
+    - timestamp
+    - agent_id
+    - action
+    - policy
+    - result
+    - user
+    - session_id
+    - correlation_id
+    - transaction_amount
+    - approval_chain
+    - segregation_check
+  retention_days: 2555  # 7 years per SOX requirement
+  tamper_detection:
+    enabled: true
+    algorithm: sha256
+    chain: true
+  export:
+    enabled: true
+    destinations:
+      - type: syslog
+        host: "sox-siem.company.com"
+        port: 514
+      - type: webhook
+        url: "https://audit.company.com/api/sox-events"
+        headers:
+          Authorization: "Bearer ${SOX_AUDIT_TOKEN}"
+
+compliance:
+  framework: SOX
+  sections:
+    - "302"  # CEO/CFO certification
+    - "404"  # Internal controls assessment
+    - "409"  # Real-time disclosure
+    - "802"  # Record retention
+  controls:
+    - id: "ITGC-01"
+      name: "Access Control"
+      description: "Logical access to financial systems"
+    - id: "ITGC-02"
+      name: "Change Management"
+      description: "Changes to financial applications"
+    - id: "ITGC-03"
+      name: "Computer Operations"
+      description: "Batch processing and data backups"
+    - id: "ITGC-04"
+      name: "Program Development"
+      description: "System development lifecycle"

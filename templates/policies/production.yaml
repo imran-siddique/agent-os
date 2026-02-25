@@ -1,0 +1,264 @@
+# Production Policy Template
+# Strict lockdown configuration for production deployments
+# Allowlist-only mode with full audit logging
+
+kernel:
+  version: "1.0"
+  mode: strict
+  template: production
+
+description: |
+  Production lockdown policy with strict allowlist-only mode. Requires
+  human approval for sensitive tools, enforces rate limiting, and enables
+  full audit logging. Designed for production environments where security
+  and stability are paramount.
+
+signals:
+  enabled:
+    - SIGSTOP   # Pause for human review
+    - SIGKILL   # Terminate on violation
+    - SIGCONT   # Resume after approval
+    - SIGUSR1   # Custom: escalate to SRE team
+    - SIGUSR2   # Custom: notify security team
+
+policies:
+  # ============================================
+  # STRICT ALLOWLIST-ONLY MODE
+  # ============================================
+  - name: tool_allowlist
+    description: Only explicitly allowed tools may be used
+    severity: critical
+    category: security
+    allow:
+      - action: read_file
+        paths: ["/app/**", "/config/**"]
+      - action: search
+        scope: [codebase, documentation]
+      - action: list_files
+        paths: ["/app/**"]
+      - action: database_read
+        tables: [public_data, config, feature_flags]
+      - action: http_request
+        methods: [GET]
+        domains:
+          - "*.company.com"
+          - "api.openai.com"
+          - "api.anthropic.com"
+    deny:
+      - action: "*"  # Block everything not explicitly allowed
+    action: SIGKILL
+    message: "Production: Action not in allowlist — blocked"
+
+  - name: block_write_operations
+    description: Block all write operations without explicit approval
+    severity: critical
+    category: security
+    deny:
+      - action: file_write
+        paths: ["/**"]
+      - action: database_write
+        operations: [INSERT, UPDATE, DELETE, DROP, TRUNCATE, ALTER]
+      - action: shell_exec
+        commands: ["*"]
+      - action: http_request
+        methods: [POST, PUT, DELETE, PATCH]
+    action: SIGKILL
+    requires_approval: true
+    approval_level: sre_team
+    message: "Production: Write operation requires SRE approval"
+
+  # ============================================
+  # HUMAN APPROVAL FOR SENSITIVE TOOLS
+  # ============================================
+  - name: sensitive_tool_approval
+    description: Require human approval for sensitive operations
+    severity: critical
+    category: workflow
+    requires_approval:
+      - action: database_write
+        approval_level: dba_team
+        timeout_minutes: 30
+      - action: deploy
+        approval_level: release_manager
+        timeout_minutes: 60
+      - action: config_change
+        approval_level: sre_team
+        timeout_minutes: 15
+      - action: user_data_access
+        approval_level: privacy_officer
+        timeout_minutes: 30
+      - action: payment_operation
+        approval_level: finance_team
+        timeout_minutes: 15
+      - action: infrastructure_change
+        approval_level: platform_team
+        timeout_minutes: 30
+    action: SIGSTOP
+    message: "Production: Human approval required for this operation"
+
+  # ============================================
+  # DANGEROUS PATTERN BLOCKING
+  # ============================================
+  - name: destructive_operations
+    description: Block all destructive operations
+    severity: critical
+    category: security
+    deny:
+      - patterns:
+          # SQL destruction
+          - '(?i)(DROP|TRUNCATE)\s+TABLE'
+          - '(?i)DELETE\s+FROM\s+\w+\s*(?:;|$)'
+          - '(?i)ALTER\s+TABLE\s+\w+\s+DROP'
+          # File system destruction
+          - '(?i)(rm\s+-rf|del\s+/[sS]|format\s+[a-zA-Z]:)'
+          - '(?i)(rmdir|rd)\s+/[sS]'
+          # Service disruption
+          - '(?i)(systemctl|service)\s+(stop|restart|disable)'
+          - '(?i)(kill|pkill|killall)\s+'
+    action: SIGKILL
+    message: "Production: Destructive operation blocked"
+
+  - name: credential_protection
+    description: Prevent credential exposure in production
+    severity: critical
+    category: security
+    deny:
+      - patterns:
+          - '(?i)(password|api[_-]?key|secret|token)\s*[:=]\s*["''][^"'']+["'']'
+          - 'sk-[A-Za-z0-9]{32,}'
+          - 'ghp_[A-Za-z0-9]{36}'
+          - 'AKIA[A-Z0-9]{16}'
+          - '(?i)(private[_-]?key|signing[_-]?key)\s*[:=]'
+    action: SIGKILL
+    message: "Production: Credential exposure blocked"
+
+  - name: pii_protection
+    description: Block PII in production outputs
+    severity: critical
+    category: compliance
+    scope: [output]
+    deny:
+      - patterns:
+          - '\b\d{3}-\d{2}-\d{4}\b'
+          - '\b(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13})\b'
+          - '(?i)(email|e-mail)\s*[:=]\s*[\w.+-]+@[\w-]+\.[\w.-]+'
+    action: SIGKILL
+    message: "Production: PII detected in output — blocked"
+
+  # ============================================
+  # RATE LIMITING
+  # ============================================
+  - name: strict_rate_limits
+    description: Conservative rate limits for production stability
+    severity: high
+    category: operational
+    limits:
+      - action: llm_call
+        max_per_minute: 30
+        max_per_hour: 500
+      - action: tool_call
+        max_per_session: 50
+        max_per_minute: 20
+      - action: database_query
+        max_per_minute: 50
+        max_per_hour: 1000
+      - action: http_request
+        max_per_minute: 30
+        max_per_hour: 500
+      - action: file_read
+        max_per_minute: 100
+    action: SIGSTOP
+    message: "Production: Rate limit exceeded — throttling"
+
+  - name: resource_limits
+    description: Prevent resource exhaustion
+    severity: high
+    category: operational
+    limits:
+      - memory_mb: 512
+      - cpu_percent: 50
+      - disk_write_mb: 50
+      - max_tokens_per_call: 4000
+      - max_concurrent_sessions: 10
+    action: SIGSTOP
+    message: "Production: Resource limit reached"
+
+  # ============================================
+  # NETWORK RESTRICTIONS
+  # ============================================
+  - name: network_allowlist
+    description: Strict network access control
+    severity: critical
+    category: security
+    allow:
+      - action: http_request
+        domains:
+          - "*.company.com"
+          - "api.openai.com"
+          - "api.anthropic.com"
+    deny:
+      - action: http_request
+        domains: ["*"]
+    action: SIGKILL
+    message: "Production: Network request to unapproved domain blocked"
+
+# ============================================
+# FULL AUDIT LOGGING
+# ============================================
+audit:
+  enabled: true
+  mandatory: true
+  log_path: "./logs/production-audit.log"
+  include:
+    - all_actions
+    - policy_checks
+    - signals
+    - approvals
+    - denials
+    - rate_limit_events
+    - authentication_events
+    - error_events
+  format: json
+  fields:
+    - timestamp
+    - agent_id
+    - action
+    - policy
+    - result
+    - user
+    - session_id
+    - correlation_id
+    - source_ip
+    - duration_ms
+    - token_count
+  retention_days: 365
+  tamper_detection:
+    enabled: true
+    algorithm: sha256
+  export:
+    enabled: true
+    destinations:
+      - type: syslog
+        host: "siem.company.com"
+        port: 514
+      - type: webhook
+        url: "https://security.company.com/api/events"
+        headers:
+          Authorization: "Bearer ${AUDIT_WEBHOOK_TOKEN}"
+
+notifications:
+  channels:
+    - name: sre_team
+      type: pagerduty
+      routing_key: "${PAGERDUTY_KEY}"
+      events: [SIGKILL, rate_limit_exceeded, resource_exhaustion]
+    - name: security_team
+      type: slack
+      webhook: "${SLACK_SECURITY_WEBHOOK}"
+      events: [credential_exposure, pii_detection, unauthorized_access]
+
+settings:
+  human_approval_required: true
+  auto_continue_on_warn: false
+  debug_mode: false
+  fail_closed: true

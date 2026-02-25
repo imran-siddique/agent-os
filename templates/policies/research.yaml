@@ -1,0 +1,200 @@
+# Research Policy Template
+# Broad permissions with safety guardrails for research and experimentation
+# Includes cost budgets, call limits, and session time limits
+
+kernel:
+  version: "1.0"
+  mode: permissive
+  template: research
+
+description: |
+  Research and experimentation policy with broad permissions. Allows
+  wide exploration while enforcing cost budgets, maximum call limits,
+  and session time limits to prevent runaway experiments. Suitable for
+  ML research, data science, and exploratory development.
+
+signals:
+  enabled:
+    - SIGSTOP   # Pause on budget/limit exceeded
+    - SIGCONT   # Resume after review
+    - SIGUSR1   # Custom: notify research lead
+
+policies:
+  # ============================================
+  # BROAD PERMISSIONS
+  # ============================================
+  - name: research_tool_access
+    description: Allow broad tool access for research
+    severity: info
+    category: research
+    allow:
+      - action: read_file
+        paths: ["/**"]
+      - action: search
+        scope: ["*"]
+      - action: list_files
+        paths: ["/**"]
+      - action: database_read
+        tables: ["*"]
+      - action: http_request
+        methods: [GET, POST]
+        domains: ["*"]
+      - action: llm_call
+        models: ["*"]
+      - action: code_execute
+        languages: [python, r, julia]
+    deny:
+      # Still block truly destructive operations
+      - action: database_write
+        operations: [DROP, TRUNCATE]
+      - patterns:
+          - '(?i)(rm\s+-rf\s+/|format\s+[a-zA-Z]:)'
+          - '(?i)(DROP|TRUNCATE)\s+TABLE\s+(?!temp_|tmp_|scratch_)'
+    action: SIGSTOP
+    message: "Research: Destructive operation requires confirmation"
+
+  # ============================================
+  # COST BUDGETS
+  # ============================================
+  - name: daily_cost_budget
+    description: Enforce daily spending limits
+    severity: high
+    category: operational
+    limits:
+      - action: llm_call
+        max_cost_per_day_usd: 50
+        max_cost_per_session_usd: 20
+      - action: api_call
+        max_cost_per_day_usd: 25
+      - action: compute
+        max_cost_per_day_usd: 100
+    action: SIGSTOP
+    message: "Research: Daily cost budget exceeded — pause and review"
+
+  - name: weekly_cost_budget
+    description: Enforce weekly aggregate spending limits
+    severity: high
+    category: operational
+    limits:
+      - action: total
+        max_cost_per_week_usd: 500
+    action: SIGSTOP
+    escalate_to: research_lead
+    message: "Research: Weekly cost budget exceeded — escalating to research lead"
+
+  - name: token_budget
+    description: Limit token usage per session and per day
+    severity: medium
+    category: operational
+    limits:
+      - action: llm_call
+        max_tokens_per_call: 16000
+        max_tokens_per_session: 500000
+        max_tokens_per_day: 2000000
+    action: SIGSTOP
+    message: "Research: Token budget reached"
+
+  # ============================================
+  # MAX CALL LIMITS
+  # ============================================
+  - name: session_call_limits
+    description: Limit tool calls per session to prevent runaway loops
+    severity: medium
+    category: operational
+    limits:
+      - action: tool_call
+        max_per_session: 200
+      - action: llm_call
+        max_per_session: 100
+      - action: database_query
+        max_per_session: 500
+      - action: http_request
+        max_per_session: 200
+      - action: file_read
+        max_per_session: 1000
+      - action: code_execute
+        max_per_session: 100
+    action: SIGSTOP
+    message: "Research: Session call limit reached — review and continue if needed"
+
+  - name: rate_limits
+    description: Per-minute rate limits to prevent API abuse
+    severity: medium
+    category: operational
+    limits:
+      - action: llm_call
+        max_per_minute: 60
+      - action: http_request
+        max_per_minute: 120
+      - action: database_query
+        max_per_minute: 200
+    action: SIGSTOP
+    message: "Research: Rate limit reached — throttling"
+
+  # ============================================
+  # SESSION TIME LIMITS
+  # ============================================
+  - name: session_time_limits
+    description: Enforce maximum session durations
+    severity: medium
+    category: operational
+    rules:
+      - action: session
+        max_duration_minutes: 480  # 8 hours
+        idle_timeout_minutes: 60
+        warning_at_minutes: 420   # Warn at 7 hours
+      - action: experiment_run
+        max_duration_minutes: 240  # 4 hours per experiment
+        warning_at_minutes: 210
+    action: SIGSTOP
+    message: "Research: Session time limit approaching — save your work"
+
+  # ============================================
+  # SAFETY GUARDRAILS
+  # ============================================
+  - name: research_safety
+    description: Basic safety guardrails for research
+    severity: high
+    category: safety
+    deny:
+      - patterns:
+          # Credential exposure
+          - '(?i)(password|api[_-]?key|secret)\s*[:=]\s*["''][^"'']+["'']'
+          - 'sk-[A-Za-z0-9]{32,}'
+          # PII in research data
+          - '\b\d{3}-\d{2}-\d{4}\b'
+    action: SIGSTOP
+    mode: warn
+    message: "Research: Safety guardrail triggered — review before continuing"
+
+# ============================================
+# AUDIT CONFIGURATION
+# ============================================
+audit:
+  enabled: true
+  log_path: "./logs/research-audit.log"
+  include:
+    - all_actions
+    - cost_tracking
+    - token_usage
+    - session_duration
+    - experiment_metadata
+  format: json
+  fields:
+    - timestamp
+    - agent_id
+    - action
+    - policy
+    - result
+    - session_id
+    - cost_usd
+    - token_count
+    - duration_ms
+    - experiment_id
+  retention_days: 90
+
+settings:
+  human_approval_required: false
+  auto_continue_on_warn: true
+  experiment_tracking: true
+  cost_dashboard: true

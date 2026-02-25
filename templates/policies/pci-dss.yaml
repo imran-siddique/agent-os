@@ -1,0 +1,262 @@
+# PCI-DSS Policy Template
+# Payment Card Industry Data Security Standard compliance
+# Protects cardholder data and secures payment operations
+
+kernel:
+  version: "1.0"
+  mode: strict
+  template: pci-dss
+
+description: |
+  PCI-DSS compliant policy template for applications handling payment card
+  data. Blocks credit card numbers (Visa, MasterCard, Amex, Discover),
+  restricts payment tool access, requires encryption for card data,
+  and enforces session timeout policies.
+
+signals:
+  enabled:
+    - SIGSTOP   # Pause for security review
+    - SIGKILL   # Terminate on cardholder data exposure
+    - SIGCONT   # Resume after approval
+    - SIGUSR1   # Custom: notify PCI compliance team
+
+policies:
+  # ============================================
+  # CREDIT CARD NUMBER BLOCKING (Requirement 3)
+  # ============================================
+  - name: credit_card_detection
+    description: Block exposure of credit card numbers (PAN)
+    severity: critical
+    category: compliance
+    scope: [input, output]
+    deny:
+      - patterns:
+          # Visa (starts with 4)
+          - '\b4[0-9]{12}(?:[0-9]{3})?\b'
+          # MasterCard (starts with 51-55 or 2221-2720)
+          - '\b5[1-5][0-9]{14}\b'
+          - '\b2(?:2[2-9][1-9]|2[3-9][0-9]|[3-6][0-9]{2}|7[01][0-9]|720)[0-9]{12}\b'
+          # American Express (starts with 34 or 37)
+          - '\b3[47][0-9]{13}\b'
+          # Discover (starts with 6011, 622126-622925, 644-649, 65)
+          - '\b6(?:011|5[0-9]{2})[0-9]{12}\b'
+          # Diners Club
+          - '\b3(?:0[0-5]|[68][0-9])[0-9]{11}\b'
+          # JCB
+          - '\b(?:2131|1800|35\d{3})\d{11}\b'
+          # Generic 13-19 digit sequences that could be card numbers
+          - '(?i)(card|cc|credit)\s*(?:number|#|no)?\s*[:=#]?\s*\d{13,19}'
+    action: SIGKILL
+    message: "PCI-DSS violation: Credit card number (PAN) detected"
+
+  - name: card_security_codes
+    description: Block CVV/CVC/CAV codes (Requirement 3.2)
+    severity: critical
+    category: compliance
+    scope: [input, output]
+    deny:
+      - patterns:
+          # CVV/CVC/CVV2/CID
+          - '(?i)(cvv|cvc|cv2|cid|cvv2|cvc2)\s*[:=#]?\s*\d{3,4}'
+          # Security code
+          - '(?i)security\s*code\s*[:=#]?\s*\d{3,4}'
+          # Card verification
+          - '(?i)(?:card\s*)?verification\s*(?:value|code|number)\s*[:=#]?\s*\d{3,4}'
+    action: SIGKILL
+    message: "PCI-DSS violation: Card security code must never be stored"
+
+  - name: card_expiry_pin
+    description: Block card expiry dates and PINs in sensitive contexts
+    severity: high
+    category: compliance
+    scope: [input, output]
+    deny:
+      - patterns:
+          # Expiry dates with labels
+          - '(?i)(expir|exp_date|exp)\s*[:=#]?\s*(?:0[1-9]|1[0-2])\s*[/\-]\s*(?:\d{2}|\d{4})'
+          # PIN numbers
+          - '(?i)(pin|pin_number|card_pin)\s*[:=#]?\s*\d{4,6}'
+          # Track data (magnetic stripe)
+          - '%B\d{13,19}\^'
+          - ';\d{13,19}='
+    action: SIGKILL
+    message: "PCI-DSS violation: Sensitive authentication data detected"
+
+  # ============================================
+  # PAYMENT TOOL ACCESS RESTRICTIONS (Requirement 7)
+  # ============================================
+  - name: payment_tool_access
+    description: Restrict access to payment processing tools
+    severity: critical
+    category: security
+    allow:
+      - action: payment_process
+        roles: [payment_processor, payment_admin]
+      - action: refund_process
+        roles: [payment_admin, customer_service_lead]
+      - action: payment_report
+        roles: [payment_admin, finance_team, auditor]
+    deny:
+      - action: payment_process
+        roles: ["*"]  # Block all others
+      - action: payment_config
+        roles: ["*"]
+    requires_approval:
+      - action: payment_process
+        approval_level: payment_admin
+      - action: refund_process
+        threshold_usd: 500
+        approval_level: finance_manager
+    action: SIGKILL
+    message: "PCI-DSS: Unauthorized payment tool access blocked"
+
+  - name: payment_api_restrictions
+    description: Restrict direct payment API calls
+    severity: critical
+    category: security
+    deny:
+      - patterns:
+          # Direct Stripe API calls
+          - '(?i)stripe\.(charge|payment_intent|customer)\.create'
+          # Direct PayPal API calls
+          - '(?i)paypal\.(payment|order)\.create'
+          # Direct card processing APIs
+          - '(?i)(authorize\.net|braintree|square)\.(charge|transaction|payment)'
+          # Raw payment gateway requests
+          - '(?i)(POST|PUT)\s+.*/(payments?|charges?|transactions?)\b'
+    action: SIGSTOP
+    requires_approval: true
+    approval_level: payment_admin
+    message: "PCI-DSS: Direct payment API call requires authorization"
+
+  # ============================================
+  # ENCRYPTION REQUIREMENTS (Requirement 3.4, 4)
+  # ============================================
+  - name: encryption_at_rest
+    description: Require encryption for stored cardholder data
+    severity: critical
+    category: security
+    deny:
+      - patterns:
+          # Plaintext card storage
+          - '(?i)(store|save|write|insert|cache)\s*.*\s*(card|pan|credit_card|cc_number)\s*(?:=|:)'
+          # Unencrypted database operations with card data
+          - '(?i)INSERT\s+INTO\s+.*(?:card|payment|credit).*VALUES'
+          # Weak encryption
+          - '(?i)(DES|3DES|RC4|MD5)\s*\('
+          # Plaintext file storage
+          - '(?i)(open|write|save).*\.(txt|csv|log).*(?:card|pan|credit)'
+    action: SIGKILL
+    message: "PCI-DSS: Cardholder data must be encrypted at rest (AES-256)"
+
+  - name: encryption_in_transit
+    description: Require TLS for transmission of cardholder data
+    severity: critical
+    category: security
+    deny:
+      - patterns:
+          # HTTP (not HTTPS) with payment data
+          - '(?i)http://.*(?:payment|card|checkout|charge)'
+          # Unencrypted protocols
+          - '(?i)(ftp|telnet|http)://.*(?:card|pan|credit|payment)'
+          # Deprecated TLS versions
+          - '(?i)(TLSv1\.0|TLSv1\.1|SSLv[23])'
+    action: SIGKILL
+    message: "PCI-DSS: Cardholder data must use TLS 1.2+ in transit"
+
+  # ============================================
+  # SESSION TIMEOUT POLICIES (Requirement 8.1.8)
+  # ============================================
+  - name: session_timeout
+    description: Enforce session timeout for payment operations
+    severity: high
+    category: security
+    rules:
+      - action: session
+        idle_timeout_minutes: 15
+        absolute_timeout_minutes: 60
+      - action: payment_session
+        idle_timeout_minutes: 5
+        absolute_timeout_minutes: 30
+      - action: admin_session
+        idle_timeout_minutes: 10
+        absolute_timeout_minutes: 45
+    action: SIGKILL
+    message: "PCI-DSS: Session timed out — re-authentication required"
+
+  - name: session_security
+    description: Additional session security controls
+    severity: high
+    category: security
+    rules:
+      - max_concurrent_sessions: 3
+      - require_mfa: true
+      - lock_after_failed_attempts: 6
+      - lockout_duration_minutes: 30
+    action: SIGSTOP
+    message: "PCI-DSS: Session security control triggered"
+
+  # ============================================
+  # LOGGING AND MONITORING (Requirement 10)
+  # ============================================
+  - name: cardholder_data_logging
+    description: Never log full cardholder data
+    severity: critical
+    category: compliance
+    deny:
+      - patterns:
+          # Logging card numbers
+          - '(?i)(log|print|console|logger)\s*[\.(]\s*.*\d{13,19}'
+          - '(?i)(log|print|console|logger)\s*[\.(]\s*.*(?:card|pan|credit_card)'
+          # Debug output with card data
+          - '(?i)(debug|trace|verbose)\s*.*(?:card|pan|credit_card|cvv)'
+    action: SIGKILL
+    message: "PCI-DSS: Cardholder data must never appear in logs"
+
+# ============================================
+# AUDIT CONFIGURATION
+# ============================================
+audit:
+  enabled: true
+  mandatory: true
+  log_path: "./logs/pci-dss-audit.log"
+  include:
+    - all_actions
+    - authentication_events
+    - access_attempts
+    - payment_operations
+    - configuration_changes
+    - security_events
+  format: json
+  fields:
+    - timestamp
+    - agent_id
+    - action
+    - policy
+    - result
+    - user
+    - session_id
+    - source_ip
+    - resource_accessed
+  retention_days: 365
+  tamper_detection:
+    enabled: true
+    algorithm: sha256
+  export:
+    enabled: true
+    destinations:
+      - type: syslog
+        host: "pci-siem.company.com"
+        port: 514
+
+compliance:
+  framework: PCI-DSS
+  version: "4.0"
+  requirements:
+    - "Req 3: Protect stored account data"
+    - "Req 4: Protect cardholder data with strong cryptography during transmission"
+    - "Req 7: Restrict access to system components and cardholder data"
+    - "Req 8: Identify users and authenticate access"
+    - "Req 10: Log and monitor all access to system components and cardholder data"
+    - "Req 12: Support information security with organizational policies"
+  saq_type: "SAQ-D"  # Most comprehensive
