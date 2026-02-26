@@ -29,7 +29,7 @@ Usage:
     # OpenAI Assistants
     from agent_os.integrations import OpenAIKernel
     kernel = OpenAIKernel()
-    governed = kernel.wrap_assistant(assistant, client)
+    governed = kernel.wrap(assistant, client)
     
     # Semantic Kernel
     from agent_os.integrations import SemanticKernelWrapper

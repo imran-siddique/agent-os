@@ -18,7 +18,7 @@ Usage:
     )
     
     # Wrap for governance
-    governed_assistant = kernel.wrap_assistant(assistant, client)
+    governed_assistant = kernel.wrap(assistant, client)
     
     # All runs are now governed!
     thread = governed_assistant.create_thread()
@@ -144,7 +144,7 @@ class OpenAIKernel(BaseIntegration):
             blocked_patterns=["password", "api_key", "secret"]
         ))
 
-        governed = kernel.wrap_assistant(assistant, client)
+        governed = kernel.wrap(assistant, client)
         result = governed.run(thread_id)
     """
 
@@ -173,36 +173,29 @@ class OpenAIKernel(BaseIntegration):
         self._start_time = time.monotonic()
         self._last_error: Optional[str] = None
     
-    def wrap(self, agent: Any) -> Any:
-        """Generic wrap — not supported; use :meth:`wrap_assistant` instead.
+    def wrap(self, agent: Any, client: Any = None) -> "GovernedAssistant":
+        """Wrap an OpenAI Assistant with governance.
 
-        This override exists for API compatibility with other integration
-        adapters.  OpenAI Assistants require both an assistant object **and**
-        a client, so callers must use :meth:`wrap_assistant`.
+        This is the primary wrapping method, consistent with all other
+        adapters.  OpenAI Assistants require both an assistant object
+        **and** a client, so ``client`` must be provided.
 
         Args:
-            agent: Unused.
+            agent: OpenAI Assistant object.
+            client: OpenAI client instance (required).
+
+        Returns:
+            GovernedAssistant with full governance.
 
         Raises:
-            NotImplementedError: Always raised with guidance to use
-                ``wrap_assistant(assistant, client)``.
+            TypeError: If *client* is not provided.
         """
-        raise NotImplementedError(
-            "Use wrap_assistant(assistant, client) for OpenAI Assistants"
-        )
-    
-    def wrap_assistant(self, assistant: Any, client: Any) -> "GovernedAssistant":
-        """
-        Wrap an OpenAI Assistant with governance.
-        
-        Args:
-            assistant: OpenAI Assistant object
-            client: OpenAI client instance
-            
-        Returns:
-            GovernedAssistant with full governance
-        """
-        assistant_id = assistant.id
+        if client is None:
+            raise TypeError(
+                "OpenAIKernel.wrap() requires a 'client' argument: "
+                "kernel.wrap(assistant, client)"
+            )
+        assistant_id = agent.id
         ctx = AssistantContext(
             agent_id=assistant_id,
             session_id=f"oai-{int(time.time())}",
@@ -210,15 +203,38 @@ class OpenAIKernel(BaseIntegration):
             assistant_id=assistant_id
         )
         self.contexts[assistant_id] = ctx
-        self._wrapped_assistants[assistant_id] = assistant
+        self._wrapped_assistants[assistant_id] = agent
         self._clients[assistant_id] = client
         
         return GovernedAssistant(
-            assistant=assistant,
+            assistant=agent,
             client=client,
             kernel=self,
             ctx=ctx
         )
+    
+    def wrap_assistant(self, assistant: Any, client: Any) -> "GovernedAssistant":
+        """Wrap an OpenAI Assistant with governance.
+
+        .. deprecated::
+            Use :meth:`wrap` instead::
+
+                governed = kernel.wrap(assistant, client)
+
+        Args:
+            assistant: OpenAI Assistant object.
+            client: OpenAI client instance.
+
+        Returns:
+            GovernedAssistant with full governance.
+        """
+        import warnings
+        warnings.warn(
+            "wrap_assistant() is deprecated, use wrap(assistant, client) instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.wrap(assistant, client)
     
     def unwrap(self, governed_agent: Any) -> Any:
         """Retrieve the original unwrapped assistant.
@@ -755,6 +771,27 @@ class RunCancelledException(Exception):
 # Convenience Functions
 # ============================================================================
 
+def wrap(
+    assistant: Any,
+    client: Any,
+    policy: Optional[GovernancePolicy] = None,
+    max_retries: int = 3,
+    timeout_seconds: float = 300.0,
+) -> GovernedAssistant:
+    """Quick wrapper for OpenAI Assistants.
+
+    Example::
+
+        from agent_os.integrations.openai_adapter import wrap
+
+        governed = wrap(my_assistant, openai_client)
+        result = governed.run(thread_id)
+    """
+    return OpenAIKernel(
+        policy, max_retries=max_retries, timeout_seconds=timeout_seconds
+    ).wrap(assistant, client)
+
+
 def wrap_assistant(
     assistant: Any,
     client: Any,
@@ -762,15 +799,16 @@ def wrap_assistant(
     max_retries: int = 3,
     timeout_seconds: float = 300.0,
 ) -> GovernedAssistant:
-    """
-    Quick wrapper for OpenAI Assistants.
+    """Quick wrapper for OpenAI Assistants.
 
-    Example:
-        from agent_os.integrations.openai_adapter import wrap_assistant
-
-        governed = wrap_assistant(my_assistant, openai_client)
-        result = governed.run(thread_id)
+    .. deprecated::
+        Use :func:`wrap` instead.
     """
-    return OpenAIKernel(
-        policy, max_retries=max_retries, timeout_seconds=timeout_seconds
-    ).wrap_assistant(assistant, client)
+    import warnings
+    warnings.warn(
+        "wrap_assistant() is deprecated, use wrap() instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return wrap(assistant, client, policy=policy, max_retries=max_retries,
+                timeout_seconds=timeout_seconds)

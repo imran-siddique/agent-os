@@ -1018,29 +1018,43 @@ class TestCrewAIKernelWrap:
 
 
 class TestOpenAIKernelBasics:
-    def test_wrap_generic_raises(self):
+    def test_wrap_without_client_raises(self):
         kernel = OpenAIKernel()
-        with pytest.raises(NotImplementedError):
+        with pytest.raises(TypeError):
             kernel.wrap(MagicMock())
 
-    def test_wrap_assistant_returns_governed(self):
+    def test_wrap_returns_governed(self):
         kernel = OpenAIKernel()
         assistant = _make_mock_assistant()
         client = _make_mock_openai_client()
-        governed = kernel.wrap_assistant(assistant, client)
+        governed = kernel.wrap(assistant, client)
+        assert isinstance(governed, GovernedAssistant)
+
+    def test_wrap_assistant_deprecated(self):
+        kernel = OpenAIKernel()
+        assistant = _make_mock_assistant()
+        client = _make_mock_openai_client()
+        import warnings
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            governed = kernel.wrap_assistant(assistant, client)
+            assert len(w) == 1
+            assert issubclass(w[0].category, DeprecationWarning)
+            assert "deprecated" in str(w[0].message)
+            assert "wrap(" in str(w[0].message)
         assert isinstance(governed, GovernedAssistant)
 
     def test_governed_assistant_id_and_name(self):
         kernel = OpenAIKernel()
         assistant = _make_mock_assistant("asst_99", "Bot99")
-        governed = kernel.wrap_assistant(assistant, _make_mock_openai_client())
+        governed = kernel.wrap(assistant, _make_mock_openai_client())
         assert governed.id == "asst_99"
         assert governed.name == "Bot99"
 
     def test_unwrap_returns_original(self):
         kernel = OpenAIKernel()
         assistant = _make_mock_assistant()
-        governed = kernel.wrap_assistant(assistant, _make_mock_openai_client())
+        governed = kernel.wrap(assistant, _make_mock_openai_client())
         assert kernel.unwrap(governed) is assistant
 
 
