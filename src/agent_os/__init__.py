@@ -273,6 +273,15 @@ from agent_os.semantic_policy import (
     PolicyDenied,
 )
 
+# Prompt Injection Detection — input screening (always available)
+from agent_os.prompt_injection import (
+    PromptInjectionDetector,
+    InjectionType,
+    ThreatLevel,
+    DetectionResult,
+    DetectionConfig,
+)
+
 # Context Budget Scheduler — token budget as a kernel primitive (always available)
 from agent_os.context_budget import (
     ContextScheduler,
@@ -460,6 +469,13 @@ __all__ = [
     "IntentCategory",
     "IntentClassification",
     "PolicyDenied",
+    
+    # Prompt Injection Detection
+    "PromptInjectionDetector",
+    "InjectionType",
+    "ThreatLevel",
+    "DetectionResult",
+    "DetectionConfig",
     
     # Context Budget Scheduler
     "ContextScheduler",
