@@ -1,0 +1,22 @@
+# GitHub App Manifest
+# Use: https://github.com/settings/apps/new?manifest=true
+# Docs: https://docs.github.com/en/apps/creating-github-apps/setting-up-a-github-app/creating-a-github-app-from-a-manifest
+
+name: "Agent OS Governance"
+url: "https://github.com/imran-siddique/agent-os"
+hook_attributes:
+  url: "https://YOUR_DEPLOYMENT_URL/webhook"
+  active: true
+redirect_url: ""
+description: >
+  Automated governance reviews for pull requests. Scans for prompt injection,
+  secrets, dangerous code patterns, and policy compliance. Zero-config with
+  customizable profiles (security, compliance, agent-safety).
+public: true
+default_events:
+  - pull_request
+default_permissions:
+  pull_requests: write
+  contents: read
+  checks: write
+  metadata: read
