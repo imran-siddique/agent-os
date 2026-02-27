@@ -35,9 +35,12 @@ USER agentos
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 
-# Default command - run tests to verify installation
-CMD ["python", "-c", "import agent_os; print('✅ Agent OS installed successfully!'); print(f'Version: {agent_os.__version__ if hasattr(agent_os, \"__version__\") else \"dev\"}')"]
+# Expose API port
+EXPOSE 8080
+
+# Default command - run governance API server
+CMD ["python", "-m", "agent_os.server", "--host", "0.0.0.0", "--port", "8080"]
 
 # Healthcheck
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import agent_os" || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+    CMD python -c "import httpx; r = httpx.get('http://localhost:8080/health'); assert r.status_code == 200" || exit 1
