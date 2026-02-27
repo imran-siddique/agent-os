@@ -282,6 +282,16 @@ from agent_os.prompt_injection import (
     DetectionConfig,
 )
 
+# MCP Security — tool poisoning defense (always available)
+from agent_os.mcp_security import (
+    MCPSecurityScanner,
+    MCPThreatType,
+    MCPSeverity,
+    MCPThreat,
+    ToolFingerprint,
+    ScanResult,
+)
+
 # Context Budget Scheduler — token budget as a kernel primitive (always available)
 from agent_os.context_budget import (
     ContextScheduler,
@@ -476,6 +486,14 @@ __all__ = [
     "ThreatLevel",
     "DetectionResult",
     "DetectionConfig",
+    
+    # MCP Security — Tool Poisoning Defense
+    "MCPSecurityScanner",
+    "MCPThreatType",
+    "MCPSeverity",
+    "MCPThreat",
+    "ToolFingerprint",
+    "ScanResult",
     
     # Context Budget Scheduler
     "ContextScheduler",
