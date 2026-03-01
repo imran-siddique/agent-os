@@ -1,0 +1,698 @@
+[
+  {
+    "agent_id": "aml-monitor",
+    "tool": "scan_transaction",
+    "call_count": 1,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.800474"
+  },
+  {
+    "agent_id": "aml-velocity",
+    "tool": "check_daily_velocity",
+    "call_count": 1,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.800532"
+  },
+  {
+    "agent_id": "aml-screener",
+    "tool": "screen_ofac",
+    "call_count": 1,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.800575"
+  },
+  {
+    "agent_id": "aml-screener",
+    "tool": "screen_country",
+    "call_count": 2,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.801056"
+  },
+  {
+    "agent_id": "aml-screener",
+    "checkpoint": "cp-aml-screener-2",
+    "call_count": 2,
+    "event_type": "CHECKPOINT",
+    "decision": "checkpoint",
+    "timestamp": "2026-02-27T13:23:42.801064"
+  },
+  {
+    "agent_id": "aml-screener",
+    "tool": "screen_pep",
+    "call_count": 3,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.801104"
+  },
+  {
+    "agent_id": "aml-monitor",
+    "tool": "scan_transaction",
+    "call_count": 2,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.801208"
+  },
+  {
+    "agent_id": "aml-monitor",
+    "tool": "flag_structuring",
+    "call_count": 3,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.801269"
+  },
+  {
+    "agent_id": "aml-monitor",
+    "checkpoint": "cp-aml-monitor-3",
+    "call_count": 3,
+    "event_type": "CHECKPOINT",
+    "decision": "checkpoint",
+    "timestamp": "2026-02-27T13:23:42.801277"
+  },
+  {
+    "agent_id": "aml-velocity",
+    "tool": "check_daily_velocity",
+    "call_count": 2,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.801319"
+  },
+  {
+    "agent_id": "aml-screener",
+    "tool": "screen_ofac",
+    "call_count": 4,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.801351"
+  },
+  {
+    "agent_id": "aml-screener",
+    "checkpoint": "cp-aml-screener-4",
+    "call_count": 4,
+    "event_type": "CHECKPOINT",
+    "decision": "checkpoint",
+    "timestamp": "2026-02-27T13:23:42.801358"
+  },
+  {
+    "agent_id": "aml-screener",
+    "tool": "screen_country",
+    "call_count": 5,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.801747"
+  },
+  {
+    "agent_id": "aml-screener",
+    "tool": "screen_pep",
+    "call_count": 6,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.801776"
+  },
+  {
+    "agent_id": "aml-screener",
+    "checkpoint": "cp-aml-screener-6",
+    "call_count": 6,
+    "event_type": "CHECKPOINT",
+    "decision": "checkpoint",
+    "timestamp": "2026-02-27T13:23:42.801782"
+  },
+  {
+    "agent_id": "aml-filer",
+    "tool": "generate_sar",
+    "call_count": 1,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.801826"
+  },
+  {
+    "agent_id": "aml-filer",
+    "checkpoint": "cp-aml-filer-1",
+    "call_count": 1,
+    "event_type": "CHECKPOINT",
+    "decision": "checkpoint",
+    "timestamp": "2026-02-27T13:23:42.801833"
+  },
+  {
+    "agent_id": "aml-filer",
+    "tool": "submit_sar",
+    "reason": "SAR submission requires human approval (BSA/AML \u00a75318(g))",
+    "event_type": "BLOCKED",
+    "decision": "blocked",
+    "timestamp": "2026-02-27T13:23:42.801942"
+  },
+  {
+    "agent_id": "aml-monitor",
+    "tool": "scan_transaction",
+    "call_count": 4,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.802051"
+  },
+  {
+    "agent_id": "aml-velocity",
+    "tool": "check_daily_velocity",
+    "call_count": 3,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.802087"
+  },
+  {
+    "agent_id": "aml-velocity",
+    "checkpoint": "cp-aml-velocity-3",
+    "call_count": 3,
+    "event_type": "CHECKPOINT",
+    "decision": "checkpoint",
+    "timestamp": "2026-02-27T13:23:42.802093"
+  },
+  {
+    "agent_id": "aml-screener",
+    "tool": "screen_ofac",
+    "call_count": 7,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.802123"
+  },
+  {
+    "agent_id": "aml-screener",
+    "tool": "screen_country",
+    "call_count": 8,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.802158"
+  },
+  {
+    "agent_id": "aml-screener",
+    "checkpoint": "cp-aml-screener-8",
+    "call_count": 8,
+    "event_type": "CHECKPOINT",
+    "decision": "checkpoint",
+    "timestamp": "2026-02-27T13:23:42.802163"
+  },
+  {
+    "agent_id": "aml-screener",
+    "tool": "screen_pep",
+    "call_count": 9,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.802211"
+  },
+  {
+    "agent_id": "aml-filer",
+    "tool": "generate_sar",
+    "call_count": 2,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.802249"
+  },
+  {
+    "agent_id": "aml-filer",
+    "checkpoint": "cp-aml-filer-2",
+    "call_count": 2,
+    "event_type": "CHECKPOINT",
+    "decision": "checkpoint",
+    "timestamp": "2026-02-27T13:23:42.802254"
+  },
+  {
+    "agent_id": "aml-filer",
+    "tool": "submit_sar",
+    "reason": "SAR submission requires human approval (BSA/AML \u00a75318(g))",
+    "event_type": "BLOCKED",
+    "decision": "blocked",
+    "timestamp": "2026-02-27T13:23:42.802315"
+  },
+  {
+    "agent_id": "aml-monitor",
+    "tool": "scan_transaction",
+    "call_count": 5,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.802406"
+  },
+  {
+    "agent_id": "aml-monitor",
+    "tool": "flag_dormant_activation",
+    "call_count": 6,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.802452"
+  },
+  {
+    "agent_id": "aml-monitor",
+    "checkpoint": "cp-aml-monitor-6",
+    "call_count": 6,
+    "event_type": "CHECKPOINT",
+    "decision": "checkpoint",
+    "timestamp": "2026-02-27T13:23:42.802457"
+  },
+  {
+    "agent_id": "aml-velocity",
+    "tool": "check_daily_velocity",
+    "call_count": 4,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.802496"
+  },
+  {
+    "agent_id": "aml-velocity",
+    "tool": "detect_activity_spike",
+    "call_count": 5,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.802534"
+  },
+  {
+    "agent_id": "aml-screener",
+    "tool": "screen_ofac",
+    "call_count": 10,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.802561"
+  },
+  {
+    "agent_id": "aml-screener",
+    "checkpoint": "cp-aml-screener-10",
+    "call_count": 10,
+    "event_type": "CHECKPOINT",
+    "decision": "checkpoint",
+    "timestamp": "2026-02-27T13:23:42.802566"
+  },
+  {
+    "agent_id": "aml-screener",
+    "tool": "screen_country",
+    "call_count": 11,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.802918"
+  },
+  {
+    "agent_id": "aml-screener",
+    "tool": "screen_pep",
+    "call_count": 12,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.802943"
+  },
+  {
+    "agent_id": "aml-screener",
+    "checkpoint": "cp-aml-screener-12",
+    "call_count": 12,
+    "event_type": "CHECKPOINT",
+    "decision": "checkpoint",
+    "timestamp": "2026-02-27T13:23:42.802948"
+  },
+  {
+    "agent_id": "aml-monitor",
+    "tool": "scan_transaction",
+    "call_count": 7,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.803040"
+  },
+  {
+    "agent_id": "aml-monitor",
+    "tool": "flag_round_trip",
+    "call_count": 8,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.803083"
+  },
+  {
+    "agent_id": "aml-velocity",
+    "tool": "check_daily_velocity",
+    "call_count": 6,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.805564"
+  },
+  {
+    "agent_id": "aml-velocity",
+    "checkpoint": "cp-aml-velocity-6",
+    "call_count": 6,
+    "event_type": "CHECKPOINT",
+    "decision": "checkpoint",
+    "timestamp": "2026-02-27T13:23:42.805583"
+  },
+  {
+    "agent_id": "aml-screener",
+    "tool": "screen_ofac",
+    "call_count": 13,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.805639"
+  },
+  {
+    "agent_id": "aml-screener",
+    "tool": "screen_country",
+    "call_count": 14,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.806088"
+  },
+  {
+    "agent_id": "aml-screener",
+    "checkpoint": "cp-aml-screener-14",
+    "call_count": 14,
+    "event_type": "CHECKPOINT",
+    "decision": "checkpoint",
+    "timestamp": "2026-02-27T13:23:42.806096"
+  },
+  {
+    "agent_id": "aml-screener",
+    "tool": "screen_pep",
+    "call_count": 15,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.806134"
+  },
+  {
+    "agent_id": "aml-filer",
+    "tool": "generate_sar",
+    "call_count": 3,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.806182"
+  },
+  {
+    "agent_id": "aml-filer",
+    "checkpoint": "cp-aml-filer-3",
+    "call_count": 3,
+    "event_type": "CHECKPOINT",
+    "decision": "checkpoint",
+    "timestamp": "2026-02-27T13:23:42.806188"
+  },
+  {
+    "agent_id": "aml-filer",
+    "tool": "submit_sar",
+    "reason": "SAR submission requires human approval (BSA/AML \u00a75318(g))",
+    "event_type": "BLOCKED",
+    "decision": "blocked",
+    "timestamp": "2026-02-27T13:23:42.806299"
+  },
+  {
+    "agent_id": "aml-monitor",
+    "tool": "scan_transaction",
+    "call_count": 9,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.806414"
+  },
+  {
+    "agent_id": "aml-monitor",
+    "checkpoint": "cp-aml-monitor-9",
+    "call_count": 9,
+    "event_type": "CHECKPOINT",
+    "decision": "checkpoint",
+    "timestamp": "2026-02-27T13:23:42.806422"
+  },
+  {
+    "agent_id": "aml-velocity",
+    "tool": "check_daily_velocity",
+    "call_count": 7,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.806495"
+  },
+  {
+    "agent_id": "aml-velocity",
+    "tool": "detect_activity_spike",
+    "call_count": 8,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.806548"
+  },
+  {
+    "agent_id": "aml-screener",
+    "tool": "screen_ofac",
+    "call_count": 16,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.806580"
+  },
+  {
+    "agent_id": "aml-screener",
+    "checkpoint": "cp-aml-screener-16",
+    "call_count": 16,
+    "event_type": "CHECKPOINT",
+    "decision": "checkpoint",
+    "timestamp": "2026-02-27T13:23:42.806586"
+  },
+  {
+    "agent_id": "aml-screener",
+    "tool": "screen_country",
+    "call_count": 17,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.806993"
+  },
+  {
+    "agent_id": "aml-screener",
+    "tool": "screen_pep",
+    "call_count": 18,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.807024"
+  },
+  {
+    "agent_id": "aml-screener",
+    "checkpoint": "cp-aml-screener-18",
+    "call_count": 18,
+    "event_type": "CHECKPOINT",
+    "decision": "checkpoint",
+    "timestamp": "2026-02-27T13:23:42.807031"
+  },
+  {
+    "agent_id": "aml-filer",
+    "tool": "generate_sar",
+    "call_count": 4,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.807086"
+  },
+  {
+    "agent_id": "aml-filer",
+    "checkpoint": "cp-aml-filer-4",
+    "call_count": 4,
+    "event_type": "CHECKPOINT",
+    "decision": "checkpoint",
+    "timestamp": "2026-02-27T13:23:42.807092"
+  },
+  {
+    "agent_id": "aml-filer",
+    "tool": "submit_sar",
+    "reason": "SAR submission requires human approval (BSA/AML \u00a75318(g))",
+    "event_type": "BLOCKED",
+    "decision": "blocked",
+    "timestamp": "2026-02-27T13:23:42.807199"
+  },
+  {
+    "agent_id": "aml-monitor",
+    "tool": "scan_transaction",
+    "call_count": 10,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.807315"
+  },
+  {
+    "agent_id": "aml-monitor",
+    "tool": "score_geographic_risk",
+    "call_count": 11,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.807360"
+  },
+  {
+    "agent_id": "aml-velocity",
+    "tool": "check_daily_velocity",
+    "call_count": 9,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.807392"
+  },
+  {
+    "agent_id": "aml-velocity",
+    "checkpoint": "cp-aml-velocity-9",
+    "call_count": 9,
+    "event_type": "CHECKPOINT",
+    "decision": "checkpoint",
+    "timestamp": "2026-02-27T13:23:42.807398"
+  },
+  {
+    "agent_id": "aml-velocity",
+    "tool": "detect_activity_spike",
+    "call_count": 10,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.807467"
+  },
+  {
+    "agent_id": "aml-screener",
+    "tool": "screen_ofac",
+    "call_count": 19,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.807582"
+  },
+  {
+    "agent_id": "aml-screener",
+    "tool": "screen_country",
+    "call_count": 20,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.808005"
+  },
+  {
+    "agent_id": "aml-screener",
+    "checkpoint": "cp-aml-screener-20",
+    "call_count": 20,
+    "event_type": "CHECKPOINT",
+    "decision": "checkpoint",
+    "timestamp": "2026-02-27T13:23:42.808012"
+  },
+  {
+    "agent_id": "aml-screener",
+    "tool": "screen_pep",
+    "call_count": 21,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.808059"
+  },
+  {
+    "agent_id": "aml-filer",
+    "tool": "generate_sar",
+    "call_count": 5,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.808098"
+  },
+  {
+    "agent_id": "aml-filer",
+    "checkpoint": "cp-aml-filer-5",
+    "call_count": 5,
+    "event_type": "CHECKPOINT",
+    "decision": "checkpoint",
+    "timestamp": "2026-02-27T13:23:42.808105"
+  },
+  {
+    "agent_id": "aml-filer",
+    "tool": "submit_sar",
+    "reason": "SAR submission requires human approval (BSA/AML \u00a75318(g))",
+    "event_type": "BLOCKED",
+    "decision": "blocked",
+    "timestamp": "2026-02-27T13:23:42.808199"
+  },
+  {
+    "agent_id": "aml-monitor",
+    "tool": "scan_transaction",
+    "call_count": 12,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.808316"
+  },
+  {
+    "agent_id": "aml-monitor",
+    "checkpoint": "cp-aml-monitor-12",
+    "call_count": 12,
+    "event_type": "CHECKPOINT",
+    "decision": "checkpoint",
+    "timestamp": "2026-02-27T13:23:42.808323"
+  },
+  {
+    "agent_id": "aml-monitor",
+    "tool": "score_geographic_risk",
+    "call_count": 13,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.808366"
+  },
+  {
+    "agent_id": "aml-velocity",
+    "tool": "check_daily_velocity",
+    "call_count": 11,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.808404"
+  },
+  {
+    "agent_id": "aml-velocity",
+    "tool": "detect_activity_spike",
+    "call_count": 12,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.808446"
+  },
+  {
+    "agent_id": "aml-velocity",
+    "checkpoint": "cp-aml-velocity-12",
+    "call_count": 12,
+    "event_type": "CHECKPOINT",
+    "decision": "checkpoint",
+    "timestamp": "2026-02-27T13:23:42.808452"
+  },
+  {
+    "agent_id": "aml-screener",
+    "tool": "screen_ofac",
+    "call_count": 22,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.808500"
+  },
+  {
+    "agent_id": "aml-screener",
+    "checkpoint": "cp-aml-screener-22",
+    "call_count": 22,
+    "event_type": "CHECKPOINT",
+    "decision": "checkpoint",
+    "timestamp": "2026-02-27T13:23:42.808507"
+  },
+  {
+    "agent_id": "aml-screener",
+    "tool": "screen_country",
+    "call_count": 23,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.808830"
+  },
+  {
+    "agent_id": "aml-screener",
+    "tool": "screen_pep",
+    "call_count": 24,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.808870"
+  },
+  {
+    "agent_id": "aml-screener",
+    "checkpoint": "cp-aml-screener-24",
+    "call_count": 24,
+    "event_type": "CHECKPOINT",
+    "decision": "checkpoint",
+    "timestamp": "2026-02-27T13:23:42.808877"
+  },
+  {
+    "agent_id": "aml-filer",
+    "tool": "generate_sar",
+    "call_count": 6,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:23:42.808919"
+  },
+  {
+    "agent_id": "aml-filer",
+    "checkpoint": "cp-aml-filer-6",
+    "call_count": 6,
+    "event_type": "CHECKPOINT",
+    "decision": "checkpoint",
+    "timestamp": "2026-02-27T13:23:42.808925"
+  },
+  {
+    "agent_id": "aml-filer",
+    "tool": "submit_sar",
+    "reason": "SAR submission requires human approval (BSA/AML \u00a75318(g))",
+    "event_type": "BLOCKED",
+    "decision": "blocked",
+    "timestamp": "2026-02-27T13:23:42.809001"
+  }
+]

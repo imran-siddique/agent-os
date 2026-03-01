@@ -232,6 +232,38 @@ python examples/pharma-compliance/demo.py --reports 10
    ```bash
    git commit -m "feat: add my feature"
    ```
+6. **Push** your branch and **open a PR** against `main`
+7. **Describe** what you changed and why in the PR body
+
+### PR Review Criteria
+
+- All CI checks pass (lint, type check, tests, layer boundary)
+- Tests cover new functionality
+- Documentation updated if applicable
+- Follows coding standards above
+
+---
+
+## 📦 Release Process
+
+Agent OS follows [Semantic Versioning](https://semver.org/):
+
+- **Patch** (1.0.x): Bug fixes, dependency updates
+- **Minor** (1.x.0): New features, backward-compatible
+- **Major** (x.0.0): Breaking API changes
+
+Releases are published to [PyPI](https://pypi.org/project/agent-os-kernel/) via the `publish.yml` workflow when a GitHub Release is created.
+
+---
+
+## 📜 Code of Conduct
+
+This project follows the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code.
+
+## 📄 License
+
+By contributing, you agree that your contributions will be licensed under the [MIT License](LICENSE).
+   ```
 6. **Push** to your fork:
    ```bash
    git push origin feature/my-feature

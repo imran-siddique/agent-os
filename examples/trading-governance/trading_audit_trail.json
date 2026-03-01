@@ -1,0 +1,353 @@
+[
+  {
+    "agent_id": "research-agent",
+    "agent_name": "ResearchAgent",
+    "tool": "analyze_market",
+    "call_count": 1,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:24:08.943242"
+  },
+  {
+    "agent_id": "research-agent",
+    "agent_name": "ResearchAgent",
+    "tool": "generate_signal",
+    "call_count": 2,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:24:08.943770"
+  },
+  {
+    "agent_id": "risk-agent",
+    "agent_name": "RiskAgent",
+    "tool": "calculate_var",
+    "call_count": 1,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:24:08.945098"
+  },
+  {
+    "agent_id": "risk-agent",
+    "agent_name": "RiskAgent",
+    "tool": "check_exposure",
+    "call_count": 2,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:24:08.945510"
+  },
+  {
+    "agent_id": "compliance-agent",
+    "agent_name": "ComplianceAgent",
+    "tool": "check_restricted_list",
+    "call_count": 1,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:24:08.946095"
+  },
+  {
+    "agent_id": "compliance-agent",
+    "agent_name": "ComplianceAgent",
+    "tool": "verify_trading_window",
+    "call_count": 2,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:24:08.946220"
+  },
+  {
+    "agent_id": "compliance-agent",
+    "agent_name": "ComplianceAgent",
+    "tool": "approve_order",
+    "call_count": 3,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:24:08.946357"
+  },
+  {
+    "agent_id": "compliance-agent",
+    "checkpoint": "cp-compliance-agent-3",
+    "call_count": 3,
+    "event_type": "CHECKPOINT",
+    "timestamp": "2026-02-27T13:24:08.946366"
+  },
+  {
+    "agent_id": "execution-agent",
+    "agent_name": "ExecutionAgent",
+    "tool": "execute_order",
+    "call_count": 1,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:24:08.946819"
+  },
+  {
+    "agent_id": "research-agent",
+    "agent_name": "ResearchAgent",
+    "tool": "analyze_market",
+    "call_count": 3,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:24:08.947787"
+  },
+  {
+    "agent_id": "research-agent",
+    "agent_name": "ResearchAgent",
+    "tool": "generate_signal",
+    "call_count": 4,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:24:08.947948"
+  },
+  {
+    "agent_id": "risk-agent",
+    "agent_name": "RiskAgent",
+    "tool": "calculate_var",
+    "call_count": 3,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:24:08.948602"
+  },
+  {
+    "agent_id": "risk-agent",
+    "checkpoint": "cp-risk-agent-3",
+    "call_count": 3,
+    "event_type": "CHECKPOINT",
+    "timestamp": "2026-02-27T13:24:08.948617"
+  },
+  {
+    "agent_id": "risk-agent",
+    "agent_name": "RiskAgent",
+    "tool": "check_exposure",
+    "call_count": 4,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:24:08.949044"
+  },
+  {
+    "agent_id": "research-agent",
+    "agent_name": "ResearchAgent",
+    "tool": "analyze_market",
+    "call_count": 5,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:24:08.950308"
+  },
+  {
+    "agent_id": "research-agent",
+    "checkpoint": "cp-research-agent-5",
+    "call_count": 5,
+    "event_type": "CHECKPOINT",
+    "timestamp": "2026-02-27T13:24:08.950320"
+  },
+  {
+    "agent_id": "research-agent",
+    "agent_name": "ResearchAgent",
+    "tool": "generate_signal",
+    "call_count": 6,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:24:08.950630"
+  },
+  {
+    "agent_id": "risk-agent",
+    "agent_name": "RiskAgent",
+    "tool": "calculate_var",
+    "call_count": 5,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:24:08.951535"
+  },
+  {
+    "agent_id": "risk-agent",
+    "agent_name": "RiskAgent",
+    "tool": "check_exposure",
+    "call_count": 6,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:24:08.951963"
+  },
+  {
+    "agent_id": "risk-agent",
+    "checkpoint": "cp-risk-agent-6",
+    "call_count": 6,
+    "event_type": "CHECKPOINT",
+    "timestamp": "2026-02-27T13:24:08.951976"
+  },
+  {
+    "agent_id": "compliance-agent",
+    "agent_name": "ComplianceAgent",
+    "tool": "check_restricted_list",
+    "call_count": 4,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:24:08.952849"
+  },
+  {
+    "agent_id": "research-agent",
+    "agent_name": "ResearchAgent",
+    "tool": "execute_order",
+    "reason": "Tool 'execute_order' not in allowed list: ['analyze_market', 'screen_stocks', 'generate_signal']",
+    "event_type": "BLOCKED",
+    "decision": "blocked",
+    "timestamp": "2026-02-27T13:24:08.953996"
+  },
+  {
+    "agent_id": "research-agent",
+    "agent_name": "ResearchAgent",
+    "tool": "analyze_market",
+    "call_count": 7,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:24:08.955087"
+  },
+  {
+    "agent_id": "research-agent",
+    "agent_name": "ResearchAgent",
+    "tool": "generate_signal",
+    "call_count": 8,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:24:08.955247"
+  },
+  {
+    "agent_id": "risk-agent",
+    "agent_name": "RiskAgent",
+    "tool": "calculate_var",
+    "call_count": 7,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:24:08.955698"
+  },
+  {
+    "agent_id": "risk-agent",
+    "agent_name": "RiskAgent",
+    "tool": "check_exposure",
+    "call_count": 8,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:24:08.955989"
+  },
+  {
+    "agent_id": "compliance-agent",
+    "agent_name": "ComplianceAgent",
+    "tool": "check_restricted_list",
+    "call_count": 5,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:24:08.956616"
+  },
+  {
+    "agent_id": "compliance-agent",
+    "agent_name": "ComplianceAgent",
+    "tool": "verify_trading_window",
+    "call_count": 6,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:24:08.956789"
+  },
+  {
+    "agent_id": "compliance-agent",
+    "checkpoint": "cp-compliance-agent-6",
+    "call_count": 6,
+    "event_type": "CHECKPOINT",
+    "timestamp": "2026-02-27T13:24:08.956799"
+  },
+  {
+    "agent_id": "compliance-agent",
+    "agent_name": "ComplianceAgent",
+    "tool": "approve_order",
+    "call_count": 7,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:24:08.957532"
+  },
+  {
+    "agent_id": "execution-agent",
+    "agent_name": "ExecutionAgent",
+    "tool": "execute_order",
+    "call_count": 2,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:24:08.958053"
+  },
+  {
+    "agent_id": "execution-agent",
+    "checkpoint": "cp-execution-agent-2",
+    "call_count": 2,
+    "event_type": "CHECKPOINT",
+    "timestamp": "2026-02-27T13:24:08.958064"
+  },
+  {
+    "agent_id": "research-agent",
+    "agent_name": "ResearchAgent",
+    "tool": "analyze_market",
+    "call_count": 9,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:24:08.959329"
+  },
+  {
+    "agent_id": "research-agent",
+    "agent_name": "ResearchAgent",
+    "tool": "generate_signal",
+    "call_count": 10,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:24:08.959536"
+  },
+  {
+    "agent_id": "research-agent",
+    "checkpoint": "cp-research-agent-10",
+    "call_count": 10,
+    "event_type": "CHECKPOINT",
+    "timestamp": "2026-02-27T13:24:08.959547"
+  },
+  {
+    "agent_id": "risk-agent",
+    "agent_name": "RiskAgent",
+    "tool": "calculate_var",
+    "call_count": 9,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:24:08.960283"
+  },
+  {
+    "agent_id": "risk-agent",
+    "checkpoint": "cp-risk-agent-9",
+    "call_count": 9,
+    "event_type": "CHECKPOINT",
+    "timestamp": "2026-02-27T13:24:08.960292"
+  },
+  {
+    "agent_id": "risk-agent",
+    "agent_name": "RiskAgent",
+    "tool": "check_exposure",
+    "call_count": 10,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:24:08.960739"
+  },
+  {
+    "agent_id": "compliance-agent",
+    "agent_name": "ComplianceAgent",
+    "tool": "check_restricted_list",
+    "call_count": 8,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:24:08.961387"
+  },
+  {
+    "agent_id": "compliance-agent",
+    "agent_name": "ComplianceAgent",
+    "tool": "verify_trading_window",
+    "call_count": 9,
+    "event_type": "ALLOWED",
+    "decision": "allowed",
+    "timestamp": "2026-02-27T13:24:08.961578"
+  },
+  {
+    "agent_id": "compliance-agent",
+    "checkpoint": "cp-compliance-agent-9",
+    "call_count": 9,
+    "event_type": "CHECKPOINT",
+    "timestamp": "2026-02-27T13:24:08.961587"
+  }
+]
