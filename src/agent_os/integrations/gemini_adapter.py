@@ -39,7 +39,10 @@ from .base import BaseIntegration, ExecutionContext, GovernancePolicy
 logger = logging.getLogger("agent_os.gemini")
 
 try:
-    import google.generativeai as _genai_mod  # noqa: F401
+    import warnings
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", FutureWarning)
+        import google.generativeai as _genai_mod  # noqa: F401
 
     _HAS_GENAI = True
 except ImportError:

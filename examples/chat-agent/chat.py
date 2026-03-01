@@ -9,7 +9,7 @@ import os
 from typing import List, Dict, Optional
 
 from agent_os import KernelSpace, AgentSignal
-from agent_os.emk import EpisodicMemory
+from memory import EpisodicMemory
 
 
 # Initialize kernel

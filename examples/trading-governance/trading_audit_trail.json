@@ -6,7 +6,7 @@
     "call_count": 1,
     "event_type": "ALLOWED",
     "decision": "allowed",
-    "timestamp": "2026-02-27T13:24:08.943242"
+    "timestamp": "2026-02-28T20:02:58.365585"
   },
   {
     "agent_id": "research-agent",
@@ -15,7 +15,7 @@
     "call_count": 2,
     "event_type": "ALLOWED",
     "decision": "allowed",
-    "timestamp": "2026-02-27T13:24:08.943770"
+    "timestamp": "2026-02-28T20:02:58.365638"
   },
   {
     "agent_id": "risk-agent",
@@ -24,7 +24,7 @@
     "call_count": 1,
     "event_type": "ALLOWED",
     "decision": "allowed",
-    "timestamp": "2026-02-27T13:24:08.945098"
+    "timestamp": "2026-02-28T20:02:58.365711"
   },
   {
     "agent_id": "risk-agent",
@@ -33,7 +33,7 @@
     "call_count": 2,
     "event_type": "ALLOWED",
     "decision": "allowed",
-    "timestamp": "2026-02-27T13:24:08.945510"
+    "timestamp": "2026-02-28T20:02:58.365757"
   },
   {
     "agent_id": "compliance-agent",
@@ -42,7 +42,7 @@
     "call_count": 1,
     "event_type": "ALLOWED",
     "decision": "allowed",
-    "timestamp": "2026-02-27T13:24:08.946095"
+    "timestamp": "2026-02-28T20:02:58.365822"
   },
   {
     "agent_id": "compliance-agent",
@@ -51,7 +51,7 @@
     "call_count": 2,
     "event_type": "ALLOWED",
     "decision": "allowed",
-    "timestamp": "2026-02-27T13:24:08.946220"
+    "timestamp": "2026-02-28T20:02:58.365852"
   },
   {
     "agent_id": "compliance-agent",
@@ -60,14 +60,14 @@
     "call_count": 3,
     "event_type": "ALLOWED",
     "decision": "allowed",
-    "timestamp": "2026-02-27T13:24:08.946357"
+    "timestamp": "2026-02-28T20:02:58.365885"
   },
   {
     "agent_id": "compliance-agent",
     "checkpoint": "cp-compliance-agent-3",
     "call_count": 3,
     "event_type": "CHECKPOINT",
-    "timestamp": "2026-02-27T13:24:08.946366"
+    "timestamp": "2026-02-28T20:02:58.365892"
   },
   {
     "agent_id": "execution-agent",
@@ -76,7 +76,7 @@
     "call_count": 1,
     "event_type": "ALLOWED",
     "decision": "allowed",
-    "timestamp": "2026-02-27T13:24:08.946819"
+    "timestamp": "2026-02-28T20:02:58.365950"
   },
   {
     "agent_id": "research-agent",
@@ -85,7 +85,7 @@
     "call_count": 3,
     "event_type": "ALLOWED",
     "decision": "allowed",
-    "timestamp": "2026-02-27T13:24:08.947787"
+    "timestamp": "2026-02-28T20:02:58.366042"
   },
   {
     "agent_id": "research-agent",
@@ -94,7 +94,7 @@
     "call_count": 4,
     "event_type": "ALLOWED",
     "decision": "allowed",
-    "timestamp": "2026-02-27T13:24:08.947948"
+    "timestamp": "2026-02-28T20:02:58.366069"
   },
   {
     "agent_id": "risk-agent",
@@ -103,14 +103,14 @@
     "call_count": 3,
     "event_type": "ALLOWED",
     "decision": "allowed",
-    "timestamp": "2026-02-27T13:24:08.948602"
+    "timestamp": "2026-02-28T20:02:58.366122"
   },
   {
     "agent_id": "risk-agent",
     "checkpoint": "cp-risk-agent-3",
     "call_count": 3,
     "event_type": "CHECKPOINT",
-    "timestamp": "2026-02-27T13:24:08.948617"
+    "timestamp": "2026-02-28T20:02:58.366130"
   },
   {
     "agent_id": "risk-agent",
@@ -119,7 +119,7 @@
     "call_count": 4,
     "event_type": "ALLOWED",
     "decision": "allowed",
-    "timestamp": "2026-02-27T13:24:08.949044"
+    "timestamp": "2026-02-28T20:02:58.366176"
   },
   {
     "agent_id": "research-agent",
@@ -128,14 +128,14 @@
     "call_count": 5,
     "event_type": "ALLOWED",
     "decision": "allowed",
-    "timestamp": "2026-02-27T13:24:08.950308"
+    "timestamp": "2026-02-28T20:02:58.366264"
   },
   {
     "agent_id": "research-agent",
     "checkpoint": "cp-research-agent-5",
     "call_count": 5,
     "event_type": "CHECKPOINT",
-    "timestamp": "2026-02-27T13:24:08.950320"
+    "timestamp": "2026-02-28T20:02:58.366272"
   },
   {
     "agent_id": "research-agent",
@@ -144,7 +144,7 @@
     "call_count": 6,
     "event_type": "ALLOWED",
     "decision": "allowed",
-    "timestamp": "2026-02-27T13:24:08.950630"
+    "timestamp": "2026-02-28T20:02:58.366304"
   },
   {
     "agent_id": "risk-agent",
@@ -153,7 +153,7 @@
     "call_count": 5,
     "event_type": "ALLOWED",
     "decision": "allowed",
-    "timestamp": "2026-02-27T13:24:08.951535"
+    "timestamp": "2026-02-28T20:02:58.366359"
   },
   {
     "agent_id": "risk-agent",
@@ -162,14 +162,14 @@
     "call_count": 6,
     "event_type": "ALLOWED",
     "decision": "allowed",
-    "timestamp": "2026-02-27T13:24:08.951963"
+    "timestamp": "2026-02-28T20:02:58.366394"
   },
   {
     "agent_id": "risk-agent",
     "checkpoint": "cp-risk-agent-6",
     "call_count": 6,
     "event_type": "CHECKPOINT",
-    "timestamp": "2026-02-27T13:24:08.951976"
+    "timestamp": "2026-02-28T20:02:58.366400"
   },
   {
     "agent_id": "compliance-agent",
@@ -178,7 +178,7 @@
     "call_count": 4,
     "event_type": "ALLOWED",
     "decision": "allowed",
-    "timestamp": "2026-02-27T13:24:08.952849"
+    "timestamp": "2026-02-28T20:02:58.366456"
   },
   {
     "agent_id": "research-agent",
@@ -187,7 +187,7 @@
     "reason": "Tool 'execute_order' not in allowed list: ['analyze_market', 'screen_stocks', 'generate_signal']",
     "event_type": "BLOCKED",
     "decision": "blocked",
-    "timestamp": "2026-02-27T13:24:08.953996"
+    "timestamp": "2026-02-28T20:02:58.366521"
   },
   {
     "agent_id": "research-agent",
@@ -196,7 +196,7 @@
     "call_count": 7,
     "event_type": "ALLOWED",
     "decision": "allowed",
-    "timestamp": "2026-02-27T13:24:08.955087"
+    "timestamp": "2026-02-28T20:02:58.366582"
   },
   {
     "agent_id": "research-agent",
@@ -205,7 +205,7 @@
     "call_count": 8,
     "event_type": "ALLOWED",
     "decision": "allowed",
-    "timestamp": "2026-02-27T13:24:08.955247"
+    "timestamp": "2026-02-28T20:02:58.366604"
   },
   {
     "agent_id": "risk-agent",
@@ -214,7 +214,7 @@
     "call_count": 7,
     "event_type": "ALLOWED",
     "decision": "allowed",
-    "timestamp": "2026-02-27T13:24:08.955698"
+    "timestamp": "2026-02-28T20:02:58.366648"
   },
   {
     "agent_id": "risk-agent",
@@ -223,7 +223,7 @@
     "call_count": 8,
     "event_type": "ALLOWED",
     "decision": "allowed",
-    "timestamp": "2026-02-27T13:24:08.955989"
+    "timestamp": "2026-02-28T20:02:58.366689"
   },
   {
     "agent_id": "compliance-agent",
@@ -232,7 +232,7 @@
     "call_count": 5,
     "event_type": "ALLOWED",
     "decision": "allowed",
-    "timestamp": "2026-02-27T13:24:08.956616"
+    "timestamp": "2026-02-28T20:02:58.366739"
   },
   {
     "agent_id": "compliance-agent",
@@ -241,14 +241,14 @@
     "call_count": 6,
     "event_type": "ALLOWED",
     "decision": "allowed",
-    "timestamp": "2026-02-27T13:24:08.956789"
+    "timestamp": "2026-02-28T20:02:58.366763"
   },
   {
     "agent_id": "compliance-agent",
     "checkpoint": "cp-compliance-agent-6",
     "call_count": 6,
     "event_type": "CHECKPOINT",
-    "timestamp": "2026-02-27T13:24:08.956799"
+    "timestamp": "2026-02-28T20:02:58.366770"
   },
   {
     "agent_id": "compliance-agent",
@@ -257,7 +257,7 @@
     "call_count": 7,
     "event_type": "ALLOWED",
     "decision": "allowed",
-    "timestamp": "2026-02-27T13:24:08.957532"
+    "timestamp": "2026-02-28T20:02:58.366818"
   },
   {
     "agent_id": "execution-agent",
@@ -266,14 +266,14 @@
     "call_count": 2,
     "event_type": "ALLOWED",
     "decision": "allowed",
-    "timestamp": "2026-02-27T13:24:08.958053"
+    "timestamp": "2026-02-28T20:02:58.366860"
   },
   {
     "agent_id": "execution-agent",
     "checkpoint": "cp-execution-agent-2",
     "call_count": 2,
     "event_type": "CHECKPOINT",
-    "timestamp": "2026-02-27T13:24:08.958064"
+    "timestamp": "2026-02-28T20:02:58.366866"
   },
   {
     "agent_id": "research-agent",
@@ -282,7 +282,7 @@
     "call_count": 9,
     "event_type": "ALLOWED",
     "decision": "allowed",
-    "timestamp": "2026-02-27T13:24:08.959329"
+    "timestamp": "2026-02-28T20:02:58.366957"
   },
   {
     "agent_id": "research-agent",
@@ -291,14 +291,14 @@
     "call_count": 10,
     "event_type": "ALLOWED",
     "decision": "allowed",
-    "timestamp": "2026-02-27T13:24:08.959536"
+    "timestamp": "2026-02-28T20:02:58.366981"
   },
   {
     "agent_id": "research-agent",
     "checkpoint": "cp-research-agent-10",
     "call_count": 10,
     "event_type": "CHECKPOINT",
-    "timestamp": "2026-02-27T13:24:08.959547"
+    "timestamp": "2026-02-28T20:02:58.366987"
   },
   {
     "agent_id": "risk-agent",
@@ -307,14 +307,14 @@
     "call_count": 9,
     "event_type": "ALLOWED",
     "decision": "allowed",
-    "timestamp": "2026-02-27T13:24:08.960283"
+    "timestamp": "2026-02-28T20:02:58.367035"
   },
   {
     "agent_id": "risk-agent",
     "checkpoint": "cp-risk-agent-9",
     "call_count": 9,
     "event_type": "CHECKPOINT",
-    "timestamp": "2026-02-27T13:24:08.960292"
+    "timestamp": "2026-02-28T20:02:58.367040"
   },
   {
     "agent_id": "risk-agent",
@@ -323,7 +323,7 @@
     "call_count": 10,
     "event_type": "ALLOWED",
     "decision": "allowed",
-    "timestamp": "2026-02-27T13:24:08.960739"
+    "timestamp": "2026-02-28T20:02:58.367076"
   },
   {
     "agent_id": "compliance-agent",
@@ -332,7 +332,7 @@
     "call_count": 8,
     "event_type": "ALLOWED",
     "decision": "allowed",
-    "timestamp": "2026-02-27T13:24:08.961387"
+    "timestamp": "2026-02-28T20:02:58.367143"
   },
   {
     "agent_id": "compliance-agent",
@@ -341,13 +341,13 @@
     "call_count": 9,
     "event_type": "ALLOWED",
     "decision": "allowed",
-    "timestamp": "2026-02-27T13:24:08.961578"
+    "timestamp": "2026-02-28T20:02:58.367166"
   },
   {
     "agent_id": "compliance-agent",
     "checkpoint": "cp-compliance-agent-9",
     "call_count": 9,
     "event_type": "CHECKPOINT",
-    "timestamp": "2026-02-27T13:24:08.961587"
+    "timestamp": "2026-02-28T20:02:58.367173"
   }
 ]

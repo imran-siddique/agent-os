@@ -1,8 +1,11 @@
 """
 Tool-Using Agent - Agent with Safe Tools
 
+Requires: pip install openai
 Run with: python agent.py
 Or: python agent.py --task "Calculate 15% tip on $84.50"
+
+Note: This example requires the safe toolkit module and an OpenAI API key.
 """
 
 import asyncio
@@ -12,7 +15,7 @@ import sys
 from typing import Dict, Any, List
 
 from agent_os import KernelSpace
-from atr import ToolRegistry
+from atr import get_registry
 from atr.tools.safe import create_safe_toolkit
 
 
@@ -20,7 +23,7 @@ from atr.tools.safe import create_safe_toolkit
 kernel = KernelSpace(policy="strict")
 
 # Initialize tool registry with safe tools
-registry = ToolRegistry()
+registry = get_registry()
 toolkit = create_safe_toolkit("standard", config={
     "allowed_domains": [
         "api.github.com",

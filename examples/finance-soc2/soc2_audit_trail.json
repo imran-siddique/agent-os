@@ -6,7 +6,7 @@
     "call_count": 1,
     "event_type": "ALLOWED",
     "decision": "allowed",
-    "timestamp": "2026-02-27T13:23:02.429382"
+    "timestamp": "2026-03-01T10:59:34.901929"
   },
   {
     "agent_id": "soc2-ap-agent",
@@ -16,7 +16,7 @@
     "amount": 500.0,
     "recipient": "Vendor ABC",
     "decision": "approved",
-    "timestamp": "2026-02-27T13:23:02.429595"
+    "timestamp": "2026-03-01T10:59:34.901956"
   },
   {
     "agent_id": "soc2-fm-agent",
@@ -25,7 +25,7 @@
     "call_count": 1,
     "event_type": "ALLOWED",
     "decision": "allowed",
-    "timestamp": "2026-02-27T13:23:02.430158"
+    "timestamp": "2026-03-01T10:59:34.902019"
   },
   {
     "agent_id": "soc2-fm-agent",
@@ -35,7 +35,7 @@
     "amount": 25000.0,
     "recipient": "Vendor XYZ",
     "decision": "pending_approval",
-    "timestamp": "2026-02-27T13:23:02.430247"
+    "timestamp": "2026-03-01T10:59:34.902040"
   },
   {
     "agent_id": "soc2-ap-agent",
@@ -44,7 +44,7 @@
     "reason": "Blocked pattern detected: SanctionedCorp",
     "event_type": "BLOCKED",
     "decision": "blocked",
-    "timestamp": "2026-02-27T13:23:02.431102"
+    "timestamp": "2026-03-01T10:59:34.902134"
   },
   {
     "agent_id": "soc2-burst-test",
@@ -53,7 +53,7 @@
     "call_count": 1,
     "event_type": "ALLOWED",
     "decision": "allowed",
-    "timestamp": "2026-02-27T13:23:02.434203"
+    "timestamp": "2026-03-01T10:59:34.902327"
   },
   {
     "agent_id": "soc2-burst-test",
@@ -62,7 +62,7 @@
     "reason": "Rate limit exceeded (10 transfers/session)",
     "event_type": "BLOCKED",
     "decision": "blocked",
-    "timestamp": "2026-02-27T13:23:02.434722"
+    "timestamp": "2026-03-01T10:59:34.902374"
   },
   {
     "agent_id": "soc2-ap-agent",
@@ -71,7 +71,7 @@
     "call_count": 2,
     "event_type": "ALLOWED",
     "decision": "allowed",
-    "timestamp": "2026-02-27T13:23:02.435025"
+    "timestamp": "2026-03-01T10:59:34.902414"
   },
   {
     "agent_id": "soc2-ap-agent",
@@ -80,6 +80,6 @@
     "reason": "Tool 'approve' not permitted for role 'accounts_payable'",
     "event_type": "BLOCKED",
     "decision": "blocked",
-    "timestamp": "2026-02-27T13:23:02.436346"
+    "timestamp": "2026-03-01T10:59:34.902457"
   }
 ]

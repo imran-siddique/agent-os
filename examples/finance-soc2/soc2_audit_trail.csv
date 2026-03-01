@@ -1,10 +1,10 @@
 timestamp,agent_id,event_type,tool,role,call_count,reason,checkpoint,amount,recipient,decision
-2026-02-27T13:23:02.429382,soc2-ap-agent,ALLOWED,transfer,accounts_payable,1,,,,,allowed
-2026-02-27T13:23:02.429595,soc2-ap-agent,TRANSACTION,transfer,accounts_payable,,,,500.0,Vendor ABC,approved
-2026-02-27T13:23:02.430158,soc2-fm-agent,ALLOWED,transfer,finance_manager,1,,,,,allowed
-2026-02-27T13:23:02.430247,soc2-fm-agent,TRANSACTION,transfer,finance_manager,,,,25000.0,Vendor XYZ,pending_approval
-2026-02-27T13:23:02.431102,soc2-ap-agent,BLOCKED,transfer,accounts_payable,,Blocked pattern detected: SanctionedCorp,,,,blocked
-2026-02-27T13:23:02.434203,soc2-burst-test,ALLOWED,transfer,accounts_payable,1,,,,,allowed
-2026-02-27T13:23:02.434722,soc2-burst-test,BLOCKED,transfer,accounts_payable,,Rate limit exceeded (10 transfers/session),,,,blocked
-2026-02-27T13:23:02.435025,soc2-ap-agent,ALLOWED,query_balance,accounts_payable,2,,,,,allowed
-2026-02-27T13:23:02.436346,soc2-ap-agent,BLOCKED,approve,accounts_payable,,Tool 'approve' not permitted for role 'accounts_payable',,,,blocked
+2026-03-01T10:59:34.901929,soc2-ap-agent,ALLOWED,transfer,accounts_payable,1,,,,,allowed
+2026-03-01T10:59:34.901956,soc2-ap-agent,TRANSACTION,transfer,accounts_payable,,,,500.0,Vendor ABC,approved
+2026-03-01T10:59:34.902019,soc2-fm-agent,ALLOWED,transfer,finance_manager,1,,,,,allowed
+2026-03-01T10:59:34.902040,soc2-fm-agent,TRANSACTION,transfer,finance_manager,,,,25000.0,Vendor XYZ,pending_approval
+2026-03-01T10:59:34.902134,soc2-ap-agent,BLOCKED,transfer,accounts_payable,,Blocked pattern detected: SanctionedCorp,,,,blocked
+2026-03-01T10:59:34.902327,soc2-burst-test,ALLOWED,transfer,accounts_payable,1,,,,,allowed
+2026-03-01T10:59:34.902374,soc2-burst-test,BLOCKED,transfer,accounts_payable,,Rate limit exceeded (10 transfers/session),,,,blocked
+2026-03-01T10:59:34.902414,soc2-ap-agent,ALLOWED,query_balance,accounts_payable,2,,,,,allowed
+2026-03-01T10:59:34.902457,soc2-ap-agent,BLOCKED,approve,accounts_payable,,Tool 'approve' not permitted for role 'accounts_payable',,,,blocked
