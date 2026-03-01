@@ -7,10 +7,10 @@ JSON-serializable reports, and aggregate status computation.
 
 import threading
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Callable, Dict, Optional
+from typing import Callable
 
 
 class HealthStatus(Enum):
@@ -33,7 +33,7 @@ class ComponentHealth:
 class HealthReport:
     """Aggregate health report for all registered components."""
     status: HealthStatus
-    components: Dict[str, ComponentHealth]
+    components: dict[str, ComponentHealth]
     timestamp: str
     version: str
     uptime_seconds: float
@@ -73,7 +73,7 @@ class HealthChecker:
     """
 
     def __init__(self, version: str = "1.0.0") -> None:
-        self._checks: Dict[str, Callable[[], ComponentHealth]] = {}
+        self._checks: dict[str, Callable[[], ComponentHealth]] = {}
         self._start_time = datetime.now(timezone.utc)
         self._version = version
         self._lock = threading.Lock()
@@ -94,7 +94,7 @@ class HealthChecker:
         with self._lock:
             checks = dict(self._checks)
 
-        components: Dict[str, ComponentHealth] = {}
+        components: dict[str, ComponentHealth] = {}
         for name, fn in checks.items():
             start = time.monotonic()
             try:
@@ -123,7 +123,7 @@ class HealthChecker:
 
     def check_live(self) -> HealthReport:
         """Liveness probe — lightweight; returns HEALTHY if the process is up."""
-        components: Dict[str, ComponentHealth] = {
+        components: dict[str, ComponentHealth] = {
             "process": ComponentHealth(
                 name="process",
                 status=HealthStatus.HEALTHY,
@@ -168,7 +168,7 @@ class HealthChecker:
     # -- helpers -----------------------------------------------------------
 
     def _build_report(
-        self, components: Dict[str, ComponentHealth]
+        self, components: dict[str, ComponentHealth]
     ) -> HealthReport:
         status = self._aggregate_status(components)
         now = datetime.now(timezone.utc)
@@ -183,7 +183,7 @@ class HealthChecker:
 
     @staticmethod
     def _aggregate_status(
-        components: Dict[str, ComponentHealth],
+        components: dict[str, ComponentHealth],
     ) -> HealthStatus:
         if not components:
             return HealthStatus.HEALTHY

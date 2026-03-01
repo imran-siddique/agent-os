@@ -26,10 +26,10 @@ import hashlib
 import logging
 import re
 import unicodedata
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-from typing import List, Optional, Sequence
 
 logger = logging.getLogger(__name__)
 
@@ -100,8 +100,8 @@ class Alert:
     alert_type: AlertType
     severity: AlertSeverity
     message: str
-    entry_source: Optional[str] = None
-    matched_pattern: Optional[str] = None
+    entry_source: str | None = None
+    matched_pattern: str | None = None
 
 
 @dataclass
@@ -113,7 +113,7 @@ class ValidationResult:
         alerts: Any alerts raised during validation.
     """
     allowed: bool
-    alerts: List[Alert] = field(default_factory=list)
+    alerts: list[Alert] = field(default_factory=list)
 
 
 @dataclass
@@ -131,14 +131,14 @@ class AuditRecord:
     source: str
     content_hash: str
     allowed: bool
-    alerts: List[Alert] = field(default_factory=list)
+    alerts: list[Alert] = field(default_factory=list)
 
 
 # ---------------------------------------------------------------------------
 # Injection patterns (CE basics)
 # ---------------------------------------------------------------------------
 
-_INJECTION_PATTERNS: List[re.Pattern[str]] = [
+_INJECTION_PATTERNS: list[re.Pattern[str]] = [
     re.compile(r"ignore\s+(all\s+)?previous\s+instructions", re.IGNORECASE),
     re.compile(r"you\s+are\s+now\b", re.IGNORECASE),
     re.compile(r"system\s*prompt\s*:", re.IGNORECASE),
@@ -148,7 +148,7 @@ _INJECTION_PATTERNS: List[re.Pattern[str]] = [
     re.compile(r"override\s+(previous\s+)?instructions", re.IGNORECASE),
 ]
 
-_CODE_INJECTION_PATTERNS: List[re.Pattern[str]] = [
+_CODE_INJECTION_PATTERNS: list[re.Pattern[str]] = [
     re.compile(r"```\s*python\s*\n\s*import\s+os\b", re.IGNORECASE),
     re.compile(r"```\s*python\s*\n\s*import\s+subprocess\b", re.IGNORECASE),
     re.compile(r"```\s*python\s*\n\s*import\s+shutil\b", re.IGNORECASE),
@@ -177,7 +177,7 @@ class MemoryGuard:
     """
 
     def __init__(self) -> None:
-        self._audit_log: List[AuditRecord] = []
+        self._audit_log: list[AuditRecord] = []
 
     # -- public API ---------------------------------------------------------
 
@@ -187,7 +187,7 @@ class MemoryGuard:
         Returns a ``ValidationResult`` indicating whether the write should
         proceed and any alerts raised.
         """
-        alerts: List[Alert] = []
+        alerts: list[Alert] = []
 
         try:
             alerts.extend(self._check_injection_patterns(content, source))
@@ -256,12 +256,12 @@ class MemoryGuard:
             )
         return intact
 
-    def scan_memory(self, entries: Sequence[MemoryEntry]) -> List[Alert]:
+    def scan_memory(self, entries: Sequence[MemoryEntry]) -> list[Alert]:
         """Scan existing memory entries for poisoning indicators.
 
         Checks both content patterns and hash integrity for every entry.
         """
-        all_alerts: List[Alert] = []
+        all_alerts: list[Alert] = []
         for entry in entries:
             try:
                 # Integrity check
@@ -293,7 +293,7 @@ class MemoryGuard:
         return all_alerts
 
     @property
-    def audit_log(self) -> List[AuditRecord]:
+    def audit_log(self) -> list[AuditRecord]:
         """Return a copy of the audit trail."""
         return list(self._audit_log)
 
@@ -301,8 +301,8 @@ class MemoryGuard:
 
     def _check_injection_patterns(
         self, content: str, source: str
-    ) -> List[Alert]:
-        alerts: List[Alert] = []
+    ) -> list[Alert]:
+        alerts: list[Alert] = []
         for pattern in _INJECTION_PATTERNS:
             if pattern.search(content):
                 alerts.append(Alert(
@@ -316,8 +316,8 @@ class MemoryGuard:
 
     def _check_code_injection(
         self, content: str, source: str
-    ) -> List[Alert]:
-        alerts: List[Alert] = []
+    ) -> list[Alert]:
+        alerts: list[Alert] = []
         for pattern in _CODE_INJECTION_PATTERNS:
             if pattern.search(content):
                 alerts.append(Alert(
@@ -331,7 +331,7 @@ class MemoryGuard:
 
     def _check_special_characters(
         self, content: str, source: str
-    ) -> List[Alert]:
+    ) -> list[Alert]:
         if not content:
             return []
         special = sum(
@@ -353,8 +353,8 @@ class MemoryGuard:
 
     def _check_unicode_manipulation(
         self, content: str, source: str
-    ) -> List[Alert]:
-        alerts: List[Alert] = []
+    ) -> list[Alert]:
+        alerts: list[Alert] = []
         # Detect right-to-left override and other bidi control characters
         bidi_chars = {
             "\u200e",  # LRM

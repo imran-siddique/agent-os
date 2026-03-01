@@ -39,7 +39,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -48,9 +48,9 @@ logger = logging.getLogger(__name__)
 class A2APolicy:
     """Policy for A2A task governance."""
 
-    allowed_skills: List[str] = field(default_factory=list)
-    blocked_skills: List[str] = field(default_factory=list)
-    blocked_patterns: List[str] = field(default_factory=list)
+    allowed_skills: list[str] = field(default_factory=list)
+    blocked_skills: list[str] = field(default_factory=list)
+    blocked_patterns: list[str] = field(default_factory=list)
     min_trust_score: int = 0
     max_requests_per_minute: int = 100
     require_trust_metadata: bool = False
@@ -68,7 +68,7 @@ class A2AEvaluation:
     trust_score: int = 0
     timestamp: float = field(default_factory=time.time)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "allowed": self.allowed,
             "reason": self.reason,
@@ -88,11 +88,11 @@ class A2AGovernanceAdapter:
 
     def __init__(
         self,
-        policy: Optional[A2APolicy] = None,
+        policy: A2APolicy | None = None,
         *,
-        allowed_skills: Optional[List[str]] = None,
-        blocked_skills: Optional[List[str]] = None,
-        blocked_patterns: Optional[List[str]] = None,
+        allowed_skills: list[str] | None = None,
+        blocked_skills: list[str] | None = None,
+        blocked_patterns: list[str] | None = None,
         min_trust_score: int = 0,
         max_requests_per_minute: int = 100,
     ):
@@ -106,15 +106,15 @@ class A2AGovernanceAdapter:
                 min_trust_score=min_trust_score,
                 max_requests_per_minute=max_requests_per_minute,
             )
-        self._rate_tracker: Dict[str, List[float]] = {}
-        self._evaluations: List[A2AEvaluation] = []
+        self._rate_tracker: dict[str, list[float]] = {}
+        self._evaluations: list[A2AEvaluation] = []
 
-    def _extract_fields(self, task: Any) -> Dict[str, Any]:
+    def _extract_fields(self, task: Any) -> dict[str, Any]:
         """Extract fields from a dict or typed object."""
         if isinstance(task, dict):
             trust = task.get("x-agentmesh-trust", {})
             messages_raw = task.get("messages", [])
-            texts: List[str] = []
+            texts: list[str] = []
             for m in messages_raw:
                 if isinstance(m, dict):
                     for part in m.get("parts", []):
@@ -139,7 +139,7 @@ class A2AGovernanceAdapter:
             "texts": texts,
         }
 
-    def _check_content(self, texts: List[str]) -> tuple[bool, str]:
+    def _check_content(self, texts: list[str]) -> tuple[bool, str]:
         for text in texts:
             text_lower = text.lower()
             for pattern in self.policy.blocked_patterns:
@@ -217,10 +217,10 @@ class A2AGovernanceAdapter:
         self._evaluations.append(e)
         return e
 
-    def get_evaluations(self) -> List[A2AEvaluation]:
+    def get_evaluations(self) -> list[A2AEvaluation]:
         return list(self._evaluations)
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         total = len(self._evaluations)
         allowed = sum(1 for e in self._evaluations if e.allowed)
         return {

@@ -35,10 +35,10 @@ import base64
 import hashlib
 import logging
 import re
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-from typing import List, Optional, Sequence, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -91,9 +91,9 @@ class DetectionResult:
     """
     is_injection: bool
     threat_level: ThreatLevel
-    injection_type: Optional[InjectionType]
+    injection_type: InjectionType | None
     confidence: float
-    matched_patterns: List[str] = field(default_factory=list)
+    matched_patterns: list[str] = field(default_factory=list)
     explanation: str = ""
 
 
@@ -109,9 +109,9 @@ class DetectionConfig:
         allowlist: Exact strings that suppress detection.
     """
     sensitivity: str = "balanced"
-    custom_patterns: List[re.Pattern[str]] = field(default_factory=list)
-    blocklist: List[str] = field(default_factory=list)
-    allowlist: List[str] = field(default_factory=list)
+    custom_patterns: list[re.Pattern[str]] = field(default_factory=list)
+    blocklist: list[str] = field(default_factory=list)
+    allowlist: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -134,7 +134,7 @@ class AuditRecord:
 # Detection patterns (compiled at import time)
 # ---------------------------------------------------------------------------
 
-_DIRECT_OVERRIDE_PATTERNS: List[re.Pattern[str]] = [
+_DIRECT_OVERRIDE_PATTERNS: list[re.Pattern[str]] = [
     re.compile(r"ignore\s+(all\s+)?previous\s+instructions", re.IGNORECASE),
     re.compile(r"you\s+are\s+now\b", re.IGNORECASE),
     re.compile(r"new\s+role\s*:", re.IGNORECASE),
@@ -144,7 +144,7 @@ _DIRECT_OVERRIDE_PATTERNS: List[re.Pattern[str]] = [
     re.compile(r"do\s+not\s+follow\s+(your|the)\s+(previous\s+)?instructions", re.IGNORECASE),
 ]
 
-_DELIMITER_PATTERNS: List[re.Pattern[str]] = [
+_DELIMITER_PATTERNS: list[re.Pattern[str]] = [
     re.compile(r"^-{3,}\s*$", re.MULTILINE),
     re.compile(r"^#{3,}\s*$", re.MULTILINE),
     re.compile(r"^```\s*$", re.MULTILINE),
@@ -159,7 +159,7 @@ _DELIMITER_PATTERNS: List[re.Pattern[str]] = [
     re.compile(r"<\|assistant\|>", re.IGNORECASE),
 ]
 
-_ROLE_PLAY_PATTERNS: List[re.Pattern[str]] = [
+_ROLE_PLAY_PATTERNS: list[re.Pattern[str]] = [
     re.compile(r"pretend\s+you\s+are", re.IGNORECASE),
     re.compile(r"act\s+as\s+if\s+you\s+have\s+no\s+restrictions", re.IGNORECASE),
     re.compile(r"\bjailbreak\b", re.IGNORECASE),
@@ -169,7 +169,7 @@ _ROLE_PLAY_PATTERNS: List[re.Pattern[str]] = [
     re.compile(r"you\s+have\s+no\s+(limitations?|restrictions?|rules?)", re.IGNORECASE),
 ]
 
-_CONTEXT_MANIPULATION_PATTERNS: List[re.Pattern[str]] = [
+_CONTEXT_MANIPULATION_PATTERNS: list[re.Pattern[str]] = [
     re.compile(r"the\s+above\s+instructions\s+are\s+wrong", re.IGNORECASE),
     re.compile(r"actually\s+your\s+real\s+instructions\s+are", re.IGNORECASE),
     re.compile(r"the\s+developer\s+told\s+me\s+to\s+tell\s+you", re.IGNORECASE),
@@ -178,7 +178,7 @@ _CONTEXT_MANIPULATION_PATTERNS: List[re.Pattern[str]] = [
     re.compile(r"the\s+real\s+system\s+prompt\s+is", re.IGNORECASE),
 ]
 
-_MULTI_TURN_PATTERNS: List[re.Pattern[str]] = [
+_MULTI_TURN_PATTERNS: list[re.Pattern[str]] = [
     re.compile(r"as\s+I\s+mentioned\s+before.*you\s+agreed\s+to", re.IGNORECASE),
     re.compile(r"you\s+already\s+said\s+yes", re.IGNORECASE),
     re.compile(r"continuing\s+from\s+where\s+you\s+unlocked", re.IGNORECASE),
@@ -191,7 +191,7 @@ _BASE64_PATTERN: re.Pattern[str] = re.compile(
     r"[A-Za-z0-9+/]{20,}={0,2}"
 )
 
-_ENCODING_PATTERNS: List[re.Pattern[str]] = [
+_ENCODING_PATTERNS: list[re.Pattern[str]] = [
     re.compile(r"\\x[0-9a-fA-F]{2}(?:\\x[0-9a-fA-F]{2}){3,}", re.IGNORECASE),
     re.compile(r"\\u[0-9a-fA-F]{4}(?:\\u[0-9a-fA-F]{4}){3,}", re.IGNORECASE),
     re.compile(r"\brot13\b", re.IGNORECASE),
@@ -200,7 +200,7 @@ _ENCODING_PATTERNS: List[re.Pattern[str]] = [
 ]
 
 # Suspicious keywords that may appear in decoded base64 payloads
-_SUSPICIOUS_DECODED_KEYWORDS: List[str] = [
+_SUSPICIOUS_DECODED_KEYWORDS: list[str] = [
     "ignore", "override", "system", "password", "secret",
     "admin", "root", "exec", "eval", "import os",
 ]
@@ -238,9 +238,9 @@ class PromptInjectionDetector:
             print(f"Blocked: {result.explanation}")
     """
 
-    def __init__(self, config: Optional[DetectionConfig] = None) -> None:
+    def __init__(self, config: DetectionConfig | None = None) -> None:
         self._config = config or DetectionConfig()
-        self._audit_log: List[AuditRecord] = []
+        self._audit_log: list[AuditRecord] = []
 
     # -- public API ---------------------------------------------------------
 
@@ -248,7 +248,7 @@ class PromptInjectionDetector:
         self,
         text: str,
         source: str = "unknown",
-        canary_tokens: Optional[List[str]] = None,
+        canary_tokens: list[str] | None = None,
     ) -> DetectionResult:
         """Scan *text* for prompt injection patterns.
 
@@ -281,9 +281,9 @@ class PromptInjectionDetector:
 
     def detect_batch(
         self,
-        inputs: Sequence[Tuple[str, str]],
-        canary_tokens: Optional[List[str]] = None,
-    ) -> List[DetectionResult]:
+        inputs: Sequence[tuple[str, str]],
+        canary_tokens: list[str] | None = None,
+    ) -> list[DetectionResult]:
         """Scan multiple inputs for prompt injection.
 
         Args:
@@ -299,7 +299,7 @@ class PromptInjectionDetector:
         ]
 
     @property
-    def audit_log(self) -> List[AuditRecord]:
+    def audit_log(self) -> list[AuditRecord]:
         """Return a copy of the audit trail."""
         return list(self._audit_log)
 
@@ -309,7 +309,7 @@ class PromptInjectionDetector:
         self,
         text: str,
         source: str,
-        canary_tokens: Optional[List[str]],
+        canary_tokens: list[str] | None,
     ) -> DetectionResult:
         """Core detection logic — runs all check methods and aggregates."""
         # Fast-path: allowlisted inputs
@@ -341,7 +341,7 @@ class PromptInjectionDetector:
                 return result
 
         # Run all check methods
-        findings: List[Tuple[InjectionType, ThreatLevel, float, str]] = []
+        findings: list[tuple[InjectionType, ThreatLevel, float, str]] = []
 
         findings.extend(self._check_direct_override(text))
         findings.extend(self._check_delimiter_attacks(text))
@@ -410,8 +410,8 @@ class PromptInjectionDetector:
 
     def _check_direct_override(
         self, text: str,
-    ) -> List[Tuple[InjectionType, ThreatLevel, float, str]]:
-        findings: List[Tuple[InjectionType, ThreatLevel, float, str]] = []
+    ) -> list[tuple[InjectionType, ThreatLevel, float, str]]:
+        findings: list[tuple[InjectionType, ThreatLevel, float, str]] = []
         for pattern in _DIRECT_OVERRIDE_PATTERNS:
             if pattern.search(text):
                 findings.append((
@@ -424,8 +424,8 @@ class PromptInjectionDetector:
 
     def _check_delimiter_attacks(
         self, text: str,
-    ) -> List[Tuple[InjectionType, ThreatLevel, float, str]]:
-        findings: List[Tuple[InjectionType, ThreatLevel, float, str]] = []
+    ) -> list[tuple[InjectionType, ThreatLevel, float, str]]:
+        findings: list[tuple[InjectionType, ThreatLevel, float, str]] = []
         for pattern in _DELIMITER_PATTERNS:
             if pattern.search(text):
                 findings.append((
@@ -438,8 +438,8 @@ class PromptInjectionDetector:
 
     def _check_encoding_attacks(
         self, text: str,
-    ) -> List[Tuple[InjectionType, ThreatLevel, float, str]]:
-        findings: List[Tuple[InjectionType, ThreatLevel, float, str]] = []
+    ) -> list[tuple[InjectionType, ThreatLevel, float, str]]:
+        findings: list[tuple[InjectionType, ThreatLevel, float, str]] = []
 
         # Check explicit encoding references
         for pattern in _ENCODING_PATTERNS:
@@ -473,8 +473,8 @@ class PromptInjectionDetector:
 
     def _check_role_play(
         self, text: str,
-    ) -> List[Tuple[InjectionType, ThreatLevel, float, str]]:
-        findings: List[Tuple[InjectionType, ThreatLevel, float, str]] = []
+    ) -> list[tuple[InjectionType, ThreatLevel, float, str]]:
+        findings: list[tuple[InjectionType, ThreatLevel, float, str]] = []
         for pattern in _ROLE_PLAY_PATTERNS:
             if pattern.search(text):
                 findings.append((
@@ -487,8 +487,8 @@ class PromptInjectionDetector:
 
     def _check_context_manipulation(
         self, text: str,
-    ) -> List[Tuple[InjectionType, ThreatLevel, float, str]]:
-        findings: List[Tuple[InjectionType, ThreatLevel, float, str]] = []
+    ) -> list[tuple[InjectionType, ThreatLevel, float, str]]:
+        findings: list[tuple[InjectionType, ThreatLevel, float, str]] = []
         for pattern in _CONTEXT_MANIPULATION_PATTERNS:
             if pattern.search(text):
                 findings.append((
@@ -502,11 +502,11 @@ class PromptInjectionDetector:
     def _check_canary_leak(
         self,
         text: str,
-        canary_tokens: Optional[List[str]],
-    ) -> List[Tuple[InjectionType, ThreatLevel, float, str]]:
+        canary_tokens: list[str] | None,
+    ) -> list[tuple[InjectionType, ThreatLevel, float, str]]:
         if not canary_tokens:
             return []
-        findings: List[Tuple[InjectionType, ThreatLevel, float, str]] = []
+        findings: list[tuple[InjectionType, ThreatLevel, float, str]] = []
         text_lower = text.lower()
         for canary in canary_tokens:
             if canary.lower() in text_lower:
@@ -520,8 +520,8 @@ class PromptInjectionDetector:
 
     def _check_multi_turn(
         self, text: str,
-    ) -> List[Tuple[InjectionType, ThreatLevel, float, str]]:
-        findings: List[Tuple[InjectionType, ThreatLevel, float, str]] = []
+    ) -> list[tuple[InjectionType, ThreatLevel, float, str]]:
+        findings: list[tuple[InjectionType, ThreatLevel, float, str]] = []
         for pattern in _MULTI_TURN_PATTERNS:
             if pattern.search(text):
                 findings.append((

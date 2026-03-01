@@ -18,7 +18,7 @@ import hashlib
 import json
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from agent_os.mcp_security import (
     MCPSecurityScanner,
@@ -27,12 +27,11 @@ from agent_os.mcp_security import (
     ScanResult,
 )
 
-
 # ---------------------------------------------------------------------------
 # Config loading & parsing
 # ---------------------------------------------------------------------------
 
-def load_config(path: str) -> Dict[str, Any]:
+def load_config(path: str) -> dict[str, Any]:
     """Load an MCP configuration file (JSON or YAML).
 
     Raises:
@@ -50,19 +49,19 @@ def load_config(path: str) -> Dict[str, Any]:
             import yaml  # type: ignore[import-untyped]
             data = yaml.safe_load(text)
         except ImportError:
-            raise ImportError("PyYAML is required to load YAML config files")
+            raise ImportError("PyYAML is required to load YAML config files") from None
     else:
         try:
             data = json.loads(text)
         except json.JSONDecodeError as exc:
-            raise ValueError(f"Invalid JSON in {path}: {exc}")
+            raise ValueError(f"Invalid JSON in {path}: {exc}") from exc
 
     if data is None:
         raise ValueError(f"Empty config file: {path}")
     return data
 
 
-def parse_config(config: Any) -> Dict[str, List[Dict[str, Any]]]:
+def parse_config(config: Any) -> dict[str, list[dict[str, Any]]]:
     """Parse MCP config into ``{server_name: [tool_defs]}`` mapping.
 
     Supports:
@@ -70,7 +69,7 @@ def parse_config(config: Any) -> Dict[str, List[Dict[str, Any]]]:
         2. Tools-only list: ``[{"name": "...", "description": "..."}]``
         3. Tools wrapper: ``{"tools": [...]}``
     """
-    result: Dict[str, List[Dict[str, Any]]] = {}
+    result: dict[str, list[dict[str, Any]]] = {}
 
     if isinstance(config, list):
         result["default"] = config
@@ -94,15 +93,15 @@ def parse_config(config: Any) -> Dict[str, List[Dict[str, Any]]]:
 # ---------------------------------------------------------------------------
 
 def run_scan(
-    servers: Dict[str, List[Dict[str, Any]]],
+    servers: dict[str, list[dict[str, Any]]],
     *,
-    server_filter: Optional[str] = None,
-    min_severity: Optional[str] = None,
-) -> Tuple[Dict[str, ScanResult], List[MCPThreat]]:
+    server_filter: str | None = None,
+    min_severity: str | None = None,
+) -> tuple[dict[str, ScanResult], list[MCPThreat]]:
     """Scan all servers/tools and return per-server results + flat threat list."""
     scanner = MCPSecurityScanner()
-    results: Dict[str, ScanResult] = {}
-    all_threats: List[MCPThreat] = []
+    results: dict[str, ScanResult] = {}
+    all_threats: list[MCPThreat] = []
 
     for server_name, tools in servers.items():
         if server_filter and server_name != server_filter:
@@ -147,12 +146,12 @@ def _threat_icon(severity: MCPSeverity) -> str:
 
 
 def format_table(
-    results: Dict[str, ScanResult],
-    all_threats: List[MCPThreat],
-    servers: Dict[str, List[Dict[str, Any]]],
+    results: dict[str, ScanResult],
+    all_threats: list[MCPThreat],
+    servers: dict[str, list[dict[str, Any]]],
 ) -> str:
     """Format scan results as a human-readable table."""
-    lines: List[str] = []
+    lines: list[str] = []
     lines.append("MCP Security Scan Results")
     lines.append("=" * 24)
 
@@ -165,7 +164,7 @@ def format_table(
         total_scanned += result.tools_scanned
 
         # Build threats-by-tool mapping
-        tool_threats: Dict[str, List[MCPThreat]] = {}
+        tool_threats: dict[str, list[MCPThreat]] = {}
         for threat in result.threats:
             tool_threats.setdefault(threat.tool_name, []).append(threat)
 
@@ -201,11 +200,11 @@ def _severity_rank(severity: MCPSeverity) -> int:
 
 
 def format_json_output(
-    results: Dict[str, ScanResult],
-    all_threats: List[MCPThreat],
+    results: dict[str, ScanResult],
+    all_threats: list[MCPThreat],
 ) -> str:
     """Format scan results as JSON."""
-    output: Dict[str, Any] = {
+    output: dict[str, Any] = {
         "servers": {},
         "summary": {"tools_scanned": 0, "warnings": 0, "critical": 0},
     }
@@ -235,11 +234,11 @@ def format_json_output(
 
 
 def format_markdown(
-    results: Dict[str, ScanResult],
-    all_threats: List[MCPThreat],
+    results: dict[str, ScanResult],
+    all_threats: list[MCPThreat],
 ) -> str:
     """Format scan results as a Markdown report."""
-    lines: List[str] = []
+    lines: list[str] = []
     lines.append("# MCP Security Scan Report")
     lines.append("")
 
@@ -254,7 +253,7 @@ def format_markdown(
         lines.append("| Tool | Severity | Threat | Message |")
         lines.append("|------|----------|--------|---------|")
 
-        tool_threats: Dict[str, List[MCPThreat]] = {}
+        tool_threats: dict[str, list[MCPThreat]] = {}
         for threat in result.threats:
             tool_threats.setdefault(threat.tool_name, []).append(threat)
 
@@ -286,10 +285,10 @@ def format_markdown(
 # ---------------------------------------------------------------------------
 
 def compute_fingerprints(
-    servers: Dict[str, List[Dict[str, Any]]],
-) -> Dict[str, Dict[str, str]]:
+    servers: dict[str, list[dict[str, Any]]],
+) -> dict[str, dict[str, str]]:
     """Compute SHA-256 fingerprints for every tool across all servers."""
-    fingerprints: Dict[str, Dict[str, str]] = {}
+    fingerprints: dict[str, dict[str, str]] = {}
     for server_name, tools in servers.items():
         for tool in tools:
             name = tool.get("name", "unknown")
@@ -312,16 +311,16 @@ def compute_fingerprints(
 
 
 def compare_fingerprints(
-    current: Dict[str, Dict[str, str]],
-    saved: Dict[str, Dict[str, str]],
-) -> List[Dict[str, Any]]:
+    current: dict[str, dict[str, str]],
+    saved: dict[str, dict[str, str]],
+) -> list[dict[str, Any]]:
     """Compare current fingerprints against saved ones, returning changes."""
-    changes: List[Dict[str, Any]] = []
+    changes: list[dict[str, Any]] = []
 
     for key, fp in current.items():
         if key in saved:
             old = saved[key]
-            changed_fields: List[str] = []
+            changed_fields: list[str] = []
             if old["description_hash"] != fp["description_hash"]:
                 changed_fields.append("description")
             if old["schema_hash"] != fp["schema_hash"]:
@@ -507,7 +506,7 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(argv: Optional[List[str]] = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     """CLI entry point."""
     parser = build_parser()
     args = parser.parse_args(argv)

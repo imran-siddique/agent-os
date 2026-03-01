@@ -12,19 +12,17 @@ import re
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from pydantic import BaseModel, Field
 
 from .schema import (
     PolicyAction,
     PolicyCondition,
-    PolicyDefaults,
     PolicyDocument,
     PolicyOperator,
     PolicyRule,
 )
-
 
 # ---------------------------------------------------------------------------
 # Enums / literals kept as plain strings for cross-project portability
@@ -61,7 +59,7 @@ class SharedPolicyRule:
 
     id: str
     action: str
-    conditions: List[Condition] = field(default_factory=list)
+    conditions: list[Condition] = field(default_factory=list)
     priority: int = 0
 
     def __post_init__(self) -> None:
@@ -83,8 +81,8 @@ class SharedPolicySchema(BaseModel):
     name: str
     description: str = ""
     scope: str
-    rules: List[Dict[str, Any]] = Field(default_factory=list)
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    rules: list[dict[str, Any]] = Field(default_factory=list)
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
     def model_post_init(self, __context: Any) -> None:
         if self.scope not in VALID_SCOPES:
@@ -92,9 +90,9 @@ class SharedPolicySchema(BaseModel):
                 f"Invalid scope '{self.scope}', must be one of {VALID_SCOPES}"
             )
 
-    def parsed_rules(self) -> List[SharedPolicyRule]:
+    def parsed_rules(self) -> list[SharedPolicyRule]:
         """Deserialize raw rule dicts into SharedPolicyRule objects."""
-        result: List[SharedPolicyRule] = []
+        result: list[SharedPolicyRule] = []
         for raw in self.rules:
             conditions = [
                 Condition(field=c["field"], operator=c["operator"], value=c["value"])
@@ -113,7 +111,7 @@ class SharedPolicySchema(BaseModel):
     # -- YAML I/O ----------------------------------------------------------
 
     @classmethod
-    def from_yaml(cls, path: Union[str, Path]) -> "SharedPolicySchema":
+    def from_yaml(cls, path: str | Path) -> SharedPolicySchema:
         """Load a SharedPolicySchema from a YAML file."""
         try:
             import yaml
@@ -125,7 +123,7 @@ class SharedPolicySchema(BaseModel):
             data = yaml.safe_load(f)
         return cls.model_validate(data)
 
-    def to_yaml(self, path: Union[str, Path]) -> None:
+    def to_yaml(self, path: str | Path) -> None:
         """Serialize this SharedPolicySchema to a YAML file."""
         try:
             import yaml
@@ -153,9 +151,9 @@ class SharedPolicyDecision:
 
     allowed: bool = True
     action: str = "allow"
-    matched_rule_id: Optional[str] = None
+    matched_rule_id: str | None = None
     reason: str = "No rules matched; default allow"
-    audit: Dict[str, Any] = field(default_factory=dict)
+    audit: dict[str, Any] = field(default_factory=dict)
 
 
 # ---------------------------------------------------------------------------
@@ -168,8 +166,8 @@ class SharedPolicyEvaluator:
 
     def evaluate(
         self,
-        context: Dict[str, Any],
-        rules: List[SharedPolicyRule],
+        context: dict[str, Any],
+        rules: list[SharedPolicyRule],
     ) -> SharedPolicyDecision:
         """Evaluate *rules* against *context*, returning a decision.
 
@@ -197,7 +195,7 @@ class SharedPolicyEvaluator:
         return SharedPolicyDecision()
 
 
-def _eval_condition(condition: Condition, context: Dict[str, Any]) -> bool:
+def _eval_condition(condition: Condition, context: dict[str, Any]) -> bool:
     """Evaluate a single Condition against the context."""
     ctx_value = context.get(condition.field)
     if ctx_value is None:
@@ -228,7 +226,7 @@ def _eval_condition(condition: Condition, context: Dict[str, Any]) -> bool:
 # Bridge helpers — SharedPolicySchema <-> PolicyDocument
 # ---------------------------------------------------------------------------
 
-_ACTION_MAP_TO_POLICY: Dict[str, PolicyAction] = {
+_ACTION_MAP_TO_POLICY: dict[str, PolicyAction] = {
     "allow": PolicyAction.ALLOW,
     "deny": PolicyAction.DENY,
     "audit": PolicyAction.AUDIT,
@@ -236,7 +234,7 @@ _ACTION_MAP_TO_POLICY: Dict[str, PolicyAction] = {
     "rate_limit": PolicyAction.BLOCK,
 }
 
-_OPERATOR_MAP_TO_POLICY: Dict[str, PolicyOperator] = {
+_OPERATOR_MAP_TO_POLICY: dict[str, PolicyOperator] = {
     "eq": PolicyOperator.EQ,
     "ne": PolicyOperator.NE,
     "gt": PolicyOperator.GT,
@@ -246,14 +244,14 @@ _OPERATOR_MAP_TO_POLICY: Dict[str, PolicyOperator] = {
     "matches": PolicyOperator.MATCHES,
 }
 
-_ACTION_MAP_FROM_POLICY: Dict[PolicyAction, str] = {
+_ACTION_MAP_FROM_POLICY: dict[PolicyAction, str] = {
     PolicyAction.ALLOW: "allow",
     PolicyAction.DENY: "deny",
     PolicyAction.AUDIT: "audit",
     PolicyAction.BLOCK: "deny",
 }
 
-_OPERATOR_MAP_FROM_POLICY: Dict[PolicyOperator, str] = {
+_OPERATOR_MAP_FROM_POLICY: dict[PolicyOperator, str] = {
     PolicyOperator.EQ: "eq",
     PolicyOperator.NE: "ne",
     PolicyOperator.GT: "gt",
@@ -268,7 +266,7 @@ _OPERATOR_MAP_FROM_POLICY: Dict[PolicyOperator, str] = {
 
 def shared_to_policy_document(schema: SharedPolicySchema) -> PolicyDocument:
     """Convert a SharedPolicySchema into the existing PolicyDocument format."""
-    doc_rules: List[PolicyRule] = []
+    doc_rules: list[PolicyRule] = []
     for rule in schema.parsed_rules():
         if not rule.conditions:
             continue
@@ -302,7 +300,7 @@ def policy_document_to_shared(
     scope: str = "agent",
 ) -> SharedPolicySchema:
     """Convert an existing PolicyDocument into a SharedPolicySchema."""
-    raw_rules: List[Dict[str, Any]] = []
+    raw_rules: list[dict[str, Any]] = []
     for rule in doc.rules:
         cond = rule.condition
         raw_rules.append(

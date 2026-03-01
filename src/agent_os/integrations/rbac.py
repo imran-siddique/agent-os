@@ -4,13 +4,11 @@ Role-Based Access Control (RBAC) for Agent OS.
 Provides role assignment, policy lookup, and permission checking for agents.
 """
 
-from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional
 
 import yaml
 
-from agent_os.integrations.base import GovernancePolicy, PatternType
+from agent_os.integrations.base import GovernancePolicy
 
 
 class Role(Enum):
@@ -22,7 +20,7 @@ class Role(Enum):
 
 
 # Action permissions per role
-_ROLE_PERMISSIONS: Dict[Role, set[str]] = {
+_ROLE_PERMISSIONS: dict[Role, set[str]] = {
     Role.READER: {"read"},
     Role.WRITER: {"read", "write", "search"},
     Role.ADMIN: {"read", "write", "search", "admin", "delete", "audit"},
@@ -30,7 +28,7 @@ _ROLE_PERMISSIONS: Dict[Role, set[str]] = {
 }
 
 # Default policy templates per role
-_DEFAULT_POLICIES: Dict[Role, GovernancePolicy] = {
+_DEFAULT_POLICIES: dict[Role, GovernancePolicy] = {
     Role.READER: GovernancePolicy(
         max_tool_calls=0,
         allowed_tools=[],
@@ -66,9 +64,9 @@ class RBACManager:
     """
 
     def __init__(self) -> None:
-        self._roles: Dict[str, Role] = {}
-        self._custom_policies: Dict[Role, GovernancePolicy] = {}
-        self._custom_permissions: Dict[Role, set[str]] = {}
+        self._roles: dict[str, Role] = {}
+        self._custom_policies: dict[Role, GovernancePolicy] = {}
+        self._custom_permissions: dict[Role, set[str]] = {}
 
     def assign_role(self, agent_id: str, role: Role) -> None:
         """Assign a role to an agent."""
@@ -99,7 +97,7 @@ class RBACManager:
 
     def to_yaml(self, path: str) -> None:
         """Save current role assignments and custom definitions to a YAML file."""
-        data: Dict[str, object] = {
+        data: dict[str, object] = {
             "assignments": {aid: role.value for aid, role in self._roles.items()},
         }
         if self._custom_policies:
@@ -118,7 +116,7 @@ class RBACManager:
     @classmethod
     def from_yaml(cls, path: str) -> "RBACManager":
         """Load an RBACManager from a YAML file."""
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             data = yaml.safe_load(f)
         if not isinstance(data, dict):
             raise ValueError(f"Expected a YAML mapping, got {type(data).__name__}")

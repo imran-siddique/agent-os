@@ -6,20 +6,20 @@ Wraps OpenAI Assistants API with Agent OS governance.
 Usage:
     from agent_os.integrations import OpenAIKernel
     from openai import OpenAI
-    
+
     client = OpenAI()
     kernel = OpenAIKernel(policy="strict")
-    
+
     # Create assistant as normal
     assistant = client.beta.assistants.create(
         name="Trading Bot",
         instructions="You analyze market data",
         model="gpt-4-turbo"
     )
-    
+
     # Wrap for governance
     governed_assistant = kernel.wrap(assistant, client)
-    
+
     # All runs are now governed!
     thread = governed_assistant.create_thread()
     governed_assistant.add_message(thread.id, "Analyze AAPL")
@@ -33,16 +33,16 @@ Features:
 - Full audit trail
 """
 
-from typing import Any, Optional, Callable, Generator
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-import asyncio
 import json
 import logging
 import random
 import time
+from collections.abc import Generator
+from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Any, Callable, Optional
 
-from .base import BaseIntegration, GovernancePolicy, ExecutionContext
+from .base import BaseIntegration, ExecutionContext, GovernancePolicy
 
 logger = logging.getLogger("agent_os.openai")
 
@@ -172,7 +172,7 @@ class OpenAIKernel(BaseIntegration):
         self._cancelled_runs: set[str] = set()
         self._start_time = time.monotonic()
         self._last_error: Optional[str] = None
-    
+
     def wrap(self, agent: Any, client: Any = None) -> "GovernedAssistant":
         """Wrap an OpenAI Assistant with governance.
 
@@ -205,14 +205,14 @@ class OpenAIKernel(BaseIntegration):
         self.contexts[assistant_id] = ctx
         self._wrapped_assistants[assistant_id] = agent
         self._clients[assistant_id] = client
-        
+
         return GovernedAssistant(
             assistant=agent,
             client=client,
             kernel=self,
             ctx=ctx
         )
-    
+
     def wrap_assistant(self, assistant: Any, client: Any) -> "GovernedAssistant":
         """Wrap an OpenAI Assistant with governance.
 
@@ -235,7 +235,7 @@ class OpenAIKernel(BaseIntegration):
             stacklevel=2,
         )
         return self.wrap(assistant, client)
-    
+
     def unwrap(self, governed_agent: Any) -> Any:
         """Retrieve the original unwrapped assistant.
 
@@ -249,7 +249,7 @@ class OpenAIKernel(BaseIntegration):
         if isinstance(governed_agent, GovernedAssistant):
             return governed_agent._assistant
         return governed_agent
-    
+
     def cancel_run(self, thread_id: str, run_id: str, client: Any):
         """Cancel a run (SIGKILL equivalent).
 
@@ -309,10 +309,10 @@ class OpenAIKernel(BaseIntegration):
 class GovernedAssistant:
     """
     OpenAI Assistant wrapped with Agent OS governance.
-    
+
     All API calls are intercepted for policy enforcement.
     """
-    
+
     def __init__(
         self,
         assistant: Any,
@@ -325,25 +325,25 @@ class GovernedAssistant:
         self._kernel = kernel
         self._ctx = ctx
         self._tool_registry: dict[str, Callable] = {}
-    
+
     def register_tool(self, name: str, func: Callable) -> None:
         """Register a tool function for automatic execution."""
         self._tool_registry[name] = func
-    
+
     @property
     def id(self) -> str:
         """Assistant ID"""
         return self._assistant.id
-    
+
     @property
     def name(self) -> str:
         """Assistant name"""
         return self._assistant.name
-    
+
     # =========================================================================
     # Thread Management
     # =========================================================================
-    
+
     def create_thread(self, **kwargs) -> Any:
         """Create a new conversation thread.
 
@@ -384,11 +384,11 @@ class GovernedAssistant:
         if thread_id in self._ctx.thread_ids:
             self._ctx.thread_ids.remove(thread_id)
         return result.deleted
-    
+
     # =========================================================================
     # Message Management
     # =========================================================================
-    
+
     def add_message(
         self,
         thread_id: str,
@@ -417,7 +417,7 @@ class GovernedAssistant:
         allowed, reason = self._kernel.pre_execute(self._ctx, content)
         if not allowed:
             raise PolicyViolationError(f"Message blocked: {reason}")
-        
+
         message = self._client.beta.threads.messages.create(
             thread_id=thread_id,
             role=role,
@@ -425,7 +425,7 @@ class GovernedAssistant:
             **kwargs
         )
         return message
-    
+
     def list_messages(self, thread_id: str, **kwargs) -> list:
         """List messages in a thread.
 
@@ -440,11 +440,11 @@ class GovernedAssistant:
             thread_id=thread_id,
             **kwargs
         )
-    
+
     # =========================================================================
     # Run Execution (Core Governance)
     # =========================================================================
-    
+
     def run(
         self,
         thread_id: str,
@@ -455,20 +455,20 @@ class GovernedAssistant:
     ) -> Any:
         """
         Execute a governed run.
-        
+
         This is the primary method for executing the assistant.
         All tool calls and outputs are validated against policy.
-        
+
         Args:
             thread_id: Thread to run on
             instructions: Optional override instructions
             tools: Optional tools to enable
             poll_interval: How often to check run status
             **kwargs: Additional run parameters
-            
+
         Returns:
             Completed run object
-            
+
         Raises:
             PolicyViolationError: If policy is violated
             RunCancelledException: If run was SIGKILL'd
@@ -478,11 +478,11 @@ class GovernedAssistant:
             allowed, reason = self._kernel.pre_execute(self._ctx, instructions)
             if not allowed:
                 raise PolicyViolationError(f"Instructions blocked: {reason}")
-        
+
         # Validate tools against policy
         if tools:
             self._validate_tools(tools)
-        
+
         # Create run
         run_kwargs = {
             "thread_id": thread_id,
@@ -493,13 +493,13 @@ class GovernedAssistant:
             run_kwargs["instructions"] = instructions
         if tools:
             run_kwargs["tools"] = tools
-        
+
         run = self._client.beta.threads.runs.create(**run_kwargs)
         self._ctx.run_ids.append(run.id)
-        
+
         # Poll until complete (with governance checks)
         return self._poll_run(thread_id, run.id, poll_interval)
-    
+
     def run_stream(
         self,
         thread_id: str,
@@ -508,7 +508,7 @@ class GovernedAssistant:
     ) -> Generator:
         """
         Stream a governed run.
-        
+
         Yields events as they arrive, with real-time policy checks.
         """
         # Pre-check
@@ -516,7 +516,7 @@ class GovernedAssistant:
             allowed, reason = self._kernel.pre_execute(self._ctx, instructions)
             if not allowed:
                 raise PolicyViolationError(f"Instructions blocked: {reason}")
-        
+
         # Create streaming run
         with self._client.beta.threads.runs.stream(
             thread_id=thread_id,
@@ -529,10 +529,10 @@ class GovernedAssistant:
                 if hasattr(event, 'data') and hasattr(event.data, 'id'):
                     if self._kernel.is_cancelled(event.data.id):
                         raise RunCancelledException("Run was cancelled (SIGKILL)")
-                
+
                 # Yield event
                 yield event
-    
+
     def _poll_run(
         self,
         thread_id: str,
@@ -546,17 +546,17 @@ class GovernedAssistant:
             # Check for SIGKILL
             if self._kernel.is_cancelled(run_id):
                 raise RunCancelledException("Run was cancelled (SIGKILL)")
-            
+
             run = self._client.beta.threads.runs.retrieve(
                 thread_id=thread_id,
                 run_id=run_id
             )
-            
+
             # Update token counts
             if hasattr(run, 'usage') and run.usage:
                 self._ctx.prompt_tokens += run.usage.prompt_tokens or 0
                 self._ctx.completion_tokens += run.usage.completion_tokens or 0
-                
+
                 # Check token limit
                 total = self._ctx.prompt_tokens + self._ctx.completion_tokens
                 if total > self._kernel.policy.max_tokens:
@@ -564,33 +564,33 @@ class GovernedAssistant:
                     raise PolicyViolationError(
                         f"Token limit exceeded: {total} > {self._kernel.policy.max_tokens}"
                     )
-            
+
             # Handle different statuses
             if run.status == "completed":
                 self._kernel.post_execute(self._ctx, run)
                 return run
-            
+
             elif run.status == "requires_action":
                 # Tool calls need approval
                 run = self._handle_tool_calls(thread_id, run)
-            
+
             elif run.status in ["failed", "cancelled", "expired"]:
                 return run
-            
+
             elif run.status in ["queued", "in_progress"]:
                 time.sleep(poll_interval)
-            
+
             else:
                 # Unknown status
                 time.sleep(poll_interval)
-    
+
     def _handle_tool_calls(self, thread_id: str, run: Any) -> Any:
         """
         Handle tool calls with policy validation.
         """
         tool_calls = run.required_action.submit_tool_outputs.tool_calls
         tool_outputs = []
-        
+
         for tool_call in tool_calls:
             # Record tool call
             call_info = {
@@ -602,14 +602,14 @@ class GovernedAssistant:
             }
             self._ctx.function_calls.append(call_info)
             self._ctx.tool_calls.append(call_info)
-            
+
             # Check tool call count
             if len(self._ctx.tool_calls) > self._kernel.policy.max_tool_calls:
                 self._kernel.cancel_run(thread_id, run.id, self._client)
                 raise PolicyViolationError(
                     f"Tool call limit exceeded: {len(self._ctx.tool_calls)} > {self._kernel.policy.max_tool_calls}"
                 )
-            
+
             # Validate function name
             if hasattr(tool_call, 'function'):
                 func_name = tool_call.function.name
@@ -619,7 +619,7 @@ class GovernedAssistant:
                         raise PolicyViolationError(
                             f"Tool not allowed: {func_name}"
                         )
-            
+
             # Check human approval requirement
             if self._kernel.policy.require_human_approval:
                 tool_outputs.append({
@@ -656,28 +656,28 @@ class GovernedAssistant:
                 "tool_call_id": tool_call.id,
                 "output": output
             })
-        
+
         # Submit outputs
         return self._client.beta.threads.runs.submit_tool_outputs(
             thread_id=thread_id,
             run_id=run.id,
             tool_outputs=tool_outputs
         )
-    
+
     def _validate_tools(self, tools: list):
         """Validate tools against policy"""
         if not self._kernel.policy.allowed_tools:
             return  # No restrictions
-        
+
         for tool in tools:
             tool_type = tool.get("type") if isinstance(tool, dict) else getattr(tool, "type", None)
             if tool_type and tool_type not in self._kernel.policy.allowed_tools:
                 raise PolicyViolationError(f"Tool type not allowed: {tool_type}")
-    
+
     # =========================================================================
     # Signal Handling
     # =========================================================================
-    
+
     def sigkill(self, thread_id: str, run_id: str):
         """Send SIGKILL to a running assistant — immediately cancels the run.
 
@@ -706,11 +706,11 @@ class GovernedAssistant:
             run_id: The run to stop.
         """
         self._kernel.cancel_run(thread_id, run_id, self._client)
-    
+
     # =========================================================================
     # Utility
     # =========================================================================
-    
+
     def get_context(self) -> AssistantContext:
         """Return the execution context containing the full audit trail.
 

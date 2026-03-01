@@ -17,10 +17,10 @@ Example:
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from dataclasses import dataclass
+from typing import Any
 
-from agent_os.integrations.base import GovernancePolicy, PatternType
+from agent_os.integrations.base import GovernancePolicy
 
 
 @dataclass
@@ -46,7 +46,7 @@ class TrustRoot:
 
     def __init__(
         self,
-        policies: List[GovernancePolicy],
+        policies: list[GovernancePolicy],
         max_escalation_depth: int = 3,
     ) -> None:
         if not policies:
@@ -58,7 +58,7 @@ class TrustRoot:
     # Public API
     # ------------------------------------------------------------------
 
-    def validate_action(self, action: Dict[str, Any]) -> TrustDecision:
+    def validate_action(self, action: dict[str, Any]) -> TrustDecision:
         """Deterministic policy check against all registered policies.
 
         Args:
@@ -97,7 +97,7 @@ class TrustRoot:
             policy_name="aggregate",
         )
 
-    def validate_supervisor(self, supervisor_config: Dict[str, Any]) -> bool:
+    def validate_supervisor(self, supervisor_config: dict[str, Any]) -> bool:
         """Verify a supervisor agent meets trust requirements.
 
         A supervisor at any level must declare a ``name`` and ``level``.

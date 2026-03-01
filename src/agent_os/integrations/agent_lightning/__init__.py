@@ -19,10 +19,10 @@ Example:
     >>> reward_fn = PolicyReward(kernel, base_reward_fn=accuracy)
 """
 
-from .runner import GovernedRunner
-from .reward import PolicyReward, policy_penalty
 from .emitter import FlightRecorderEmitter
 from .environment import GovernedEnvironment
+from .reward import PolicyReward, policy_penalty
+from .runner import GovernedRunner
 
 __all__ = [
     "GovernedRunner",

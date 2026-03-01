@@ -15,9 +15,9 @@ Usage:
 
 import logging
 import time
-from typing import Any, Optional, List, Callable
+from typing import Any, Callable, Optional
 
-from .base import BaseIntegration, GovernancePolicy, ExecutionContext, PolicyViolationError
+from .base import BaseIntegration, ExecutionContext, GovernancePolicy, PolicyViolationError
 
 logger = logging.getLogger("agent_os.autogen")
 
@@ -25,14 +25,14 @@ logger = logging.getLogger("agent_os.autogen")
 class AutoGenKernel(BaseIntegration):
     """
     AutoGen adapter for Agent OS.
-    
+
     Supports:
     - AssistantAgent
     - UserProxyAgent
     - GroupChat
     - Conversation flows
     """
-    
+
     def __init__(
         self,
         policy: Optional[GovernancePolicy] = None,
@@ -74,7 +74,7 @@ class AutoGenKernel(BaseIntegration):
         """
         return self.govern(agent)[0]
 
-    def govern(self, *agents: Any) -> List[Any]:
+    def govern(self, *agents: Any) -> list[Any]:
         """Add governance to one or more AutoGen agents.
 
         Monkey-patches ``initiate_chat``, ``generate_reply``, and
@@ -98,30 +98,30 @@ class AutoGenKernel(BaseIntegration):
             >>> assistant.initiate_chat(user_proxy, message="hello")
         """
         governed = []
-        
+
         for agent in agents:
             agent_id = getattr(agent, 'name', f"autogen-{id(agent)}")
             ctx = self.create_context(agent_id)
-            
+
             # Store reference
             self._governed_agents[agent_id] = agent
             self._stopped[agent_id] = False
-            
+
             # Store original methods before wrapping
             self._original_methods[agent_id] = {}
             for method_name in ('initiate_chat', 'generate_reply', 'receive'):
                 if hasattr(agent, method_name):
                     self._original_methods[agent_id][method_name] = getattr(agent, method_name)
-            
+
             # Wrap key methods
             self._wrap_initiate_chat(agent, ctx, agent_id)
             self._wrap_generate_reply(agent, ctx, agent_id)
             self._wrap_receive(agent, ctx, agent_id)
-            
+
             governed.append(agent)
-        
+
         return governed
-    
+
     def _wrap_initiate_chat(self, agent: Any, ctx: ExecutionContext, agent_id: str):
         """Wrap ``initiate_chat`` with pre-/post-execution governance.
 
@@ -132,10 +132,10 @@ class AutoGenKernel(BaseIntegration):
         """
         if not hasattr(agent, 'initiate_chat'):
             return
-        
+
         original = agent.initiate_chat
         kernel = self
-        
+
         def governed_initiate_chat(recipient, message=None, **kwargs):
             if kernel._stopped.get(agent_id):
                 raise PolicyViolationError(f"Agent '{agent_id}' is stopped (SIGSTOP)")
@@ -167,9 +167,9 @@ class AutoGenKernel(BaseIntegration):
 
             kernel.post_execute(ctx, result)
             return result
-        
+
         agent.initiate_chat = governed_initiate_chat
-    
+
     def _wrap_generate_reply(self, agent: Any, ctx: ExecutionContext, agent_id: str):
         """Wrap ``generate_reply`` with message interception and governance.
 
@@ -185,10 +185,10 @@ class AutoGenKernel(BaseIntegration):
         """
         if not hasattr(agent, 'generate_reply'):
             return
-        
+
         original = agent.generate_reply
         kernel = self
-        
+
         def governed_generate_reply(messages=None, sender=None, **kwargs):
             if kernel._stopped.get(agent_id):
                 return f"[BLOCKED: Agent '{agent_id}' is stopped (SIGSTOP)]"
@@ -203,7 +203,7 @@ class AutoGenKernel(BaseIntegration):
                 kernel._last_error = str(exc)
                 if kernel.on_error:
                     kernel.on_error(exc, agent_id)
-                return f"[ERROR: governance check failed]"
+                return "[ERROR: governance check failed]"
 
             try:
                 result = original(messages=messages, sender=sender, **kwargs)
@@ -219,9 +219,9 @@ class AutoGenKernel(BaseIntegration):
                 return f"[BLOCKED: {reason}]"
 
             return result
-        
+
         agent.generate_reply = governed_generate_reply
-    
+
     def _wrap_receive(self, agent: Any, ctx: ExecutionContext, agent_id: str):
         """Wrap ``receive`` with inbound message governance.
 
@@ -236,10 +236,10 @@ class AutoGenKernel(BaseIntegration):
         """
         if not hasattr(agent, 'receive'):
             return
-        
+
         original = agent.receive
         kernel = self
-        
+
         def governed_receive(message, sender, **kwargs):
             if kernel._stopped.get(agent_id):
                 raise PolicyViolationError(f"Agent '{agent_id}' is stopped (SIGSTOP)")
@@ -271,9 +271,9 @@ class AutoGenKernel(BaseIntegration):
 
             kernel.post_execute(ctx, result)
             return result
-        
+
         agent.receive = governed_receive
-    
+
     def unwrap(self, governed_agent: Any) -> Any:
         """Restore original methods on a governed AutoGen agent.
 
@@ -288,16 +288,16 @@ class AutoGenKernel(BaseIntegration):
         """
         agent_id = getattr(governed_agent, 'name', f"autogen-{id(governed_agent)}")
         originals = self._original_methods.get(agent_id, {})
-        
+
         for method_name, original_method in originals.items():
             setattr(governed_agent, method_name, original_method)
-        
+
         self._governed_agents.pop(agent_id, None)
         self._original_methods.pop(agent_id, None)
         self._stopped.pop(agent_id, None)
-        
+
         return governed_agent
-    
+
     def signal(self, agent_id: str, signal: str):
         """Send a POSIX-style signal to a governed agent.
 
@@ -321,7 +321,7 @@ class AutoGenKernel(BaseIntegration):
             if agent_id in self._governed_agents:
                 agent = self._governed_agents[agent_id]
                 self.unwrap(agent)
-        
+
         super().signal(agent_id, signal)
 
     def health_check(self) -> dict[str, Any]:
@@ -348,7 +348,7 @@ def govern(
     policy: Optional[GovernancePolicy] = None,
     timeout_seconds: float = 300.0,
     on_error: Optional[Callable[[Exception, str], Any]] = None,
-) -> List[Any]:
+) -> list[Any]:
     """Convenience function to add governance to AutoGen agents.
 
     Args:

@@ -20,85 +20,86 @@ Usage:
     from agent_os.integrations import LangChainKernel
     kernel = LangChainKernel()
     governed_chain = kernel.wrap(my_chain)
-    
+
     # LlamaIndex
     from agent_os.integrations import LlamaIndexKernel
     kernel = LlamaIndexKernel()
     governed_engine = kernel.wrap(my_query_engine)
-    
+
     # OpenAI Assistants
     from agent_os.integrations import OpenAIKernel
     kernel = OpenAIKernel()
     governed = kernel.wrap(assistant, client)
-    
+
     # Semantic Kernel
     from agent_os.integrations import SemanticKernelWrapper
     governed = SemanticKernelWrapper().wrap(sk_kernel)
 """
 
-from agent_os.integrations.langchain_adapter import LangChainKernel
-from agent_os.integrations.llamaindex_adapter import LlamaIndexKernel
-from agent_os.integrations.crewai_adapter import CrewAIKernel
-from agent_os.integrations.autogen_adapter import AutoGenKernel
-from agent_os.integrations.openai_adapter import OpenAIKernel, GovernedAssistant
-from agent_os.integrations.anthropic_adapter import AnthropicKernel, GovernedAnthropicClient
-from agent_os.integrations.gemini_adapter import GeminiKernel, GovernedGeminiModel
-from agent_os.integrations.mistral_adapter import MistralKernel, GovernedMistralClient
-from agent_os.integrations.semantic_kernel_adapter import (
-    SemanticKernelWrapper,
-    GovernedSemanticKernel,
-)
-from agent_os.integrations.guardrails_adapter import GuardrailsKernel
-from agent_os.integrations.google_adk_adapter import GoogleADKKernel
-from agent_os.integrations.a2a_adapter import A2AGovernanceAdapter, A2APolicy, A2AEvaluation
-from agent_os.integrations.pydantic_ai_adapter import PydanticAIKernel
-from agent_os.integrations.llamafirewall import (
-    LlamaFirewallAdapter,
-    FirewallMode,
-    FirewallVerdict,
-    FirewallResult,
-)
-from .base import (
-    AsyncGovernedWrapper,
-    BaseIntegration,
-    DriftResult,
-    GovernancePolicy,
-    ToolCallInterceptor,
-    ToolCallRequest,
-    ToolCallResult,
-    PolicyInterceptor,
-    CompositeInterceptor,
-    BoundedSemaphore,
-)
-from .token_budget import TokenBudgetTracker, TokenBudgetStatus
-from .dry_run import DryRunPolicy, DryRunResult, DryRunDecision, DryRunCollector
-from .rate_limiter import RateLimiter, RateLimitStatus
-from .templates import PolicyTemplates
-from .webhooks import WebhookConfig, WebhookEvent, WebhookNotifier, DeliveryRecord
-from .policy_compose import compose_policies, PolicyHierarchy, override_policy
-from .health import HealthChecker, HealthReport, HealthStatus, ComponentHealth
-from .logging import GovernanceLogger, JSONFormatter, get_logger
-from .config import AgentOSConfig, get_config, reset_config
 from agent_os.exceptions import (
+    AdapterNotFoundError,
+    AdapterTimeoutError,
     AgentOSError,
-    PolicyError,
-    PolicyViolationError,
-    PolicyDeniedError,
-    PolicyTimeoutError,
     BudgetError,
     BudgetExceededError,
     BudgetWarningError,
+    ConfigurationError,
+    CredentialExpiredError,
     IdentityError,
     IdentityVerificationError,
-    CredentialExpiredError,
     IntegrationError,
-    AdapterNotFoundError,
-    AdapterTimeoutError,
-    ConfigurationError,
     InvalidPolicyError,
     MissingConfigError,
+    PolicyDeniedError,
+    PolicyError,
+    PolicyTimeoutError,
+    PolicyViolationError,
     RateLimitError,
 )
+from agent_os.integrations.a2a_adapter import A2AEvaluation, A2AGovernanceAdapter, A2APolicy
+from agent_os.integrations.anthropic_adapter import AnthropicKernel, GovernedAnthropicClient
+from agent_os.integrations.autogen_adapter import AutoGenKernel
+from agent_os.integrations.crewai_adapter import CrewAIKernel
+from agent_os.integrations.gemini_adapter import GeminiKernel, GovernedGeminiModel
+from agent_os.integrations.google_adk_adapter import GoogleADKKernel
+from agent_os.integrations.guardrails_adapter import GuardrailsKernel
+from agent_os.integrations.langchain_adapter import LangChainKernel
+from agent_os.integrations.llamafirewall import (
+    FirewallMode,
+    FirewallResult,
+    FirewallVerdict,
+    LlamaFirewallAdapter,
+)
+from agent_os.integrations.llamaindex_adapter import LlamaIndexKernel
+from agent_os.integrations.mistral_adapter import GovernedMistralClient, MistralKernel
+from agent_os.integrations.openai_adapter import GovernedAssistant, OpenAIKernel
+from agent_os.integrations.pydantic_ai_adapter import PydanticAIKernel
+from agent_os.integrations.semantic_kernel_adapter import (
+    GovernedSemanticKernel,
+    SemanticKernelWrapper,
+)
+
+from .base import (
+    AsyncGovernedWrapper,
+    BaseIntegration,
+    BoundedSemaphore,
+    CompositeInterceptor,
+    DriftResult,
+    GovernancePolicy,
+    PolicyInterceptor,
+    ToolCallInterceptor,
+    ToolCallRequest,
+    ToolCallResult,
+)
+from .config import AgentOSConfig, get_config, reset_config
+from .dry_run import DryRunCollector, DryRunDecision, DryRunPolicy, DryRunResult
+from .health import ComponentHealth, HealthChecker, HealthReport, HealthStatus
+from .logging import GovernanceLogger, JSONFormatter, get_logger
+from .policy_compose import PolicyHierarchy, compose_policies, override_policy
+from .rate_limiter import RateLimiter, RateLimitStatus
+from .templates import PolicyTemplates
+from .token_budget import TokenBudgetStatus, TokenBudgetTracker
+from .webhooks import DeliveryRecord, WebhookConfig, WebhookEvent, WebhookNotifier
 
 __all__ = [
     # Base
@@ -119,7 +120,7 @@ __all__ = [
     # LlamaIndex
     "LlamaIndexKernel",
     # CrewAI
-    "CrewAIKernel", 
+    "CrewAIKernel",
     # AutoGen
     "AutoGenKernel",
     # OpenAI Assistants

@@ -31,7 +31,7 @@ import logging
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Protocol, runtime_checkable
+from typing import Any, Callable, Protocol, runtime_checkable
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +61,7 @@ class ValidatorProtocol(Protocol):
     @property
     def name(self) -> str: ...
 
-    def validate(self, value: str, metadata: Optional[Dict[str, Any]] = None) -> Any: ...
+    def validate(self, value: str, metadata: dict[str, Any] | None = None) -> Any: ...
 
 
 @dataclass
@@ -71,11 +71,11 @@ class ValidationOutcome:
     validator_name: str
     passed: bool
     error_message: str = ""
-    fixed_value: Optional[str] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    fixed_value: str | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
-        d: Dict[str, Any] = {
+    def to_dict(self) -> dict[str, Any]:
+        d: dict[str, Any] = {
             "validator": self.validator_name,
             "passed": self.passed,
         }
@@ -91,17 +91,17 @@ class ValidationResult:
     """Aggregated result across all validators."""
 
     passed: bool
-    outcomes: List[ValidationOutcome]
+    outcomes: list[ValidationOutcome]
     original_value: str
     final_value: str
     action_taken: FailAction
     timestamp: float = field(default_factory=time.time)
 
     @property
-    def failed_validators(self) -> List[str]:
+    def failed_validators(self) -> list[str]:
         return [o.validator_name for o in self.outcomes if not o.passed]
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "passed": self.passed,
             "action": self.action_taken.value,
@@ -118,7 +118,7 @@ class ValidationResult:
 class RegexValidator:
     """Block content matching regex patterns."""
 
-    def __init__(self, patterns: List[str], validator_name: str = "regex"):
+    def __init__(self, patterns: list[str], validator_name: str = "regex"):
         import re
 
         self._patterns = [re.compile(p, re.IGNORECASE) for p in patterns]
@@ -128,8 +128,7 @@ class RegexValidator:
     def name(self) -> str:
         return self._name
 
-    def validate(self, value: str, metadata: Optional[Dict[str, Any]] = None) -> ValidationOutcome:
-        import re
+    def validate(self, value: str, metadata: dict[str, Any] | None = None) -> ValidationOutcome:
 
         for pattern in self._patterns:
             match = pattern.search(value)
@@ -153,7 +152,7 @@ class LengthValidator:
     def name(self) -> str:
         return self._name
 
-    def validate(self, value: str, metadata: Optional[Dict[str, Any]] = None) -> ValidationOutcome:
+    def validate(self, value: str, metadata: dict[str, Any] | None = None) -> ValidationOutcome:
         if len(value) > self._max_length:
             return ValidationOutcome(
                 validator_name=self._name,
@@ -167,7 +166,7 @@ class LengthValidator:
 class KeywordValidator:
     """Block content containing specific keywords."""
 
-    def __init__(self, blocked_keywords: List[str], validator_name: str = "keywords"):
+    def __init__(self, blocked_keywords: list[str], validator_name: str = "keywords"):
         self._keywords = [k.lower() for k in blocked_keywords]
         self._name = validator_name
 
@@ -175,7 +174,7 @@ class KeywordValidator:
     def name(self) -> str:
         return self._name
 
-    def validate(self, value: str, metadata: Optional[Dict[str, Any]] = None) -> ValidationOutcome:
+    def validate(self, value: str, metadata: dict[str, Any] | None = None) -> ValidationOutcome:
         value_lower = value.lower()
         for kw in self._keywords:
             if kw in value_lower:
@@ -202,14 +201,14 @@ class GuardrailsKernel:
 
     def __init__(
         self,
-        validators: Optional[List[Any]] = None,
+        validators: list[Any] | None = None,
         on_fail: str = "block",
-        on_violation: Optional[Callable[[ValidationResult], None]] = None,
+        on_violation: Callable[[ValidationResult], None] | None = None,
     ):
-        self._validators: List[Any] = validators or []
+        self._validators: list[Any] = validators or []
         self.on_fail = FailAction(on_fail)
         self.on_violation = on_violation or self._default_violation_handler
-        self._history: List[ValidationResult] = []
+        self._history: list[ValidationResult] = []
 
     def _default_violation_handler(self, result: ValidationResult) -> None:
         for name in result.failed_validators:
@@ -219,7 +218,7 @@ class GuardrailsKernel:
         """Add a validator to the chain."""
         self._validators.append(validator)
 
-    def _run_validators(self, value: str) -> List[ValidationOutcome]:
+    def _run_validators(self, value: str) -> list[ValidationOutcome]:
         """Run all validators against a value."""
         outcomes = []
         for v in self._validators:
@@ -294,11 +293,11 @@ class GuardrailsKernel:
         """Validate agent output (response text, tool results, etc.)."""
         return self.validate(text)
 
-    def get_history(self) -> List[ValidationResult]:
+    def get_history(self) -> list[ValidationResult]:
         """Return all validation results."""
         return list(self._history)
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Return guardrails statistics."""
         total = len(self._history)
         passed = sum(1 for r in self._history if r.passed)

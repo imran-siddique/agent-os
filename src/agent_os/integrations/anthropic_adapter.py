@@ -36,7 +36,7 @@ import logging
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from .base import BaseIntegration, ExecutionContext, GovernancePolicy
 
@@ -108,7 +108,7 @@ class AnthropicKernel(BaseIntegration):
 
     def __init__(
         self,
-        policy: Optional[GovernancePolicy] = None,
+        policy: GovernancePolicy | None = None,
         max_retries: int = 3,
         timeout_seconds: float = 300.0,
     ) -> None:
@@ -125,9 +125,9 @@ class AnthropicKernel(BaseIntegration):
         self._wrapped_clients: dict[int, Any] = {}
         self._cancelled_requests: set[str] = set()
         self._start_time = time.monotonic()
-        self._last_error: Optional[str] = None
+        self._last_error: str | None = None
 
-    def wrap(self, client: Any) -> "GovernedAnthropicClient":
+    def wrap(self, client: Any) -> GovernedAnthropicClient:
         """Wrap an Anthropic client with governance.
 
         Args:
@@ -399,7 +399,7 @@ class GovernedAnthropicClient:
 
 def wrap_client(
     client: Any,
-    policy: Optional[GovernancePolicy] = None,
+    policy: GovernancePolicy | None = None,
 ) -> GovernedAnthropicClient:
     """Quick wrapper for Anthropic clients.
 

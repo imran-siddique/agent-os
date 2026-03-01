@@ -7,8 +7,6 @@ new code can use the declarative policy format.
 
 from __future__ import annotations
 
-from typing import Union
-
 from ..integrations.base import GovernancePolicy, PatternType
 from .schema import (
     PolicyAction,
@@ -138,7 +136,7 @@ def document_to_governance(doc: PolicyDocument) -> GovernancePolicy:
     max_tool_calls = doc.defaults.max_tool_calls
     confidence_threshold = doc.defaults.confidence_threshold
     allowed_tools: list[str] = []
-    blocked_patterns: list[Union[str, tuple[str, PatternType]]] = []
+    blocked_patterns: list[str | tuple[str, PatternType]] = []
 
     for rule in doc.rules:
         cond = rule.condition

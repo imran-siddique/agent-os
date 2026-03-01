@@ -37,6 +37,7 @@ __author__ = "Imran Siddique"
 __license__ = "MIT"
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 # ============================================================================
@@ -47,8 +48,8 @@ logger = logging.getLogger(__name__)
 try:
     from agent_primitives import (
         AgentFailure,
-        FailureType,
         FailureSeverity,
+        FailureType,
     )
     _PRIMITIVES_AVAILABLE = True
 except ImportError:
@@ -124,8 +125,8 @@ except ImportError:
 # EMK - Episodic Memory Kernel
 try:
     from emk import (
-        EpisodicMemory,
         Episode,
+        EpisodicMemory,
         MemoryStore,
     )
     _EMK_AVAILABLE = True
@@ -140,12 +141,12 @@ except ImportError:
 try:
     from iatp import (
         CapabilityManifest,
-        TrustLevel,
-        SidecarProxy,
-        TypedPipe,
         Pipeline,
         PipeMessage,
         PolicyCheckPipe,
+        SidecarProxy,
+        TrustLevel,
+        TypedPipe,
     )
     _IATP_AVAILABLE = True
 except ImportError:
@@ -154,8 +155,8 @@ except ImportError:
 # AMB - Agent Message Bus
 try:
     from amb_core import (
-        MessageBus,
         Message,
+        MessageBus,
         Topic,
     )
     _AMB_AVAILABLE = True
@@ -165,9 +166,9 @@ except ImportError:
 # ATR - Agent Tool Registry
 try:
     from atr import (
-        ToolRegistry,
         Tool,
         ToolExecutor,
+        ToolRegistry,
     )
     _ATR_AVAILABLE = True
 except ImportError:
@@ -179,48 +180,42 @@ except ImportError:
 
 try:
     from agent_control_plane import (
+        AgentContext,
         # Main Interface
         AgentControlPlane,
-        create_control_plane,
-        
+        AgentKernelPanic,
         # Kernel Architecture (v0.3.0)
         AgentSignal,
-        SignalDispatcher,
-        AgentKernelPanic,
-        SignalAwareAgent,
-        kill_agent,
-        pause_agent,
-        resume_agent,
-        policy_violation,
-        
         # Agent VFS
         AgentVFS,
-        VFSBackend,
-        MemoryBackend,
-        FileMode,
-        create_agent_vfs,
-        
-        # Kernel/User Space
-        KernelSpace,
-        AgentContext,
-        ProtectionRing,
-        SyscallType,
-        SyscallRequest,
-        SyscallResult,
-        KernelState,
-        user_space_execution,
-        create_kernel,
-        
-        # Policy Engine
-        PolicyEngine,
-        PolicyRule,
-        
-        # Flight Recorder
-        FlightRecorder,
-        
         # Execution
         ExecutionEngine,
         ExecutionStatus,
+        FileMode,
+        # Flight Recorder
+        FlightRecorder,
+        # Kernel/User Space
+        KernelSpace,
+        KernelState,
+        MemoryBackend,
+        # Policy Engine
+        PolicyEngine,
+        PolicyRule,
+        ProtectionRing,
+        SignalAwareAgent,
+        SignalDispatcher,
+        SyscallRequest,
+        SyscallResult,
+        SyscallType,
+        VFSBackend,
+        create_agent_vfs,
+        create_control_plane,
+        create_kernel,
+        kill_agent,
+        pause_agent,
+        policy_violation,
+        resume_agent,
+        user_space_execution,
     )
     _CONTROL_PLANE_AVAILABLE = True
 except ImportError:
@@ -233,9 +228,9 @@ except ImportError:
 # SCAK - Self-Correcting Agent Kernel
 try:
     from agent_kernel import (
-        SelfCorrectingKernel,
-        LazinessDetector,
         DifferentialAuditor,
+        LazinessDetector,
+        SelfCorrectingKernel,
     )
     _SCAK_AVAILABLE = True
 except ImportError:
@@ -244,101 +239,104 @@ except ImportError:
 # Mute Agent (external module)
 try:
     from mute_agent import (
+        ExecutionAgent,
         MuteAgent,
         ReasoningAgent,
-        ExecutionAgent,
     )
     _MUTE_AGENT_AVAILABLE = True
 except ImportError:
     _MUTE_AGENT_AVAILABLE = False
 
 # Mute Agent Primitives — Face/Hands kernel-level decorators (always available)
-from agent_os.mute import (
-    face_agent,
-    mute_agent,
-    pipe,
-    ActionStep,
-    ActionStatus,
-    ExecutionPlan,
-    StepResult,
-    PipelineResult,
-    CapabilityViolation,
-)
-
-# Semantic Policy Engine — intent-based enforcement (always available)
-from agent_os.semantic_policy import (
-    SemanticPolicyEngine,
-    IntentCategory,
-    IntentClassification,
-    PolicyDenied,
-)
-
-# Prompt Injection Detection — input screening (always available)
-from agent_os.prompt_injection import (
-    PromptInjectionDetector,
-    InjectionType,
-    ThreatLevel,
-    DetectionResult,
-    DetectionConfig,
-)
-
-# MCP Security — tool poisoning defense (always available)
-from agent_os.mcp_security import (
-    MCPSecurityScanner,
-    MCPThreatType,
-    MCPSeverity,
-    MCPThreat,
-    ToolFingerprint,
-    ScanResult,
-)
-
-# LlamaFirewall Integration — defense-in-depth with Meta's LlamaFirewall
-from agent_os.integrations.llamafirewall import (
-    LlamaFirewallAdapter,
-    FirewallMode,
-    FirewallVerdict,
-    FirewallResult,
-)
-
-# Context Budget Scheduler — token budget as a kernel primitive (always available)
-from agent_os.context_budget import (
-    ContextScheduler,
-    ContextWindow,
-    ContextPriority,
-    AgentSignal,
-    BudgetExceeded,
-)
-
-# ============================================================================
-# Local Components (Always Available)
-# ============================================================================
-
-# Stateless Kernel (MCP June 2026)
-from agent_os.stateless import (
-    StatelessKernel,
-    ExecutionContext,
-    ExecutionRequest,
-    ExecutionResult,
-    MemoryBackend as StatelessMemoryBackend,
-    stateless_execute,
+from agent_os.agents_compat import (
+    AgentConfig as AgentsConfig,  # Renamed to avoid conflict
 )
 
 # AGENTS.md Compatibility
 from agent_os.agents_compat import (
-    AgentsParser,
-    AgentConfig as AgentsConfig,  # Renamed to avoid conflict
     AgentSkill,
+    AgentsParser,
     discover_agents,
 )
 
 # Base Agent Classes
 from agent_os.base_agent import (
-    BaseAgent,
-    ToolUsingAgent,
     AgentConfig,
     AuditEntry,
+    BaseAgent,
     PolicyDecision,
+    ToolUsingAgent,
     TypedResult,
+)
+
+# Context Budget Scheduler — token budget as a kernel primitive (always available)
+from agent_os.context_budget import (
+    AgentSignal,
+    BudgetExceeded,
+    ContextPriority,
+    ContextScheduler,
+    ContextWindow,
+)
+
+# LlamaFirewall Integration — defense-in-depth with Meta's LlamaFirewall
+from agent_os.integrations.llamafirewall import (
+    FirewallMode,
+    FirewallResult,
+    FirewallVerdict,
+    LlamaFirewallAdapter,
+)
+
+# MCP Security — tool poisoning defense (always available)
+from agent_os.mcp_security import (
+    MCPSecurityScanner,
+    MCPSeverity,
+    MCPThreat,
+    MCPThreatType,
+    ScanResult,
+    ToolFingerprint,
+)
+from agent_os.mute import (
+    ActionStatus,
+    ActionStep,
+    CapabilityViolation,
+    ExecutionPlan,
+    PipelineResult,
+    StepResult,
+    face_agent,
+    mute_agent,
+    pipe,
+)
+
+# Prompt Injection Detection — input screening (always available)
+from agent_os.prompt_injection import (
+    DetectionConfig,
+    DetectionResult,
+    InjectionType,
+    PromptInjectionDetector,
+    ThreatLevel,
+)
+
+# Semantic Policy Engine — intent-based enforcement (always available)
+from agent_os.semantic_policy import (
+    IntentCategory,
+    IntentClassification,
+    PolicyDenied,
+    SemanticPolicyEngine,
+)
+
+# ============================================================================
+# Local Components (Always Available)
+# ============================================================================
+# Stateless Kernel (MCP June 2026)
+from agent_os.stateless import (
+    ExecutionContext,
+    ExecutionRequest,
+    ExecutionResult,
+    StatelessKernel,
+    stateless_execute,
+)
+from agent_os.stateless import (
+    MemoryBackend as StatelessMemoryBackend,
 )
 
 # ============================================================================
@@ -367,7 +365,7 @@ def check_installation() -> None:
         status = "✓ Installed" if available else "✗ Not installed"
         logger.info(f"  {pkg:15} {status}")
     logger.info("=" * 40)
-    logger.info(f"\nInstall missing packages with:")
+    logger.info("\nInstall missing packages with:")
     logger.info("  pip install agent-os-kernel[full]")
 
 
@@ -381,7 +379,7 @@ __all__ = [
     "__author__",
     "AVAILABLE_PACKAGES",
     "check_installation",
-    
+
     # Layer 1: Primitives
     "AgentFailure",
     "FailureType",
@@ -394,7 +392,7 @@ __all__ = [
     "EpisodicMemory",
     "Episode",
     "MemoryStore",
-    
+
     # Layer 2: Infrastructure
     "CapabilityManifest",
     "TrustLevel",
@@ -409,7 +407,7 @@ __all__ = [
     "ToolRegistry",
     "Tool",
     "ToolExecutor",
-    
+
     # Layer 3: Framework
     "AgentControlPlane",
     "create_control_plane",
@@ -440,7 +438,7 @@ __all__ = [
     "FlightRecorder",
     "ExecutionEngine",
     "ExecutionStatus",
-    
+
     # Layer 4: Intelligence
     "SelfCorrectingKernel",
     "LazinessDetector",
@@ -448,7 +446,7 @@ __all__ = [
     "MuteAgent",
     "ReasoningAgent",
     "ExecutionAgent",
-    
+
     # Mute Agent Primitives (Face/Hands kernel-level decorators)
     "face_agent",
     "mute_agent",
@@ -459,7 +457,7 @@ __all__ = [
     "StepResult",
     "PipelineResult",
     "CapabilityViolation",
-    
+
     # Stateless API (MCP June 2026)
     "StatelessKernel",
     "ExecutionContext",
@@ -467,7 +465,7 @@ __all__ = [
     "ExecutionResult",
     "StatelessMemoryBackend",
     "stateless_execute",
-    
+
     # Base Agent Classes
     "BaseAgent",
     "ToolUsingAgent",
@@ -475,26 +473,26 @@ __all__ = [
     "AuditEntry",
     "PolicyDecision",
     "TypedResult",
-    
+
     # AGENTS.md Compatibility
     "AgentsParser",
     "AgentsConfig",
     "AgentSkill",
     "discover_agents",
-    
+
     # Semantic Policy Engine
     "SemanticPolicyEngine",
     "IntentCategory",
     "IntentClassification",
     "PolicyDenied",
-    
+
     # Prompt Injection Detection
     "PromptInjectionDetector",
     "InjectionType",
     "ThreatLevel",
     "DetectionResult",
     "DetectionConfig",
-    
+
     # MCP Security — Tool Poisoning Defense
     "MCPSecurityScanner",
     "MCPThreatType",
@@ -502,13 +500,13 @@ __all__ = [
     "MCPThreat",
     "ToolFingerprint",
     "ScanResult",
-    
+
     # LlamaFirewall Integration
     "LlamaFirewallAdapter",
     "FirewallMode",
     "FirewallVerdict",
     "FirewallResult",
-    
+
     # Context Budget Scheduler
     "ContextScheduler",
     "ContextWindow",

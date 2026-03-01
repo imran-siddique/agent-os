@@ -11,15 +11,14 @@ import ast
 import importlib.abc
 import importlib.machinery
 import sys
-from dataclasses import dataclass, field
-from pathlib import PurePosixPath, PureWindowsPath
-from typing import Any, Callable, Dict, List, Optional
+from dataclasses import dataclass
+from typing import Any, Callable
 
 from pydantic import BaseModel, Field
 
 from agent_os.exceptions import SecurityError
 
-_DEFAULT_BLOCKED_MODULES: List[str] = [
+_DEFAULT_BLOCKED_MODULES: list[str] = [
     "subprocess",
     "os",
     "shutil",
@@ -27,7 +26,7 @@ _DEFAULT_BLOCKED_MODULES: List[str] = [
     "ctypes",
 ]
 
-_DEFAULT_BLOCKED_BUILTINS: List[str] = [
+_DEFAULT_BLOCKED_BUILTINS: list[str] = [
     "exec",
     "eval",
     "compile",
@@ -38,11 +37,11 @@ _DEFAULT_BLOCKED_BUILTINS: List[str] = [
 class SandboxConfig(BaseModel):
     """Configuration for the execution sandbox."""
 
-    blocked_modules: List[str] = Field(default_factory=lambda: list(_DEFAULT_BLOCKED_MODULES))
-    blocked_builtins: List[str] = Field(default_factory=lambda: list(_DEFAULT_BLOCKED_BUILTINS))
-    allowed_paths: List[str] = Field(default_factory=list)
-    max_memory_mb: Optional[int] = None
-    max_cpu_seconds: Optional[int] = None
+    blocked_modules: list[str] = Field(default_factory=lambda: list(_DEFAULT_BLOCKED_MODULES))
+    blocked_builtins: list[str] = Field(default_factory=lambda: list(_DEFAULT_BLOCKED_BUILTINS))
+    allowed_paths: list[str] = Field(default_factory=list)
+    max_memory_mb: int | None = None
+    max_cpu_seconds: int | None = None
 
 
 @dataclass
@@ -63,14 +62,14 @@ class SandboxImportHook(importlib.abc.MetaPathFinder):
     Can be installed/uninstalled dynamically via install()/uninstall().
     """
 
-    def __init__(self, blocked_modules: List[str]) -> None:
+    def __init__(self, blocked_modules: list[str]) -> None:
         self._blocked_modules = set(blocked_modules)
 
     def find_module(
         self,
         fullname: str,
         path: Any = None,
-    ) -> Optional["SandboxImportHook"]:
+    ) -> SandboxImportHook | None:
         """Check if this module should be blocked (legacy API)."""
         top_level = fullname.split(".")[0]
         if top_level in self._blocked_modules:
@@ -118,7 +117,7 @@ class _ASTSecurityVisitor(ast.NodeVisitor):
     def __init__(self, blocked_modules: set, blocked_builtins: set) -> None:
         self._blocked_modules = blocked_modules
         self._blocked_builtins = blocked_builtins
-        self.violations: List[SecurityViolation] = []
+        self.violations: list[SecurityViolation] = []
 
     def visit_Import(self, node: ast.Import) -> None:  # noqa: N802
         for alias in node.names:
@@ -188,7 +187,7 @@ class ExecutionSandbox:
 
     def __init__(
         self,
-        config: Optional[SandboxConfig] = None,
+        config: SandboxConfig | None = None,
         policy: Any = None,
     ) -> None:
         self.config = config or SandboxConfig()
@@ -241,8 +240,8 @@ class ExecutionSandbox:
 
     def create_restricted_globals(
         self,
-        user_globals: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        user_globals: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Create a restricted globals dict that blocks dangerous builtins.
 
         Args:
@@ -253,12 +252,12 @@ class ExecutionSandbox:
         """
         import builtins as _builtins
 
-        safe_builtins = {k: v for k, v in vars(_builtins).items()}
+        safe_builtins = dict(vars(_builtins).items())
 
         for name in self.config.blocked_builtins:
             safe_builtins[name] = _make_blocked_builtin(name)
 
-        restricted: Dict[str, Any] = {"__builtins__": safe_builtins}
+        restricted: dict[str, Any] = {"__builtins__": safe_builtins}
 
         if user_globals:
             for k, v in user_globals.items():
@@ -267,7 +266,7 @@ class ExecutionSandbox:
 
         return restricted
 
-    def validate_code(self, code: str) -> List[SecurityViolation]:
+    def validate_code(self, code: str) -> list[SecurityViolation]:
         """Validate code via AST static analysis for blocked calls.
 
         Args:

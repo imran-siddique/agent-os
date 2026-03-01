@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -71,11 +71,11 @@ class PolicyDocument(BaseModel):
     version: str = "1.0"
     name: str = "unnamed"
     description: str = ""
-    rules: List[PolicyRule] = Field(default_factory=list)
+    rules: list[PolicyRule] = Field(default_factory=list)
     defaults: PolicyDefaults = Field(default_factory=PolicyDefaults)
 
     @classmethod
-    def from_yaml(cls, path: Union[str, Path]) -> "PolicyDocument":
+    def from_yaml(cls, path: str | Path) -> PolicyDocument:
         """Load a PolicyDocument from a YAML file."""
         try:
             import yaml
@@ -87,7 +87,7 @@ class PolicyDocument(BaseModel):
             data = yaml.safe_load(f)
         return cls.model_validate(data)
 
-    def to_yaml(self, path: Union[str, Path]) -> None:
+    def to_yaml(self, path: str | Path) -> None:
         """Serialize this PolicyDocument to a YAML file."""
         try:
             import yaml
@@ -99,14 +99,14 @@ class PolicyDocument(BaseModel):
             yaml.dump(self.model_dump(mode="json"), f, default_flow_style=False, sort_keys=False)
 
     @classmethod
-    def from_json(cls, path: Union[str, Path]) -> "PolicyDocument":
+    def from_json(cls, path: str | Path) -> PolicyDocument:
         """Load a PolicyDocument from a JSON file."""
         path = Path(path)
         with open(path) as f:
             data = json.load(f)
         return cls.model_validate(data)
 
-    def to_json(self, path: Union[str, Path]) -> None:
+    def to_json(self, path: str | Path) -> None:
         """Serialize this PolicyDocument to a JSON file."""
         path = Path(path)
         with open(path, "w") as f:

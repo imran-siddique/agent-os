@@ -33,7 +33,7 @@ import logging
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from .base import BaseIntegration, ExecutionContext, GovernancePolicy
 
@@ -98,7 +98,7 @@ class MistralKernel(BaseIntegration):
 
     def __init__(
         self,
-        policy: Optional[GovernancePolicy] = None,
+        policy: GovernancePolicy | None = None,
     ) -> None:
         """Initialise the Mistral governance kernel.
 
@@ -108,9 +108,9 @@ class MistralKernel(BaseIntegration):
         super().__init__(policy)
         self._wrapped_clients: dict[int, Any] = {}
         self._start_time = time.monotonic()
-        self._last_error: Optional[str] = None
+        self._last_error: str | None = None
 
-    def wrap(self, client: Any) -> "GovernedMistralClient":
+    def wrap(self, client: Any) -> GovernedMistralClient:
         """Wrap a Mistral client with governance.
 
         Args:
@@ -344,7 +344,7 @@ class GovernedMistralClient:
 
 def wrap_client(
     client: Any,
-    policy: Optional[GovernancePolicy] = None,
+    policy: GovernancePolicy | None = None,
 ) -> GovernedMistralClient:
     """Quick wrapper for Mistral clients.
 

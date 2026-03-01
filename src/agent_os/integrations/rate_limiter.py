@@ -8,7 +8,7 @@ Integrates with GovernancePolicy's max_tool_calls field.
 import threading
 import time
 from dataclasses import dataclass
-from typing import Dict, Optional
+from typing import Optional
 
 from .base import GovernancePolicy
 
@@ -53,7 +53,7 @@ class RateLimiter:
         self._per_agent = per_agent
         self._lock = threading.Lock()
         # Each bucket: (tokens: float, last_refill: float)
-        self._buckets: Dict[str, list] = {}
+        self._buckets: dict[str, list] = {}
 
     # ------------------------------------------------------------------
     # Internal helpers

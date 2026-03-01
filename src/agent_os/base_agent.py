@@ -7,11 +7,11 @@ tool integration.
 
 Example:
     >>> from agent_os.base_agent import BaseAgent, AgentConfig
-    >>> 
+    >>>
     >>> class MyAgent(BaseAgent):
     ...     async def run(self, task: str) -> ExecutionResult:
     ...         return await self._execute("process", {"task": task})
-    >>> 
+    >>>
     >>> agent = MyAgent(AgentConfig(agent_id="my-agent", policies=["read_only"]))
     >>> result = await agent.run("hello")
 """
@@ -29,15 +29,15 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, TypeVar, Generic
+from typing import Any, Callable, Generic, TypeVar
 from uuid import uuid4
 
 from agent_os.stateless import (
-    StatelessKernel,
     ExecutionContext,
     ExecutionResult,
     MemoryBackend,
     StateBackend,
+    StatelessKernel,
 )
 
 
@@ -79,7 +79,7 @@ class EscalationRequest:
         """Mark escalation as rejected."""
         self.status = "rejected"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "action": self.action,
             "reason": self.reason,
@@ -92,7 +92,7 @@ class EscalationRequest:
 @dataclass
 class AgentConfig:
     """Configuration for an agent instance.
-    
+
     Attributes:
         agent_id: Unique identifier for this agent instance
         policies: List of policy names to apply (e.g., ["read_only", "no_pii"])
@@ -102,9 +102,9 @@ class AgentConfig:
         max_metadata_size_bytes: Maximum size in bytes for metadata values
     """
     agent_id: str
-    policies: List[str] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    state_backend: Optional[StateBackend] = None
+    policies: list[str] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
+    state_backend: StateBackend | None = None
     max_audit_log_size: int = 10000
     max_metadata_size_bytes: int = 1_048_576  # 1 MB
 
@@ -119,7 +119,7 @@ class AgentConfig:
             )
 
     @classmethod
-    def from_file(cls, path: str) -> "AgentConfig":
+    def from_file(cls, path: str) -> AgentConfig:
         """Load agent configuration from a YAML or JSON file.
 
         Args:
@@ -136,7 +136,7 @@ class AgentConfig:
             raise FileNotFoundError(f"Config file not found: {path}")
 
         ext = os.path.splitext(path)[1].lower()
-        with open(path, "r", encoding="utf-8") as fh:
+        with open(path, encoding="utf-8") as fh:
             if ext in (".yaml", ".yml"):
                 try:
                     import yaml
@@ -161,7 +161,7 @@ class AgentConfig:
     def __repr__(self) -> str:
         return f"AgentConfig(agent_id={self.agent_id!r}, policies={self.policies!r})"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Serialize configuration to a dictionary."""
         return {
             "agent_id": self.agent_id,
@@ -172,7 +172,7 @@ class AgentConfig:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "AgentConfig":
+    def from_dict(cls, data: dict[str, Any]) -> AgentConfig:
         """Deserialize an AgentConfig from a dictionary.
 
         Args:
@@ -197,11 +197,11 @@ class AuditEntry:
     agent_id: str
     request_id: str
     action: str
-    params: Dict[str, Any]
+    params: dict[str, Any]
     decision: PolicyDecision
-    result_success: Optional[bool] = None
-    error: Optional[str] = None
-    execution_time_ms: Optional[float] = None
+    result_success: bool | None = None
+    error: str | None = None
+    execution_time_ms: float | None = None
 
     def __repr__(self) -> str:
         return (
@@ -209,7 +209,7 @@ class AuditEntry:
             f"decision={self.decision!r})"
         )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "timestamp": self.timestamp.isoformat(),
             "agent_id": self.agent_id,
@@ -223,7 +223,7 @@ class AuditEntry:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "AuditEntry":
+    def from_dict(cls, data: dict[str, Any]) -> AuditEntry:
         """Deserialize an AuditEntry from a dictionary.
 
         Args:
@@ -237,7 +237,7 @@ class AuditEntry:
             agent_id=data["agent_id"],
             request_id=data["request_id"],
             action=data["action"],
-            params={k: None for k in data.get("params_keys", [])},
+            params=dict.fromkeys(data.get("params_keys", [])),
             decision=PolicyDecision(data["decision"]),
             result_success=data.get("result_success"),
             error=data.get("error"),
@@ -247,16 +247,16 @@ class AuditEntry:
 
 class BaseAgent(ABC):
     """Abstract base class for Agent OS agents.
-    
+
     Provides:
     - Kernel integration with policy enforcement
     - Execution context management
     - Audit logging
     - Common helper methods
-    
+
     Subclasses must implement the `run` method which defines
     the agent's main task.
-    
+
     Example:
         >>> class GreeterAgent(BaseAgent):
         ...     async def run(self, name: str) -> ExecutionResult:
@@ -265,19 +265,19 @@ class BaseAgent(ABC):
         ...             params={"name": name, "output": f"Hello, {name}!"}
         ...         )
         ...         return result
-        >>> 
+        >>>
         >>> agent = GreeterAgent(AgentConfig(agent_id="greeter"))
         >>> result = await agent.run("World")
         >>> print(result.data)  # "Hello, World!"
     """
-    
+
     def __init__(
         self,
         config: AgentConfig,
         defer_timeout: float = 30.0,
     ):
         """Initialize the agent.
-        
+
         Args:
             config: Agent configuration including ID, policies, and backend
             defer_timeout: Timeout in seconds for DEFER async callbacks (default 30s)
@@ -286,33 +286,31 @@ class BaseAgent(ABC):
         self._kernel = StatelessKernel(
             backend=config.state_backend or MemoryBackend()
         )
-        self._audit_log: List[AuditEntry] = []
+        self._audit_log: list[AuditEntry] = []
         self._max_audit_entries = config.max_audit_log_size
-        self._escalation_queue: List[EscalationRequest] = []
+        self._escalation_queue: list[EscalationRequest] = []
         self._defer_timeout = defer_timeout
-        self._defer_callback: Optional[
-            Callable[[str, Dict[str, Any]], "asyncio.Future[PolicyDecision]"]
-        ] = None
-    
+        self._defer_callback: Callable[[str, dict[str, Any]], asyncio.Future[PolicyDecision]] | None = None
+
     @property
     def agent_id(self) -> str:
         """Get the agent's unique identifier."""
         return self._config.agent_id
-    
+
     @property
-    def policies(self) -> List[str]:
+    def policies(self) -> list[str]:
         """Get the agent's active policies."""
         return self._config.policies.copy()
-    
+
     def _new_context(self, **extra_metadata: Any) -> ExecutionContext:
         """Create a new execution context for a request.
-        
+
         Args:
             **extra_metadata: Additional metadata to include
-            
+
         Returns:
             Fresh ExecutionContext with agent's default settings
-            
+
         Raises:
             ValueError: If any metadata value exceeds max_metadata_size_bytes
         """
@@ -334,7 +332,7 @@ class BaseAgent(ABC):
 
     def set_defer_callback(
         self,
-        callback: Callable[[str, Dict[str, Any]], "asyncio.Future[PolicyDecision]"],
+        callback: Callable[[str, dict[str, Any]], asyncio.Future[PolicyDecision]],
     ) -> None:
         """Register an async callback for DEFER policy decisions.
 
@@ -348,7 +346,7 @@ class BaseAgent(ABC):
         self,
         decision: PolicyDecision,
         action: str,
-        params: Dict[str, Any],
+        params: dict[str, Any],
         reason: str = "",
     ) -> ExecutionResult:
         """Handle a policy decision, including ESCALATE and DEFER.
@@ -419,32 +417,32 @@ class BaseAgent(ABC):
 
         # ALLOW / AUDIT — no blocking
         return ExecutionResult(success=True, data=None)
-    
+
     async def _execute(
         self,
         action: str,
-        params: Dict[str, Any],
-        context: Optional[ExecutionContext] = None,
+        params: dict[str, Any],
+        context: ExecutionContext | None = None,
     ) -> ExecutionResult:
         """Execute an action through the kernel with policy checks.
-        
+
         This is the primary method for agents to perform actions.
         All actions are:
         1. Checked against configured policies
         2. Logged for audit
         3. Executed through the kernel
-        
+
         Args:
             action: Name of the action to execute
             params: Parameters for the action
             context: Optional custom context (uses default if None)
-            
+
         Returns:
             ExecutionResult with success status, data, and any errors
         """
         ctx = context or self._new_context()
         request_id = str(uuid4())[:16]
-        
+
         # Create audit entry
         audit = AuditEntry(
             timestamp=datetime.now(timezone.utc),
@@ -454,12 +452,12 @@ class BaseAgent(ABC):
             params=params,
             decision=PolicyDecision.ALLOW,  # Will be updated
         )
-        
+
         # Execute through kernel with timing
         t0 = time.monotonic()
         result = await self._kernel.execute(action, params, ctx)
         elapsed_ms = (time.monotonic() - t0) * 1000.0
-        
+
         # Update audit entry with result
         if result.signal == "SIGKILL":
             audit.decision = PolicyDecision.DENY
@@ -470,26 +468,26 @@ class BaseAgent(ABC):
         audit.result_success = result.success
         audit.error = result.error
         audit.execution_time_ms = elapsed_ms
-        
+
         self._audit_log.append(audit)
         if len(self._audit_log) > self._max_audit_entries:
             self._audit_log = self._audit_log[-self._max_audit_entries:]
-        
+
         return result
-    
-    def get_audit_log(self) -> List[Dict[str, Any]]:
+
+    def get_audit_log(self) -> list[dict[str, Any]]:
         """Get the agent's audit log.
-        
+
         Returns:
             List of audit entries as dictionaries
         """
         return [entry.to_dict() for entry in self._audit_log]
-    
+
     def clear_audit_log(self) -> None:
         """Clear the agent's audit log."""
         self._audit_log.clear()
 
-    def get_execution_stats(self) -> Dict[str, Any]:
+    def get_execution_stats(self) -> dict[str, Any]:
         """Return execution time statistics from audit log entries.
 
         Returns:
@@ -516,12 +514,12 @@ class BaseAgent(ABC):
 
     def query_audit_log(
         self,
-        action: Optional[str] = None,
-        decision: Optional[str] = None,
-        since: Optional[datetime] = None,
-        limit: Optional[int] = None,
+        action: str | None = None,
+        decision: str | None = None,
+        since: datetime | None = None,
+        limit: int | None = None,
         offset: int = 0,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Query audit log with optional filters.
 
         Args:
@@ -534,7 +532,7 @@ class BaseAgent(ABC):
         Returns:
             List of matching audit entries as dictionaries.
         """
-        results: List[AuditEntry] = self._audit_log
+        results: list[AuditEntry] = self._audit_log
         if action is not None:
             results = [e for e in results if e.action == action]
         if decision is not None:
@@ -546,17 +544,17 @@ class BaseAgent(ABC):
             results = results[:limit]
         return [e.to_dict() for e in results]
 
-    def get_escalation_queue(self) -> List[EscalationRequest]:
+    def get_escalation_queue(self) -> list[EscalationRequest]:
         """Get pending escalation requests."""
         return [e for e in self._escalation_queue if e.status == "pending"]
-    
+
     @abstractmethod
     async def run(self, *args, **kwargs) -> ExecutionResult:
         """Run the agent's main task.
-        
+
         Subclasses must implement this method to define the agent's
         primary functionality.
-        
+
         Returns:
             ExecutionResult with the outcome of the task
         """
@@ -565,10 +563,10 @@ class BaseAgent(ABC):
 
 class ToolUsingAgent(BaseAgent):
     """Base class for agents that use registered tools from ATR.
-    
+
     Extends BaseAgent with tool discovery and execution capabilities.
     Tools are executed through the kernel for policy enforcement.
-    
+
     Example:
         >>> class AnalysisAgent(ToolUsingAgent):
         ...     async def run(self, data: str) -> ExecutionResult:
@@ -576,28 +574,28 @@ class ToolUsingAgent(BaseAgent):
         ...         parsed = await self._use_tool("json_parser", {"text": data})
         ...         return parsed
     """
-    
-    def __init__(self, config: AgentConfig, tools: Optional[List[str]] = None):
+
+    def __init__(self, config: AgentConfig, tools: list[str] | None = None):
         """Initialize the tool-using agent.
-        
+
         Args:
             config: Agent configuration
             tools: Optional list of tool names this agent is allowed to use
         """
         super().__init__(config)
         self._allowed_tools = set(tools) if tools else None
-    
+
     async def _use_tool(
         self,
         tool_name: str,
-        params: Dict[str, Any],
+        params: dict[str, Any],
     ) -> ExecutionResult:
         """Use a registered tool through the kernel.
-        
+
         Args:
             tool_name: Name of the tool to use
             params: Parameters to pass to the tool
-            
+
         Returns:
             ExecutionResult from tool execution
         """
@@ -608,14 +606,14 @@ class ToolUsingAgent(BaseAgent):
                 data=None,
                 error=f"Tool '{tool_name}' not in allowed tools list",
             )
-        
+
         # Execute through kernel
         return await self._execute(
             action=f"tool:{tool_name}",
             params=params,
         )
-    
-    def list_allowed_tools(self) -> Optional[List[str]]:
+
+    def list_allowed_tools(self) -> list[str] | None:
         """Get list of allowed tools, or None if all tools allowed."""
         return list(self._allowed_tools) if self._allowed_tools else None
 
@@ -627,19 +625,19 @@ T = TypeVar("T")
 @dataclass
 class TypedResult(Generic[T]):
     """A typed wrapper for execution results.
-    
+
     Useful when you want type hints on the result data.
     """
     success: bool
-    data: Optional[T] = None
-    error: Optional[str] = None
-    
+    data: T | None = None
+    error: str | None = None
+
     @classmethod
     def from_execution_result(
         cls,
         result: ExecutionResult,
-        transform: Optional[Callable[[Any], T]] = None,
-    ) -> "TypedResult[T]":
+        transform: Callable[[Any], T] | None = None,
+    ) -> TypedResult[T]:
         """Create from an ExecutionResult with optional transformation."""
         data = None
         if result.success and result.data is not None:

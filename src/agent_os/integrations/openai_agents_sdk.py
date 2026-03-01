@@ -33,13 +33,13 @@ Example:
 
 from __future__ import annotations
 
-import logging
 import asyncio
+import logging
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Callable, Dict, List, Optional, Union
 from functools import wraps
+from typing import Any, Callable
 
 logger = logging.getLogger(__name__)
 
@@ -51,19 +51,19 @@ class GovernancePolicy:
     max_tool_calls: int = 50
     max_handoffs: int = 5
     timeout_seconds: int = 300
-    
+
     # Tool filtering
-    allowed_tools: List[str] = field(default_factory=list)
-    blocked_tools: List[str] = field(default_factory=list)
-    
+    allowed_tools: list[str] = field(default_factory=list)
+    blocked_tools: list[str] = field(default_factory=list)
+
     # Content filtering
-    blocked_patterns: List[str] = field(default_factory=list)
+    blocked_patterns: list[str] = field(default_factory=list)
     pii_detection: bool = True
-    
+
     # Approval flows
     require_human_approval: bool = False
     approval_threshold: float = 0.8
-    
+
     # Audit
     log_all_calls: bool = True
     checkpoint_frequency: int = 5
@@ -75,18 +75,18 @@ class ExecutionContext:
     session_id: str
     agent_id: str
     policy: GovernancePolicy
-    
+
     # Counters
     tool_calls: int = 0
     handoffs: int = 0
-    
+
     # Timing
     started_at: datetime = field(default_factory=datetime.utcnow)
-    
+
     # Audit trail
-    events: List[Dict[str, Any]] = field(default_factory=list)
-    
-    def record_event(self, event_type: str, data: Dict[str, Any]) -> None:
+    events: list[dict[str, Any]] = field(default_factory=list)
+
+    def record_event(self, event_type: str, data: dict[str, Any]) -> None:
         self.events.append({
             "type": event_type,
             "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -106,23 +106,23 @@ class PolicyViolationError(Exception):
 class OpenAIAgentsKernel:
     """
     Governance kernel for OpenAI Agents SDK.
-    
+
     Wraps Agent and Runner to enforce policies during execution.
     """
-    
+
     def __init__(
         self,
-        policy: Optional[GovernancePolicy] = None,
-        on_violation: Optional[Callable[[PolicyViolationError], None]] = None,
+        policy: GovernancePolicy | None = None,
+        on_violation: Callable[[PolicyViolationError], None] | None = None,
     ) -> None:
         self.policy: GovernancePolicy = policy or GovernancePolicy()
         self.on_violation: Callable[[PolicyViolationError], None] = (
             on_violation or self._default_violation_handler
         )
-        self._contexts: Dict[str, ExecutionContext] = {}
-        self._wrapped_agents: Dict[str, Any] = {}
+        self._contexts: dict[str, ExecutionContext] = {}
+        self._wrapped_agents: dict[str, Any] = {}
         self._start_time: float = time.monotonic()
-        self._last_error: Optional[str] = None
+        self._last_error: str | None = None
 
     def _default_violation_handler(self, error: PolicyViolationError) -> None:
         logger.error(f"Policy violation: {error}")
@@ -144,12 +144,12 @@ class OpenAIAgentsKernel:
         # Check blocked list
         if tool_name in self.policy.blocked_tools:
             return False, f"Tool '{tool_name}' is blocked by policy"
-        
+
         # Check allowed list (if specified)
         if self.policy.allowed_tools:
             if tool_name not in self.policy.allowed_tools:
                 return False, f"Tool '{tool_name}' not in allowed list"
-        
+
         return True, ""
 
     def _check_content(self, content: str) -> tuple[bool, str]:
@@ -163,34 +163,34 @@ class OpenAIAgentsKernel:
     def wrap(self, agent: Any) -> Any:
         """
         Wrap an OpenAI Agent with governance.
-        
+
         Args:
             agent: OpenAI Agents SDK Agent instance
-            
+
         Returns:
             Governed agent wrapper
         """
         agent_id = getattr(agent, "name", str(id(agent)))
-        
+
         # Create wrapper class
         class GovernedAgent:
             def __init__(wrapper_self, original: Any, kernel: OpenAIAgentsKernel):
                 wrapper_self._original = original
                 wrapper_self._kernel = kernel
                 wrapper_self._context = kernel._create_context(agent_id)
-                
+
                 # Copy attributes
                 for attr in ["name", "model", "instructions", "tools"]:
                     if hasattr(original, attr):
                         setattr(wrapper_self, attr, getattr(original, attr))
-            
+
             @property
             def original(wrapper_self) -> Any:
                 return wrapper_self._original
-            
+
             def __getattr__(wrapper_self, name: str) -> Any:
                 return getattr(wrapper_self._original, name)
-        
+
         wrapped = GovernedAgent(agent, self)
         self._wrapped_agents[agent_id] = wrapped
         logger.info(f"Wrapped agent '{agent_id}' with governance kernel")
@@ -205,15 +205,15 @@ class OpenAIAgentsKernel:
     def wrap_runner(self, runner_class: Any) -> Any:
         """
         Wrap the Runner class to intercept executions.
-        
+
         Args:
             runner_class: OpenAI Agents SDK Runner class
-            
+
         Returns:
             Governed Runner class
         """
         kernel = self
-        
+
         class GovernedRunner:
             @classmethod
             async def run(
@@ -226,7 +226,7 @@ class OpenAIAgentsKernel:
                 ctx = None
                 if hasattr(agent, "_context"):
                     ctx = agent._context
-                
+
                 # Pre-execution checks
                 if ctx:
                     # Check content
@@ -236,53 +236,53 @@ class OpenAIAgentsKernel:
                         kernel.on_violation(error)
                         if kernel.policy.require_human_approval:
                             raise error
-                    
+
                     ctx.record_event("run_start", {"input_length": len(input_text)})
-                
+
                 # Get original agent
                 original_agent = agent
                 if hasattr(agent, "_original"):
                     original_agent = agent._original
-                
+
                 # Run with monitoring
                 try:
                     result = await runner_class.run(original_agent, input_text, **kwargs)
-                    
+
                     if ctx:
                         ctx.record_event("run_complete", {"success": True})
-                    
+
                     return result
                 except Exception as e:
                     if ctx:
                         ctx.record_event("run_error", {"error": str(e)})
                     raise
-            
+
             @classmethod
             def run_sync(cls, agent: Any, input_text: str, **kwargs) -> Any:
                 return asyncio.run(cls.run(agent, input_text, **kwargs))
-        
+
         return GovernedRunner
 
     def create_tool_guard(self) -> Callable:
         """
         Create a tool execution guard.
-        
+
         Use as a decorator or wrapper for tool functions.
         """
         kernel = self
-        
+
         def guard(func: Callable) -> Callable:
             @wraps(func)
             async def wrapper(*args, **kwargs):
                 tool_name = func.__name__
-                
+
                 # Check if tool is allowed
                 ok, reason = kernel._check_tool_allowed(tool_name)
                 if not ok:
                     error = PolicyViolationError("tool_filter", reason)
                     kernel.on_violation(error)
                     raise error
-                
+
                 # Check content in arguments
                 for arg in args:
                     if isinstance(arg, str):
@@ -291,7 +291,7 @@ class OpenAIAgentsKernel:
                             error = PolicyViolationError("content_filter", reason)
                             kernel.on_violation(error)
                             raise error
-                
+
                 for value in kwargs.values():
                     if isinstance(value, str):
                         ok, reason = kernel._check_content(value)
@@ -299,35 +299,35 @@ class OpenAIAgentsKernel:
                             error = PolicyViolationError("content_filter", reason)
                             kernel.on_violation(error)
                             raise error
-                
+
                 # Execute
                 if asyncio.iscoroutinefunction(func):
                     return await func(*args, **kwargs)
                 return func(*args, **kwargs)
-            
+
             return wrapper
         return guard
 
     def create_guardrail(self) -> Any:
         """
         Create an OpenAI Agents SDK compatible guardrail.
-        
+
         Returns a guardrail that can be added to an agent.
         """
         kernel = self
-        
+
         class PolicyGuardrail:
             """Agent-OS policy guardrail for OpenAI Agents SDK."""
-            
+
             async def __call__(
                 self,
                 context: Any,
                 agent: Any,
                 input_text: str,
-            ) -> Optional[str]:
+            ) -> str | None:
                 """
                 Check input against policies.
-                
+
                 Returns None if allowed, or a rejection message if blocked.
                 """
                 # Check content patterns
@@ -335,7 +335,7 @@ class OpenAIAgentsKernel:
                 if not ok:
                     logger.warning(f"Guardrail blocked: {reason}")
                     return f"Request blocked by policy: {reason}"
-                
+
                 # Check tool calls if in context
                 if hasattr(context, "tool_calls"):
                     for tool_call in context.tool_calls:
@@ -344,23 +344,23 @@ class OpenAIAgentsKernel:
                         if not ok:
                             logger.warning(f"Guardrail blocked tool: {reason}")
                             return f"Tool blocked by policy: {reason}"
-                
+
                 return None  # Allowed
-        
+
         return PolicyGuardrail()
 
-    def get_context(self, session_id: str) -> Optional[ExecutionContext]:
+    def get_context(self, session_id: str) -> ExecutionContext | None:
         """Get execution context by session ID."""
         return self._contexts.get(session_id)
 
-    def get_audit_log(self, session_id: str) -> List[Dict[str, Any]]:
+    def get_audit_log(self, session_id: str) -> list[dict[str, Any]]:
         """Get audit log for a session."""
         ctx = self._contexts.get(session_id)
         if ctx:
             return ctx.events
         return []
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get governance statistics."""
         total_tool_calls: int = sum(ctx.tool_calls for ctx in self._contexts.values())
         total_handoffs: int = sum(ctx.handoffs for ctx in self._contexts.values())
@@ -377,7 +377,7 @@ class OpenAIAgentsKernel:
             },
         }
 
-    def health_check(self) -> Dict[str, Any]:
+    def health_check(self) -> dict[str, Any]:
         """Return adapter health status.
 
         Returns:

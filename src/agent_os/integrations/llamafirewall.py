@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-import asyncio
 import logging
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from agent_os.prompt_injection import (
     DetectionConfig,
@@ -48,11 +47,11 @@ class FirewallResult:
     verdict: FirewallVerdict
     source: str  # "llamafirewall", "agent_os", "combined"
     score: float  # 0.0 (safe) to 1.0 (blocked)
-    details: Dict[str, Any] = field(default_factory=dict)
-    prompt_guard_result: Optional[Dict[str, Any]] = None
-    alignment_check_result: Optional[Dict[str, Any]] = None
-    code_shield_result: Optional[Dict[str, Any]] = None
-    agent_os_result: Optional[DetectionResult] = None
+    details: dict[str, Any] = field(default_factory=dict)
+    prompt_guard_result: dict[str, Any] | None = None
+    alignment_check_result: dict[str, Any] | None = None
+    code_shield_result: dict[str, Any] | None = None
+    agent_os_result: DetectionResult | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -73,7 +72,7 @@ class LlamaFirewallAdapter:
     def __init__(
         self,
         mode: FirewallMode = FirewallMode.CHAIN_BOTH,
-        agent_os_config: Optional[DetectionConfig] = None,
+        agent_os_config: DetectionConfig | None = None,
     ) -> None:
         self._mode = mode
         self._detector = PromptInjectionDetector(config=agent_os_config)
@@ -100,7 +99,7 @@ class LlamaFirewallAdapter:
     async def scan_prompt(
         self,
         prompt: str,
-        context: Optional[str] = None,
+        context: str | None = None,
     ) -> FirewallResult:
         """Scan a prompt using the configured mode (async)."""
         mode = self._mode
@@ -121,7 +120,7 @@ class LlamaFirewallAdapter:
     def scan_prompt_sync(
         self,
         prompt: str,
-        context: Optional[str] = None,
+        context: str | None = None,
     ) -> FirewallResult:
         """Scan a prompt using the configured mode (synchronous)."""
         mode = self._mode
@@ -186,8 +185,8 @@ class LlamaFirewallAdapter:
     def _run_llamafirewall(
         self,
         prompt: str,
-        context: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        context: str | None = None,
+    ) -> dict[str, Any]:
         """Call LlamaFirewall's scan API with graceful error handling."""
         try:
             from llamafirewall import LlamaFirewall as LF  # type: ignore[import-untyped]
@@ -214,8 +213,8 @@ class LlamaFirewallAdapter:
 
     def _combine_results(
         self,
-        llama_result: Optional[Dict[str, Any]],
-        aos_result: Optional[DetectionResult],
+        llama_result: dict[str, Any] | None,
+        aos_result: DetectionResult | None,
         mode: FirewallMode,
     ) -> FirewallResult:
         """Merge results from both scanners based on the operating mode."""
@@ -330,9 +329,9 @@ class LlamaFirewallAdapter:
         return FirewallVerdict.SUSPICIOUS
 
     @property
-    def available_scanners(self) -> List[str]:
+    def available_scanners(self) -> list[str]:
         """Return list of active scanner names."""
-        scanners: List[str] = []
+        scanners: list[str] = []
         if self._mode in (FirewallMode.AGENT_OS_ONLY, FirewallMode.CHAIN_BOTH, FirewallMode.VOTE_MAJORITY):
             scanners.append("agent_os")
         if self._llama_available and self._mode in (

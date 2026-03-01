@@ -23,7 +23,7 @@ import fnmatch
 import logging
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +56,7 @@ class ResourceNode:
     """
     name: str
     resource_type: ResourceType = ResourceType.TOOL
-    metadata: Dict[str, Any] = field(default_factory=dict, hash=False)
+    metadata: dict[str, Any] = field(default_factory=dict, hash=False)
 
     def __hash__(self) -> int:
         return hash((self.name, self.resource_type))
@@ -82,7 +82,7 @@ class ConstraintEdge:
     agent_pattern: str
     resource: str
     permission: Permission
-    conditions: Dict[str, Any] = field(default_factory=dict)
+    conditions: dict[str, Any] = field(default_factory=dict)
     priority: int = 0
 
 
@@ -99,8 +99,8 @@ class ConstraintGraph:
     """
 
     def __init__(self) -> None:
-        self._nodes: Dict[str, ResourceNode] = {}
-        self._edges: List[ConstraintEdge] = []
+        self._nodes: dict[str, ResourceNode] = {}
+        self._edges: list[ConstraintEdge] = []
 
     # -- mutators -----------------------------------------------------------
 
@@ -116,12 +116,12 @@ class ConstraintGraph:
     # -- query --------------------------------------------------------------
 
     @property
-    def resources(self) -> Dict[str, ResourceNode]:
+    def resources(self) -> dict[str, ResourceNode]:
         """Read-only view of registered resources."""
         return dict(self._nodes)
 
     @property
-    def edges(self) -> List[ConstraintEdge]:
+    def edges(self) -> list[ConstraintEdge]:
         """Read-only copy of constraint edges (sorted by priority)."""
         return list(self._edges)
 
@@ -131,7 +131,7 @@ class ConstraintGraph:
         self,
         agent_id: str,
         resource: str,
-        context: Optional[Dict[str, Any]] = None,
+        context: dict[str, Any] | None = None,
     ) -> bool:
         """Check whether *agent_id* may access *resource*.
 
@@ -175,8 +175,8 @@ class ConstraintGraph:
 
     @staticmethod
     def _conditions_met(
-        conditions: Dict[str, Any],
-        context: Dict[str, Any],
+        conditions: dict[str, Any],
+        context: dict[str, Any],
     ) -> bool:
         """Return ``True`` if every condition key/value is present in *context*."""
         return all(context.get(k) == v for k, v in conditions.items())
@@ -197,7 +197,7 @@ class ConstraintGraphEnforcer:
     def __init__(
         self,
         graph: ConstraintGraph,
-        context: Optional[Dict[str, Any]] = None,
+        context: dict[str, Any] | None = None,
     ) -> None:
         self.graph = graph
         self.context = context or {}

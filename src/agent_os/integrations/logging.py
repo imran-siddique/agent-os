@@ -17,7 +17,7 @@ import logging
 import os
 import threading
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 _EXTRA_FIELDS = (
     "agent_id",
@@ -29,7 +29,7 @@ _EXTRA_FIELDS = (
     "error_code",
 )
 
-_logger_cache: Dict[str, "GovernanceLogger"] = {}
+_logger_cache: dict[str, "GovernanceLogger"] = {}
 _cache_lock = threading.Lock()
 
 
@@ -37,7 +37,7 @@ class JSONFormatter(logging.Formatter):
     """JSON log formatter for structured logging."""
 
     def format(self, record: logging.LogRecord) -> str:
-        log_entry: Dict[str, Any] = {
+        log_entry: dict[str, Any] = {
             "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z",
             "level": record.levelname,
             "logger": record.name,
@@ -74,7 +74,7 @@ class GovernanceLogger:
         # We need to use the internal mechanism to pass extra fields
         pass
 
-    def _make_extra(self, **kwargs: Any) -> Dict[str, Any]:
+    def _make_extra(self, **kwargs: Any) -> dict[str, Any]:
         return {k: v for k, v in kwargs.items() if v is not None}
 
     def policy_decision(
@@ -155,7 +155,7 @@ class GovernanceLogger:
         self,
         agent_id: str,
         event_type: str,
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[dict[str, Any]] = None,
         **extra: Any,
     ) -> None:
         """Log an audit event at INFO level."""

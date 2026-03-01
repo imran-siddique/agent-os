@@ -14,9 +14,9 @@ import logging
 import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Protocol, Union
 from datetime import datetime
+from enum import Enum
+from typing import Any, Callable, Protocol
 
 logger = logging.getLogger(__name__)
 
@@ -147,18 +147,18 @@ class GovernancePolicy:
     max_tokens: int = 4096
     max_tool_calls: int = 10
     allowed_tools: list[str] = field(default_factory=list)
-    blocked_patterns: list[Union[str, tuple[str, PatternType]]] = field(default_factory=list)
+    blocked_patterns: list[str | tuple[str, PatternType]] = field(default_factory=list)
     require_human_approval: bool = False
     timeout_seconds: int = 300
-    
+
     # Safety thresholds
     confidence_threshold: float = 0.8
     drift_threshold: float = 0.15
-    
+
     # Audit settings
     log_all_calls: bool = True
     checkpoint_frequency: int = 5  # Every N calls
-    
+
     # Concurrency limits
     max_concurrent: int = 10
     backpressure_threshold: int = 8  # Start slowing down at this level
@@ -249,7 +249,7 @@ class GovernancePolicy:
                 f"version must be a non-empty string, got {self.version!r}"
             )
 
-        self._compiled_patterns: list[tuple[str, PatternType, Optional[re.Pattern]]] = []
+        self._compiled_patterns: list[tuple[str, PatternType, re.Pattern | None]] = []
         for i, pattern in enumerate(self.blocked_patterns):
             if isinstance(pattern, str):
                 self._compiled_patterns.append((pattern, PatternType.SUBSTRING, None))
@@ -270,14 +270,14 @@ class GovernancePolicy:
                     except re.error as e:
                         raise ValueError(
                             f"blocked_patterns[{i}] has invalid regex '{pat_str}': {e}"
-                        )
+                        ) from e
                 elif pat_type == PatternType.GLOB:
                     try:
                         compiled = re.compile(fnmatch.translate(pat_str), re.IGNORECASE)
                     except re.error as e:
                         raise ValueError(
                             f"blocked_patterns[{i}] has invalid glob '{pat_str}': {e}"
-                        )
+                        ) from e
                 self._compiled_patterns.append((pat_str, pat_type, compiled))
             else:
                 raise ValueError(
@@ -357,7 +357,7 @@ class GovernancePolicy:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "GovernancePolicy":
+    def from_dict(cls, data: dict[str, Any]) -> GovernancePolicy:
         """Deserialize policy from a dictionary.
 
         Args:
@@ -369,7 +369,7 @@ class GovernancePolicy:
         data = dict(data)  # shallow copy to avoid mutating caller's dict
         # Convert blocked_patterns back to tuples where needed
         raw_patterns = data.get("blocked_patterns", [])
-        patterns: list[Union[str, tuple[str, PatternType]]] = []
+        patterns: list[str | tuple[str, PatternType]] = []
         for p in raw_patterns:
             if isinstance(p, str):
                 patterns.append(p)
@@ -377,7 +377,7 @@ class GovernancePolicy:
                 try:
                     pt = PatternType(p["type"])
                 except ValueError:
-                    raise ValueError(f"Unknown pattern type: {p['type']!r}")
+                    raise ValueError(f"Unknown pattern type: {p['type']!r}") from None
                 patterns.append((p["pattern"], pt))
             else:
                 raise ValueError(f"Invalid blocked_pattern entry: {p!r}")
@@ -393,7 +393,7 @@ class GovernancePolicy:
         filtered = {k: v for k, v in data.items() if k in valid_fields}
         return cls(**filtered)
 
-    def compare_versions(self, other: "GovernancePolicy") -> Dict[str, Any]:
+    def compare_versions(self, other: GovernancePolicy) -> dict[str, Any]:
         """Compare this policy with another, including version info.
 
         Returns a dict with version details and field-level changes.
@@ -431,7 +431,7 @@ class GovernancePolicy:
         return yaml.dump(data, default_flow_style=False, sort_keys=False)
 
     @classmethod
-    def from_yaml(cls, yaml_str: str) -> "GovernancePolicy":
+    def from_yaml(cls, yaml_str: str) -> GovernancePolicy:
         """Deserialize policy from YAML string."""
         import yaml
 
@@ -441,7 +441,7 @@ class GovernancePolicy:
 
         # Convert blocked_patterns back to tuples where needed
         raw_patterns = data.get("blocked_patterns", [])
-        patterns: list[Union[str, tuple[str, PatternType]]] = []
+        patterns: list[str | tuple[str, PatternType]] = []
         for p in raw_patterns:
             if isinstance(p, str):
                 patterns.append(p)
@@ -449,7 +449,7 @@ class GovernancePolicy:
                 try:
                     pt = PatternType(p["type"])
                 except ValueError:
-                    raise ValueError(f"Unknown pattern type: {p['type']!r}")
+                    raise ValueError(f"Unknown pattern type: {p['type']!r}") from None
                 patterns.append((p["pattern"], pt))
             else:
                 raise ValueError(f"Invalid blocked_pattern entry: {p!r}")
@@ -471,12 +471,12 @@ class GovernancePolicy:
             f.write(self.to_yaml())
 
     @classmethod
-    def load(cls, filepath: str) -> "GovernancePolicy":
+    def load(cls, filepath: str) -> GovernancePolicy:
         """Load policy from a YAML file."""
-        with open(filepath, "r", encoding="utf-8") as f:
+        with open(filepath, encoding="utf-8") as f:
             return cls.from_yaml(f.read())
 
-    def diff(self, other: "GovernancePolicy") -> dict[str, tuple[Any, Any]]:
+    def diff(self, other: GovernancePolicy) -> dict[str, tuple[Any, Any]]:
         """Compare this policy with another, returning changed fields.
 
         Returns a dict mapping field names to (self_value, other_value) tuples
@@ -496,7 +496,7 @@ class GovernancePolicy:
                 changes[f] = (v_self, v_other)
         return changes
 
-    def is_stricter_than(self, other: "GovernancePolicy") -> bool:
+    def is_stricter_than(self, other: GovernancePolicy) -> bool:
         """Return True if this policy is more restrictive than other.
 
         Stricter means: lower limits, higher thresholds, more blocked patterns,
@@ -531,7 +531,7 @@ class GovernancePolicy:
         ])
         return all(checks) and has_difference
 
-    def format_diff(self, other: "GovernancePolicy") -> str:
+    def format_diff(self, other: GovernancePolicy) -> str:
         """Return a human-readable diff between this policy and other."""
         changes = self.diff(other)
         if not changes:
@@ -557,8 +557,8 @@ class ExecutionContext:
     total_tokens: int = 0
     tool_calls: list[dict] = field(default_factory=list)
     checkpoints: list[str] = field(default_factory=list)
-    _baseline_hash: Optional[str] = field(default=None, repr=False)
-    _baseline_text: Optional[str] = field(default=None, repr=False)
+    _baseline_hash: str | None = field(default=None, repr=False)
+    _baseline_text: str | None = field(default=None, repr=False)
     _drift_scores: list[float] = field(default_factory=list, repr=False)
 
     def __repr__(self) -> str:
@@ -618,10 +618,10 @@ class ExecutionContext:
 class ToolCallRequest:
     """Vendor-neutral representation of a tool/function call."""
     tool_name: str
-    arguments: Dict[str, Any]
+    arguments: dict[str, Any]
     call_id: str = ""
     agent_id: str = ""
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     def __repr__(self) -> str:
         return f"ToolCallRequest(tool_name={self.tool_name!r}, call_id={self.call_id!r})"
@@ -631,9 +631,9 @@ class ToolCallRequest:
 class ToolCallResult:
     """Result of intercepting a tool call."""
     allowed: bool
-    reason: Optional[str] = None
-    modified_arguments: Optional[Dict[str, Any]] = None  # For argument sanitization
-    audit_entry: Optional[Dict[str, Any]] = None
+    reason: str | None = None
+    modified_arguments: dict[str, Any] | None = None  # For argument sanitization
+    audit_entry: dict[str, Any] | None = None
 
     def __repr__(self) -> str:
         return f"ToolCallResult(allowed={self.allowed!r}, reason={self.reason!r})"
@@ -670,7 +670,7 @@ class PolicyInterceptor:
     - Call count within limits
     """
 
-    def __init__(self, policy: GovernancePolicy, context: Optional[ExecutionContext] = None):
+    def __init__(self, policy: GovernancePolicy, context: ExecutionContext | None = None):
         self.policy = policy
         self.context = context
 
@@ -711,10 +711,10 @@ class PolicyInterceptor:
 class CompositeInterceptor:
     """Chain multiple interceptors. All must allow for the call to proceed."""
 
-    def __init__(self, interceptors: Optional[List[Any]] = None):
-        self.interceptors: List[Any] = interceptors or []
+    def __init__(self, interceptors: list[Any] | None = None):
+        self.interceptors: list[Any] = interceptors or []
 
-    def add(self, interceptor: Any) -> "CompositeInterceptor":
+    def add(self, interceptor: Any) -> CompositeInterceptor:
         self.interceptors.append(interceptor)
         return self
 
@@ -743,7 +743,7 @@ class BoundedSemaphore:
         self._total_acquired = 0
         self._total_rejected = 0
 
-    def try_acquire(self) -> tuple[bool, Optional[str]]:
+    def try_acquire(self) -> tuple[bool, str | None]:
         """
         Try to acquire a slot.
 
@@ -774,7 +774,7 @@ class BoundedSemaphore:
     def available(self) -> int:
         return max(0, self.max_concurrent - self._active)
 
-    def stats(self) -> Dict[str, Any]:
+    def stats(self) -> dict[str, Any]:
         return {
             "active": self._active,
             "max_concurrent": self.max_concurrent,
@@ -788,15 +788,15 @@ class BoundedSemaphore:
 class BaseIntegration(ABC):
     """
     Base class for framework integrations.
-    
+
     Wraps any agent framework with Agent OS governance:
     - Pre-execution policy checks
     - Post-execution validation
     - Flight recording
     - Signal handling
     """
-    
-    def __init__(self, policy: Optional[GovernancePolicy] = None) -> None:
+
+    def __init__(self, policy: GovernancePolicy | None = None) -> None:
         self.policy: GovernancePolicy = policy or GovernancePolicy()
         self.contexts: dict[str, ExecutionContext] = {}
         self._signal_handlers: dict[str, Callable[..., Any]] = {}
@@ -834,7 +834,7 @@ class BaseIntegration(ABC):
         """Register a callback for a governance event type."""
         self._event_listeners.setdefault(event_type, []).append(callback)
 
-    def emit(self, event_type: GovernanceEventType, data: Dict[str, Any]) -> None:
+    def emit(self, event_type: GovernanceEventType, data: dict[str, Any]) -> None:
         """Fire all registered callbacks for an event type."""
         for cb in self._event_listeners.get(event_type, []):
             try:
@@ -844,11 +844,11 @@ class BaseIntegration(ABC):
                     "Governance event listener error for %s: %s",
                     event_type, exc, exc_info=True,
                 )
-    
-    def pre_execute(self, ctx: ExecutionContext, input_data: Any) -> tuple[bool, Optional[str]]:
+
+    def pre_execute(self, ctx: ExecutionContext, input_data: Any) -> tuple[bool, str | None]:
         """
         Pre-execution policy check.
-        
+
         Returns (allowed, reason) tuple.
         """
         event_base = {"agent_id": ctx.agent_id, "timestamp": datetime.now().isoformat()}
@@ -860,14 +860,14 @@ class BaseIntegration(ABC):
             reason = f"Max tool calls exceeded ({self.policy.max_tool_calls})"
             self.emit(GovernanceEventType.POLICY_VIOLATION, {**event_base, "reason": reason})
             return False, reason
-        
+
         # Check timeout
         elapsed = (datetime.now() - ctx.start_time).total_seconds()
         if elapsed > self.policy.timeout_seconds:
             reason = f"Timeout exceeded ({self.policy.timeout_seconds}s)"
             self.emit(GovernanceEventType.POLICY_VIOLATION, {**event_base, "reason": reason})
             return False, reason
-        
+
         # Check blocked patterns
         input_str = str(input_data)
         matched = self.policy.matches_pattern(input_str)
@@ -894,8 +894,8 @@ class BaseIntegration(ABC):
                 return False, reason
 
         return True, None
-    
-    def post_execute(self, ctx: ExecutionContext, output_data: Any) -> tuple[bool, Optional[str]]:
+
+    def post_execute(self, ctx: ExecutionContext, output_data: Any) -> tuple[bool, str | None]:
         """
         Post-execution validation including drift detection.
 
@@ -959,7 +959,7 @@ class BaseIntegration(ABC):
         return True, None
 
     @staticmethod
-    def compute_drift(ctx: ExecutionContext, output_data: Any) -> Optional[DriftResult]:
+    def compute_drift(ctx: ExecutionContext, output_data: Any) -> DriftResult | None:
         """Compute drift between *output_data* and the baseline stored in *ctx*.
 
         On the first call the output is recorded as the baseline and ``None``
@@ -989,8 +989,8 @@ class BaseIntegration(ABC):
             baseline_hash=ctx._baseline_hash,
             current_hash=current_hash,
         )
-    
-    async def async_pre_execute(self, ctx: ExecutionContext, input_data: Any) -> tuple[bool, Optional[str]]:
+
+    async def async_pre_execute(self, ctx: ExecutionContext, input_data: Any) -> tuple[bool, str | None]:
         """
         Async pre-execution policy check.
 
@@ -999,7 +999,7 @@ class BaseIntegration(ABC):
         """
         return self.pre_execute(ctx, input_data)
 
-    async def async_post_execute(self, ctx: ExecutionContext, output_data: Any) -> tuple[bool, Optional[str]]:
+    async def async_post_execute(self, ctx: ExecutionContext, output_data: Any) -> tuple[bool, str | None]:
         """
         Async post-execution validation.
 

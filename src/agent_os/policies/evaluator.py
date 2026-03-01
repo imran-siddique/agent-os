@@ -11,7 +11,7 @@ import logging
 import re
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -24,19 +24,19 @@ class PolicyDecision(BaseModel):
     """Result of evaluating policies against an execution context."""
 
     allowed: bool = True
-    matched_rule: Optional[str] = None
+    matched_rule: str | None = None
     action: str = "allow"
     reason: str = "No rules matched; default action applied"
-    audit_entry: Dict[str, Any] = Field(default_factory=dict)
+    audit_entry: dict[str, Any] = Field(default_factory=dict)
 
 
 class PolicyEvaluator:
     """Evaluates a set of PolicyDocuments against execution contexts."""
 
-    def __init__(self, policies: Optional[List[PolicyDocument]] = None) -> None:
-        self.policies: List[PolicyDocument] = policies or []
+    def __init__(self, policies: list[PolicyDocument] | None = None) -> None:
+        self.policies: list[PolicyDocument] = policies or []
 
-    def load_policies(self, directory: Union[str, Path]) -> None:
+    def load_policies(self, directory: str | Path) -> None:
         """Load all YAML policy files from a directory."""
         directory = Path(directory)
         for path in sorted(directory.glob("*.yaml")):
@@ -44,7 +44,7 @@ class PolicyEvaluator:
         for path in sorted(directory.glob("*.yml")):
             self.policies.append(PolicyDocument.from_yaml(path))
 
-    def evaluate(self, context: Dict[str, Any]) -> PolicyDecision:
+    def evaluate(self, context: dict[str, Any]) -> PolicyDecision:
         """Evaluate all loaded policy rules against the given context.
 
         Rules are sorted by priority (descending). The first matching rule
@@ -114,7 +114,7 @@ class PolicyEvaluator:
             )
 
 
-def _match_condition(condition: Any, context: Dict[str, Any]) -> bool:
+def _match_condition(condition: Any, context: dict[str, Any]) -> bool:
     """Check whether a single PolicyCondition matches the context."""
     ctx_value = context.get(condition.field)
     if ctx_value is None:

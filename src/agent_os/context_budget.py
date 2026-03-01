@@ -12,8 +12,7 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import Any, Callable, Dict, List, Optional
-
+from typing import Any, Callable
 
 # ---------------------------------------------------------------------------
 # Signals
@@ -70,7 +69,7 @@ class UsageRecord:
     reasoning_used: int = 0
     started_at: float = field(default_factory=time.time)
     stopped: bool = False
-    stop_reason: Optional[str] = None
+    stop_reason: str | None = None
 
     @property
     def total_used(self) -> int:
@@ -106,7 +105,7 @@ class BudgetExceeded(Exception):
 # ---------------------------------------------------------------------------
 
 # Default minimum context sizes per priority (tokens)
-_MIN_CONTEXT: Dict[ContextPriority, int] = {
+_MIN_CONTEXT: dict[ContextPriority, int] = {
     ContextPriority.CRITICAL: 4000,
     ContextPriority.HIGH: 2000,
     ContextPriority.NORMAL: 1000,
@@ -147,9 +146,9 @@ class ContextScheduler:
         self.lookup_ratio = lookup_ratio
         self.warn_threshold = warn_threshold
 
-        self._active: Dict[str, UsageRecord] = {}
-        self._history: List[UsageRecord] = []
-        self._signal_handlers: Dict[AgentSignal, List[Callable]] = {
+        self._active: dict[str, UsageRecord] = {}
+        self._history: list[UsageRecord] = []
+        self._signal_handlers: dict[AgentSignal, list[Callable]] = {
             s: [] for s in AgentSignal
         }
 
@@ -160,7 +159,7 @@ class ContextScheduler:
         agent_id: str,
         task: str,
         priority: ContextPriority = ContextPriority.NORMAL,
-        max_tokens: Optional[int] = None,
+        max_tokens: int | None = None,
     ) -> ContextWindow:
         """
         Allocate a context window for *agent_id*.
@@ -235,7 +234,7 @@ class ContextScheduler:
 
         return rec
 
-    def release(self, agent_id: str) -> Optional[UsageRecord]:
+    def release(self, agent_id: str) -> UsageRecord | None:
         """Release an allocation and move it to history."""
         rec = self._active.pop(agent_id, None)
         if rec is not None:
@@ -244,11 +243,11 @@ class ContextScheduler:
 
     # -- Queries --------------------------------------------------------------
 
-    def get_usage(self, agent_id: str) -> Optional[UsageRecord]:
+    def get_usage(self, agent_id: str) -> UsageRecord | None:
         return self._active.get(agent_id)
 
     @property
-    def active_agents(self) -> List[str]:
+    def active_agents(self) -> list[str]:
         return list(self._active.keys())
 
     @property
@@ -269,7 +268,7 @@ class ContextScheduler:
         allocated = sum(r.window.total for r in self._active.values())
         return allocated / self.total_budget if self.total_budget else 0.0
 
-    def get_health_report(self) -> Dict[str, Any]:
+    def get_health_report(self) -> dict[str, Any]:
         """Return a summary of scheduler state."""
         return {
             "total_budget": self.total_budget,

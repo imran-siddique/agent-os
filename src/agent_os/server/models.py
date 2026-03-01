@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
-
 
 # ---------------------------------------------------------------------------
 # Request models
@@ -25,7 +24,7 @@ class DetectInjectionRequest(BaseModel):
 
     text: str = Field(..., description="Input text to screen")
     source: str = Field(default="api", description="Source identifier")
-    canary_tokens: Optional[list[str]] = Field(default=None, description="Canary tokens to check")
+    canary_tokens: list[str] | None = Field(default=None, description="Canary tokens to check")
     sensitivity: str = Field(default="balanced", description="Detection sensitivity")
 
 
@@ -35,7 +34,7 @@ class DetectBatchRequest(BaseModel):
     inputs: list[dict] = Field(
         ..., description="List of dicts with 'text' and optional 'source' keys"
     )
-    canary_tokens: Optional[list[str]] = Field(default=None, description="Canary tokens to check")
+    canary_tokens: list[str] | None = Field(default=None, description="Canary tokens to check")
     sensitivity: str = Field(default="balanced", description="Detection sensitivity")
 
 
@@ -43,7 +42,7 @@ class PolicyEvalRequest(BaseModel):
     """Request to evaluate policies against a context."""
 
     context: dict = Field(..., description="Execution context for policy evaluation")
-    policy_name: Optional[str] = Field(default=None, description="Specific policy to evaluate")
+    policy_name: str | None = Field(default=None, description="Specific policy to evaluate")
 
 
 # ---------------------------------------------------------------------------
@@ -55,8 +54,8 @@ class ExecuteResponse(BaseModel):
 
     success: bool
     data: Any = None
-    error: Optional[str] = None
-    signal: Optional[str] = None
+    error: str | None = None
+    signal: str | None = None
 
 
 class DetectionResponse(BaseModel):
@@ -64,7 +63,7 @@ class DetectionResponse(BaseModel):
 
     is_injection: bool
     threat_level: str
-    injection_type: Optional[str] = None
+    injection_type: str | None = None
     confidence: float
     matched_patterns: list[str] = Field(default_factory=list)
     explanation: str = ""

@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import time
 from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -45,7 +45,7 @@ class GovServer:
         self,
         *,
         title: str = "Agent OS Governance API",
-        version: Optional[str] = None,
+        version: str | None = None,
     ) -> None:
         from agent_os import __version__
         from agent_os.health import HealthChecker
@@ -76,7 +76,7 @@ class GovServer:
 
 
 def create_app(
-    server: Optional[GovServer] = None,
+    server: GovServer | None = None,
     *,
     title: str = "Agent OS Governance API",
 ) -> FastAPI:

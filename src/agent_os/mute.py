@@ -27,26 +27,17 @@ Example:
 
 from __future__ import annotations
 
-import asyncio
 import functools
 import time
-from abc import ABC, abstractmethod
+from collections.abc import Awaitable
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from typing import (
     Any,
-    Awaitable,
     Callable,
-    Dict,
-    List,
-    Optional,
-    Sequence,
-    TypeVar,
-    Union,
 )
 from uuid import uuid4
-
 
 # =============================================================================
 # Core Data Types
@@ -77,9 +68,9 @@ class ActionStep:
         depends_on: Indices of steps that must complete before this one
     """
     action: str
-    params: Dict[str, Any] = field(default_factory=dict)
+    params: dict[str, Any] = field(default_factory=dict)
     description: str = ""
-    depends_on: List[int] = field(default_factory=list)
+    depends_on: list[int] = field(default_factory=list)
 
 
 @dataclass
@@ -95,8 +86,8 @@ class ExecutionPlan:
         metadata: Optional metadata from the reasoning phase
         plan_id: Unique identifier for this plan
     """
-    steps: List[ActionStep] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    steps: list[ActionStep] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
     plan_id: str = field(default_factory=lambda: str(uuid4())[:12])
 
     def __post_init__(self):
@@ -116,7 +107,7 @@ class StepResult:
     action: str
     status: ActionStatus
     data: Any = None
-    error: Optional[str] = None
+    error: str | None = None
     duration_ms: float = 0.0
 
 
@@ -124,14 +115,14 @@ class StepResult:
 class PipelineResult:
     """Full result of a Face→Hands pipeline execution."""
     plan: ExecutionPlan
-    step_results: List[StepResult] = field(default_factory=list)
+    step_results: list[StepResult] = field(default_factory=list)
     success: bool = False
     total_duration_ms: float = 0.0
-    denied_steps: List[int] = field(default_factory=list)
-    audit_log: List[Dict[str, Any]] = field(default_factory=list)
+    denied_steps: list[int] = field(default_factory=list)
+    audit_log: list[dict[str, Any]] = field(default_factory=list)
 
     @property
-    def data(self) -> List[Any]:
+    def data(self) -> list[Any]:
         """Convenience: collect data from all successful steps."""
         return [r.data for r in self.step_results if r.status == ActionStatus.EXECUTED]
 
@@ -156,12 +147,12 @@ class CapabilityViolation(Exception):
 
 def _validate_plan_capabilities(
     plan: ExecutionPlan, capabilities: set[str]
-) -> List[int]:
+) -> list[int]:
     """Validate every step in a plan against allowed capabilities.
 
     Returns list of step indices that are denied.
     """
-    denied: List[int] = []
+    denied: list[int] = []
     for i, step in enumerate(plan.steps):
         if step.action not in capabilities:
             denied.append(i)
@@ -174,7 +165,7 @@ def _validate_plan_capabilities(
 
 
 def face_agent(
-    capabilities: Optional[List[str]] = None,
+    capabilities: list[str] | None = None,
 ):
     """Decorator that marks a function as a Face (reasoning) agent.
 
@@ -214,7 +205,7 @@ def face_agent(
 
 
 def mute_agent(
-    capabilities: Optional[List[str]] = None,
+    capabilities: list[str] | None = None,
 ):
     """Decorator that marks a function as a Mute (Hands/execution) agent.
 
@@ -258,7 +249,7 @@ async def pipe(
     mute_fn: Callable[[ActionStep], Awaitable[Any]],
     task: Any,
     *,
-    face_args: Optional[Dict[str, Any]] = None,
+    face_args: dict[str, Any] | None = None,
     halt_on_deny: bool = True,
     halt_on_error: bool = False,
 ) -> PipelineResult:
@@ -281,7 +272,7 @@ async def pipe(
         PipelineResult with step results, audit log, and success status
     """
     start = time.perf_counter()
-    audit: List[Dict[str, Any]] = []
+    audit: list[dict[str, Any]] = []
     result = PipelineResult(plan=ExecutionPlan(), audit_log=audit)
 
     # Validate decorator roles

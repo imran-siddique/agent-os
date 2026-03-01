@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import logging
 from importlib.metadata import entry_points
-from typing import Any, Dict, Optional, Type
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -36,10 +36,10 @@ PROVIDER_GROUPS = {
 }
 
 # Cache loaded providers to avoid repeated discovery
-_provider_cache: Dict[str, Any] = {}
+_provider_cache: dict[str, Any] = {}
 
 
-def _discover_provider(group: str) -> Optional[Type]:
+def _discover_provider(group: str) -> type | None:
     """Discover an advanced provider via entry_points.
 
     Returns the provider class if found, None otherwise.
@@ -163,7 +163,7 @@ def get_mute_agent(**kwargs: Any):
     return MuteAgent(**kwargs)
 
 
-def list_providers() -> Dict[str, str]:
+def list_providers() -> dict[str, str]:
     """List all provider slots and their current implementations.
 
     Returns a dict of {slot_name: "advanced" | "community"}.

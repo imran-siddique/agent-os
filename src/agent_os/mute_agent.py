@@ -21,7 +21,7 @@ from __future__ import annotations
 import logging
 import re
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 # Built-in PII / sensitive-data patterns
 # ---------------------------------------------------------------------------
 
-BUILTIN_PATTERNS: Dict[str, str] = {
+BUILTIN_PATTERNS: dict[str, str] = {
     "email": r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+",
     "phone": r"(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}",
     "ssn": r"\b\d{3}-\d{2}-\d{4}\b",
@@ -42,7 +42,7 @@ BUILTIN_PATTERNS: Dict[str, str] = {
 }
 
 # Pre-compiled versions for performance
-_COMPILED: Dict[str, re.Pattern[str]] = {
+_COMPILED: dict[str, re.Pattern[str]] = {
     name: re.compile(pattern, re.IGNORECASE)
     for name, pattern in BUILTIN_PATTERNS.items()
 }
@@ -63,9 +63,9 @@ class MutePolicy:
         sensitive_keywords: Exact substring keywords to redact.
         replacement: The string used to replace redacted content.
     """
-    enabled_builtins: List[str] = field(default_factory=lambda: list(BUILTIN_PATTERNS.keys()))
-    custom_patterns: List[str] = field(default_factory=list)
-    sensitive_keywords: List[str] = field(default_factory=list)
+    enabled_builtins: list[str] = field(default_factory=lambda: list(BUILTIN_PATTERNS.keys()))
+    custom_patterns: list[str] = field(default_factory=list)
+    sensitive_keywords: list[str] = field(default_factory=list)
     replacement: str = "[REDACTED]"
 
 
@@ -80,9 +80,9 @@ class MuteAgent:
         policy: A ``MutePolicy`` describing what to redact.
     """
 
-    def __init__(self, policy: Optional[MutePolicy] = None) -> None:
+    def __init__(self, policy: MutePolicy | None = None) -> None:
         self.policy = policy or MutePolicy()
-        self._custom_compiled: List[re.Pattern[str]] = [
+        self._custom_compiled: list[re.Pattern[str]] = [
             re.compile(p, re.IGNORECASE) for p in self.policy.custom_patterns
         ]
 

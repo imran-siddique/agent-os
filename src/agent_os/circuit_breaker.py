@@ -7,7 +7,7 @@ short-circuiting calls when a failure threshold is exceeded.
 
 import enum
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Callable, Optional, TypeVar
 
 T = TypeVar("T")

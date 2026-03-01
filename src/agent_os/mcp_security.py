@@ -39,7 +39,7 @@ import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from agent_os.prompt_injection import PromptInjectionDetector
 
@@ -75,8 +75,8 @@ class MCPThreat:
     tool_name: str
     server_name: str
     message: str
-    matched_pattern: Optional[str] = None
-    details: Dict[str, Any] = field(default_factory=dict)
+    matched_pattern: str | None = None
+    details: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -95,7 +95,7 @@ class ToolFingerprint:
 class ScanResult:
     """Aggregate outcome of scanning one or more tools."""
     safe: bool
-    threats: List[MCPThreat]
+    threats: list[MCPThreat]
     tools_scanned: int
     tools_flagged: int
 
@@ -105,7 +105,7 @@ class ScanResult:
 # ---------------------------------------------------------------------------
 
 # Invisible unicode characters used to hide instructions
-_INVISIBLE_UNICODE_PATTERNS: List[re.Pattern[str]] = [
+_INVISIBLE_UNICODE_PATTERNS: list[re.Pattern[str]] = [
     re.compile(r"[\u200b\u200c\u200d\ufeff]"),          # zero-width spaces/joiners/BOM
     re.compile(r"[\u202a-\u202e]"),                       # bidi embedding/override
     re.compile(r"[\u2066-\u2069]"),                       # bidi isolates
@@ -114,14 +114,14 @@ _INVISIBLE_UNICODE_PATTERNS: List[re.Pattern[str]] = [
 ]
 
 # Markdown/HTML comments that hide text from users
-_HIDDEN_COMMENT_PATTERNS: List[re.Pattern[str]] = [
+_HIDDEN_COMMENT_PATTERNS: list[re.Pattern[str]] = [
     re.compile(r"<!--.*?-->", re.DOTALL),                 # HTML comments
     re.compile(r"\[//\]:\s*#\s*\(.*?\)", re.DOTALL),     # Markdown reference comments
     re.compile(r"\[comment\]:\s*<>\s*\(.*?\)", re.DOTALL),  # alternative MD comment
 ]
 
 # Instruction-like patterns hidden in descriptions
-_HIDDEN_INSTRUCTION_PATTERNS: List[re.Pattern[str]] = [
+_HIDDEN_INSTRUCTION_PATTERNS: list[re.Pattern[str]] = [
     re.compile(r"ignore\s+(all\s+)?previous", re.IGNORECASE),
     re.compile(r"override\s+(the\s+)?(previous|above|original)", re.IGNORECASE),
     re.compile(r"instead\s+of\s+(the\s+)?(above|previous|described)", re.IGNORECASE),
@@ -133,13 +133,13 @@ _HIDDEN_INSTRUCTION_PATTERNS: List[re.Pattern[str]] = [
 ]
 
 # Encoded payload patterns
-_ENCODED_PAYLOAD_PATTERNS: List[re.Pattern[str]] = [
+_ENCODED_PAYLOAD_PATTERNS: list[re.Pattern[str]] = [
     re.compile(r"[A-Za-z0-9+/]{40,}={0,2}"),             # long base64 strings
     re.compile(r"(?:\\x[0-9a-fA-F]{2}){4,}"),             # hex sequences
 ]
 
 # Data exfiltration patterns
-_EXFILTRATION_PATTERNS: List[re.Pattern[str]] = [
+_EXFILTRATION_PATTERNS: list[re.Pattern[str]] = [
     re.compile(r"\bcurl\b", re.IGNORECASE),
     re.compile(r"\bwget\b", re.IGNORECASE),
     re.compile(r"\bfetch\s*\(", re.IGNORECASE),
@@ -151,7 +151,7 @@ _EXFILTRATION_PATTERNS: List[re.Pattern[str]] = [
 ]
 
 # Privilege escalation in descriptions
-_PRIVILEGE_ESCALATION_PATTERNS: List[re.Pattern[str]] = [
+_PRIVILEGE_ESCALATION_PATTERNS: list[re.Pattern[str]] = [
     re.compile(r"\bsudo\b", re.IGNORECASE),
     re.compile(r"\badmin\s+access\b", re.IGNORECASE),
     re.compile(r"\broot\s+access\b", re.IGNORECASE),
@@ -161,7 +161,7 @@ _PRIVILEGE_ESCALATION_PATTERNS: List[re.Pattern[str]] = [
 ]
 
 # Role override patterns
-_ROLE_OVERRIDE_PATTERNS: List[re.Pattern[str]] = [
+_ROLE_OVERRIDE_PATTERNS: list[re.Pattern[str]] = [
     re.compile(r"you\s+are\b", re.IGNORECASE),
     re.compile(r"your\s+task\s+is\b", re.IGNORECASE),
     re.compile(r"respond\s+with\b", re.IGNORECASE),
@@ -176,7 +176,7 @@ _EXCESSIVE_WHITESPACE_PATTERN: re.Pattern[str] = re.compile(
 )
 
 # Suspicious keywords in decoded base64
-_SUSPICIOUS_DECODED_KEYWORDS: List[str] = [
+_SUSPICIOUS_DECODED_KEYWORDS: list[str] = [
     "ignore", "override", "system", "password", "secret",
     "admin", "root", "exec", "eval", "import os",
     "send", "curl", "fetch",
@@ -202,8 +202,8 @@ class MCPSecurityScanner:
     """
 
     def __init__(self) -> None:
-        self._tool_registry: Dict[str, ToolFingerprint] = {}
-        self._audit_log: List[Dict[str, Any]] = []
+        self._tool_registry: dict[str, ToolFingerprint] = {}
+        self._audit_log: list[dict[str, Any]] = []
         self._injection_detector = PromptInjectionDetector()
 
     # -- public API ---------------------------------------------------------
@@ -212,9 +212,9 @@ class MCPSecurityScanner:
         self,
         tool_name: str,
         description: str,
-        schema: Optional[Dict[str, Any]] = None,
+        schema: dict[str, Any] | None = None,
         server_name: str = "unknown",
-    ) -> List[MCPThreat]:
+    ) -> list[MCPThreat]:
         """Scan a single MCP tool definition for threats.
 
         Args:
@@ -226,7 +226,7 @@ class MCPSecurityScanner:
         Returns:
             List of ``MCPThreat`` findings (empty if clean).
         """
-        threats: List[MCPThreat] = []
+        threats: list[MCPThreat] = []
 
         threats.extend(self._check_hidden_instructions(description, tool_name, server_name))
         threats.extend(self._check_description_injection(description, tool_name, server_name))
@@ -244,7 +244,7 @@ class MCPSecurityScanner:
     def scan_server(
         self,
         server_name: str,
-        tools: List[Dict[str, Any]],
+        tools: list[dict[str, Any]],
     ) -> ScanResult:
         """Scan all tools from an MCP server.
 
@@ -256,7 +256,7 @@ class MCPSecurityScanner:
         Returns:
             Aggregate ``ScanResult``.
         """
-        all_threats: List[MCPThreat] = []
+        all_threats: list[MCPThreat] = []
         flagged_tools: set[str] = set()
 
         for tool in tools:
@@ -279,7 +279,7 @@ class MCPSecurityScanner:
         self,
         tool_name: str,
         description: str,
-        schema: Optional[Dict[str, Any]],
+        schema: dict[str, Any] | None,
         server_name: str,
     ) -> ToolFingerprint:
         """Register a tool with a cryptographic fingerprint.
@@ -325,9 +325,9 @@ class MCPSecurityScanner:
         self,
         tool_name: str,
         description: str,
-        schema: Optional[Dict[str, Any]],
+        schema: dict[str, Any] | None,
         server_name: str,
-    ) -> Optional[MCPThreat]:
+    ) -> MCPThreat | None:
         """Check if a tool definition changed since registration (rug pull).
 
         Returns:
@@ -344,7 +344,7 @@ class MCPSecurityScanner:
             if schema else b""
         ).hexdigest()
 
-        changes: List[str] = []
+        changes: list[str] = []
         if existing.description_hash != desc_hash:
             changes.append("description")
         if existing.schema_hash != schema_hash:
@@ -365,7 +365,7 @@ class MCPSecurityScanner:
         return None
 
     @property
-    def audit_log(self) -> List[Dict[str, Any]]:
+    def audit_log(self) -> list[dict[str, Any]]:
         """Return a copy of the scan audit history."""
         return list(self._audit_log)
 
@@ -376,9 +376,9 @@ class MCPSecurityScanner:
         description: str,
         tool_name: str,
         server_name: str,
-    ) -> List[MCPThreat]:
+    ) -> list[MCPThreat]:
         """Detect hidden instructions in tool descriptions."""
-        threats: List[MCPThreat] = []
+        threats: list[MCPThreat] = []
 
         # 1. Invisible unicode characters
         for pattern in _INVISIBLE_UNICODE_PATTERNS:
@@ -470,9 +470,9 @@ class MCPSecurityScanner:
         description: str,
         tool_name: str,
         server_name: str,
-    ) -> List[MCPThreat]:
+    ) -> list[MCPThreat]:
         """Detect prompt injection patterns in tool descriptions."""
-        threats: List[MCPThreat] = []
+        threats: list[MCPThreat] = []
 
         # Reuse prompt_injection.py detector
         result = self._injection_detector.detect(description, source=f"mcp:{server_name}:{tool_name}")
@@ -515,12 +515,12 @@ class MCPSecurityScanner:
 
     def _check_schema_abuse(
         self,
-        schema: Dict[str, Any],
+        schema: dict[str, Any],
         tool_name: str,
         server_name: str,
-    ) -> List[MCPThreat]:
+    ) -> list[MCPThreat]:
         """Check tool input schemas for suspicious patterns."""
-        threats: List[MCPThreat] = []
+        threats: list[MCPThreat] = []
 
         # 1. Overly permissive: top-level type is "object" with no properties
         if schema.get("type") == "object" and not schema.get("properties"):
@@ -595,11 +595,11 @@ class MCPSecurityScanner:
         self,
         tool_name: str,
         server_name: str,
-    ) -> List[MCPThreat]:
+    ) -> list[MCPThreat]:
         """Check for cross-server attack patterns."""
-        threats: List[MCPThreat] = []
+        threats: list[MCPThreat] = []
 
-        for key, fp in self._tool_registry.items():
+        for _key, fp in self._tool_registry.items():
             # Same tool name from a different server
             if fp.tool_name == tool_name and fp.server_name != server_name:
                 threats.append(MCPThreat(
@@ -656,7 +656,7 @@ class MCPSecurityScanner:
         action: str,
         tool_name: str,
         server_name: str,
-        threats: List[MCPThreat],
+        threats: list[MCPThreat],
     ) -> None:
         record = {
             "timestamp": datetime.now(timezone.utc).isoformat(),

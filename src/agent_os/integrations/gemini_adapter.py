@@ -32,7 +32,7 @@ import logging
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from .base import BaseIntegration, ExecutionContext, GovernancePolicy
 
@@ -98,7 +98,7 @@ class GeminiKernel(BaseIntegration):
 
     def __init__(
         self,
-        policy: Optional[GovernancePolicy] = None,
+        policy: GovernancePolicy | None = None,
     ) -> None:
         """Initialise the Gemini governance kernel.
 
@@ -108,9 +108,9 @@ class GeminiKernel(BaseIntegration):
         super().__init__(policy)
         self._wrapped_models: dict[int, Any] = {}
         self._start_time = time.monotonic()
-        self._last_error: Optional[str] = None
+        self._last_error: str | None = None
 
-    def wrap(self, model: Any) -> "GovernedGeminiModel":
+    def wrap(self, model: Any) -> GovernedGeminiModel:
         """Wrap a Gemini GenerativeModel with governance.
 
         Args:
@@ -343,7 +343,7 @@ class GovernedGeminiModel:
 
 def wrap_model(
     model: Any,
-    policy: Optional[GovernancePolicy] = None,
+    policy: GovernancePolicy | None = None,
 ) -> GovernedGeminiModel:
     """Quick wrapper for Gemini GenerativeModel.
 

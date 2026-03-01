@@ -9,11 +9,11 @@ import json
 import logging
 import threading
 import time
-import urllib.request
 import urllib.error
-from dataclasses import dataclass, field, asdict
+import urllib.request
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -22,11 +22,11 @@ logger = logging.getLogger(__name__)
 class WebhookConfig:
     """Configuration for a webhook endpoint."""
     url: str
-    headers: Dict[str, str] = field(default_factory=dict)
+    headers: dict[str, str] = field(default_factory=dict)
     timeout: float = 5.0
     retry_count: int = 3
     retry_delay: float = 1.0
-    events: List[str] = field(default_factory=list)
+    events: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -35,7 +35,7 @@ class WebhookEvent:
     event_type: str
     agent_id: str
     action: str
-    details: Dict[str, Any] = field(default_factory=dict)
+    details: dict[str, Any] = field(default_factory=dict)
     timestamp: str = ""
     severity: str = "info"  # "info", "warning", "critical"
 
@@ -66,9 +66,9 @@ class WebhookNotifier:
     with retry logic and delivery history tracking.
     """
 
-    def __init__(self, configs: List[WebhookConfig]):
+    def __init__(self, configs: list[WebhookConfig]):
         self._configs = list(configs)
-        self._history: List[DeliveryRecord] = []
+        self._history: list[DeliveryRecord] = []
         self._lock = threading.Lock()
 
     def _matches(self, config: WebhookConfig, event: WebhookEvent) -> bool:
@@ -128,9 +128,9 @@ class WebhookNotifier:
         )
         return record
 
-    def notify(self, event: WebhookEvent) -> List[DeliveryRecord]:
+    def notify(self, event: WebhookEvent) -> list[DeliveryRecord]:
         """Send event to all matching webhooks synchronously."""
-        records: List[DeliveryRecord] = []
+        records: list[DeliveryRecord] = []
         for config in self._configs:
             if self._matches(config, event):
                 records.append(self._send(config, event))
@@ -144,7 +144,7 @@ class WebhookNotifier:
 
     def notify_violation(
         self, agent_id: str, action: str, policy_name: str, reason: str
-    ) -> List[DeliveryRecord]:
+    ) -> list[DeliveryRecord]:
         """Convenience method to notify about a policy violation."""
         event = WebhookEvent(
             event_type="policy_violation",
@@ -157,7 +157,7 @@ class WebhookNotifier:
 
     def notify_budget_warning(
         self, agent_id: str, usage_pct: float
-    ) -> List[DeliveryRecord]:
+    ) -> list[DeliveryRecord]:
         """Convenience method to notify about a budget warning."""
         severity = "critical" if usage_pct >= 100.0 else "warning"
         event = WebhookEvent(
@@ -169,7 +169,7 @@ class WebhookNotifier:
         )
         return self.notify(event)
 
-    def get_history(self) -> List[DeliveryRecord]:
+    def get_history(self) -> list[DeliveryRecord]:
         """Return a copy of all delivery records."""
         with self._lock:
             return list(self._history)

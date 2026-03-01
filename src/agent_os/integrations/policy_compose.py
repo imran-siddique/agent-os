@@ -11,7 +11,6 @@ from typing import Any
 
 from .base import GovernancePolicy
 
-
 # Fields that use "most restrictive" (min) merging
 _MIN_FIELDS = {"max_tokens", "max_tool_calls", "max_concurrent", "timeout_seconds"}
 

@@ -21,9 +21,10 @@ Built-in attack categories:
 from __future__ import annotations
 
 import logging
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +56,7 @@ class AttackVector:
     """
     name: str
     category: AttackCategory
-    payload: Dict[str, Any]
+    payload: dict[str, Any]
     expected_outcome: str = "blocked"
     tool_name: str = "execute_command"
     agent_id: str = "adversarial-tester"
@@ -74,7 +75,7 @@ class VectorResult:
     vector: AttackVector
     actual_outcome: str
     passed: bool
-    reason: Optional[str] = None
+    reason: str | None = None
 
 
 @dataclass
@@ -89,19 +90,19 @@ class EvaluationReport:
         risk_score: ``failed / total`` — 0.0 is ideal.
         recommendations: Human-readable suggestions based on failures.
     """
-    results: List[VectorResult] = field(default_factory=list)
+    results: list[VectorResult] = field(default_factory=list)
     total: int = 0
     passed: int = 0
     failed: int = 0
     risk_score: float = 0.0
-    recommendations: List[str] = field(default_factory=list)
+    recommendations: list[str] = field(default_factory=list)
 
 
 # ---------------------------------------------------------------------------
 # Built-in attack vectors
 # ---------------------------------------------------------------------------
 
-BUILTIN_VECTORS: List[AttackVector] = [
+BUILTIN_VECTORS: list[AttackVector] = [
     # -- Prompt injection ---------------------------------------------------
     AttackVector(
         name="system_prompt_override",
@@ -177,7 +178,7 @@ class AdversarialEvaluator:
 
     def evaluate(
         self,
-        vectors: Optional[Sequence[AttackVector]] = None,
+        vectors: Sequence[AttackVector] | None = None,
     ) -> EvaluationReport:
         """Run *vectors* (defaults to built-ins) and return a report.
 
@@ -224,8 +225,8 @@ class AdversarialEvaluator:
     # -- internals ----------------------------------------------------------
 
     @staticmethod
-    def _build_recommendations(report: EvaluationReport) -> List[str]:
-        recommendations: List[str] = []
+    def _build_recommendations(report: EvaluationReport) -> list[str]:
+        recommendations: list[str] = []
         failed_categories = {
             r.vector.category for r in report.results if not r.passed
         }

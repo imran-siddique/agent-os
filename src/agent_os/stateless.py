@@ -59,7 +59,7 @@ import logging
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Protocol, Tuple
+from typing import Any, Protocol
 
 from agent_os.circuit_breaker import CircuitBreaker, CircuitBreakerConfig, CircuitBreakerOpen
 from agent_os.exceptions import SerializationError
@@ -108,11 +108,11 @@ class StateBackend(Protocol):
             should be treated as deleted.
     """
 
-    async def get(self, key: str) -> Optional[Dict[str, Any]]:
+    async def get(self, key: str) -> dict[str, Any] | None:
         """Get state by key."""
         ...
 
-    async def set(self, key: str, value: Dict[str, Any], ttl: Optional[int] = None) -> None:
+    async def set(self, key: str, value: dict[str, Any], ttl: int | None = None) -> None:
         """Set state with optional TTL."""
         ...
 
@@ -137,10 +137,10 @@ class MemoryBackend:
     def __init__(self) -> None:
         # Store maps key -> (value_dict, optional_expiry_monotonic_time).
         # Using monotonic clock for TTL avoids issues with wall-clock jumps.
-        self._store: Dict[str, Tuple[Dict[str, Any], Optional[float]]] = {}
+        self._store: dict[str, tuple[dict[str, Any], float | None]] = {}
         self._debug = False
 
-    async def get(self, key: str) -> Optional[Dict[str, Any]]:
+    async def get(self, key: str) -> dict[str, Any] | None:
         entry = self._store.get(key)
         if entry is None:
             return None
@@ -150,7 +150,7 @@ class MemoryBackend:
             return None
         return value
 
-    async def set(self, key: str, value: Dict[str, Any], ttl: Optional[int] = None) -> None:
+    async def set(self, key: str, value: dict[str, Any], ttl: int | None = None) -> None:
         expires_at = (time.monotonic() + ttl) if ttl is not None else None
         self._store[key] = (value, expires_at)
 
@@ -176,7 +176,7 @@ class RedisConfig:
     host: str = "localhost"
     port: int = 6379
     db: int = 0
-    password: Optional[str] = None
+    password: str | None = None
     pool_size: int = 10
     connect_timeout: float = 5.0
     read_timeout: float = 10.0
@@ -200,7 +200,7 @@ class RedisBackend:
         self,
         url: str = "redis://localhost:6379",
         key_prefix: str = "agent-os:",
-        config: Optional[RedisConfig] = None,
+        config: RedisConfig | None = None,
     ):
         if not isinstance(key_prefix, str):
             raise TypeError(f"key_prefix must be str, got {type(key_prefix).__name__}")
@@ -227,7 +227,7 @@ class RedisBackend:
                 self._client = aioredis.from_url(self.url)
         return self._client
 
-    async def get(self, key: str) -> Optional[Dict[str, Any]]:
+    async def get(self, key: str) -> dict[str, Any] | None:
         client = await self._get_client()
         data = await client.get(f"{self._prefix}{key}")
         if not data:
@@ -245,7 +245,7 @@ class RedisBackend:
                 details={"key": key, "original_error": str(exc)},
             ) from exc
 
-    async def set(self, key: str, value: Dict[str, Any], ttl: Optional[int] = None) -> None:
+    async def set(self, key: str, value: dict[str, Any], ttl: int | None = None) -> None:
         client = await self._get_client()
         try:
             serialized = json.dumps(value)
@@ -299,12 +299,12 @@ class ExecutionContext:
         metadata: Arbitrary metadata passed through to the result.
     """
     agent_id: str
-    policies: List[str] = field(default_factory=list)
-    history: List[Dict[str, Any]] = field(default_factory=list)
-    state_ref: Optional[str] = None  # Reference to external state
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    policies: list[str] = field(default_factory=list)
+    history: list[dict[str, Any]] = field(default_factory=list)
+    state_ref: str | None = None  # Reference to external state
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "agent_id": self.agent_id,
             "policies": self.policies,
@@ -324,9 +324,9 @@ class ExecutionRequest:
     requiring the caller to supply an ID.
     """
     action: str
-    params: Dict[str, Any]
+    params: dict[str, Any]
     context: ExecutionContext
-    request_id: Optional[str] = None
+    request_id: str | None = None
 
     def __post_init__(self):
         if self.request_id is None:
@@ -354,10 +354,10 @@ class ExecutionResult:
     """
     success: bool
     data: Any
-    error: Optional[str] = None
-    signal: Optional[str] = None
-    updated_context: Optional[ExecutionContext] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    error: str | None = None
+    signal: str | None = None
+    updated_context: ExecutionContext | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 # =============================================================================
@@ -371,16 +371,16 @@ class ExecutionResult:
 class StatelessKernel:
     """
     Stateless kernel for MCP June 2026 compliance.
-    
+
     Design principles:
     - Every request is self-contained
     - State stored in external backend
     - Kernel can run on any instance (horizontal scaling)
     - No agent registration required
-    
+
     Usage:
         kernel = StatelessKernel(backend=RedisBackend())
-        
+
         result = await kernel.execute(
             action="database_query",
             params={"query": "SELECT * FROM users"},
@@ -407,10 +407,10 @@ class StatelessKernel:
 
     def __init__(
         self,
-        backend: Optional[StateBackend] = None,
-        policies: Optional[Dict[str, Any]] = None,
+        backend: StateBackend | None = None,
+        policies: dict[str, Any] | None = None,
         enable_tracing: bool = False,
-        circuit_breaker_config: Optional[CircuitBreakerConfig] = None,
+        circuit_breaker_config: CircuitBreakerConfig | None = None,
     ):
         self.backend = backend or MemoryBackend()
         self.policies = {**self.DEFAULT_POLICIES, **(policies or {})}
@@ -424,27 +424,27 @@ class StatelessKernel:
     async def execute(
         self,
         action: str,
-        params: Dict[str, Any],
+        params: dict[str, Any],
         context: ExecutionContext
     ) -> ExecutionResult:
         """
         Execute an action statelessly with full policy governance.
-        
+
         This is the main entry point. Every request is self-contained:
         policies are checked, the action is executed, state is updated
         externally, and an updated context is returned.
-        
+
         Args:
             action: Action to execute (e.g., "database_query", "file_write", "chat")
             params: Action parameters (passed to handler and checked against policies)
             context: Complete execution context including agent_id, policies, and history
-        
+
         Returns:
             ExecutionResult with:
             - success=True, data=result, updated_context (on success)
             - success=False, error=reason, signal="SIGKILL" (on policy violation)
             - success=False, error=str(e), signal="SIGTERM" (on execution error)
-        
+
         Example:
             >>> result = await kernel.execute(
             ...     action="database_query",
@@ -473,12 +473,12 @@ class StatelessKernel:
         self,
         request: ExecutionRequest,
         action: str,
-        params: Dict[str, Any],
+        params: dict[str, Any],
         context: ExecutionContext,
     ) -> ExecutionResult:
         """Core execute logic, called inside an optional tracing span."""
         # 1. Load external state if referenced
-        external_state: Dict[str, Any] = {}
+        external_state: dict[str, Any] = {}
         if context.state_ref:
             external_state = await self._backend_get(context.state_ref) or {}
 
@@ -542,16 +542,16 @@ class StatelessKernel:
     def _check_policies(
         self,
         action: str,
-        params: Dict[str, Any],
-        policy_names: List[str]
-    ) -> Dict[str, Any]:
+        params: dict[str, Any],
+        policy_names: list[str]
+    ) -> dict[str, Any]:
         """Check if action is allowed under policies.
-        
+
         Args:
             action: The action being attempted (e.g., "database_query", "file_write")
             params: Parameters for the action
             policy_names: List of policy names to check against
-            
+
         Returns:
             Dict with 'allowed' (bool) and 'reason' (str) keys.
             When blocked, includes 'suggestion' with actionable fix.
@@ -602,9 +602,9 @@ class StatelessKernel:
     async def _execute_action(
         self,
         action: str,
-        params: Dict[str, Any],
-        state: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        params: dict[str, Any],
+        state: dict[str, Any]
+    ) -> dict[str, Any]:
         """Execute action (stub - real impl dispatches to handlers)."""
         return {
             "data": {
@@ -623,7 +623,7 @@ class StatelessKernel:
     # to recover.
     # -----------------------------------------------------------------
 
-    async def _backend_get(self, key: str) -> Optional[Dict[str, Any]]:
+    async def _backend_get(self, key: str) -> dict[str, Any] | None:
         """Get from backend through circuit breaker with tracing."""
         span_ctx = self._start_span("kernel.backend.get", {
             "operation": "get",
@@ -638,7 +638,7 @@ class StatelessKernel:
             self._end_span(span_ctx)
 
     async def _backend_set(
-        self, key: str, value: Dict[str, Any], ttl: Optional[int] = None
+        self, key: str, value: dict[str, Any], ttl: int | None = None
     ) -> None:
         """Set in backend through circuit breaker with tracing."""
         span_ctx = self._start_span("kernel.backend.set", {
@@ -672,8 +672,8 @@ class StatelessKernel:
     # -----------------------------------------------------------------
 
     def _start_span(
-        self, name: str, attributes: Dict[str, str]
-    ) -> Optional[Any]:
+        self, name: str, attributes: dict[str, str]
+    ) -> Any | None:
         """Start an OTel span if tracing is enabled. Returns a context token."""
         if not self._tracer:
             return None
@@ -683,7 +683,7 @@ class StatelessKernel:
         return (span, token)
 
     @staticmethod
-    def _end_span(span_ctx: Optional[Any]) -> None:
+    def _end_span(span_ctx: Any | None) -> None:
         """End the OTel span if present."""
         if span_ctx is None:
             return
@@ -700,9 +700,9 @@ async def stateless_execute(
     action: str,
     params: dict,
     agent_id: str,
-    policies: Optional[List[str]] = None,
-    history: Optional[List[dict]] = None,
-    backend: Optional[StateBackend] = None
+    policies: list[str] | None = None,
+    history: list[dict] | None = None,
+    backend: StateBackend | None = None
 ) -> ExecutionResult:
     """Convenience function for one-shot stateless execution.
 

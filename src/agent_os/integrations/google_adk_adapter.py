@@ -46,7 +46,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable
 
 from .base import BaseIntegration, GovernancePolicy
 
@@ -78,18 +78,18 @@ class PolicyConfig:
     max_agent_calls: int = 20
     timeout_seconds: int = 300
 
-    allowed_tools: List[str] = field(default_factory=list)
-    blocked_tools: List[str] = field(default_factory=list)
+    allowed_tools: list[str] = field(default_factory=list)
+    blocked_tools: list[str] = field(default_factory=list)
 
-    blocked_patterns: List[str] = field(default_factory=list)
+    blocked_patterns: list[str] = field(default_factory=list)
     pii_detection: bool = True
 
     log_all_calls: bool = True
 
     require_human_approval: bool = False
-    sensitive_tools: List[str] = field(default_factory=list)
+    sensitive_tools: list[str] = field(default_factory=list)
 
-    max_budget: Optional[float] = None
+    max_budget: float | None = None
 
 
 class PolicyViolationError(Exception):
@@ -109,7 +109,7 @@ class AuditEvent:
     timestamp: float
     event_type: str
     agent_name: str
-    details: Dict[str, Any]
+    details: dict[str, Any]
 
 
 class GoogleADKKernel(BaseIntegration):
@@ -126,19 +126,19 @@ class GoogleADKKernel(BaseIntegration):
 
     def __init__(
         self,
-        policy: Optional[PolicyConfig] = None,
-        on_violation: Optional[Callable[[PolicyViolationError], None]] = None,
+        policy: PolicyConfig | None = None,
+        on_violation: Callable[[PolicyViolationError], None] | None = None,
         *,
         # Convenience kwargs (create PolicyConfig automatically)
         max_tool_calls: int = 50,
         max_agent_calls: int = 20,
         timeout_seconds: int = 300,
-        allowed_tools: Optional[List[str]] = None,
-        blocked_tools: Optional[List[str]] = None,
-        blocked_patterns: Optional[List[str]] = None,
+        allowed_tools: list[str] | None = None,
+        blocked_tools: list[str] | None = None,
+        blocked_patterns: list[str] | None = None,
         require_human_approval: bool = False,
-        sensitive_tools: Optional[List[str]] = None,
-        max_budget: Optional[float] = None,
+        sensitive_tools: list[str] | None = None,
+        max_budget: float | None = None,
     ):
         if policy is not None:
             self._adk_config = policy
@@ -175,17 +175,17 @@ class GoogleADKKernel(BaseIntegration):
         self._budget_spent: float = 0.0
 
         # Audit trail
-        self._audit_log: List[AuditEvent] = []
+        self._audit_log: list[AuditEvent] = []
 
         # Violations collected
-        self._violations: List[PolicyViolationError] = []
+        self._violations: list[PolicyViolationError] = []
 
         # Human approval tracking
-        self._pending_approvals: Dict[str, Dict[str, Any]] = {}
-        self._approved_calls: Dict[str, bool] = {}
+        self._pending_approvals: dict[str, dict[str, Any]] = {}
+        self._approved_calls: dict[str, bool] = {}
 
         # Wrapped agents registry
-        self._wrapped_agents: Dict[str, Any] = {}
+        self._wrapped_agents: dict[str, Any] = {}
 
     # ------------------------------------------------------------------
     # BaseIntegration abstract methods
@@ -233,7 +233,7 @@ class GoogleADKKernel(BaseIntegration):
     def _default_violation_handler(self, error: PolicyViolationError) -> None:
         logger.error(f"Policy violation: {error}")
 
-    def _record(self, event_type: str, agent_name: str, details: Dict[str, Any]) -> None:
+    def _record(self, event_type: str, agent_name: str, details: dict[str, Any]) -> None:
         if self._adk_config.log_all_calls:
             self._audit_log.append(
                 AuditEvent(
@@ -293,7 +293,7 @@ class GoogleADKKernel(BaseIntegration):
     # ADK Callback Hooks
     # ------------------------------------------------------------------
 
-    def before_tool_callback(self, tool_context: Any = None, **kwargs: Any) -> Optional[Dict[str, Any]]:
+    def before_tool_callback(self, tool_context: Any = None, **kwargs: Any) -> dict[str, Any] | None:
         """
         ADK before_tool_callback — called before each tool execution.
 
@@ -492,7 +492,7 @@ class GoogleADKKernel(BaseIntegration):
             return True
         return False
 
-    def get_pending_approvals(self) -> Dict[str, Dict[str, Any]]:
+    def get_pending_approvals(self) -> dict[str, dict[str, Any]]:
         """Return all pending approval requests."""
         return dict(self._pending_approvals)
 
@@ -507,15 +507,15 @@ class GoogleADKKernel(BaseIntegration):
         self._start_time = time.time()
         self._budget_spent = 0.0
 
-    def get_audit_log(self) -> List[AuditEvent]:
+    def get_audit_log(self) -> list[AuditEvent]:
         """Return the full audit trail."""
         return list(self._audit_log)
 
-    def get_violations(self) -> List[PolicyViolationError]:
+    def get_violations(self) -> list[PolicyViolationError]:
         """Return all collected violations."""
         return list(self._violations)
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get governance statistics."""
         return {
             "tool_calls": self._tool_call_count,
@@ -536,7 +536,7 @@ class GoogleADKKernel(BaseIntegration):
             },
         }
 
-    def get_callbacks(self) -> Dict[str, Any]:
+    def get_callbacks(self) -> dict[str, Any]:
         """
         Return a dict of all callbacks suitable for unpacking into LlmAgent.
 
@@ -550,7 +550,7 @@ class GoogleADKKernel(BaseIntegration):
             "after_agent_callback": self.after_agent_callback,
         }
 
-    def health_check(self) -> Dict[str, Any]:
+    def health_check(self) -> dict[str, Any]:
         """Return adapter health status."""
         elapsed = time.time() - self._start_time
         has_violations = len(self._violations) > 0

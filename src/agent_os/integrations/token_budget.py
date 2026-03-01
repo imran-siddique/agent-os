@@ -6,8 +6,8 @@ Integrates with GovernancePolicy for budget configuration.
 """
 
 import threading
-from dataclasses import dataclass, field
-from typing import Callable, Dict, List, Optional
+from dataclasses import dataclass
+from typing import Callable, Optional
 
 from .base import GovernancePolicy
 
@@ -57,7 +57,7 @@ class TokenBudgetTracker:
         self._warning_threshold = warning_threshold
         self._on_warning = on_warning
         self._lock = threading.Lock()
-        self._usage: Dict[str, _AgentUsage] = {}
+        self._usage: dict[str, _AgentUsage] = {}
 
     # ------------------------------------------------------------------
     # Public API

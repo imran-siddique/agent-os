@@ -22,10 +22,9 @@ Example:
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, FrozenSet, List, Optional, Set
-
+from typing import Any
 
 # =============================================================================
 # Intent Categories
@@ -98,7 +97,7 @@ class PolicyDenied(Exception):
 # =============================================================================
 
 # Each signal: (pattern_regex, weight, explanation)
-_SIGNALS: Dict[IntentCategory, List[tuple]] = {
+_SIGNALS: dict[IntentCategory, list[tuple]] = {
     IntentCategory.DESTRUCTIVE_DATA: [
         (r"\bDROP\s+(TABLE|DATABASE|INDEX|VIEW|SCHEMA)\b", 0.9, "SQL DROP statement"),
         (r"\bTRUNCATE\s+TABLE\b", 0.9, "SQL TRUNCATE"),
@@ -183,9 +182,9 @@ class SemanticPolicyEngine:
 
     def __init__(
         self,
-        deny: Optional[List[IntentCategory]] = None,
+        deny: list[IntentCategory] | None = None,
         confidence_threshold: float = 0.5,
-        custom_signals: Optional[Dict[IntentCategory, List[tuple]]] = None,
+        custom_signals: dict[IntentCategory, list[tuple]] | None = None,
     ):
         """
         Args:
@@ -193,7 +192,7 @@ class SemanticPolicyEngine:
             confidence_threshold: Minimum confidence to trigger deny (0.0-1.0)
             custom_signals: Additional signal patterns to merge with defaults
         """
-        self.deny_categories: Set[IntentCategory] = set(deny) if deny else {
+        self.deny_categories: set[IntentCategory] = set(deny) if deny else {
             IntentCategory.DESTRUCTIVE_DATA,
             IntentCategory.DATA_EXFILTRATION,
             IntentCategory.PRIVILEGE_ESCALATION,
@@ -206,7 +205,7 @@ class SemanticPolicyEngine:
             for cat, sigs in custom_signals.items():
                 self.signals.setdefault(cat, []).extend(sigs)
         # Pre-compile regexes for performance
-        self._compiled: Dict[IntentCategory, List[tuple]] = {}
+        self._compiled: dict[IntentCategory, list[tuple]] = {}
         for cat, sigs in self.signals.items():
             self._compiled[cat] = [
                 (re.compile(pattern, re.IGNORECASE), weight, explanation)
@@ -214,7 +213,7 @@ class SemanticPolicyEngine:
             ]
 
     def classify(
-        self, action: str, params: Dict[str, Any]
+        self, action: str, params: dict[str, Any]
     ) -> IntentClassification:
         """
         Classify the semantic intent of an action+params.
@@ -263,9 +262,9 @@ class SemanticPolicyEngine:
     def check(
         self,
         action: str,
-        params: Dict[str, Any],
+        params: dict[str, Any],
         *,
-        deny: Optional[List[IntentCategory]] = None,
+        deny: list[IntentCategory] | None = None,
         policy_name: str = "",
     ) -> IntentClassification:
         """
@@ -295,7 +294,7 @@ class SemanticPolicyEngine:
         return classification
 
     @staticmethod
-    def _build_text(action: str, params: Dict[str, Any]) -> str:
+    def _build_text(action: str, params: dict[str, Any]) -> str:
         """Flatten action + params into a single searchable string."""
         parts = [action]
         for value in params.values():

@@ -19,7 +19,6 @@ from __future__ import annotations
 
 import threading
 from dataclasses import dataclass, field
-from typing import Dict
 
 
 @dataclass
@@ -35,9 +34,9 @@ class GovernanceMetrics:
     blocked: int = 0
     avg_latency_ms: float = 0.0
 
-    _adapter_checks: Dict[str, int] = field(default_factory=dict)
-    _adapter_violations: Dict[str, int] = field(default_factory=dict)
-    _adapter_blocked: Dict[str, int] = field(default_factory=dict)
+    _adapter_checks: dict[str, int] = field(default_factory=dict)
+    _adapter_violations: dict[str, int] = field(default_factory=dict)
+    _adapter_blocked: dict[str, int] = field(default_factory=dict)
     _total_latency_ms: float = field(default=0.0, repr=False)
     _lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
 

@@ -17,9 +17,8 @@ import asyncio
 import logging
 import time
 from typing import Any, Optional
-from functools import wraps
 
-from .base import BaseIntegration, GovernancePolicy, ExecutionContext
+from .base import BaseIntegration, GovernancePolicy
 
 logger = logging.getLogger("agent_os.langchain")
 
@@ -52,7 +51,7 @@ class LangChainKernel(BaseIntegration):
         self._wrapped_agents: dict[int, Any] = {}  # id(wrapped) -> original
         self._start_time = time.monotonic()
         self._last_error: Optional[str] = None
-    
+
     def wrap(self, agent: Any) -> Any:
         """Wrap a LangChain chain, agent, or runnable with governance.
 
@@ -86,22 +85,22 @@ class LangChainKernel(BaseIntegration):
         # Get agent ID from the object
         agent_id = getattr(agent, 'name', None) or f"langchain-{id(agent)}"
         ctx = self.create_context(agent_id)
-        
+
         # Store original
         self._wrapped_agents[id(agent)] = agent
-        
+
         # Create wrapper class
         original = agent
         kernel = self
-        
+
         class GovernedLangChainAgent:
             """LangChain agent wrapped with Agent OS governance"""
-            
+
             def __init__(self):
                 self._original = original
                 self._ctx = ctx
                 self._kernel = kernel
-            
+
             def invoke(self, input_data: Any, **kwargs) -> Any:
                 """Governed synchronous invocation.
 
@@ -189,7 +188,7 @@ class LangChainKernel(BaseIntegration):
                     raise PolicyViolationError(reason)
 
                 return result
-            
+
             def run(self, *args, **kwargs) -> Any:
                 """Governed run for legacy LangChain agents.
 
@@ -295,17 +294,16 @@ class LangChainKernel(BaseIntegration):
                     raise PolicyViolationError(reason)
                 logger.info("Policy ALLOW on stream")
 
-                for chunk in self._original.stream(input_data, **kwargs):
-                    yield chunk
+                yield from self._original.stream(input_data, **kwargs)
 
                 self._kernel.post_execute(self._ctx, None)
-            
+
             # Passthrough for non-execution methods
             def __getattr__(self, name):
                 return getattr(self._original, name)
-        
+
         return GovernedLangChainAgent()
-    
+
     def unwrap(self, governed_agent: Any) -> Any:
         """Retrieve the original unwrapped LangChain object.
 

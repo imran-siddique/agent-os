@@ -18,9 +18,9 @@ import json
 import logging
 import re
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable
 
 from agent_os.integrations.base import GovernancePolicy, PatternType
 
@@ -53,10 +53,10 @@ class AuditEntry:
     timestamp: float
     agent_id: str
     tool_name: str
-    parameters: Dict[str, Any]
+    parameters: dict[str, Any]
     allowed: bool
     reason: str
-    approval_status: Optional[ApprovalStatus] = None
+    approval_status: ApprovalStatus | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -73,7 +73,7 @@ class AuditEntry:
 @dataclass
 class GatewayConfig:
     """Configuration returned by ``wrap_mcp_server``."""
-    server_config: Dict[str, Any]
+    server_config: dict[str, Any]
     policy_name: str
     allowed_tools: list[str]
     denied_tools: list[str]
@@ -94,9 +94,9 @@ class MCPGateway:
         self,
         policy: GovernancePolicy,
         *,
-        denied_tools: Optional[list[str]] = None,
-        sensitive_tools: Optional[list[str]] = None,
-        approval_callback: Optional[Callable[[str, str, Dict[str, Any]], ApprovalStatus]] = None,
+        denied_tools: list[str] | None = None,
+        sensitive_tools: list[str] | None = None,
+        approval_callback: Callable[[str, str, dict[str, Any]], ApprovalStatus] | None = None,
         enable_builtin_sanitization: bool = True,
     ) -> None:
         """
@@ -116,7 +116,7 @@ class MCPGateway:
         self.enable_builtin_sanitization = enable_builtin_sanitization
 
         # Per-agent call counters for rate limiting
-        self._agent_call_counts: Dict[str, int] = {}
+        self._agent_call_counts: dict[str, int] = {}
         # Audit log
         self._audit_log: list[AuditEntry] = []
         # Pre-compile built-in patterns
@@ -133,8 +133,8 @@ class MCPGateway:
         self,
         agent_id: str,
         tool_name: str,
-        params: Dict[str, Any],
-    ) -> Tuple[bool, str]:
+        params: dict[str, Any],
+    ) -> tuple[bool, str]:
         """Evaluate a tool call against the gateway's policy stack.
 
         Returns:
@@ -181,8 +181,8 @@ class MCPGateway:
         self,
         agent_id: str,
         tool_name: str,
-        params: Dict[str, Any],
-    ) -> Tuple[bool, str, Optional[ApprovalStatus]]:
+        params: dict[str, Any],
+    ) -> tuple[bool, str, ApprovalStatus | None]:
         # 1. Deny-list check
         if tool_name in self.denied_tools:
             return False, f"Tool '{tool_name}' is on the deny list", None
@@ -252,11 +252,11 @@ class MCPGateway:
 
     @staticmethod
     def wrap_mcp_server(
-        server_config: Dict[str, Any],
+        server_config: dict[str, Any],
         policy: GovernancePolicy,
         *,
-        denied_tools: Optional[list[str]] = None,
-        sensitive_tools: Optional[list[str]] = None,
+        denied_tools: list[str] | None = None,
+        sensitive_tools: list[str] | None = None,
     ) -> GatewayConfig:
         """Produce a ``GatewayConfig`` that layers governance on a server.
 

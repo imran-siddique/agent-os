@@ -10,7 +10,6 @@ import importlib
 import inspect
 import logging
 import pkgutil
-from typing import Type
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +20,7 @@ class AdapterRegistry:
     """Singleton registry for framework adapters."""
 
     _instance: "AdapterRegistry | None" = None
-    _adapters: dict[str, Type[BaseIntegration]]
+    _adapters: dict[str, type[BaseIntegration]]
 
     def __new__(cls) -> "AdapterRegistry":
         if cls._instance is None:
@@ -29,7 +28,7 @@ class AdapterRegistry:
             cls._instance._adapters = {}
         return cls._instance
 
-    def register(self, name: str, adapter_class: Type[BaseIntegration]) -> None:
+    def register(self, name: str, adapter_class: type[BaseIntegration]) -> None:
         """Register an adapter class under the given name.
 
         Raises:
@@ -45,7 +44,7 @@ class AdapterRegistry:
             raise ValueError(f"Adapter '{name}' is already registered")
         self._adapters[name] = adapter_class
 
-    def get(self, name: str) -> Type[BaseIntegration]:
+    def get(self, name: str) -> type[BaseIntegration]:
         """Return the adapter class registered under *name*.
 
         Raises:
@@ -54,7 +53,7 @@ class AdapterRegistry:
         try:
             return self._adapters[name]
         except KeyError:
-            raise KeyError(f"No adapter registered with name '{name}'")
+            raise KeyError(f"No adapter registered with name '{name}'") from None
 
     def list_adapters(self) -> list[str]:
         """Return sorted list of registered adapter names."""
@@ -75,7 +74,7 @@ class AdapterRegistry:
         package = importlib.import_module("agent_os.integrations")
         package_path = package.__path__
 
-        for importer, modname, ispkg in pkgutil.iter_modules(package_path):
+        for _importer, modname, _ispkg in pkgutil.iter_modules(package_path):
             if modname.startswith("_"):
                 continue
             full_name = f"agent_os.integrations.{modname}"
@@ -105,7 +104,7 @@ def register_adapter(name: str):
             ...
     """
 
-    def decorator(cls: Type[BaseIntegration]) -> Type[BaseIntegration]:
+    def decorator(cls: type[BaseIntegration]) -> type[BaseIntegration]:
         AdapterRegistry().register(name, cls)
         return cls
 

@@ -8,9 +8,9 @@ recording what WOULD have happened without actually blocking execution.
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
-from .base import BaseIntegration, ExecutionContext, GovernancePolicy
+from .base import BaseIntegration, ExecutionContext
 
 
 class DryRunDecision(Enum):
@@ -34,15 +34,15 @@ class DryRunCollector:
     """Accumulates dry-run results and provides summary reports."""
 
     def __init__(self) -> None:
-        self._results: List[DryRunResult] = []
+        self._results: list[DryRunResult] = []
 
     def add(self, result: DryRunResult) -> None:
         self._results.append(result)
 
-    def get_results(self) -> List[DryRunResult]:
+    def get_results(self) -> list[DryRunResult]:
         return list(self._results)
 
-    def summary(self) -> Dict[str, Any]:
+    def summary(self) -> dict[str, Any]:
         total = len(self._results)
         counts = {d.value: 0 for d in DryRunDecision}
         for r in self._results:
@@ -112,10 +112,10 @@ class DryRunPolicy:
         self.collector.add(result)
         return result
 
-    def get_results(self) -> List[DryRunResult]:
+    def get_results(self) -> list[DryRunResult]:
         return self.collector.get_results()
 
-    def summary(self) -> Dict[str, Any]:
+    def summary(self) -> dict[str, Any]:
         return self.collector.summary()
 
     def clear(self) -> None:

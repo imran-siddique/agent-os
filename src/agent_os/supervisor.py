@@ -20,8 +20,8 @@ Example:
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from dataclasses import dataclass
+from typing import Any
 
 from agent_os.trust_root import TrustDecision, TrustRoot
 
@@ -44,7 +44,7 @@ class SupervisorHierarchy:
 
     def __init__(self, trust_root: TrustRoot) -> None:
         self.trust_root = trust_root
-        self._supervisors: List[_Supervisor] = []
+        self._supervisors: list[_Supervisor] = []
 
     # ------------------------------------------------------------------
     # Registration
@@ -69,7 +69,7 @@ class SupervisorHierarchy:
     # Validation
     # ------------------------------------------------------------------
 
-    def validate_hierarchy(self) -> List[str]:
+    def validate_hierarchy(self) -> list[str]:
         """Check hierarchy rules and return a list of violations (empty = valid).
 
         Rules:
@@ -77,7 +77,7 @@ class SupervisorHierarchy:
         - Middle levels (1–N) may be agent-based.
         - Each level present must have at least one supervisor.
         """
-        violations: List[str] = []
+        violations: list[str] = []
 
         level_0 = [s for s in self._supervisors if s.level == 0]
         if not level_0:
@@ -102,7 +102,7 @@ class SupervisorHierarchy:
     # Authority chain & escalation
     # ------------------------------------------------------------------
 
-    def get_authority_chain(self, action: Dict[str, Any]) -> List[str]:
+    def get_authority_chain(self, action: dict[str, Any]) -> list[str]:
         """Return the ordered chain of supervisor names that would evaluate *action*.
 
         The chain goes from the lowest (closest to workers) up to the trust root.
@@ -112,7 +112,7 @@ class SupervisorHierarchy:
 
     def escalate(
         self,
-        action: Dict[str, Any],
+        action: dict[str, Any],
         from_level: int,
     ) -> TrustDecision:
         """Escalate *action* up the hierarchy starting above *from_level*.

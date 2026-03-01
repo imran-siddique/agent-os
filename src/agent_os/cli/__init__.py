@@ -24,7 +24,6 @@ from __future__ import annotations
 
 import argparse
 import csv
-import io
 import json
 import logging
 import os
@@ -32,10 +31,9 @@ import re
 import subprocess
 import sys
 import time
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
-from typing import Any, Optional, List, Dict, Tuple
-
+from typing import Any
 
 # ============================================================================
 # Environment Variable Configuration
@@ -52,7 +50,7 @@ VALID_LOG_LEVELS = ("DEBUG", "INFO", "WARNING", "ERROR")
 VALID_BACKENDS = ("memory", "redis")
 
 
-def get_env_config() -> Dict[str, Optional[str]]:
+def get_env_config() -> dict[str, str | None]:
     """Read configuration from environment variables."""
     return {
         "config_path": os.environ.get("AGENTOS_CONFIG"),
@@ -71,7 +69,7 @@ def configure_logging(level_name: str) -> None:
     logging.getLogger().setLevel(level)
 
 
-def get_config_path(args_path: Optional[str] = None) -> Path:
+def get_config_path(args_path: str | None = None) -> Path:
     """Resolve the config path from args or AGENTOS_CONFIG env var."""
     if args_path:
         return Path(args_path)
@@ -100,7 +98,7 @@ class Colors:
     that instead of the class directly.
     """
 
-    _DEFAULTS: Dict[str, str] = {
+    _DEFAULTS: dict[str, str] = {
         'RED': '\033[91m',
         'GREEN': '\033[92m',
         'YELLOW': '\033[93m',
@@ -113,7 +111,7 @@ class Colors:
         'RESET': '\033[0m',
     }
 
-    def __init__(self, enabled: Optional[bool] = None) -> None:
+    def __init__(self, enabled: bool | None = None) -> None:
         if enabled is None:
             enabled = supports_color()
         self._enabled = enabled
@@ -151,7 +149,7 @@ DOCS_URL = "https://github.com/imran-siddique/agent-os/blob/main/docs"
 AVAILABLE_POLICIES = ("strict", "permissive", "audit")
 
 
-def _difflib_best_match(word: str, candidates: List[str]) -> Optional[str]:
+def _difflib_best_match(word: str, candidates: list[str]) -> str | None:
     """Return the closest match from *candidates*, or ``None``."""
     import difflib
 
@@ -159,8 +157,8 @@ def _difflib_best_match(word: str, candidates: List[str]) -> Optional[str]:
     return matches[0] if matches else None
 
 
-def format_error(message: str, suggestion: Optional[str] = None,
-                 docs_path: Optional[str] = None) -> str:
+def format_error(message: str, suggestion: str | None = None,
+                 docs_path: str | None = None) -> str:
     """Return a colorized error string with an optional suggestion and docs link."""
     parts = [f"{Colors.RED}{Colors.BOLD}Error:{Colors.RESET} {message}"]
     if suggestion:
@@ -218,7 +216,7 @@ def handle_connection_error(host: str, port: int) -> str:
 class PolicyViolation:
     """Represents a policy violation found in code."""
     def __init__(self, line: int, code: str, violation: str, policy: str,
-                 severity: str = 'high', suggestion: Optional[str] = None) -> None:
+                 severity: str = 'high', suggestion: str | None = None) -> None:
         self.line = line
         self.code = code
         self.violation = violation
@@ -229,11 +227,11 @@ class PolicyViolation:
 
 class PolicyChecker:
     """Local-first code policy checker."""
-    
+
     def __init__(self) -> None:
         self.rules = self._load_default_rules()
-    
-    def _load_default_rules(self) -> List[Dict[str, Any]]:
+
+    def _load_default_rules(self) -> list[dict[str, Any]]:
         """Load default safety rules."""
         return [
             # Destructive SQL
@@ -384,7 +382,7 @@ class PolicyChecker:
                 'languages': ['javascript', 'typescript']
             },
         ]
-    
+
     def _get_language(self, filepath: str) -> str:
         """Detect language from file extension."""
         ext_map = {
@@ -405,26 +403,26 @@ class PolicyChecker:
         }
         ext = Path(filepath).suffix.lower()
         return ext_map.get(ext, 'unknown')
-    
-    def check_file(self, filepath: str) -> List[PolicyViolation]:
+
+    def check_file(self, filepath: str) -> list[PolicyViolation]:
         """Check a file for policy violations."""
         path = Path(filepath)
         if not path.exists():
             raise FileNotFoundError(f"File not found: {filepath}")
-        
+
         language = self._get_language(filepath)
         content = path.read_text(encoding='utf-8', errors='ignore')
         lines = content.split('\n')
-        
+
         violations = []
-        
+
         for rule in self.rules:
             # Check language filter
             if rule['languages'] and language not in rule['languages']:
                 continue
-            
+
             pattern = re.compile(rule['pattern'], re.IGNORECASE)
-            
+
             for i, line in enumerate(lines, 1):
                 if pattern.search(line):
                     violations.append(PolicyViolation(
@@ -435,10 +433,10 @@ class PolicyChecker:
                         severity=rule['severity'],
                         suggestion=rule.get('suggestion')
                     ))
-        
+
         return violations
-    
-    def check_staged_files(self) -> Dict[str, List[PolicyViolation]]:
+
+    def check_staged_files(self) -> dict[str, list[PolicyViolation]]:
         """Check all staged git files for violations."""
         try:
             result = subprocess.run(
@@ -448,14 +446,14 @@ class PolicyChecker:
             files = [f for f in result.stdout.strip().split('\n') if f]
         except subprocess.CalledProcessError:
             return {}
-        
+
         all_violations = {}
         for filepath in files:
             if Path(filepath).exists():
                 violations = self.check_file(filepath)
                 if violations:
                     all_violations[filepath] = violations
-        
+
         return all_violations
 
 
@@ -463,7 +461,7 @@ def cmd_init(args: argparse.Namespace) -> int:
     """Initialize .agents/ directory with Agent OS support."""
     root = Path(args.path or ".")
     agents_dir = root / ".agents"
-    
+
     if agents_dir.exists() and not args.force:
         print(format_error(
             f"{agents_dir} already exists",
@@ -471,9 +469,9 @@ def cmd_init(args: argparse.Namespace) -> int:
             docs_path="getting-started.md",
         ))
         return 1
-    
+
     agents_dir.mkdir(parents=True, exist_ok=True)
-    
+
     # Create agents.md (OpenAI/Anthropic standard)
     agents_md = agents_dir / "agents.md"
     agents_md.write_text("""# Agent Configuration
@@ -499,11 +497,11 @@ You must:
 This agent is part of the Agent OS ecosystem.
 For more information: https://github.com/imran-siddique/agent-os
 """)
-    
+
     # Create security.md (Agent OS extension)
     security_md = agents_dir / "security.md"
     policy_template = args.template or "strict"
-    
+
     policies = {
         "strict": {
             "mode": "strict",
@@ -530,32 +528,32 @@ For more information: https://github.com/imran-siddique/agent-os
             ]
         }
     }
-    
+
     policy = policies.get(policy_template, policies["strict"])
-    
+
     security_content = f"""# Agent OS Security Configuration
 
 kernel:
   version: "1.0"
   mode: {policy["mode"]}
-  
+
 signals:
 """
     for s in policy["signals"]:
         security_content += f"  - {s}\n"
-    
+
     security_content += "\npolicies:\n"
     for r in policy["rules"]:
         security_content += f'  - action: {r["action"]}\n'
         if "mode" in r:
             security_content += f'    mode: {r["mode"]}\n'
         if r.get("requires_approval"):
-            security_content += f'    requires_approval: true\n'
+            security_content += '    requires_approval: true\n'
         if "rate_limit" in r:
             security_content += f'    rate_limit: "{r["rate_limit"]}"\n'
         if "effect" in r:
             security_content += f'    effect: {r["effect"]}\n'
-    
+
     security_content += """
 observability:
   metrics: true
@@ -565,19 +563,19 @@ observability:
 # For more options, see:
 # https://github.com/imran-siddique/agent-os/blob/main/docs/security-spec.md
 """
-    
+
     security_md.write_text(security_content)
-    
+
     print(f"Initialized Agent OS in {agents_dir}")
-    print(f"  - agents.md: Agent instructions (OpenAI/Anthropic standard)")
-    print(f"  - security.md: Kernel policies (Agent OS extension)")
+    print("  - agents.md: Agent instructions (OpenAI/Anthropic standard)")
+    print("  - security.md: Kernel policies (Agent OS extension)")
     print(f"  - Template: {policy_template}")
     print()
     print("Next steps:")
     print("  1. Edit .agents/agents.md with your agent's capabilities")
     print("  2. Customize .agents/security.md policies")
     print("  3. Run: agentos secure --verify")
-    
+
     return 0
 
 
@@ -585,11 +583,11 @@ def cmd_secure(args: argparse.Namespace) -> int:
     """Enable kernel governance for the current directory."""
     root = Path(args.path or ".")
     agents_dir = root / ".agents"
-    
+
     if not agents_dir.exists():
         print(handle_missing_config(str(root)))
         return 1
-    
+
     security_md = agents_dir / "security.md"
     if not security_md.exists():
         print(format_error(
@@ -598,27 +596,27 @@ def cmd_secure(args: argparse.Namespace) -> int:
             docs_path="security-spec.md",
         ))
         return 1
-    
+
     print(f"Securing agents in {root}...")
     print()
-    
+
     content = security_md.read_text()
-    
+
     checks = [
         ("kernel version", "version:" in content),
         ("signals defined", "signals:" in content),
         ("policies defined", "policies:" in content),
     ]
-    
+
     all_passed = True
     for check_name, passed in checks:
         status = "[PASS]" if passed else "[FAIL]"
         print(f"  {status} {check_name}")
         if not passed:
             all_passed = False
-    
+
     print()
-    
+
     if all_passed:
         print("Security configuration valid.")
         print()
@@ -650,8 +648,8 @@ def cmd_audit(args: argparse.Namespace) -> int:
         "security.md": agents_dir / "security.md",
     }
 
-    findings: List[Dict[str, str]] = []
-    file_status: Dict[str, bool] = {}
+    findings: list[dict[str, str]] = []
+    file_status: dict[str, bool] = {}
 
     for name, path in files.items():
         exists = path.exists()
@@ -725,8 +723,8 @@ def cmd_audit(args: argparse.Namespace) -> int:
 
 def _export_audit_csv(
     root: Path,
-    file_status: Dict[str, bool],
-    findings: List[Dict[str, str]],
+    file_status: dict[str, bool],
+    findings: list[dict[str, str]],
     passed: bool,
     output_path: str,
 ) -> None:
@@ -811,7 +809,7 @@ def cmd_check(args: argparse.Namespace) -> int:
     return exit_code
 
 
-def _print_violations(violations: List[PolicyViolation], args: argparse.Namespace) -> None:
+def _print_violations(violations: list[PolicyViolation], args: argparse.Namespace) -> None:
     """Print violations in formatted output."""
     for v in violations:
         severity_color = {
@@ -820,7 +818,7 @@ def _print_violations(violations: List[PolicyViolation], args: argparse.Namespac
             'medium': Colors.YELLOW,
             'low': Colors.CYAN,
         }.get(v.severity, Colors.WHITE)
-        
+
         print(f"  {Colors.DIM}Line {v.line}:{Colors.RESET} {v.code[:60]}{'...' if len(v.code) > 60 else ''}")
         print(f"    {severity_color}✗ Violation:{Colors.RESET} {v.violation}")
         print(f"    {Colors.DIM}Policy:{Colors.RESET} {v.policy}")
@@ -829,9 +827,9 @@ def _print_violations(violations: List[PolicyViolation], args: argparse.Namespac
         print()
 
 
-def _output_json_from_violations(all_violations: Dict[str, List[PolicyViolation]]) -> None:
+def _output_json_from_violations(all_violations: dict[str, list[PolicyViolation]]) -> None:
     """Output violations from a dict of {filepath: violations} as JSON."""
-    results: Dict = {
+    results: dict = {
         "violations": [],
         "summary": {"total": 0, "critical": 0, "high": 0, "medium": 0, "low": 0},
     }
@@ -850,7 +848,7 @@ def _output_json_from_violations(all_violations: Dict[str, List[PolicyViolation]
     print(json.dumps(results, indent=2))
 
 
-def _output_json(files: List[str], checker: PolicyChecker) -> None:
+def _output_json(files: list[str], checker: PolicyChecker) -> None:
     """Output violations as JSON."""
     results = {
         'violations': [],
@@ -862,7 +860,7 @@ def _output_json(files: List[str], checker: PolicyChecker) -> None:
             'low': 0,
         }
     }
-    
+
     for filepath in files:
         try:
             violations = checker.check_file(filepath)
@@ -879,25 +877,25 @@ def _output_json(files: List[str], checker: PolicyChecker) -> None:
                 results['summary'][v.severity] += 1
         except FileNotFoundError:
             pass
-    
+
     print(json.dumps(results, indent=2))
 
 
 def cmd_review(args: argparse.Namespace) -> int:
     """Multi-model code review with CMVK."""
     filepath = args.file
-    
+
     if not Path(filepath).exists():
         print(f"{Colors.RED}Error:{Colors.RESET} File not found: {filepath}")
         return 1
-    
+
     print(f"{Colors.BLUE}🔍 Reviewing {filepath} with CMVK...{Colors.RESET}")
     print()
-    
+
     # First, run local policy check
     checker = PolicyChecker()
     violations = checker.check_file(filepath)
-    
+
     if violations:
         print(f"{Colors.YELLOW}Local Policy Check:{Colors.RESET}")
         print(f"  {Colors.RED}⚠️  {len(violations)} violation(s) found{Colors.RESET}")
@@ -906,20 +904,20 @@ def cmd_review(args: argparse.Namespace) -> int:
         if len(violations) > 3:
             print(f"    ... and {len(violations) - 3} more")
         print()
-    
+
     # CMVK multi-model review (simulated for now)
     if args.cmvk:
         models = args.models.split(',') if args.models else ['gpt-4', 'claude-sonnet-4', 'gemini-pro']
-        
+
         print(f"{Colors.BLUE}Multi-Model Review ({len(models)} models):{Colors.RESET}")
         print()
-        
+
         # Read file content for analysis
         content = Path(filepath).read_text(encoding='utf-8', errors='ignore')
-        
+
         # Simulate model responses based on content analysis
         model_results = _simulate_cmvk_review(content, models)
-        
+
         passed = 0
         for model, result in model_results.items():
             if result['passed']:
@@ -927,25 +925,25 @@ def cmd_review(args: argparse.Namespace) -> int:
                 passed += 1
             else:
                 print(f"  {Colors.YELLOW}⚠️{Colors.RESET}  {model}: {result['summary']}")
-        
+
         print()
         consensus = (passed / len(models)) * 100
         consensus_color = Colors.GREEN if consensus >= 80 else Colors.YELLOW if consensus >= 50 else Colors.RED
         print(f"Consensus: {consensus_color}{consensus:.0f}%{Colors.RESET}")
-        
+
         if model_results:
             issues = []
-            for m, r in model_results.items():
+            for _m, r in model_results.items():
                 issues.extend(r.get('issues', []))
-            
+
             if issues:
                 print()
                 print(f"{Colors.YELLOW}Issues Found:{Colors.RESET}")
                 for issue in set(issues):
                     print(f"  - {issue}")
-        
+
         print()
-        
+
         if args.format == 'json':
             print(json.dumps({
                 'file': filepath,
@@ -953,81 +951,81 @@ def cmd_review(args: argparse.Namespace) -> int:
                 'model_results': model_results,
                 'local_violations': len(violations)
             }, indent=2))
-        
+
         return 0 if consensus >= 80 else 1
-    
+
     return 0 if not violations else 1
 
 
-def _simulate_cmvk_review(content: str, models: List[str]) -> Dict[str, Any]:
+def _simulate_cmvk_review(content: str, models: list[str]) -> dict[str, Any]:
     """Simulate CMVK multi-model review (mock for demo)."""
     import random
-    
+
     # Detect potential issues
     issues = []
-    
+
     if 'await' in content and 'try' not in content:
         issues.append('Missing error handling for async operations')
-    
+
     if re.search(r'["\']\s*\+\s*\w+\s*\+\s*["\']', content):
         issues.append('String concatenation in potential SQL/command')
-    
+
     if 'req.body' in content or 'req.params' in content:
         if 'validate' not in content.lower() and 'sanitize' not in content.lower():
             issues.append('User input without validation')
-    
+
     if 'Sync(' in content:
         issues.append('Synchronous file operations detected')
-    
+
     results = {}
     for model in models:
         # Vary responses slightly per model
         model_issues = [i for i in issues if random.random() > 0.3]
         passed = len(model_issues) == 0
-        
+
         results[model] = {
             'passed': passed,
             'summary': 'No issues' if passed else f'{len(model_issues)} potential issue(s)',
             'issues': model_issues,
             'confidence': 0.85 + random.random() * 0.1 if passed else 0.6 + random.random() * 0.2
         }
-    
+
     return results
 
 
 def cmd_install_hooks(args: argparse.Namespace) -> int:
     """Install git pre-commit hooks for Agent OS."""
     git_dir = Path('.git')
-    
+
     if not git_dir.exists():
         print(f"{Colors.RED}Error:{Colors.RESET} Not a git repository. Run 'git init' first.")
         print(f"  {Colors.DIM}Hint: git init && agentos install-hooks{Colors.RESET}")
         return 1
-    
+
     hooks_dir = git_dir / 'hooks'
     hooks_dir.mkdir(exist_ok=True)
-    
+
     pre_commit = hooks_dir / 'pre-commit'
-    
+
     # Check if hook already exists
     if pre_commit.exists() and not args.force:
         print(f"{Colors.YELLOW}Warning:{Colors.RESET} pre-commit hook already exists.")
         print("Use --force to overwrite, or --append to add Agent OS check.")
-        
+
         if args.append:
             # Append to existing hook
             existing = pre_commit.read_text()
             if 'agentos check' in existing:
                 print(f"{Colors.GREEN}✓{Colors.RESET} Agent OS check already in pre-commit hook")
                 return 0
-            
+
             new_content = existing.rstrip() + '\n\n' + _get_hook_content()
             pre_commit.write_text(new_content)
             print(f"{Colors.GREEN}✓{Colors.RESET} Appended Agent OS check to pre-commit hook")
             return 0
-        
+
         return 1
-    
+
     # Create new hook
     hook_content = f"""#!/bin/bash
 # Agent OS Pre-Commit Hook
@@ -1035,20 +1033,20 @@ def cmd_install_hooks(args: argparse.Namespace) -> int:
 
 {_get_hook_content()}
 """
-    
+
     pre_commit.write_text(hook_content)
-    
+
     # Make executable (Unix)
     if os.name != 'nt':
         os.chmod(pre_commit, 0o755)
-    
+
     print(f"{Colors.GREEN}✓{Colors.RESET} Installed pre-commit hook: {pre_commit}")
     print()
     print("Agent OS will now check staged files before each commit.")
     print("Commits with safety violations will be blocked.")
     print()
     print(f"{Colors.DIM}To bypass (not recommended): git commit --no-verify{Colors.RESET}")
-    
+
     return 0
 
 
@@ -1093,7 +1091,7 @@ def cmd_status(args: argparse.Namespace) -> int:
     agents_dir = root / ".agents"
     configured = agents_dir.exists()
 
-    packages: Dict[str, bool] = {}
+    packages: dict[str, bool] = {}
     try:
         from agent_os import AVAILABLE_PACKAGES
         packages = dict(AVAILABLE_PACKAGES)
@@ -1165,9 +1163,9 @@ def cmd_status(args: argparse.Namespace) -> int:
 def cmd_validate(args: argparse.Namespace) -> int:
     """Validate policy YAML files."""
     import yaml
-    
+
     print(f"\n{Colors.BOLD}🔍 Validating Policy Files{Colors.RESET}\n")
-    
+
     # Find files to validate
     files_to_check = []
     if args.files:
@@ -1179,48 +1177,48 @@ def cmd_validate(args: argparse.Namespace) -> int:
             files_to_check = list(agents_dir.glob("*.yaml")) + list(agents_dir.glob("*.yml"))
         if not files_to_check:
             print(f"{Colors.YELLOW}No policy files found.{Colors.RESET}")
-            print(f"Run 'agentos init' to create default policies, or specify files to validate.")
+            print("Run 'agentos init' to create default policies, or specify files to validate.")
             return 0
-    
+
     # Required fields for policy files
     REQUIRED_FIELDS = ['version', 'name']
     OPTIONAL_FIELDS = ['description', 'rules', 'constraints', 'signals', 'allowed_actions', 'blocked_actions']
     VALID_RULE_TYPES = ['allow', 'deny', 'audit', 'require']
-    
+
     errors = []
     warnings = []
     valid_count = 0
-    
+
     for filepath in files_to_check:
         if not filepath.exists():
             errors.append(f"{filepath}: File not found")
             continue
-            
+
         print(f"  Checking {filepath}...", end=" ")
-        
+
         try:
             with open(filepath) as f:
                 content = yaml.safe_load(f)
-            
+
             if content is None:
                 errors.append(f"{filepath}: Empty file")
                 print(f"{Colors.RED}EMPTY{Colors.RESET}")
                 continue
-            
+
             file_errors = []
             file_warnings = []
-            
+
             # Check required fields
             for field in REQUIRED_FIELDS:
                 if field not in content:
                     file_errors.append(f"Missing required field: '{field}'")
-            
+
             # Validate version format
             if 'version' in content:
                 version = str(content['version'])
                 if not re.match(r'^\d+(\.\d+)*$', version):
                     file_warnings.append(f"Version '{version}' should be numeric (e.g., '1.0')")
-            
+
             # Validate rules if present
             if 'rules' in content:
                 rules = content['rules']
@@ -1232,14 +1230,14 @@ def cmd_validate(args: argparse.Namespace) -> int:
                             file_errors.append(f"Rule {i+1}: must be a dict")
                         elif 'type' in rule and rule['type'] not in VALID_RULE_TYPES:
                             file_warnings.append(f"Rule {i+1}: unknown type '{rule['type']}'")
-            
+
             # Strict mode: warn about unknown fields
             if args.strict:
                 known_fields = REQUIRED_FIELDS + OPTIONAL_FIELDS
                 for field in content.keys():
                     if field not in known_fields:
                         file_warnings.append(f"Unknown field: '{field}'")
-            
+
             if file_errors:
                 errors.extend([f"{filepath}: {e}" for e in file_errors])
                 print(f"{Colors.RED}INVALID{Colors.RESET}")
@@ -1250,23 +1248,23 @@ def cmd_validate(args: argparse.Namespace) -> int:
             else:
                 print(f"{Colors.GREEN}OK{Colors.RESET}")
                 valid_count += 1
-                
+
         except yaml.YAMLError as e:
             errors.append(f"{filepath}: Invalid YAML - {e}")
             print(f"{Colors.RED}PARSE ERROR{Colors.RESET}")
         except Exception as e:
             errors.append(f"{filepath}: {e}")
             print(f"{Colors.RED}ERROR{Colors.RESET}")
-    
+
     print()
-    
+
     # Print summary
     if warnings:
         print(f"{Colors.YELLOW}Warnings:{Colors.RESET}")
         for w in warnings:
             print(f"  ⚠️  {w}")
         print()
-    
+
     if errors:
         print(f"{Colors.RED}Errors:{Colors.RESET}")
         for e in errors:
@@ -1274,7 +1272,7 @@ def cmd_validate(args: argparse.Namespace) -> int:
         print()
         print(f"{Colors.RED}Validation failed.{Colors.RESET} {valid_count}/{len(files_to_check)} files valid.")
         return 1
-    
+
     print(f"{Colors.GREEN}✓ All {valid_count} policy file(s) valid.{Colors.RESET}")
     return 0
 
@@ -1284,13 +1282,13 @@ def cmd_validate(args: argparse.Namespace) -> int:
 # ============================================================================
 
 _serve_start_time: float = 0.0
-_registered_agents: Dict[str, Dict] = {}
-_kernel_operations: Dict[str, int] = {"execute": 0, "set": 0, "get": 0}
+_registered_agents: dict[str, dict] = {}
+_kernel_operations: dict[str, int] = {"execute": 0, "set": 0, "get": 0}
 
 
-def _get_kernel_state() -> Dict[str, Any]:
+def _get_kernel_state() -> dict[str, Any]:
     """Collect kernel state for status and metrics endpoints."""
-    from agent_os import __version__, AVAILABLE_PACKAGES
+    from agent_os import AVAILABLE_PACKAGES, __version__
     from agent_os.metrics import metrics
 
     snap = metrics.snapshot()
@@ -1384,7 +1382,7 @@ def cmd_serve(args: argparse.Namespace) -> int:
     print("  GET  /agents              List agents")
     print("  POST /agents/{{id}}/execute  Execute agent action")
     print()
-    print(f"Press Ctrl+C to stop.")
+    print("Press Ctrl+C to stop.")
 
     server = HTTPServer((host, port), AgentOSRequestHandler)
     try:
@@ -1505,9 +1503,9 @@ Documentation: https://github.com/imran-siddique/agent-os
         action="store_true",
         help="Show version"
     )
-    
+
     subparsers = parser.add_subparsers(dest="command", help="Commands")
-    
+
     # init command
     init_parser = subparsers.add_parser(
         "init",
@@ -1520,7 +1518,7 @@ Documentation: https://github.com/imran-siddique/agent-os
     init_parser.add_argument("--template", "-t", choices=["strict", "permissive", "audit"],
                             default="strict", help="Policy template (default: strict)")
     init_parser.add_argument("--force", "-f", action="store_true", help="Overwrite existing .agents/ directory")
-    
+
     # secure command
     secure_parser = subparsers.add_parser(
         "secure",
@@ -1530,7 +1528,7 @@ Documentation: https://github.com/imran-siddique/agent-os
     )
     secure_parser.add_argument("--path", "-p", help="Path to secure (default: current directory)")
     secure_parser.add_argument("--verify", action="store_true", help="Only verify, don't modify")
-    
+
     # audit command
     audit_parser = subparsers.add_parser(
         "audit",
@@ -1545,7 +1543,7 @@ Documentation: https://github.com/imran-siddique/agent-os
                              help="Export audit results (csv)")
     audit_parser.add_argument("--output", "-o", default=None,
                              help="Output file path for export (default: audit.csv)")
-    
+
     # status command
     status_parser = subparsers.add_parser(
         "status",
@@ -1555,7 +1553,7 @@ Documentation: https://github.com/imran-siddique/agent-os
     )
     status_parser.add_argument("--format", choices=["text", "json"], default="text",
                               help="Output format: text (human-readable) or json (machine-readable)")
-    
+
     # check command
     check_parser = subparsers.add_parser(
         "check",
@@ -1568,7 +1566,7 @@ Documentation: https://github.com/imran-siddique/agent-os
     check_parser.add_argument("--staged", action="store_true", help="Check only git-staged files")
     check_parser.add_argument("--ci", action="store_true", help="CI mode (no colors, exit code 1 on violations)")
     check_parser.add_argument("--format", choices=["text", "json"], default="text", help="Output format")
-    
+
     # review command
     review_parser = subparsers.add_parser(
         "review",
@@ -1581,7 +1579,7 @@ Documentation: https://github.com/imran-siddique/agent-os
     review_parser.add_argument("--cmvk", action="store_true", help="Use CMVK multi-model consensus review")
     review_parser.add_argument("--models", help="Comma-separated models (default: gpt-4,claude-sonnet-4,gemini-pro)")
     review_parser.add_argument("--format", choices=["text", "json"], default="text", help="Output format")
-    
+
     # install-hooks command
     hooks_parser = subparsers.add_parser(
         "install-hooks",
@@ -1591,7 +1589,7 @@ Documentation: https://github.com/imran-siddique/agent-os
     )
     hooks_parser.add_argument("--force", action="store_true", help="Overwrite existing pre-commit hook")
     hooks_parser.add_argument("--append", action="store_true", help="Append to existing pre-commit hook")
-    
+
     # validate command
     validate_parser = subparsers.add_parser(
         "validate",
@@ -1601,7 +1599,7 @@ Documentation: https://github.com/imran-siddique/agent-os
     )
     validate_parser.add_argument("files", nargs="*", help="Policy files to validate (default: .agents/*.yaml)")
     validate_parser.add_argument("--strict", action="store_true", help="Strict mode: treat warnings as errors")
-    
+
     # serve command
     serve_parser = subparsers.add_parser(
         "serve",
@@ -1615,7 +1613,7 @@ Documentation: https://github.com/imran-siddique/agent-os
     serve_parser.add_argument(
         "--host", default="0.0.0.0", help="Host to bind to (default: 0.0.0.0)"
     )
-    
+
     # metrics command
     subparsers.add_parser(
         "metrics",
@@ -1635,13 +1633,13 @@ Documentation: https://github.com/imran-siddique/agent-os
         "--format", choices=["text", "json"], default="text",
         help="Output format (default: text)",
     )
-    
+
     args = parser.parse_args()
-    
+
     # Handle CI mode
     if hasattr(args, 'ci') and args.ci:
         Colors.disable()
-    
+
     if args.version:
         try:
             from agent_os import __version__
@@ -1649,7 +1647,7 @@ Documentation: https://github.com/imran-siddique/agent-os
         except Exception:
             print("agentos (version unknown)")
         return 0
-    
+
     commands = {
         "init": cmd_init,
         "secure": cmd_secure,

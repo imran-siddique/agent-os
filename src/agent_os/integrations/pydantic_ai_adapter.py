@@ -37,7 +37,7 @@ import logging
 import time
 from datetime import datetime, timezone
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable
 
 from .base import (
     BaseIntegration,
@@ -62,7 +62,7 @@ except ImportError:
 class HumanApprovalRequired(PolicyViolationError):
     """Raised when a tool call requires human approval."""
 
-    def __init__(self, tool_name: str, arguments: Dict[str, Any]):
+    def __init__(self, tool_name: str, arguments: dict[str, Any]):
         self.tool_name = tool_name
         self.arguments = arguments
         super().__init__(
@@ -84,19 +84,19 @@ class PydanticAIKernel(BaseIntegration):
 
     def __init__(
         self,
-        policy: Optional[GovernancePolicy] = None,
-        approval_callback: Optional[Callable[[str, Dict[str, Any]], bool]] = None,
+        policy: GovernancePolicy | None = None,
+        approval_callback: Callable[[str, dict[str, Any]], bool] | None = None,
     ) -> None:
         super().__init__(policy)
-        self._wrapped_agents: Dict[int, Any] = {}
-        self._audit_log: List[Dict[str, Any]] = []
+        self._wrapped_agents: dict[int, Any] = {}
+        self._audit_log: list[dict[str, Any]] = []
         self._approval_callback = approval_callback
         self._start_time: float = time.monotonic()
-        self._last_error: Optional[str] = None
+        self._last_error: str | None = None
         logger.debug("PydanticAIKernel initialized with policy=%s", policy)
 
     @property
-    def audit_log(self) -> List[Dict[str, Any]]:
+    def audit_log(self) -> list[dict[str, Any]]:
         """Return the full audit log."""
         return list(self._audit_log)
 
@@ -106,9 +106,9 @@ class PydanticAIKernel(BaseIntegration):
         tool_name: str = "",
         allowed: bool = True,
         reason: str = "",
-        arguments: Optional[Dict[str, Any]] = None,
+        arguments: dict[str, Any] | None = None,
         agent_id: str = "",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Record an audit entry and return it."""
         entry = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -256,7 +256,7 @@ class PydanticAIKernel(BaseIntegration):
         self,
         ctx: ExecutionContext,
         tool_name: str,
-        arguments: Dict[str, Any],
+        arguments: dict[str, Any],
     ) -> ToolCallResult:
         """
         Evaluate a tool call against the governance policy.
@@ -292,7 +292,7 @@ class PydanticAIKernel(BaseIntegration):
         )
         return interceptor.intercept(request)
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get governance statistics."""
         total_calls = sum(c.call_count for c in self.contexts.values())
         return {
@@ -311,7 +311,7 @@ class PydanticAIKernel(BaseIntegration):
             },
         }
 
-    def health_check(self) -> Dict[str, Any]:
+    def health_check(self) -> dict[str, Any]:
         """Return adapter health status."""
         uptime = time.monotonic() - self._start_time
         status = "degraded" if self._last_error else "healthy"
@@ -363,7 +363,7 @@ def _wrap_single_tool(
     @wraps(original_fn)
     def governed_fn(*args: Any, **kwargs: Any) -> Any:
         # Build arguments dict for policy check
-        call_args: Dict[str, Any] = kwargs.copy()
+        call_args: dict[str, Any] = kwargs.copy()
         if args:
             call_args["_positional"] = list(args)
 
@@ -402,7 +402,7 @@ def _wrap_single_tool(
 
 
 # Convenience function
-def wrap(agent: Any, policy: Optional[GovernancePolicy] = None, **kwargs) -> Any:
+def wrap(agent: Any, policy: GovernancePolicy | None = None, **kwargs) -> Any:
     """Quick wrapper for PydanticAI agents."""
     return PydanticAIKernel(policy, **kwargs).wrap(agent)
 
