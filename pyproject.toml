@@ -114,6 +114,7 @@ dev = [
     "aiohttp>=3.8.0",
     "structlog>=24.1.0",
     "redis>=4.0.0",
+    "eval_type_backport>=0.2.0; python_version < '3.10'",
 ]
 
 [project.scripts]
