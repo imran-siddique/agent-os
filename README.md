@@ -12,7 +12,6 @@
 [![PyPI](https://img.shields.io/pypi/v/agent-os-kernel)](https://pypi.org/project/agent-os-kernel/)
 [![Downloads](https://img.shields.io/pypi/dm/agent-os-kernel)](https://pypi.org/project/agent-os-kernel/)
 [![OWASP](https://img.shields.io/badge/OWASP_Agentic_Top_10-9/10_Covered-brightgreen)](https://github.com/imran-siddique/agent-governance/blob/master/docs/OWASP-COMPLIANCE.md)
-[![Glama](https://glama.ai/mcp/servers/@imran-siddique/agentos-mcp-server/badge?features=false&install=false)](https://glama.ai/mcp/servers/@imran-siddique/agentos-mcp-server)
 [![VS Code Extension](https://img.shields.io/badge/VS%20Code-Extension-007ACC?logo=visual-studio-code)](https://marketplace.visualstudio.com/items?itemName=agent-os.agent-os-vscode)
 [![Documentation](https://img.shields.io/badge/docs-imran--siddique.github.io-blue)](https://imran-siddique.github.io/agent-os-docs/)
 [![Featured in awesome-llm-apps](https://img.shields.io/badge/Featured%20in-awesome--llm--apps-orange)](https://github.com/Shubhamsaboo/awesome-llm-apps)
